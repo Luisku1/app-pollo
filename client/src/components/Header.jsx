@@ -1,4 +1,3 @@
-import React from 'react'
 import { GiChicken } from 'react-icons/gi'
 import { Link } from 'react-router-dom'
 import { CgProfile } from 'react-icons/cg'
