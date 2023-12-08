@@ -1,5 +1,4 @@
-import { Decimal128 } from 'mongodb/mongodb'
-import mongoose from 'mongoose'
+import mongoose, { Schema } from 'mongoose'
 
 const customerSchema = mongoose.Schema( {
 
@@ -14,9 +13,15 @@ const customerSchema = mongoose.Schema( {
     },
 
     balance: {
-        type: Decimal128,
+        type: Number,
         default: 0.0
+    },
+
+    company: {
+        type: Schema.Types.ObjectId, ref: 'Company',
+        required: true
     }
+
 }, { timestamps: true } )
 
 const Customer = mongoose.model('Customer', customerSchema)

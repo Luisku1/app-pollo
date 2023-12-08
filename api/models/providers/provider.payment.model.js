@@ -1,5 +1,4 @@
-import { Decimal128 } from 'mongodb/mongodb'
-import mongoose from 'mongoose'
+import mongoose, { Schema } from 'mongoose'
 
 const providerPaymentSchema = mongoose.Schema( {
 

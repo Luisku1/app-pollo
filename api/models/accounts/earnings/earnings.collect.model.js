@@ -1,5 +1,5 @@
-import { Decimal128 } from 'mongodb/mongodb'
 import mongoose from 'mongoose'
+const { Schema } = mongoose
 
 const earningsCollectedSchema = mongoose.Schema( {
 
@@ -9,7 +9,12 @@ const earningsCollectedSchema = mongoose.Schema( {
     },
 
     comment: {
-        type: Decimal128,
+        type: String,
+    },
+
+    company: {
+        type: Schema.Types.ObjectId, ref: 'Company',
+        required: true
     },
 
     branch: {
@@ -17,8 +22,8 @@ const earningsCollectedSchema = mongoose.Schema( {
         required: true
     },
 
-    user: {
-        type: Schema.Types.ObjectId, ref: 'User',
+    employee: {
+        type: Schema.Types.ObjectId, ref: 'Employee',
         required: true
     },
 

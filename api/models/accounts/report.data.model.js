@@ -1,5 +1,4 @@
-import { Decimal128 } from 'mongodb/mongodb'
-import mongoose from 'mongoose'
+import mongoose, { Schema } from 'mongoose'
 
 const reportDataSchema = mongoose.Schema( {
 
@@ -21,6 +20,10 @@ const reportDataSchema = mongoose.Schema( {
     outgoings: {
         type: Number,
         required: true
+    },
+
+    company: {
+        type: Schema.Types.ObjectId, ref: 'Company'
     }
 
 }, { timestamps: true } )

@@ -1,5 +1,4 @@
-import { Decimal128 } from 'mongodb/mongodb'
-import mongoose from 'mongoose'
+import mongoose, { Schema } from 'mongoose'
 
 const customerSaleSchema = mongoose.Schema( {
 
@@ -18,6 +17,12 @@ const customerSaleSchema = mongoose.Schema( {
         required: true
     },
 
+    folio: {
+        type: String,
+        required: true,
+        unique: true
+    },
+
     product: {
         type: Schema.Types.ObjectId, ref: 'Product'
     },
@@ -26,6 +31,7 @@ const customerSaleSchema = mongoose.Schema( {
         type: Schema.Types.ObjectId, ref: 'Customer',
         required: true
     }
+
 }, { timestamps: true } )
 
 const CustomerSale = mongoose.model('CustomerSale', customerSaleSchema)

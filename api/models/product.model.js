@@ -1,4 +1,4 @@
-import mongoose from 'mongoose'
+import mongoose, { Schema } from 'mongoose'
 
 const productSchema = mongoose.Schema( {
 
@@ -6,6 +6,11 @@ const productSchema = mongoose.Schema( {
         type: String,
         required: true,
         unique: true
+    },
+
+    company: {
+        type: Schema.Types.ObjectId, ref: 'Company',
+        required: true,
     }
 
 }, { timestamps: true } )

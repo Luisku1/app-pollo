@@ -1,5 +1,4 @@
-import { Decimal128 } from 'mongodb/mongodb'
-import mongoose from 'mongoose'
+import mongoose, { Schema } from 'mongoose'
 
 const inputSchema = mongoose.Schema(
     {
@@ -15,6 +14,11 @@ const inputSchema = mongoose.Schema(
 
         comment: {
             type: String,
+            required: true
+        },
+
+        company: {
+            type: Schema.Types.ObjectId, ref: 'Company',
             required: true
         },
 

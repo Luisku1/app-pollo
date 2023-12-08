@@ -1,11 +1,10 @@
 import { Decimal128 } from 'mongodb'
-
-const mongoose = require('mongoose')
+import mongoose, {Schema} from 'mongoose'
 
 const outgoingSchema = mongoose.Schema ( {
 
     amount: {
-        type: Decimal128,
+        type: String,
         required: true
     },
 
@@ -15,11 +14,12 @@ const outgoingSchema = mongoose.Schema ( {
     },
 
     branch: {
-        type: Schema.Types.ObjectId, ref: 'Branch'
+        type: Schema.Types.ObjectId, ref: 'Branch',
+        required: true
     }
 
 }, { timestamps: true } )
 
-const Outgoing = mongoose.model('Outgoing', outgoingsSchema)
+const Outgoing = mongoose.model('Outgoing', outgoingSchema)
 
 export default Outgoing

@@ -1,6 +1,6 @@
 import mongoose from 'mongoose'
 
-const earningSourcesSchema = mongoose.Schema( {
+const earningsSourceSchema = mongoose.Schema( {
 
     name: {
         type: String,
@@ -8,6 +8,6 @@ const earningSourcesSchema = mongoose.Schema( {
     }
 })
 
-const EarningsSource = mongoose.model('EarningSources', earningSourcesSchema)
+const EarningsSource = mongoose.model('EarningSources', earningsSourceSchema)
 
-export default EarningSources
+export default EarningsSource

@@ -1,5 +1,4 @@
-import { Decimal128 } from 'mongodb/mongodb'
-import mongoose from 'mongoose'
+import mongoose, { Schema } from 'mongoose'
 
 
 const productLossSchema = mongoose.Schema( {
@@ -17,7 +16,12 @@ const productLossSchema = mongoose.Schema( {
     admitted: {
         type: Boolean,
         required: true,
-        defaultl: false
+        default: false
+    },
+
+    company: {
+        type: Schema.Types.ObjectId, ref: 'Company',
+        required: true
     },
 
     product: {

@@ -1,0 +1,12 @@
+#header {
+  display: grid;
+  gap: 1rem;
+  grid-auto-columns: 22rem;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+}
+
+#header, p {
+
+  grid-column: span 2;
+
+}

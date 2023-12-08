@@ -1,9 +1,9 @@
-import { Decimal128 } from 'mongodb/mongodb'
-import mongoose from 'mongoose'
+import { Decimal128 } from 'mongodb'
+import mongoose, { Schema } from 'mongoose'
 
 const branchSchema = mongoose.Schema( {
 
-    name: {
+    branch: {
         type: String,
         required: true,
     },
@@ -32,10 +32,15 @@ const branchSchema = mongoose.Schema( {
         required: true
     },
 
+    company: {
+        type: Schema.Types.ObjectId, ref: 'Company',
+        required: true
+    },
+
     zone: {
         type: Schema.Types.ObjectId, ref: 'Zone',
-        required: true
     }
+
 }, { timestamps: true } )
 
 const Branch = mongoose.model('Branch', branchSchema)

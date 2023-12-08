@@ -1,10 +1,9 @@
-import { Decimal128 } from 'mongodb/mongodb'
-import mongoose from 'mongoose'
+import mongoose, { Schema } from 'mongoose'
 
 const priceSchema = mongoose.Schema( {
 
     price: {
-        type: Decimal128,
+        type: String,
         required: true
     },
 

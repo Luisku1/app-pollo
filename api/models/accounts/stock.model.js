@@ -1,5 +1,4 @@
-import { Decimal128 } from 'mongodb/mongodb'
-import mongoose from 'mongoose'
+import mongoose, { Schema } from 'mongoose'
 
 const stockSchema = mongoose.Schema( {
 
@@ -9,7 +8,7 @@ const stockSchema = mongoose.Schema( {
     },
 
     weight: {
-        type: Decimal128,
+        type: String,
         required: true
     },
 

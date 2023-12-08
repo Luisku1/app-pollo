@@ -1,7 +1,6 @@
-import { Decimal128 } from 'mongodb/mongodb'
-import mongoose from 'mongoose'
+import mongoose, { Schema } from 'mongoose'
 
-const userDailyBalanceSchema = mongoose.Schema( {
+const employeeDailyBalanceSchema = mongoose.Schema( {
 
     lostMoney: {
         type: Decimal128,
@@ -28,18 +27,24 @@ const userDailyBalanceSchema = mongoose.Schema( {
         default: false
     },
 
+    restDay: {
+
+        type: Boolean,
+        default: false,
+    },
+
     penalties: {
         type: Decimal128,
         default: 0.0
     },
 
-    user: {
-        type: Schema.Types.ObjectId, ref: 'User',
+    employee: {
+        type: Schema.Types.ObjectId, ref: 'Employee',
         required: true
     }
 
 }, { timestamps: true } )
 
-const UserDailyBalance = mongoose.model('UserDailyBalance', userDailyBalanceSchema)
+const EmployeeDailyBalance = mongoose.model('EmployeeDailyBalance', employeeDailyBalanceSchema)
 
-export default UserDailyBalance
+export default EmployeeDailyBalance

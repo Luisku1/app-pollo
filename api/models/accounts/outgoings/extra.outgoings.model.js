@@ -1,5 +1,4 @@
-import { Decimal128 } from 'mongodb/mongodb'
-import mongoose from 'mongoose'
+import mongoose, { Schema } from 'mongoose'
 
 const extraOutgoingsSchema = mongoose.Schema( {
 
@@ -13,9 +12,16 @@ const extraOutgoingsSchema = mongoose.Schema( {
         required: true
     },
 
-    user: {
-        type: Schema.Types.ObjectId, ref: 'User'
+    company: {
+        type: Schema.Types.ObjectId, ref: 'Company',
+        required: true
+    },
+
+    employee: {
+        type: Schema.Types.ObjectId, ref: 'Employee',
+        required: true
     }
+
 }, { timestamps: true } )
 
 const ExtraOutgoings = mongoose.model('ExtraOutgoings', extraOutgoingsSchema)

@@ -13,8 +13,13 @@ const loanSchema = mongoose.Schema( {
         required: true
     },
 
+    company: {
+        type: Schema.Types.ObjectId, ref: 'Company',
+        required: true
+    },
+
     user: {
-        type: Schema.Types.ObjectId, ref: 'User',
+        type: Schema.Types.ObjectId, ref: 'Employee',
         required: true
     }
 }, { timestamps: true } )

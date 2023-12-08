@@ -1,5 +1,4 @@
-const { Decimal128 } = require('mongodb/mongodb')
-const mongoose = require('mongoose')
+import mongoose, { Schema } from 'mongoose'
 
 const outputSchema = mongoose.Schema ( {
 
@@ -23,10 +22,16 @@ const outputSchema = mongoose.Schema ( {
         required: true
     },
 
+    company: {
+        type: Schema.Types.ObjectId, ref: 'Company',
+        required: true
+    },
+
     branch: {
         type: Schema.Types.ObjectId, ref: 'Branch',
         required: true
     }
+
 }, { timestamps: true } )
 
 const Output = mongoose.model('Output', outputSchema)

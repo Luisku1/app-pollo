@@ -1,5 +1,5 @@
 import { Decimal128 } from 'mongodb/mongodb'
-import mongoose from 'mongoose'
+import mongoose, { Schema } from 'mongoose'
 
 const branchReportSchema = mongoose.Schema( {
 
@@ -33,13 +33,19 @@ const branchReportSchema = mongoose.Schema( {
         required: true
     },
 
+    company: {
+        type: Schema.Types.ObjectId, ref: 'Company',
+        required: true
+    },
+
     branch: {
         type: Schema.Types.ObjectId, ref: 'Branch',
         required: true
     },
 
     user: {
-        type: Schema.Types.ObjectId, ref: 'User'
+        type: Schema.Types.ObjectId, ref: 'Employee',
+        required: true
     }
 
 }, { timestamps: true })

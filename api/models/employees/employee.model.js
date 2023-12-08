@@ -1,7 +1,8 @@
-import { Decimal128 } from 'mongodb/mongodb'
+import { Decimal128 } from 'mongodb'
 import mongoose from 'mongoose'
+const { Schema } = mongoose
 
-const userSchema = new mongoose.Schema( {
+const employeeSchema = new mongoose.Schema( {
 
     email: {
         type: String,
@@ -14,9 +15,14 @@ const userSchema = new mongoose.Schema( {
         required: true,
     },
 
-    lastname: {
+    lastName: {
         type: String,
         required: true,
+    },
+
+    phoneNumber: {
+        type: String,
+        unique: true
     },
 
     salary: {
@@ -25,7 +31,7 @@ const userSchema = new mongoose.Schema( {
     },
 
     payDay: {
-        type: String,
+        type: Number,
         require: true,
     },
 
@@ -39,6 +45,16 @@ const userSchema = new mongoose.Schema( {
         required: true,
     },
 
+    company: {
+        type: Schema.Types.ObjectId, ref: 'Company',
+        required: true
+    },
+
+    active: {
+        type: Boolean,
+        default: true
+    },
+
     role: {
         type: Schema.Types.ObjectId, ref: 'Role',
         required: true
@@ -46,6 +62,6 @@ const userSchema = new mongoose.Schema( {
 
 }, { timestamps: true } )
 
-const User = mongoose.model('User', userSchema)
+const Employee = mongoose.model('Employee', employeeSchema)
 
-export default User
+export default Employee
