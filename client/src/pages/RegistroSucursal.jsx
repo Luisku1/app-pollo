@@ -40,7 +40,7 @@ export default function RegistroSucursal() {
       try {
 
 
-        const res = await fetch('/api/branch/get-branches-last-position/')
+        const res = await fetch('/api/branch/get-branches-last-position/' + company._id)
         const data = await res.json()
 
         if(data.success === false) {

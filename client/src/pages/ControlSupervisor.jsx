@@ -426,35 +426,7 @@ export default function ControlSupervisor() {
     }
   }
 
-  const fetchExtraOutgoings = async () => {
 
-    const date = new Date().toISOString()
-
-    setLoading(true)
-
-    try {
-
-      const res = await fetch('/api/outgoing/get-extra-outgoings/' + company._id + '/' + date)
-      const data = await res.json()
-
-      if (data.success === false) {
-
-        setError(data.message)
-        setLoading(false)
-        return
-      }
-
-      setExtraOutgoings(data.extraOutgoings)
-      setExtraOutgoingsTotalFunction(data.extraOutgoings)
-      setError(null)
-      setLoading(false)
-
-    } catch (error) {
-
-      setError(error.message)
-      setLoading(false)
-    }
-  }
 
   const addOutput = async (e) => {
 
@@ -688,35 +660,7 @@ export default function ControlSupervisor() {
     }
   }
 
-  const fetchInputs = async () => {
 
-    const date = new Date().toISOString()
-
-    setLoading(true)
-
-    try {
-
-      const res = await fetch('/api/input/get-inputs/' + company._id + '/' + date)
-      const data = await res.json()
-
-      if (data.success === false) {
-
-        setError(data.message)
-        setLoading(false)
-        return
-      }
-
-      setInputs(data.inputs)
-      setInputsTotalFunction(data.inputs)
-      setError(null)
-      setLoading(false)
-
-    } catch (error) {
-
-      setError(error.message)
-      setLoading(false)
-    }
-  }
 
   const setInputsTotalFunction = (inputs) => {
 
@@ -730,36 +674,7 @@ export default function ControlSupervisor() {
     setInputsTotal(total)
   }
 
-  const fetchOutputs = async () => {
 
-    const date = new Date().toISOString()
-
-    setLoading(true)
-
-    try {
-
-      const res = await fetch('/api/output/get-outputs/' + company._id + '/' + date)
-      const data = await res.json()
-
-      if (data.success === false) {
-
-        setError(data.message)
-        setLoading(false)
-        return
-      }
-
-      setOutputs(data.outputs)
-      setOutputsTotalFunction(data.outputs)
-      setError(null)
-      setLoading(false)
-
-    } catch (error) {
-
-      setError(error.message)
-      setLoading(false)
-
-    }
-  }
 
   const setOutputsTotalFunction = (outputs) => {
 
@@ -775,35 +690,7 @@ export default function ControlSupervisor() {
     setOutputsTotal(total)
   }
 
-  const fetchIncomes = async () => {
 
-    const date = new Date().toISOString()
-
-    setLoading(true)
-
-    try {
-
-      const res = await fetch('/api/income/get/' + company._id + '/' + date)
-      const data = await res.json()
-
-      if (data.success === false) {
-
-        setError(data.message)
-        setLoading(false)
-        return
-      }
-
-      setIncomes(data.incomes)
-      setIncomesTotalFunction(data.incomes)
-      setError(null)
-      setLoading(false)
-
-    } catch (error) {
-
-      setError(error.message)
-      setLoading(false)
-    }
-  }
 
   const setIncomesTotalFunction = (incomes) => {
 
@@ -817,35 +704,7 @@ export default function ControlSupervisor() {
     setIncomesTotal(total)
   }
 
-  const fetchLoans = async () => {
 
-    const date = new Date().toISOString()
-
-    setLoading(true)
-
-    try {
-
-      const res = await fetch('/api/outgoing/loan/get-loans/' + company._id + '/' + date)
-      const data = await res.json()
-
-      if (data.success === false) {
-
-        setError(data.message)
-        setLoading(false)
-        return
-      }
-
-      setLoans(data.loans)
-      setLoansTotalFunction(data.loans)
-      setError(null)
-      setLoading(false)
-
-    } catch (error) {
-
-      setError(error.message)
-      setLoading(false)
-    }
-  }
 
   const setLoansTotalFunction = (loans) => {
 
@@ -859,37 +718,8 @@ export default function ControlSupervisor() {
     setLoansTotal(total)
   }
 
-  const fetchEmployeesDailyBalances = async () => {
 
-    const date = new Date().toISOString()
 
-    setLoading(true)
-
-    try {
-
-      const res = await fetch('/api/employee/get-employees-daily-balances/' + company._id + '/' + date)
-      const data = await res.json()
-
-      if (data.success === false) {
-
-        setError(data.message)
-        setLoading(false)
-        return
-      }
-
-      console.log(data)
-
-      setEmployeesDailyBalance(data)
-      setLoading(false)
-      setError(null)
-
-    } catch (error) {
-
-      setError(error.message)
-      setLoading(false)
-    }
-
-  }
 
   useEffect(() => {
 
@@ -953,18 +783,207 @@ export default function ControlSupervisor() {
       }
     }
 
-    fetchEmployeesDailyBalances()
-    fetchIncomes()
-    fetchExtraOutgoings()
-    fetchInputs()
-    fetchOutputs()
-    fetchLoans()
+
     setIncomeTypesFunction()
     setEmployeesFunction()
     setBranchesFunction()
     setProductsFunction()
 
   }, [company])
+
+  useEffect(() => {
+
+    const fetchEmployeesDailyBalances = async () => {
+
+      const date = new Date().toISOString()
+
+      setLoading(true)
+
+      try {
+
+        const res = await fetch('/api/employee/get-employees-daily-balances/' + company._id + '/' + date)
+        const data = await res.json()
+
+        if (data.success === false) {
+
+          setError(data.message)
+          setLoading(false)
+          return
+        }
+
+        console.log(data)
+
+        setEmployeesDailyBalance(data)
+        setLoading(false)
+        setError(null)
+
+      } catch (error) {
+
+        setError(error.message)
+        setLoading(false)
+      }
+
+    }
+
+    const fetchLoans = async () => {
+
+      const date = new Date().toISOString()
+
+      setLoading(true)
+
+      try {
+
+        const res = await fetch('/api/outgoing/loan/get-loans/' + company._id + '/' + date)
+        const data = await res.json()
+
+        if (data.success === false) {
+
+          setError(data.message)
+          setLoading(false)
+          return
+        }
+
+        setLoans(data.loans)
+        setLoansTotalFunction(data.loans)
+        setError(null)
+        setLoading(false)
+
+      } catch (error) {
+
+        setError(error.message)
+        setLoading(false)
+      }
+    }
+
+    const fetchIncomes = async () => {
+
+      const date = new Date().toISOString()
+
+      setLoading(true)
+
+      try {
+
+        const res = await fetch('/api/income/get/' + company._id + '/' + date)
+        const data = await res.json()
+
+        if (data.success === false) {
+
+          setError(data.message)
+          setLoading(false)
+          return
+        }
+
+        setIncomes(data.incomes)
+        setIncomesTotalFunction(data.incomes)
+        setError(null)
+        setLoading(false)
+
+      } catch (error) {
+
+        setError(error.message)
+        setLoading(false)
+      }
+    }
+
+    const fetchOutputs = async () => {
+
+      const date = new Date().toISOString()
+
+      setLoading(true)
+
+      try {
+
+        const res = await fetch('/api/output/get-outputs/' + company._id + '/' + date)
+        const data = await res.json()
+
+        if (data.success === false) {
+
+          setError(data.message)
+          setLoading(false)
+          return
+        }
+
+        setOutputs(data.outputs)
+        setOutputsTotalFunction(data.outputs)
+        setError(null)
+        setLoading(false)
+
+      } catch (error) {
+
+        setError(error.message)
+        setLoading(false)
+
+      }
+    }
+
+  const fetchInputs = async () => {
+
+    const date = new Date().toISOString()
+
+    setLoading(true)
+
+    try {
+
+      const res = await fetch('/api/input/get-inputs/' + company._id + '/' + date)
+      const data = await res.json()
+
+      if (data.success === false) {
+
+        setError(data.message)
+        setLoading(false)
+        return
+      }
+
+      setInputs(data.inputs)
+      setInputsTotalFunction(data.inputs)
+      setError(null)
+      setLoading(false)
+
+    } catch (error) {
+
+      setError(error.message)
+      setLoading(false)
+    }
+  }
+
+  const fetchExtraOutgoings = async () => {
+
+    const date = new Date().toISOString()
+
+    setLoading(true)
+
+    try {
+
+      const res = await fetch('/api/outgoing/get-extra-outgoings/' + company._id + '/' + date)
+      const data = await res.json()
+
+      if (data.success === false) {
+
+        setError(data.message)
+        setLoading(false)
+        return
+      }
+
+      setExtraOutgoings(data.extraOutgoings)
+      setExtraOutgoingsTotalFunction(data.extraOutgoings)
+      setError(null)
+      setLoading(false)
+
+    } catch (error) {
+
+      setError(error.message)
+      setLoading(false)
+    }
+  }
+
+    fetchEmployeesDailyBalances()
+    fetchIncomes()
+    fetchExtraOutgoings()
+    fetchInputs()
+    fetchOutputs()
+    fetchLoans()
+
+  }, [company._id])
 
 
 
@@ -1509,8 +1528,8 @@ export default function ControlSupervisor() {
               <div id='list-element' className='flex col-span-12 items-center justify-around'>
                 <p className='text-center text-sm w-3/12'>{dailyBalance.employee.name + ' ' + dailyBalance.employee.lastName}</p>
                 <input className='w-3/12' type="checkbox" name="foodDiscount" id="foodDiscount" defaultChecked={dailyBalance.foodDiscount} onChange={(e) => { handleDailyBalanceInputs(e, dailyBalance._id) }} />
-                <input className='w-3/12' type="checkbox" name="restDay" id="restDay" checked={dailyBalance.restDay} onChange={(e) => handleDailyBalanceInputs(e, dailyBalance._id)} />
-                <input className='w-3/12' type="checkbox" name="dayDiscount" id="dayDiscount" checked={dailyBalance.dayDiscount} onChange={(e) => handleDailyBalanceInputs(e, dailyBalance._id)} />
+                <input className='w-3/12' type="checkbox" name="restDay" id="restDay" defaultChecked={dailyBalance.restDay} onChange={(e) => handleDailyBalanceInputs(e, dailyBalance._id)} />
+                <input className='w-3/12' type="checkbox" name="dayDiscount" id="dayDiscount" defaultChecked={dailyBalance.dayDiscount} onChange={(e) => handleDailyBalanceInputs(e, dailyBalance._id)} />
               </div>
 
             </div>

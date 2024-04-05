@@ -59,7 +59,7 @@ export default function Header() {
       document.removeEventListener("mousedown", handler);
     }
 
-  }, [])
+  }, [currentUser])
 
 
   if(roles && error == null)

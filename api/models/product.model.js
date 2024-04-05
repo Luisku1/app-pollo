@@ -4,8 +4,7 @@ const productSchema = mongoose.Schema({
 
 	name: {
 		type: String,
-		required: true,
-		unique: true
+		required: true
 	},
 
 	company: {

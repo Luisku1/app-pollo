@@ -38,7 +38,7 @@ export default function InicioSesion() {
 
     fetchRoles()
 
-  }, [])
+  }, [dispatch])
 
 
   if (roles) {
@@ -146,9 +146,16 @@ export default function InicioSesion() {
       if(data.role == sellerRole._id) {
 
         navigate('/crear-formato')
+        return
       }
 
-      navigate('/')
+      if(data.company != null) {
+
+        navigate('/')
+        return
+      }
+
+      navigate('/registro-empresa')
 
     } catch (error) {
 

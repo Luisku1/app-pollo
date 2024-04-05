@@ -27,7 +27,7 @@ export const newOutgoing = async (req, res, next) => {
 export const newExtraOutgoing = async (req, res, next) => {
 
   const { extraOutgoingAmount, extraOutgoingConcept, company, employee } = req.body
-  const tzoffset = (new Date(Date.now())).getTimezoneOffset() * 60000; //offset in milliseconds
+  const tzoffset = (new Date(Date.now())).getTimezoneOffset() * 120000; //offset in milliseconds
   const functionalDate = new Date(Date.now() - tzoffset)
 
   try {

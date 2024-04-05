@@ -16,20 +16,6 @@ export default function Empleados() {
   const [buttonId, setButtonId] = useState(null)
   const navigate = useNavigate()
 
-  const setEmployeesFunction = async () => {
-
-    const result = await fetchEmployees(company._id)
-
-    if (result.error == null) {
-
-      setEmployees(result.data)
-
-    } else {
-
-      setError(result.error)
-    }
-
-  }
 
   const deleteEmployee = async (employeeId, index) => {
 
@@ -63,6 +49,20 @@ export default function Empleados() {
 
   useEffect(() => {
 
+    const setEmployeesFunction = async () => {
+
+      const result = await fetchEmployees(company._id)
+
+      if (result.error == null) {
+
+        setEmployees(result.data)
+
+      } else {
+
+        setError(result.error)
+      }
+
+    }
 
     setEmployeesFunction()
 
@@ -95,46 +95,52 @@ export default function Empleados() {
                   <p className={employee.balance < 0 ? 'text-red-700 font-bold' : '' + 'text-lg font-bold'}>{parseFloat(employee.balance).toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
                 </div>
                 <p className="text-lg">{'Rol: ' + employee.role.name}</p>
-                <p className="text-lg">{'Sueldo: ' + parseFloat(employee.salary).toLocaleString("es-Mx", { style: 'currency', currency: 'MXN' })}</p>
-                <p className="text-lg">{'Día de cobro: ' + weekDays[employee.payDay]}</p>
+                {employee.salary ?
+                  <p className="text-lg">{'Sueldo: ' + parseFloat(employee.salary).toLocaleString("es-Mx", { style: 'currency', currency: 'MXN' })}</p>
+                  : ''}
+                {employee.payDay ?
+                  <p className="text-lg">{'Día de cobro: ' + weekDays[employee.payDay]}</p>
+                  : ''}
                 <p className="text-lg">Teléfono: {employee.phoneNumber ? employee.phoneNumber.replace(/(\d{2})(\d{4})(\d{4})/, '$1-$2-$3') : ''}</p>
               </div>
             </div>
 
-            <div className="col-span-2 my-auto">
-              <button type="submit" onClick={() => console.log('editing')} disabled={loading} className='bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3 '>
-                <span >
-                  <MdEdit className='text-blue-700 m-auto' />
-                </span>
-              </button>
-              <div>
-                <button id={employee._id} onClick={() => { setIsOpen(isOpen ? false : true), setButtonId(employee._id) }} disabled={loading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
-                  <span>
-                    <FaTrash className='text-red-700 m-auto' />
+            {employee._id != company.owner._id ?
+
+              <div className="col-span-2 my-auto">
+                <button type="submit" onClick={() => console.log('editing')} disabled={loading} className='bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3 '>
+                  <span >
+                    <MdEdit className='text-blue-700 m-auto' />
                   </span>
                 </button>
+                <div>
+                  <button id={employee._id} onClick={() => { setIsOpen(isOpen ? false : true), setButtonId(employee._id) }} disabled={loading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
+                    <span>
+                      <FaTrash className='text-red-700 m-auto' />
+                    </span>
+                  </button>
 
-                {isOpen && employee._id == buttonId ?
-                  <div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center items-center'>
-                    <div className='bg-white p-5 rounded-lg flex flex-col justify-center items-center gap-5'>
-                      <div>
-                        <p className='text-3xl font-semibold'>¿Estás seguro de borrar este registro?</p>
-                      </div>
-                      <div className='flex gap-10'>
+                  {isOpen && employee._id == buttonId ?
+                    <div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center items-center'>
+                      <div className='bg-white p-5 rounded-lg flex flex-col justify-center items-center gap-5'>
                         <div>
-                          <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteEmployee(employee._id, index), setIsOpen(isOpen ? false : true) }}>Si</button>
+                          <p className='text-3xl font-semibold'>¿Estás seguro de borrar este registro?</p>
                         </div>
-                        <div>
-                          <button className='rounded-lg border shadow-lg w-20 h-10' onClick={() => { setIsOpen(isOpen ? false : true) }}>No</button>
+                        <div className='flex gap-10'>
+                          <div>
+                            <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteEmployee(employee._id, index), setIsOpen(isOpen ? false : true) }}>Si</button>
+                          </div>
+                          <div>
+                            <button className='rounded-lg border shadow-lg w-20 h-10' onClick={() => { setIsOpen(isOpen ? false : true) }}>No</button>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                  : ''}
+                    : ''}
 
+                </div>
               </div>
-
-            </div>
+              : ''}
           </div>
 
         ))}

@@ -11,7 +11,7 @@ export const getBranchReports = async (req, res, next) => {
 
   const date = new Date(req.params.date)
   const companyId = req.params.companyId
-  const tzoffset = (new Date(req.params.date)).getTimezoneOffset() * 60000; //offset in milliseconds
+  const tzoffset = (new Date(date)).getTimezoneOffset() * 60000; //offset in milliseconds
   const bottomRange = new Date(date - tzoffset)
   const topRange = new Date(date - tzoffset)
 
@@ -58,8 +58,6 @@ export const getSupervisorsInfo = async (req, res, next) => {
   const topRange = new Date(date - tzoffset)
 
   topRange.setDate(topRange.getDate() + 1)
-
-  console.log('Hola')
 
   try {
 

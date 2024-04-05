@@ -39,9 +39,11 @@ export const getBranches = async (req, res, next) => {
 
 export const getBranchesLastPosition = async (req, res, next) => {
 
+	const companyId = req.params.companyId
+
 	try {
 
-		const branchLastPosition = await Branch.find({}).sort({position: -1}).limit(1).select('position')
+		const branchLastPosition = await Branch.find({company: companyId}).sort({position: -1}).limit(1).select('position')
 
 		if(branchLastPosition) {
 
