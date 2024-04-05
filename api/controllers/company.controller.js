@@ -1,4 +1,5 @@
 import Company from '../models/company.model.js'
+import Employee from '../models/employees/employee.model.js'
 import { errorHandler } from '../utils/error.js'
 
 export const newCompany = async (req, res, next) => {
@@ -9,7 +10,8 @@ export const newCompany = async (req, res, next) => {
   try {
 
     await newCompany.save()
-    res.status(201).json('New company created successfully')
+    await Employee.updateOne({_id: userRef}, {$set: {"company": newCompany._id}})
+    res.status(201).json(newCompany)
 
   } catch (error) {
 
@@ -19,11 +21,15 @@ export const newCompany = async (req, res, next) => {
 
 export const getCompanyById = async (req, res, next) => {
 
-  const companyId = req.params.id
+  const companyId = req.params.companyId
 
   try {
 
-    const company = Company.findOne({ _id: companyId })
+    const company = await Company.findOne({ _id: companyId }).populate({
+
+      path: 'owner',
+      model: 'Employee'
+    })
 
     if (company) {
 
@@ -38,11 +44,16 @@ export const getCompanyById = async (req, res, next) => {
 
 export const getCompanyByOwnerId = async (req, res, next) => {
 
-  const ownerId = req.params.id
+  const ownerId = req.params.ownerId
 
   try {
 
-    const company = await Company.findOne({ owner: ownerId })
+    const company = await Company.findOne({ owner: ownerId }).populate({
+
+      path: 'owner',
+      model: 'Employee'
+
+    })
 
     if(!company) {
 

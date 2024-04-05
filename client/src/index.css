@@ -4,4 +4,9 @@
 
 body{
     background-color: rgb(241, 245, 241);
+    height: fit-content;
+}
+
+header{
+    height: fit-content;
 }

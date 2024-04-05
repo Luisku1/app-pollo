@@ -1,22 +1,27 @@
 import mongoose, { Schema } from 'mongoose'
 
-const priceSchema = mongoose.Schema( {
+const priceSchema = mongoose.Schema({
 
-    price: {
-        type: String,
-        required: true
-    },
+  price: {
+    type: Number,
+    required: true
+  },
 
-    product: {
-        type: Schema.Types.ObjectId, ref: 'Product',
-        required: true
-    },
+  product: {
+    type: Schema.Types.ObjectId, ref: 'Product',
+    required: true
+  },
 
-    branch: {
-        type: Schema.Types.ObjectId, ref: 'Branch',
-        required: true
-    }
-}, { timestamps: true } )
+  branch: {
+    type: Schema.Types.ObjectId, ref: 'Branch',
+    required: true
+  },
+
+  createdAt: {
+    type: Date,
+    required: true
+  }
+})
 
 const Price = mongoose.model('Price', priceSchema)
 

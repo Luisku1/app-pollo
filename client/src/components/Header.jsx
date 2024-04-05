@@ -13,7 +13,6 @@ export default function Header() {
   const { currentUser, company} = useSelector((state) => state.user)
   const [open, setOpen] = useState(false);
   let menuRef = useRef();
-  let ownerRole
   let supervisorRole
   let managerRole
 
@@ -23,7 +22,7 @@ export default function Header() {
 
       try {
 
-        const res = await fetch('/api/role/roles')
+        const res = await fetch('/api/role/get')
         const data = await res.json()
 
         if (data.success === false) {
@@ -60,14 +59,14 @@ export default function Header() {
       document.removeEventListener("mousedown", handler);
     }
 
-  }, [currentUser])
+  }, [])
 
 
   if(roles && error == null)
   {
-    ownerRole = roles.find((role) => ( role.name == "Dueño" ))
     supervisorRole = roles.find((role) => ( role.name == "Supervisor" ))
     managerRole = roles.find((role) => (role.name == "Gerente"))
+
   }
 
   return (
@@ -87,7 +86,7 @@ export default function Header() {
             <MdOutlineMenu className='w-5 h-5 mdoutline'/>
           </div>
 
-          <div className={`dropdown-menu ${open? 'active' : 'inactive'}`} >
+          <div className={`dropdown-menu ${open ? 'active' : 'inactive'}`} >
 
             <ul>
 
@@ -99,13 +98,12 @@ export default function Header() {
 
                   <DropdownItem text={"Crear formato"} link={'/formato'}/>
 
-                  {supervisorRole && ownerRole && managerRole && (currentUser.role == supervisorRole._id || currentUser.role == ownerRole._id || currentUser.role == managerRole._id) ? (
+                  {supervisorRole && managerRole && (currentUser.role == supervisorRole._id || currentUser.role == managerRole._id) ? (
 
                     <div>
 
-                      <DropdownItem text={"Cuentas"} link={'/listado-de-cuentas'}/>
 
-                      <DropdownItem text={'Control'} link={'/control-diario'} />
+                      <DropdownItem text={'Supervisión'} link={'/supervision-diaria'} />
 
                     </div>
 
@@ -116,9 +114,13 @@ export default function Header() {
                   )}
 
 
-                  {ownerRole && managerRole && (currentUser.role == managerRole._id || currentUser.role == ownerRole._id) ? (
+                  {managerRole && (currentUser.role == managerRole._id) ? (
 
                     <div>
+
+                      <DropdownItem text={"Supervisores"} link={'/supervisores'}/>
+
+                      <DropdownItem text={"Cuentas"} link={'/listado-de-cuentas'}/>
 
                       <DropdownItem text={'Empleados'} link={'/empleados'} />
 
@@ -126,7 +128,9 @@ export default function Header() {
 
                       <DropdownItem text={'Productos'} link={'/productos'} />
 
-                      <DropdownItem text={'Empresa'} link={'/empresa'} />
+                      <DropdownItem text={'Precios'} link={'/precios'} />
+
+                      <DropdownItem text={'Empresa'} link={'/empresas'} />
 
                     </div>
 

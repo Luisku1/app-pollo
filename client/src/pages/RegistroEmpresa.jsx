@@ -32,7 +32,7 @@ export default function RegistroEmpresa() {
 
       console.log(formData)
 
-      const res = await fetch('api/company/new-company',
+      const res = await fetch('api/company/create',
       {
         method: 'POST',
         headers: {

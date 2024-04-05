@@ -4,6 +4,6 @@ import { getZones, newZone } from '../controllers/zone.controller.js'
 const router = express()
 
 router.post('/new-zone', newZone)
-router.get('/zones/:id', getZones)
+router.get('/zones/:companyId', getZones)
 
 export default router

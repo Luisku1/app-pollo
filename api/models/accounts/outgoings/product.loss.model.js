@@ -1,27 +1,25 @@
 import mongoose, { Schema } from 'mongoose'
 
-
 const productLossSchema = mongoose.Schema( {
 
-    weight: {
-        type: Decimal128,
+    amount: {
+        type: Number,
         required: true
     },
 
-    amount: {
-        type: Decimal128,
+    weight: {
+        type: Number,
+        required: true
+    },
+
+    comment: {
+        type: String,
         required: true
     },
 
     admitted: {
         type: Boolean,
-        required: true,
-        default: false
-    },
-
-    company: {
-        type: Schema.Types.ObjectId, ref: 'Company',
-        required: true
+        default: true
     },
 
     product: {
@@ -29,11 +27,27 @@ const productLossSchema = mongoose.Schema( {
         required: true
     },
 
+    company: {
+        type: Schema.Types.ObjectId, ref: 'Company',
+        required: true
+    },
+
+    employee: {
+
+        type: Schema.Types.ObjectId, ref: 'Employee',
+        required: true
+    },
+
     branch: {
         type: Schema.Types.ObjectId, ref: 'Branch',
         required: true
+    },
+
+    createdAt: {
+        type: Date,
+        required: true
     }
-}, { timestamps: true } )
+})
 
 const ProductLoss = mongoose.model('ProductLoss', productLossSchema)
 

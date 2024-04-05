@@ -19,7 +19,7 @@ export const newZone = async (req, res, next) => {
 
 export const getZones = async (req, res, next) => {
 
-	const company = req.params.id
+	const company = req.params.companyId
 
 	try {
 

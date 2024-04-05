@@ -1,18 +1,17 @@
 import mongoose, { Schema } from 'mongoose'
 
-const companySchema = mongoose.Schema( {
+const companySchema = mongoose.Schema({
 
-    name: {
-        type: String,
-        required: true
-    },
+  name: {
+    type: String,
+    required: true
+  },
 
-    owner: {
-        type: Schema.Types.ObjectId, ref: 'Owner',
-        required: true
-    }
-
-}, { timestamps: true } )
+  owner: {
+    type: Schema.Types.ObjectId, ref: 'Employee',
+    required: true
+  }
+})
 
 const Company = mongoose.model('Company', companySchema)
 

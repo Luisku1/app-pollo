@@ -26,7 +26,7 @@ export default function RegistroDueño() {
     {
       setLoading(true)
 
-      const res = await fetch('/api/auth/owner-signup',
+      const res = await fetch('/api/auth/sign-up',
       {
         method: 'POST',
         headers: {

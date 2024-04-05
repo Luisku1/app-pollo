@@ -3,7 +3,7 @@ import { getRoles, newRole } from '../controllers/role.controller.js'
 
 const router = express()
 
-router.post('/new-role', newRole)
-router.get('/roles', getRoles)
+router.post('/create', newRole)
+router.get('/get', getRoles)
 
 export default router

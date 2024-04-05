@@ -3,12 +3,12 @@ import mongoose, { Schema } from 'mongoose'
 const customerSaleSchema = mongoose.Schema( {
 
     weight: {
-        type: Decimal128,
+        type: Number,
         required: true
     },
 
     price: {
-        type: Decimal128,
+        type: Number,
         required: true
     },
 
@@ -27,12 +27,21 @@ const customerSaleSchema = mongoose.Schema( {
         type: Schema.Types.ObjectId, ref: 'Product'
     },
 
+    company: {
+        type: Schema.Types.ObjectId, ref: 'Company',
+        required: true
+    },
+
     customer: {
         type: Schema.Types.ObjectId, ref: 'Customer',
         required: true
-    }
+    },
 
-}, { timestamps: true } )
+    createdAt: {
+        type: Date,
+        required: true
+    }
+})
 
 const CustomerSale = mongoose.model('CustomerSale', customerSaleSchema)
 

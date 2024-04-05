@@ -1,47 +1,56 @@
-import { Decimal128 } from 'mongodb'
 import mongoose, { Schema } from 'mongoose'
 
-const branchSchema = mongoose.Schema( {
+const branchSchema = mongoose.Schema({
 
-    branch: {
-        type: String,
-        required: true,
-    },
+  branch: {
+    type: String,
+    unique: true,
+    required: true,
+  },
 
-    location: {
-        type: String,
-        required: true
-    },
+  location: {
+    type: String,
+    required: true
+  },
 
-    phoneNumber: {
-        type: String,
-    },
+  phoneNumber: {
+    type: String,
+  },
 
-    p: {
-        type: Decimal128,
-        required: true
-    },
+  p: {
+    type: Number,
+    required: true
+  },
 
-    rentDay: {
-        type: String,
-        required: true
-    },
+  rentDay: {
+    type: String,
+    required: true
+  },
 
-    rentAmount: {
-        type: Decimal128,
-        required: true
-    },
+  rentAmount: {
+    type: Number,
+    required: true
+  },
 
-    company: {
-        type: Schema.Types.ObjectId, ref: 'Company',
-        required: true
-    },
+  position: {
+    type: Number,
+    required: true
+  },
 
-    zone: {
-        type: Schema.Types.ObjectId, ref: 'Zone',
-    }
+  company: {
+    type: Schema.Types.ObjectId, ref: 'Company',
+    required: true
+  },
 
-}, { timestamps: true } )
+  zone: {
+    type: Schema.Types.ObjectId, ref: 'Zone',
+  },
+
+  createdAt: {
+    type: Date,
+    required: true
+  }
+})
 
 const Branch = mongoose.model('Branch', branchSchema)
 

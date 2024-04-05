@@ -1,15 +1,11 @@
 import mongoose from 'mongoose'
 const { Schema } = mongoose
 
-const earningsCollectedSchema = mongoose.Schema( {
+const incomeCollectedSchema = mongoose.Schema( {
 
     amount: {
-        type: Decimal128,
+        type: Number,
         required: true
-    },
-
-    comment: {
-        type: String,
     },
 
     company: {
@@ -27,12 +23,17 @@ const earningsCollectedSchema = mongoose.Schema( {
         required: true
     },
 
-    source: {
-        type: Schema.Types.ObjectId, ref:'EarningsSource'
+    type: {
+        type: Schema.Types.ObjectId, ref: 'IncomeType',
+        required: true
+    },
+
+    createdAt: {
+        type: Date,
+        required: true
     }
+})
 
-}, { timestamps: true} )
+const IncomeCollected = mongoose.model('IncomeCollected', incomeCollectedSchema)
 
-const EarningsCollected = mongoose.model('EarningsCollected', earningsCollectedSchema)
-
-export default EarningsCollected
+export default IncomeCollected

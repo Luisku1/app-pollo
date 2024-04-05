@@ -1,49 +1,58 @@
 import mongoose, { Schema } from 'mongoose'
 
-const employeeDailyBalanceSchema = mongoose.Schema( {
+const employeeDailyBalanceSchema = mongoose.Schema({
 
-    lostMoney: {
-        type: Decimal128,
-        default: 0.0
-    },
+  lostMoney: {
+    type: Number,
+    default: 0.0
+  },
 
-    lostProduct: {
-        type: Decimal128,
-        default: 0.0
-    },
+  lostProduct: {
+    type: Number,
+    default: 0.0
+  },
 
-    loan: {
-        type: Decimal128,
-        default: 0.0
-    },
+  loan: {
+    type: Number,
+    default: 0.0
+  },
 
-    foodDiscount: {
-        type: Boolean,
-        default: false
-    },
+  foodDiscount: {
+    type: Boolean,
+    default: false
+  },
 
-    dayDiscount: {
-        type: Boolean,
-        default: false
-    },
+  dayDiscount: {
+    type: Boolean,
+    default: false
+  },
 
-    restDay: {
+  restDay: {
 
-        type: Boolean,
-        default: false,
-    },
+    type: Boolean,
+    default: false,
+  },
 
-    penalties: {
-        type: Decimal128,
-        default: 0.0
-    },
+  penalties: {
+    type: Number,
+    default: 0.0
+  },
 
-    employee: {
-        type: Schema.Types.ObjectId, ref: 'Employee',
-        required: true
-    }
+  company: {
+    type: Schema.Types.ObjectId, ref: 'Company',
+    required: true
+  },
 
-}, { timestamps: true } )
+  employee: {
+    type: Schema.Types.ObjectId, ref: 'Employee',
+    required: true
+  },
+
+  createdAt: {
+    type: Date,
+    required: true
+  }
+})
 
 const EmployeeDailyBalance = mongoose.model('EmployeeDailyBalance', employeeDailyBalanceSchema)
 

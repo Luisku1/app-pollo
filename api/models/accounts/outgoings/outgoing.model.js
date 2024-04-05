@@ -1,10 +1,9 @@
-import { Decimal128 } from 'mongodb'
-import mongoose, {Schema} from 'mongoose'
+import mongoose, { Schema } from 'mongoose'
 
-const outgoingSchema = mongoose.Schema ( {
+const outgoingSchema = mongoose.Schema({
 
     amount: {
-        type: String,
+        type: Number,
         required: true
     },
 
@@ -13,12 +12,31 @@ const outgoingSchema = mongoose.Schema ( {
         required: true
     },
 
+    addmitted: {
+        type: Boolean,
+        default: true
+    },
+
+    company: {
+        type: Schema.Types.ObjectId, ref: 'Company',
+        required: true
+    },
+
+    employee: {
+        type: Schema.Types.ObjectId, ref: 'Employee',
+        required: true
+    },
+
     branch: {
         type: Schema.Types.ObjectId, ref: 'Branch',
         required: true
-    }
+    },
 
-}, { timestamps: true } )
+    createdAt: {
+        type: Date,
+        required: true
+    }
+})
 
 const Outgoing = mongoose.model('Outgoing', outgoingSchema)
 

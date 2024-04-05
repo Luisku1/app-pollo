@@ -1,18 +1,27 @@
 import mongoose, { Schema } from 'mongoose'
 
-const customerPaymentSchema = mongoose.Schema( {
+const customerPaymentSchema = mongoose.Schema({
 
-    amount: {
-        type: Decimal128,
-        required: true
-    },
+	amount: {
+		type: Number,
+		required: true
+	},
 
-    customer: {
-        type: Schema.Types.ObjectId, ref: 'Customer',
-        required: true
-    }
+	company: {
+		type: Schema.Types.ObjectId, ref: 'Company',
+		required: true
+	},
 
-}, { timestamps: true } )
+	customer: {
+		type: Schema.Types.ObjectId, ref: 'Customer',
+		required: true
+	},
+
+	createdAt: {
+		type: Date,
+		required: true
+	}
+})
 
 const CustomerPayment = mongoose.model('ProviderPayment', customerPaymentSchema)
 

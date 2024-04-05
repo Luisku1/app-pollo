@@ -3,8 +3,8 @@ import { getCompanyById, getCompanyByOwnerId, newCompany } from '../controllers/
 
 const router = express()
 
-router.post('/new-company', newCompany)
-router.get('/get-by-owner-id/:id', getCompanyByOwnerId)
-router.get('/get-by-id/:id', getCompanyById)
+router.post('/create', newCompany)
+router.get('/get-by-owner-id/:ownerId', getCompanyByOwnerId)
+router.get('/get-by-id/:companyId', getCompanyById)
 
 export default router

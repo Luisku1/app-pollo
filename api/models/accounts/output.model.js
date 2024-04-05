@@ -1,38 +1,55 @@
 import mongoose, { Schema } from 'mongoose'
 
-const outputSchema = mongoose.Schema ( {
+const outputSchema = mongoose.Schema({
 
-    price: {
-        type: Number,
-        required: true
-    },
+  price: {
+    type: Number,
+    required: true
+  },
 
-    amount: {
-        type: Decimal128,
-        required: true
-    },
+  amount: {
+    type: Number,
+    required: true
+  },
 
-    comment: {
-        type: String,
-        required: true
-    },
+  comment: {
+    type: String,
+  },
 
-    weight: {
-        type: Decimal128,
-        required: true
-    },
+  weight: {
+    type: Number,
+    required: true
+  },
 
-    company: {
-        type: Schema.Types.ObjectId, ref: 'Company',
-        required: true
-    },
+  pieces: {
+    type: Number,
+    required: true
+  },
 
-    branch: {
-        type: Schema.Types.ObjectId, ref: 'Branch',
-        required: true
-    }
+  company: {
+    type: Schema.Types.ObjectId, ref: 'Company',
+    required: true
+  },
 
-}, { timestamps: true } )
+  product: {
+    type: Schema.Types.ObjectId, ref: 'Product'
+  },
+
+  employee: {
+    type: Schema.Types.ObjectId, ref: 'Employee',
+    required: true
+  },
+
+  branch: {
+    type: Schema.Types.ObjectId, ref: 'Branch',
+    required: true
+  },
+
+  createdAt: {
+    type: Date,
+    required: true
+  }
+})
 
 const Output = mongoose.model('Output', outputSchema)
 

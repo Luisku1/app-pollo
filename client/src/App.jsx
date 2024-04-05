@@ -10,6 +10,12 @@ import RegistroEmpresa from './pages/RegistroEmpresa'
 import PrivateRoute from './components/PrivateRoute'
 import Empleados from './pages/Empleados'
 import RegistroSucursal from './pages/RegistroSucursal'
+import ControlSupervisor from './pages/ControlSupervisor'
+import Empresas from './pages/Empresas'
+import Productos from './pages/Productos'
+import Sucursales from './pages/Sucursales'
+import Precios from './pages/Precios'
+import Supervisores from './pages/Supervisores'
 
 
 export default function App() {
@@ -27,9 +33,15 @@ export default function App() {
           <Route path="/formato" element={<RegistroCuentaDiaria />} />
           <Route path="/listado-de-cuentas" element={<ListadoDeCuentas />} />
           <Route path="/empleados" element={<Empleados />} />
+          <Route path="/empresas" element={<Empresas />} />
+          <Route path="/productos" element={<Productos />} />
+          <Route path="/sucursales" element={<Sucursales />} />
+          <Route path="/precios" element={<Precios />} />
           <Route path="/registro-empresa" element={<RegistroEmpresa />} />
           <Route path="/registro-empleado" element={<RegistroEmpleado/>}/>
           <Route path="/registro-sucursal" element={<RegistroSucursal />} />
+          <Route path="/supervision-diaria" element={<ControlSupervisor />} />
+          <Route path="/supervisores" element={<Supervisores />} />
 
         </Route>
 

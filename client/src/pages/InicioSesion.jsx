@@ -19,7 +19,7 @@ export default function InicioSesion() {
 
        try {
 
-          const res = await fetch('/api/role/roles')
+          const res = await fetch('/api/role/get')
           const data = await res.json()
 
           if (data.success === false) {
@@ -131,17 +131,13 @@ export default function InicioSesion() {
         return
       }
 
-      console.log(data._id)
-      console.log(sellerRole)
-
-      if(!data.company)
+      if(typeof data.company === 'undefined')
       {
         await fetchCompanyByOwnerId(data._id)
 
       } else {
 
         await fecthCompanyById(data.company)
-
       }
 
       dispatch(signInSuccess(data))
@@ -162,7 +158,7 @@ export default function InicioSesion() {
 
   return (
 
-    <div className="p-3 max-w-lg mx-auto">
+    <main className="p-3 max-w-lg mx-auto">
 
       <h1 className='text-3xl text-center font-semibold my-7'>
 
@@ -180,14 +176,14 @@ export default function InicioSesion() {
       </form>
 
       <div className="flex gap-2 mt-5">
-        <p>¿No tienes una cuenta?</p>
+        <p>¿Eres empleador?</p>
         <Link to={"/registro"}>
-          <span className="text-blue-700">Crea una</span>
+          <span className="text-blue-700">Crea una cuenta</span>
         </Link>
       </div>
 
       {error && <p className='text-red-500 mt-5'>{error}</p>}
 
-    </div>
+    </main>
   )
 }

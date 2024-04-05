@@ -2,15 +2,40 @@ import bcryptjs from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import Employee from '../models/employees/employee.model.js'
 import Role from '../models/role.model.js'
-import Owner from '../models/owner.model.js'
 import { errorHandler } from '../utils/error.js'
 
 export const signUp = async (req, res, next) => {
-  const { name, lastName, email, password, role, salary, payDay } = req.body
+
+  let role = req.body.role
+
+  const { name, lastName, email, password, salary, payDay, company, phoneNumber, balance } = req.body
+
+  if(!password) {
+
+    next(errorHandler(404, 'The password path is required'))
+    return
+  }
 
   const hashedPassword = bcryptjs.hashSync(password, 10)
 
-  const newEmployee = new Employee({ name, lastName, email, password: hashedPassword, role, salary, payDay })
+  let newEmployee
+
+  if (role === undefined) {
+
+    role = await Role.findOne({name: 'Gerente'}).select('_id')
+
+  }
+
+  if (balance) {
+
+    newEmployee = new Employee({ name, lastName, email, password: hashedPassword, phoneNumber, role, salary, payDay, company, balance })
+
+  } else {
+
+    newEmployee = new Employee({ name, lastName, email, password: hashedPassword, phoneNumber, role, salary, payDay, company })
+
+  }
+
 
   try {
 
@@ -54,14 +79,8 @@ export const signIn = async (req, res, next) => {
 
     if (!validUser) {
 
+      return next(errorHandler(404, 'Wrong credentials'))
 
-      validUser = await Owner.findOne({ email })
-
-      if (!validUser) {
-
-        return next(errorHandler(404, 'Wrong credentials'))
-
-      }
     }
 
     const validPassword = bcryptjs.compareSync(password, validUser.password)
@@ -92,7 +111,6 @@ export const signOut = async (req, res, next) => {
 
   } catch (error) {
 
-    console.log('error en signout')
     next(error)
   }
 }

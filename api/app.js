@@ -12,6 +12,13 @@ import zoneRouter from './routes/zone.route.js'
 import productRouter from './routes/product.route.js'
 import priceRouter from './routes/price.route.js'
 import stockRouter from './routes/stock.route.js'
+import branchReportRouter from './routes/branch.report.route.js'
+import productLossRouter from './routes/product.loss.route.js'
+import outputRouter from './routes/output.route.js'
+import inputRouter from './routes/input.route.js'
+import incomeRouter from './routes/income.route.js'
+import reportRouter from './routes/report.route.js'
+import path from 'path'
 
 const app = express()
 
@@ -28,6 +35,9 @@ mongoose.connect(process.env.MONGO).then(() =>
     console.log(err)
 })
 
+const __dirname = path.resolve()
+
+
 app.use(express.json())
 app.use(cookieParser())
 
@@ -41,11 +51,24 @@ app.use('/api/auth', authRouter)
 app.use('/api/role', roleRouter)
 app.use('/api/company', companyRouter)
 app.use('/api/outgoing', outgoingRouter)
+app.use('/api/outgoing/product-loss', productLossRouter)
 app.use('/api/branch', branchRouter)
-app.use('/api/zone', zoneRouter)
+app.use('/api/branch/report', branchReportRouter)
 app.use('/api/product', productRouter)
 app.use('/api/product/price', priceRouter)
 app.use('/api/stock', stockRouter)
+app.use('/api/zone', zoneRouter)
+app.use('/api/output', outputRouter)
+app.use('/api/input', inputRouter)
+app.use('/api/income', incomeRouter)
+app.use('/api/report', reportRouter)
+
+app.use(express.static(path.join(__dirname, '/client/dist')))
+
+app.get('*', (req, res) => {
+
+    res.sendFile(path.join(__dirname, 'client', 'dist', 'index.html'))
+})
 
 app.use((err, req, res, next) => {
 

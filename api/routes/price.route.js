@@ -1,9 +1,12 @@
 import express from 'express'
-import { getPrices, newPrice } from '../controllers/price.controller.js'
+import { getAllBranchPrices, getBranchCurrentPrices, initializeBranchPrices, newPrice, newPrices } from '../controllers/price.controller.js'
 
 const router = express.Router()
 
 router.post('/new-price', newPrice)
-router.get('/prices/:branchId', getPrices)
+router.post('/new-prices', newPrices)
+router.post('/initialize-prices/:companyId/:branchId', initializeBranchPrices)
+router.get('/get-branch-prices/:branchId', getBranchCurrentPrices)
+router.get('/get-products-price/:companyId', getAllBranchPrices)
 
 export default router

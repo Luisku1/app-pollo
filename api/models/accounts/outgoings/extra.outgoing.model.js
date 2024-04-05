@@ -3,13 +3,18 @@ import mongoose, { Schema } from 'mongoose'
 const extraOutgoingsSchema = mongoose.Schema( {
 
     amount: {
-        type: Decimal128,
+        type: Number,
         required: true
     },
 
     concept: {
         type: String,
         required: true
+    },
+
+    addmitted: {
+        type: Boolean,
+        default: true
     },
 
     company: {
@@ -20,10 +25,14 @@ const extraOutgoingsSchema = mongoose.Schema( {
     employee: {
         type: Schema.Types.ObjectId, ref: 'Employee',
         required: true
+    },
+
+    createdAt: {
+        type: Date,
+        required: true
     }
+})
 
-}, { timestamps: true } )
+const ExtraOutgoing = mongoose.model('ExtraOutgoing', extraOutgoingsSchema)
 
-const ExtraOutgoings = mongoose.model('ExtraOutgoings', extraOutgoingsSchema)
-
-export default ExtraOutgoings
+export default ExtraOutgoing

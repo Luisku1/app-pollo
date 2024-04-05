@@ -1,5 +1,4 @@
-import { Decimal128 } from 'mongodb/mongodb'
-import mongoose from 'mongoose'
+import mongoose, {Schema} from 'mongoose'
 
 const loanSchema = mongoose.Schema( {
 
@@ -8,21 +7,26 @@ const loanSchema = mongoose.Schema( {
         required: true
     },
 
-    branch: {
-        type: Schema.Types.ObjectId, ref: 'Branch',
-        required: true
-    },
-
     company: {
         type: Schema.Types.ObjectId, ref: 'Company',
         required: true
     },
 
-    user: {
+    employee: {
         type: Schema.Types.ObjectId, ref: 'Employee',
         required: true
+    },
+
+    supervisor: {
+        type: Schema.Types.ObjectId, ref: 'Employee',
+        required: true
+    },
+
+    createdAt: {
+        type: Date,
+        required: true
     }
-}, { timestamps: true } )
+})
 
 const Loan = mongoose.model('Loan', loanSchema)
 

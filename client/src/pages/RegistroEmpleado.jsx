@@ -1,13 +1,16 @@
 import { useEffect, useState } from 'react'
+import { useSelector } from 'react-redux'
+import { weekDays } from '../helpers/Constants'
 
 export default function RegistroEmpleadoNuevo() {
 
   const [formData, setFormData] = useState({})
+  const {company} = useSelector((state) => state.user)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const [successMessage, setMessage] = useState(null)
   const [roles, setRoles] = useState([])
   const day = new Date().getDay()
-  const daysOfTheWeek = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
 
   useEffect(() => {
 
@@ -17,7 +20,7 @@ export default function RegistroEmpleadoNuevo() {
 
         setLoading(true)
 
-        const res = await fetch('/api/role/roles')
+        const res = await fetch('/api/role/get')
         const data = await res.json()
 
         if (data.success === false) {
@@ -29,6 +32,7 @@ export default function RegistroEmpleadoNuevo() {
         setRoles(data.roles)
         setLoading(false)
         setError(null)
+
       } catch (error) {
 
         setError(error.message)
@@ -48,11 +52,44 @@ export default function RegistroEmpleadoNuevo() {
     })
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
+
+    const role = document.getElementById('role')
+    const payDay = document.getElementById('payDay')
 
     e.preventDefault()
+    setMessage(null)
 
+    try {
 
+      const res = await fetch('/api/auth/sign-up', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          ... formData,
+          role: role.value,
+          payDay: payDay.value,
+          company: company._id
+        })
+      })
+
+      const data = await res.json()
+
+      if(data.success === false) {
+
+        setError(data.message)
+        return
+      }
+
+      setError(null)
+      setMessage('Empleado registrado correctamente')
+
+    } catch (error) {
+
+      setError(error.message)
+    }
 
   }
 
@@ -68,9 +105,14 @@ export default function RegistroEmpleadoNuevo() {
 
         </h1>
 
+        { successMessage ?
+          <p className='bg-green-200 mb-4'>{successMessage}</p>
+        : ''
+        }
+
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <input type="text" name="name" id="name" placeholder="Nombres" className='border p-3 rounded-lg' onChange={handleChange} />
-          <input type="text" name="lastname" id="lastname" placeholder='Apellidos' className='border p-3 rounded-lg' onChange={handleChange} />
+          <input type="text" name="lastName" id="lastName" placeholder='Apellidos' className='border p-3 rounded-lg' onChange={handleChange} />
           <input type="tel" name="phoneNumber" id="phoneNumber" placeholder='Número de teléfono' className='border p-3 rounded-lg' onChange={handleChange} />
 
           <div className="flex items-center justify-between">
@@ -79,7 +121,7 @@ export default function RegistroEmpleadoNuevo() {
             <select name="role" id="role" className='border p-3 rounded-lg'>
               {roles && roles.length > 0 && roles.map((role) => (
 
-                <option selected={role.name == 'Encargado' ? 'selected' : ""} key={role._id} value={role.name}>{role.name}</option>
+                <option selected={role.name == 'Vendedor' ? 'selected' : ""} key={role._id} value={role._id}>{role.name}</option>
               ))}
             </select>
 
@@ -88,7 +130,7 @@ export default function RegistroEmpleadoNuevo() {
           <div className="flex items-center justify-between">
 
             <p>Salario:</p>
-            <input type="number" step={100} defaultValue={1300} name="salary" id="salary" className='border p-3 rounded-lg' onChange={handleChange} />
+            <input type="number" step={100} placeholder='$0.00' name="salary" id="salary" className='border p-3 rounded-lg' onChange={handleChange} />
 
           </div>
 
@@ -97,9 +139,9 @@ export default function RegistroEmpleadoNuevo() {
             <p>Día de pago:</p>
             <select name="payDay" id="payDay" className='border p-3 rounded-lg'>
 
-              {daysOfTheWeek && daysOfTheWeek.length > 0 && daysOfTheWeek.map((element, index) => (
+              {weekDays && weekDays.length > 0 && weekDays.map((element, index) => (
 
-                <option key={index} value={element} selected={index == day - 1 ? 'selected' : ""}>{element}</option>
+                <option key={index} value={index} selected={index == day - 1 ? 'selected' : ""}>{element}</option>
               ))}
 
             </select>

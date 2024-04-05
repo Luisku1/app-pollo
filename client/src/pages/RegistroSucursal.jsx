@@ -10,6 +10,7 @@ export default function RegistroSucursal() {
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
   const [zones, setZones] = useState([])
+  const [branchesLastPosition, setBranchesLastPosition] = useState(null)
 
   useEffect(() => {
 
@@ -34,6 +35,34 @@ export default function RegistroSucursal() {
       }
     }
 
+    const fetchLastBranchesPosition = async () => {
+
+      try {
+
+
+        const res = await fetch('/api/branch/get-branches-last-position/')
+        const data = await res.json()
+
+        if(data.success === false) {
+
+          setError(data.message)
+          return
+        }
+
+       console.log(data.branchLastPosition.position)
+
+        setBranchesLastPosition(data.branchLastPosition.position)
+        setError(null)
+
+      } catch (error) {
+
+        setError(error.message)
+
+      }
+    }
+
+
+    fetchLastBranchesPosition()
     fetchZones()
 
   }, [company._id])
@@ -56,7 +85,7 @@ export default function RegistroSucursal() {
 
       setLoading(true)
 
-      const res = await fetch('api/branch/new-branch/' + company._id,
+      const res = await fetch('/api/branch/new-branch/',
       {
         method: 'POST',
         headers: {
@@ -77,12 +106,49 @@ export default function RegistroSucursal() {
         return
       }
 
-      navigate('/')
+      await initializeProducts(e, data.branch)
+
+      navigate('/sucursales')
 
     } catch (error) {
 
       setLoading(false)
       setError(error.message)
+    }
+  }
+
+  const initializeProducts = async (e, branch) => {
+
+    e.preventDefault()
+
+    try {
+
+      setLoading(true)
+
+      const res = await fetch('/api/product/price/initialize-prices/' + company._id + '/' + branch._id, {
+
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+
+      const data = await res.json()
+
+      if(data.success === false) {
+
+        setError(data.message)
+        setLoading(false)
+        return
+      }
+
+      setError(null)
+      setLoading(false)
+
+    } catch(error) {
+
+      setError(error)
+      setLoading(false)
     }
   }
 
@@ -104,6 +170,9 @@ export default function RegistroSucursal() {
           <input type="number" name="p" id="p" placeholder="%" step={0.001} className='border p-3 rounded-lg' onChange={handleChange} />
           <input type="text" name="rentDay" id="rentDay" placeholder="Día de renta" className='border p-3 rounded-lg' onChange={handleChange} />
           <input type="number" name="rentAmount" id="rentAmount" placeholder="Monto de renta" className='border p-3 rounded-lg' onChange={handleChange} />
+          {branchesLastPosition ?
+          <input type="number" name="position" id="position" placeholder={branchesLastPosition ? branchesLastPosition + 1 : 'Indique el orden'} className='border p-3 rounded-lg' onChange={handleChange} />
+          : ''}
           <select name="zone" id="zone" className='border p-3 rounded-lg'>
           {zones && zones.length == 0 ? <option> No hay zonas registradas </option> : ''}
           {zones && zones.length > 0 && zones.map((zone) => (
