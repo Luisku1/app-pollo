@@ -183,6 +183,7 @@ export const getBranchOutputs = async (req, res, next) => {
   const date = new Date(req.params.date)
   const branchId = req.params.branchId
 
+  const functionalDate = new Date(date)
   const functionalDatePlusOneDay = new Date(date)
 
   functionalDatePlusOneDay.setDate(functionalDatePlusOneDay.getDate() + 1)
