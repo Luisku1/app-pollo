@@ -32,7 +32,7 @@ export const newExtraOutgoing = async (req, res, next) => {
 
   try {
 
-    const extraOutgoing = new ExtraOutgoing({ amount: extraOutgoingAmount, concept: extraOutgoingConcept, company, employee, createdAt: functionalDate })
+    const extraOutgoing = new ExtraOutgoing({ amount: extraOutgoingAmount, concept: extraOutgoingConcept, company, employee, createdAt: functionalDate.toISOString() })
     extraOutgoing.save()
 
     res.status(201).json({ message: 'New extra outgoing created successfully', extraOutgoing: extraOutgoing })
