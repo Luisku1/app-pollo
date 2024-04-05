@@ -94,16 +94,16 @@ export default function Header() {
 
                 <div>
 
-                  <DropdownItem text={'Perfil'} link={'/perfil'} />
+                  <DropdownItem text={'Perfil'} link={'/perfil'} onClick={()=>{setOpen(!open)}} />
 
-                  <DropdownItem text={"Crear formato"} link={'/formato'}/>
+                  <DropdownItem text={"Crear formato"} link={'/formato'} onClick={()=>{setOpen(!open)}}/>
 
                   {supervisorRole && managerRole && (currentUser.role == supervisorRole._id || currentUser.role == managerRole._id) ? (
 
                     <div>
 
 
-                      <DropdownItem text={'Supervisión'} link={'/supervision-diaria'} />
+                      <DropdownItem text={'Supervisión'} link={'/supervision-diaria'} onClick={()=>{setOpen(!open)}}/>
 
                     </div>
 
@@ -118,19 +118,19 @@ export default function Header() {
 
                     <div>
 
-                      <DropdownItem text={"Supervisores"} link={'/supervisores'}/>
+                      <DropdownItem text={"Supervisores"} link={'/supervisores'} onClick={()=>{setOpen(!open)}}/>
 
-                      <DropdownItem text={"Cuentas"} link={'/listado-de-cuentas'}/>
+                      <DropdownItem text={"Cuentas"} link={'/listado-de-cuentas'} onClick={()=>{setOpen(!open)}}/>
 
-                      <DropdownItem text={'Empleados'} link={'/empleados'} />
+                      <DropdownItem text={'Empleados'} link={'/empleados'} onClick={()=>{setOpen(!open)}}/>
 
-                      <DropdownItem text={'Sucursales'} link={'/sucursales'} />
+                      <DropdownItem text={'Sucursales'} link={'/sucursales'} onClick={()=>{setOpen(!open)}}/>
 
-                      <DropdownItem text={'Productos'} link={'/productos'} />
+                      <DropdownItem text={'Productos'} link={'/productos'} onClick={()=>{setOpen(!open)}}/>
 
-                      <DropdownItem text={'Precios'} link={'/precios'} />
+                      <DropdownItem text={'Precios'} link={'/precios'} onClick={()=>{setOpen(!open)}}/>
 
-                      <DropdownItem text={'Empresa'} link={'/empresas'} />
+                      <DropdownItem text={'Empresa'} link={'/empresas'} onClick={()=>{setOpen(!open)}}/>
 
                     </div>
 
@@ -144,7 +144,7 @@ export default function Header() {
 
               ): (
 
-                <DropdownItem text={'Inicio de Sesión'} link={'/inicio-sesion'} />
+                <DropdownItem text={'Inicio de Sesión'} link={'/inicio-sesion'} onClick={()=>{setOpen(!open)}}/>
 
               )}
 
