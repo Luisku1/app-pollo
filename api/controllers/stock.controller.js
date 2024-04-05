@@ -6,12 +6,11 @@ import { pricesAggregate } from "./price.controller.js";
 export const createStock = async (req, res, next) => {
 
   const {pieces, weight, amount, branch, product, company, employee} = req.body
-  const tzoffset = (new Date(Date.now())).getTimezoneOffset() * 60000; //offset in milliseconds
-  const functionalDate = new Date(Date.now() - tzoffset)
+  const createdAt = new Date().toISOString()
 
   try {
 
-    const newStock = new Stock({pieces, employee, weight, amount, branch, product, company, createdAt: functionalDate})
+    const newStock = new Stock({pieces, employee, weight, amount, branch, product, company, createdAt})
     await newStock.save()
 
     res.status(201).json({message: 'New stock created successfully', stock: newStock})
@@ -28,11 +27,13 @@ export const getInitialStock = async (req, res, next) => {
   const date = new Date(req.params.date)
   const branchId = req.params.branchId
 
-  const tzoffset = (new Date(req.params.date)).getTimezoneOffset() * 60000; //offset in milliseconds
-  const functionalDate = new Date(date - tzoffset)
-  const functionalDateMinusOneDay = new Date(date - tzoffset)
+  const functionalDate = new Date(date)
+  const functionalDateMinusOneDay = new Date(date)
 
   functionalDateMinusOneDay.setDate(functionalDateMinusOneDay.getDate() - 1)
+
+  const topDate = new Date(functionalDate.toISOString().slice(0, 10) + 'T00:00:00.000-06:00')
+  const bottomDate = new Date(functionalDateMinusOneDay.toISOString().slice(0, 10) + 'T00:00:00.000-06:00')
 
   try {
 
@@ -42,13 +43,13 @@ export const getInitialStock = async (req, res, next) => {
 
           createdAt: {
 
-            $lt: functionalDate.toISOString().slice(0, 10)
+            $lt: topDate
           }
         },
         {
           createdAt: {
 
-            $gte: functionalDateMinusOneDay.toISOString().slice(0, 10)
+            $gte: bottomDate
 
           }
         },
@@ -56,9 +57,6 @@ export const getInitialStock = async (req, res, next) => {
           branch: branchId
         }]
     })
-
-    console.log(initialStock)
-
 
     if(initialStock) {
 
@@ -101,11 +99,13 @@ export const getBranchDayStock = async (req, res, next) => {
   const date = new Date(req.params.date)
   const branchId = req.params.branchId
 
-  const tzoffset = (new Date(req.params.date)).getTimezoneOffset() * 60000; //offset in milliseconds
-  const functionalDate = new Date(date - tzoffset)
-  const functionalDatePlusOneDay = new Date(date - tzoffset)
+  const functionalDate = new Date(date)
+  const functionalDatePlusOneDay = new Date(date)
 
   functionalDatePlusOneDay.setDate(functionalDatePlusOneDay.getDate() + 1)
+
+  const bottomDate = new Date(functionalDate.toISOString().slice(0, 10) + 'T00:00:00.000-06:00')
+  const topDate = new Date(functionalDatePlusOneDay.toISOString().slice(0, 10) + 'T00:00:00.000-06:00')
 
 
   try {
@@ -116,13 +116,13 @@ export const getBranchDayStock = async (req, res, next) => {
 
           createdAt: {
 
-            $gte: functionalDate.toISOString().slice(0, 10)
+            $gte: bottomDate
           }
         },
         {
           createdAt: {
 
-            $lt: functionalDatePlusOneDay.toISOString().slice(0, 10)
+            $lt: topDate
 
           }
         },
@@ -151,11 +151,13 @@ export const getCompanyDayStock = async (req, res, next) => {
   const companyId = req.params.companyId
   const date = new Date(req.params.date)
 
-  const tzoffset = (new Date(req.params.date)).getTimezoneOffset() * 60000; //offset in milliseconds
-  const functionalDate = new Date(date - tzoffset)
-  const functionalDatePlusOneDay = new Date(date - tzoffset)
+  const functionalDate = new Date(date)
+  const functionalDatePlusOneDay = new Date(date)
 
   functionalDatePlusOneDay.setDate(functionalDatePlusOneDay.getDate() + 1)
+
+  const bottomDate = new Date(functionalDate.toISOString().slice(0, 10) + 'T00:00:00.000-06:00')
+  const topDate = new Date(functionalDatePlusOneDay.toISOString().slice(0, 10) + 'T00:00:00.000-06:00')
 
 
   try {
@@ -166,13 +168,13 @@ export const getCompanyDayStock = async (req, res, next) => {
 
           createdAt: {
 
-            $gte: functionalDate.toISOString()
+            $gte: bottomDate
           }
         },
         {
           createdAt: {
 
-            $lt: functionalDatePlusOneDay.toISOString()
+            $lt: topDate
 
           }
         },

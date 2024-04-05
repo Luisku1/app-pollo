@@ -5,15 +5,14 @@ import { errorHandler } from '../utils/error.js'
 export const newBranch = async (req, res, next) => {
 
 	const { branch, phoneNumber, location, p, rentAmount, zone, rentDay, company, position } = req.body
-  const tzoffset = (new Date(Date.now())).getTimezoneOffset() * 60000; //offset in milliseconds
-  const functionalDate = new Date(Date.now() - tzoffset)
+	const date = new Date().toISOString()
 
-	const newBranch = new Branch({ branch, phoneNumber, location, p, rentAmount, zone, rentDay, company, position, createdAt: functionalDate })
+	const newBranch = new Branch({ branch, phoneNumber, location, p, rentAmount, zone, rentDay, company, position, createdAt: date })
 
 	try {
 
 		await newBranch.save()
-		res.status(201).json({branch: newBranch})
+		res.status(201).json({ branch: newBranch })
 
 	} catch (error) {
 
@@ -27,9 +26,9 @@ export const getBranches = async (req, res, next) => {
 
 	try {
 
-		const branches = await Branch.find({company: companyId}).sort({position: 1})
+		const branches = await Branch.find({ company: companyId }).sort({ position: 1 })
 
-		res.status(200).json({branches: branches})
+		res.status(200).json({ branches: branches })
 
 	} catch (error) {
 
@@ -43,11 +42,11 @@ export const getBranchesLastPosition = async (req, res, next) => {
 
 	try {
 
-		const branchLastPosition = await Branch.find({company: companyId}).sort({position: -1}).limit(1).select('position')
+		const branchLastPosition = await Branch.find({ company: companyId }).sort({ position: -1 }).limit(1).select('position')
 
-		if(branchLastPosition) {
+		if (branchLastPosition) {
 
-			res.status(200).json({branchLastPosition: branchLastPosition[0]})
+			res.status(200).json({ branchLastPosition: branchLastPosition[0] })
 
 		} else {
 
@@ -67,10 +66,10 @@ export const deleteBranch = async (req, res, next) => {
 
 	try {
 
-		const deletedPrices = await  Price.deleteMany({branch: branchId})
-		const deleted = await Branch.deleteOne({_id: branchId})
+		const deletedPrices = await Price.deleteMany({ branch: branchId })
+		const deleted = await Branch.deleteOne({ _id: branchId })
 
-		if(deleted.acknowledged && deletedPrices.acknowledged) {
+		if (deleted.acknowledged && deletedPrices.acknowledged) {
 
 			res.status(200).json('Branch deleted successfully')
 

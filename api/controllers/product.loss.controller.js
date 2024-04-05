@@ -4,11 +4,10 @@ import { errorHandler } from "../utils/error.js";
 export const create = async (req, res, next) => {
 
   const { amount, productLossWeight, comment, product, employee, company, branch } = req.body
-  const tzoffset = (new Date(Date.now())).getTimezoneOffset() * 60000; //offset in milliseconds
-  const functionalDate = new Date(Date.now() - tzoffset)
+  const createdAt = new Date().toISOString()
 
 
-  const newProductLossItem = new ProductLoss({ amount, weight: productLossWeight, comment, product, employee, company, branch, createdAt: functionalDate })
+  const newProductLossItem = new ProductLoss({ amount, weight: productLossWeight, comment, product, employee, company, branch, createdAt: createdAt })
 
   try {
 
@@ -25,10 +24,13 @@ export const getProductLosses = async (req, res, next) => {
 
   const branchId = req.params.branchId
   const date = new Date(req.params.date)
-  const localeDate = date.toDateString('es-MX', { timeZone: 'US/Central' })
-  const functionalDate = new Date(localeDate)
-  const functionalDateMinusOneDay = new Date(localeDate)
-  functionalDateMinusOneDay.setDate(functionalDateMinusOneDay.getDate() + 1)
+  const functionalDate = new Date(date)
+  const functionalDatePlusOneDay = new Date(date)
+
+  functionalDatePlusOneDay.setDate(functionalDatePlusOneDay.getDate() + 1)
+
+  const bottomDate = new Date(functionalDate.toISOString().slice(0, 10) + 'T00:00:00.000-06:00')
+  const topDate = new Date(functionalDatePlusOneDay.toISOString().slice(0, 10) + 'T00:00:00.000-06:00')
 
   try {
 
@@ -38,13 +40,13 @@ export const getProductLosses = async (req, res, next) => {
 
         createdAt: {
 
-          $gte: functionalDate.toISOString()
+          $gte: bottomDate
         }
       },
       {
         createdAt: {
 
-          $lte: functionalDateMinusOneDay.toISOString()
+          $lt: topDate
         }
       },
       {

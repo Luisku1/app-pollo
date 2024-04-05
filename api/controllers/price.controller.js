@@ -7,12 +7,11 @@ import { Types } from "mongoose";
 export const newPrice = async (req, res, next) => {
 
   const { price, product, branch } = req.body
-  const tzoffset = (new Date(Date.now())).getTimezoneOffset() * 60000; //offset in milliseconds
-  const functionalDate = new Date(Date.now() - tzoffset)
+  const createdAt = new Date().toISOString()
 
   try {
 
-    const newPrice = new Price({ price, product, branch, createdAt: functionalDate })
+    const newPrice = new Price({ price, product, branch, createdAt })
 
     await newPrice.save()
     res.status(200).json('New price created')
@@ -34,15 +33,14 @@ export const newPrices = async (req, res, next) => {
 
       if(data.hasOwnProperty(key)) {
 
-        const tzoffset = (new Date(Date.now())).getTimezoneOffset() * 60000; //offset in milliseconds
-        const functionalDate = new Date(Date.now() - tzoffset)
+        const createdAt = new Date().toISOString()
 
         let document = {
 
           price: data[key].price,
           product: data[key].product,
           branch: data[key].branch,
-          createdAt: functionalDate
+          createdAt: createdAt
         }
 
         bulkOps.push({ "insertOne": {"document": document}})
@@ -74,15 +72,14 @@ export const initializeBranchPrices = async (req, res, next) => {
 
     products.forEach((product) => {
 
-      const tzoffset = (new Date(Date.now())).getTimezoneOffset() * 60000; //offset in milliseconds
-      const functionalDate = new Date(Date.now() - tzoffset)
+      const createdAt = new Date().toISOString()
 
       let document = {
 
         price: 0,
         product: product._id,
         branch: branchId,
-        createdAt: functionalDate
+        createdAt: createdAt
       }
 
       bulkOps.push({ "insertOne": {"document": document}})

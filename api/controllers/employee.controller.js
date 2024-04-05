@@ -23,11 +23,14 @@ export const getEmployeesDailyBalances = async (req, res, next) => {
 
 	const date = new Date(req.params.date)
 	const companyId = req.params.companyId
-	const tzoffset = (new Date(req.params.date)).getTimezoneOffset() * 60000; //offset in milliseconds
-	const bottomRange = new Date(date - tzoffset)
-	const topRange = new Date(date - tzoffset)
 
-	topRange.setDate(topRange.getDate() + 1)
+  const functionalDate = new Date(date)
+  const functionalDatePlusOneDay = new Date(date)
+
+  functionalDatePlusOneDay.setDate(functionalDatePlusOneDay.getDate() + 1)
+
+  const bottomDate = new Date(functionalDate.toISOString().slice(0, 10) + 'T00:00:00.000-06:00')
+  const topDate = new Date(functionalDatePlusOneDay.toISOString().slice(0, 10) + 'T00:00:00.000-06:00')
 
 	try {
 
@@ -35,10 +38,10 @@ export const getEmployeesDailyBalances = async (req, res, next) => {
 
 			$and: [
 				{
-          createdAt: { $gte: bottomRange.toISOString().slice(0, 10) }
+          createdAt: { $gte: bottomDate }
         },
         {
-          createdAt: { $lt: topRange.toISOString().slice(0, 10) }
+          createdAt: { $lt: topDate }
         },
         {
           company: companyId

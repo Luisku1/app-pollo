@@ -7,14 +7,13 @@ import { getProductPrice } from './price.controller.js'
 export const newInput = async (req, res, next) => {
 
   const {inputWeight, inputComment, inputPieces, company, product, employee, branch} = req.body
-  const tzoffset = (new Date(Date.now())).getTimezoneOffset() * 60000; //offset in milliseconds
-  const functionalDate = new Date(Date.now() - tzoffset)
+  const createdAt = new Date().toISOString()
 
   try {
 
     const price = await getProductPrice(product, branch)
     const amount = price.price * inputWeight
-    const newInput = new Input({weight: inputWeight, comment: inputComment, pieces: inputPieces, company, product, employee, branch, amount, price: price.price, createdAt: functionalDate})
+    const newInput = new Input({weight: inputWeight, comment: inputComment, pieces: inputPieces, company, product, employee, branch, amount, price: price.price, createdAt})
 
     await newInput.save()
 
@@ -31,12 +30,13 @@ export const getBranchInputs = async (req, res, next) => {
   const date = new Date(req.params.date)
   const branchId = req.params.branchId
 
-  const tzoffset = (new Date(req.params.date)).getTimezoneOffset() * 60000; //offset in milliseconds
-  const functionalDate = new Date(date - tzoffset)
-  const functionalDatePlusOneDay = new Date(date - tzoffset)
+  const functionalDate = new Date(date)
+  const functionalDatePlusOneDay = new Date(date)
 
-  functionalDate.setDate(functionalDate.getDate())
   functionalDatePlusOneDay.setDate(functionalDatePlusOneDay.getDate() + 1)
+
+  const bottomDate = new Date(functionalDate.toISOString().slice(0, 10) + 'T00:00:00.000-06:00')
+  const topDate = new Date(functionalDatePlusOneDay.toISOString().slice(0, 10) + 'T00:00:00.000-06:00')
 
 
   try {
@@ -47,14 +47,14 @@ export const getBranchInputs = async (req, res, next) => {
 
         createdAt: {
 
-          $gte: functionalDate.toISOString().slice(0, 10)
+          $gte: bottomDate
         }
       },
       {
 
         createdAt: {
 
-          $lt: functionalDatePlusOneDay.toISOString().slice(0, 10)
+          $lt: topDate
         }
 
       },
@@ -84,12 +84,13 @@ export const getInputs = async (req, res, next) => {
   const date = new Date(req.params.date)
   const companyId = req.params.companyId
 
-  const tzoffset = (new Date(req.params.date)).getTimezoneOffset() * 60000; //offset in milliseconds
-  const functionalDate = new Date(date - tzoffset)
-  const functionalDatePlusOneDay = new Date(date - tzoffset)
+  const functionalDate = new Date(date)
+  const functionalDatePlusOneDay = new Date(date)
 
-  functionalDate.setDate(functionalDate.getDate())
   functionalDatePlusOneDay.setDate(functionalDatePlusOneDay.getDate() + 1)
+
+  const bottomDate = new Date(functionalDate.toISOString().slice(0, 10) + 'T00:00:00.000-06:00')
+  const topDate = new Date(functionalDatePlusOneDay.toISOString().slice(0, 10) + 'T00:00:00.000-06:00')
 
 
   try {
@@ -100,14 +101,14 @@ export const getInputs = async (req, res, next) => {
 
         createdAt: {
 
-          $gte: functionalDate.toISOString().slice(0, 10)
+          $gte: bottomDate
         }
       },
       {
 
         createdAt: {
 
-          $lt: functionalDatePlusOneDay.toISOString().slice(0, 10)
+          $lt: topDate
         }
 
       },
@@ -182,12 +183,12 @@ export const getBranchOutputs = async (req, res, next) => {
   const date = new Date(req.params.date)
   const branchId = req.params.branchId
 
-  const tzoffset = (new Date(req.params.date)).getTimezoneOffset() * 60000; //offset in milliseconds
-  const functionalDate = new Date(date - tzoffset)
-  const functionalDatePlusOneDay = new Date(date - tzoffset)
+  const functionalDatePlusOneDay = new Date(date)
 
-  functionalDate.setDate(functionalDate.getDate())
   functionalDatePlusOneDay.setDate(functionalDatePlusOneDay.getDate() + 1)
+
+  const bottomDate = new Date(functionalDate.toISOString().slice(0, 10) + 'T00:00:00.000-06:00')
+  const topDate = new Date(functionalDatePlusOneDay.toISOString().slice(0, 10) + 'T00:00:00.000-06:00')
 
 
   try {
@@ -198,14 +199,14 @@ export const getBranchOutputs = async (req, res, next) => {
 
         createdAt: {
 
-          $gte: functionalDate.toISOString().slice(0, 10)
+          $gte: bottomDate
         }
       },
       {
 
         createdAt: {
 
-          $lt: functionalDatePlusOneDay.toISOString().slice(0, 10)
+          $lt: topDate
         }
 
       },
@@ -234,12 +235,13 @@ export const getOutputs = async (req, res, next) => {
   const date = new Date(req.params.date)
   const companyId = req.params.companyId
 
-  const tzoffset = (new Date(req.params.date)).getTimezoneOffset() * 60000; //offset in milliseconds
-  const functionalDate = new Date(date - tzoffset)
-  const functionalDatePlusOneDay = new Date(date - tzoffset)
+  const functionalDate = new Date(date)
+  const functionalDatePlusOneDay = new Date(date)
 
-  functionalDate.setDate(functionalDate.getDate())
   functionalDatePlusOneDay.setDate(functionalDatePlusOneDay.getDate() + 1)
+
+  const bottomDate = new Date(functionalDate.toISOString().slice(0, 10) + 'T00:00:00.000-06:00')
+  const topDate = new Date(functionalDatePlusOneDay.toISOString().slice(0, 10) + 'T00:00:00.000-06:00')
 
 
   try {
@@ -250,14 +252,14 @@ export const getOutputs = async (req, res, next) => {
 
         createdAt: {
 
-          $gte: functionalDate.toISOString().slice(0, 10)
+          $gte: bottomDate
         }
       },
       {
 
         createdAt: {
 
-          $lt: functionalDatePlusOneDay.toISOString().slice(0, 10)
+          $lt: topDate
         }
 
       },

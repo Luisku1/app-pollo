@@ -11,11 +11,14 @@ export const getBranchReports = async (req, res, next) => {
 
   const date = new Date(req.params.date)
   const companyId = req.params.companyId
-  const tzoffset = (new Date(date)).getTimezoneOffset() * 60000; //offset in milliseconds
-  const bottomRange = new Date(date - tzoffset)
-  const topRange = new Date(date - tzoffset)
 
-  topRange.setDate(topRange.getDate() + 1)
+  const functionalDate = new Date(date)
+  const functionalDatePlusOneDay = new Date(date)
+
+  functionalDatePlusOneDay.setDate(functionalDatePlusOneDay.getDate() + 1)
+
+  const bottomDate = new Date(functionalDate.toISOString().slice(0, 10) + 'T00:00:00.000-06:00')
+  const topDate = new Date(functionalDatePlusOneDay.toISOString().slice(0, 10) + 'T00:00:00.000-06:00')
 
   try {
 
@@ -23,10 +26,10 @@ export const getBranchReports = async (req, res, next) => {
 
       $and: [
         {
-          createdAt: { $gte: bottomRange.toISOString().slice(0, 10) }
+          createdAt: { $gte: bottomDate }
         },
         {
-          createdAt: { $lt: topRange.toISOString().slice(0, 10) }
+          createdAt: { $lt: topDate }
         },
         {
           company: companyId
@@ -53,15 +56,18 @@ export const getSupervisorsInfo = async (req, res, next) => {
 
   const date = new Date(req.params.date)
   const companyId = req.params.companyId
-  const tzoffset = (new Date(req.params.date)).getTimezoneOffset() * 60000; //offset in milliseconds
-  const bottomRange = new Date(date - tzoffset)
-  const topRange = new Date(date - tzoffset)
 
-  topRange.setDate(topRange.getDate() + 1)
+  const functionalDate = new Date(date)
+  const functionalDatePlusOneDay = new Date(date)
+
+  functionalDatePlusOneDay.setDate(functionalDatePlusOneDay.getDate() + 1)
+
+  const bottomDate = new Date(functionalDate.toISOString().slice(0, 10) + 'T00:00:00.000-06:00')
+  const topDate = new Date(functionalDatePlusOneDay.toISOString().slice(0, 10) + 'T00:00:00.000-06:00')
 
   try {
 
-    const supervisorsInfo = await supervisorsInfoQuery(companyId, topRange.toISOString().slice(0, 10), bottomRange.toISOString().slice(0, 10), next)
+    const supervisorsInfo = await supervisorsInfoQuery(companyId, topDate, bottomDate, next)
 
     if (supervisorsInfo.error == null) {
 

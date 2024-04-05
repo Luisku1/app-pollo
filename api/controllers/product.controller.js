@@ -6,11 +6,10 @@ import { errorHandler } from '../utils/error.js'
 export const newProduct = async (req, res, next) => {
 
 	const {name, company} = req.body
-	const tzoffset = (new Date(Date.now())).getTimezoneOffset() * 60000; //offset in milliseconds
-	const functionalDate = new Date(Date.now() - tzoffset)
+	const createdAt = new Date().toISOString()
 	let bulkOps = []
 
-	const newProduct = new Product({ name, company, createdAt: functionalDate })
+	const newProduct = new Product({ name, company, createdAt })
 
 	try {
 
