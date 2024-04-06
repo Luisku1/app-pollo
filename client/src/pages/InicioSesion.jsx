@@ -144,7 +144,7 @@ export default function InicioSesion() {
 
       if(data.role == sellerRole._id) {
 
-        navigate('/crear-formato')
+        navigate('/formato')
         return
       }
 
