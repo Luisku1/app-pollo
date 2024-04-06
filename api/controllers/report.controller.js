@@ -5,7 +5,7 @@ import ExtraOutgoing from "../models/accounts/outgoings/extra.outgoing.model.js"
 import IncomeCollected from "../models/accounts/incomes/income.collected.model.js"
 import BranchReport from "../models/accounts/branch.report.model.js"
 import { errorHandler } from "../utils/error.js"
-
+import ReportData from "../models/accounts/report.data.model.js"
 
 export const getBranchReports = async (req, res, next) => {
 
@@ -200,5 +200,27 @@ export const supervisorsInfoQuery = async (companyId, dateTopRange, dateBottomRa
 
     next(error)
   }
+}
 
+export const getDaysReportsData = async (req, res, next) => {
+
+  const companyId = req.params.companyId
+
+  try {
+
+    const reportsData = await ReportData.find({ company: companyId }).sort({ createdAt: 1 }).limit(30)
+
+    if (reportsData.length > 0) {
+
+      res.status(200).json({ reportsData: reportsData })
+
+    } else {
+
+      next(errorHandler(404, 'Reports data not found'))
+    }
+
+  } catch (error) {
+
+    next(error)
+  }
 }

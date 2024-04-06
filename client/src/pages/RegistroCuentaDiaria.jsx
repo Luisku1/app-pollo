@@ -33,6 +33,7 @@ export default function RegistroCuentaDiaria() {
   const [productName, setProductName] = useState(null)
   const [isOpen, setIsOpen] = useState(false)
   const [buttonId, setButtonId] = useState(null)
+  const [branchReport, setBranchReport] = useState(null)
   const date = new Date().toLocaleDateString('es-mx', { weekday: 'long', year: 'numeric', month: '2-digit', day: '2-digit' })
 
   const saveProductName = (e) => {
@@ -710,7 +711,7 @@ export default function RegistroCuentaDiaria() {
 
     try {
 
-      const res = await fetch('/api/branch/report/create', {
+      const res = await fetch('/api/branch/report/create/' + company._id, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -738,6 +739,8 @@ export default function RegistroCuentaDiaria() {
         setLoading(false)
         return
       }
+
+      setBranchReport(data.branchReport)
 
       setLoading(false)
       setError(null)
@@ -1272,8 +1275,13 @@ export default function RegistroCuentaDiaria() {
         </div>
         : ''}
 
-      {successMessage ?
-        <p className='bg-green-200 mb-4'>{successMessage}</p>
+      {successMessage && branchReport ?
+        <div className='bg-white p-3 text-lg font-semibold'>
+
+          <p className={branchReport.balance < 0 ? 'text-red-800' : '' + 'mb-4'}>{'Tu balance es de: ' + branchReport.balance}</p>
+          <p className='text-green-900 mb-4'>{successMessage}</p>
+
+        </div>
         : ''
       }
 

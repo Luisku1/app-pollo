@@ -2,11 +2,6 @@ import mongoose, { Schema } from 'mongoose'
 
 const reportDataSchema = mongoose.Schema({
 
-  sales: {
-    type: Number,
-    required: true
-  },
-
   incomes: {
     type: Number,
     required: true
