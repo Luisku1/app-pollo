@@ -33,7 +33,6 @@ export default function RegistroCuentaDiaria() {
   const [productName, setProductName] = useState(null)
   const [isOpen, setIsOpen] = useState(false)
   const [buttonId, setButtonId] = useState(null)
-  const [selectedEmployeeId, setSelectedEmployeeId] = useState(null)
   const date = new Date().toLocaleDateString('es-mx', { weekday: 'long', year: 'numeric', month: '2-digit', day: '2-digit' })
 
   const saveProductName = (e) => {
@@ -112,6 +111,7 @@ export default function RegistroCuentaDiaria() {
     const weightInput = document.getElementById('weight')
     const button = document.getElementById('stock-button')
     const branchSelect = document.getElementById('branch')
+    const employeeSelect = document.getElementById('employee')
 
     let filledInputs = true
 
@@ -126,7 +126,7 @@ export default function RegistroCuentaDiaria() {
       filledInputs = false
     }
 
-    if (filledInputs && branchSelect.value != 'none') {
+    if (filledInputs && branchSelect.value != 'none' && employeeSelect.value != 'none') {
 
       button.disabled = false
 
@@ -241,6 +241,7 @@ export default function RegistroCuentaDiaria() {
     const productSelect = document.getElementById('product')
     const piecesInput = document.getElementById('pieces')
     const weightInput = document.getElementById('weight')
+    const employeeSelect = document.getElementById('employee')
     const amount = parseFloat(getProductPrice(productSelect.value) * stockFormData.weight)
 
     setLoading(true)
@@ -255,7 +256,7 @@ export default function RegistroCuentaDiaria() {
         body: JSON.stringify({
           ...stockFormData,
           amount: amount,
-          employee: selectedEmployeeId,
+          employee: employeeSelect.value,
           product: productSelect.value,
           branch: branchSelected.value,
           company: company._id
@@ -824,7 +825,7 @@ export default function RegistroCuentaDiaria() {
       <div className="flex items-center justify-between">
 
         <p>Encargado:</p>
-        <select name="employee" id="employee" className='border p-3 rounded-lg' onChange={(e) => { outgoingsButtonControl(), stockButtonControl(), productLossButtonControl(), setSelectedEmployeeId(e.target.value) }}>
+        <select name="employee" id="employee" className='border p-3 rounded-lg' onChange={() => { outgoingsButtonControl(), stockButtonControl(), productLossButtonControl() }}>
 
           <option value="none" selected disabled hidden>Sin encargado</option>
 
@@ -916,14 +917,14 @@ export default function RegistroCuentaDiaria() {
         {outgoings && outgoings.length > 0 && outgoings.map((outgoing, index) => (
 
 
-          <div key={outgoing._id} className={(selectedEmployeeId == outgoing.employee ? '' : 'py-3 ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
+          <div key={outgoing._id} className={(document.getElementById('employee').value == outgoing.employee ? '' : 'py-3 ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
 
             <div id='list-element' className='flex col-span-10 items-center'>
               <p className='text-center text-xs w-6/12'>{outgoing.concept}</p>
               <p className='text-center text-xs w-6/12'>{outgoing.amount.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
             </div>
 
-            {selectedEmployeeId == outgoing.employee || currentUser._id == outgoing.employee ?
+            {document.getElementById('employee').value == outgoing.employee || currentUser._id == outgoing.employee ?
 
               <div>
                 <button id={outgoing._id} onClick={() => { setIsOpen(isOpen ? false : true), setButtonId(outgoing._id) }} disabled={loading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
@@ -1000,7 +1001,7 @@ export default function RegistroCuentaDiaria() {
         {stockItems && stockItems.length > 0 && stockItems.map((stock, index) => (
 
 
-          <div key={stock._id} className={(selectedEmployeeId == stock.employee ? '' : 'py-3 ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
+          <div key={stock._id} className={(document.getElementById('employee').value == stock.employee ? '' : 'py-3 ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
 
             <div id='list-element' className='flex col-span-10 items-center '>
               <p className='text-center w-4/12'>{stock.product.name ? stock.product.name : stock.product}</p>
@@ -1010,10 +1011,10 @@ export default function RegistroCuentaDiaria() {
             </div>
 
 
-            {selectedEmployeeId == stock.employee || currentUser._id == stock.employee ?
+            {document.getElementById('employee').value == stock.employee || currentUser._id == stock.employee ?
 
               <div>
-                <button id={stock._id} onClick={() => { setIsOpen(isOpen ? false : true), setButtonId(stock._id) }} disabled={loading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
+                <button id={stock._id} onClick={() => { setIsOpen(!isOpen), setButtonId(stock._id) }} disabled={loading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
                   <span>
                     <FaTrash className='text-red-700 m-auto' />
                   </span>
@@ -1030,7 +1031,7 @@ export default function RegistroCuentaDiaria() {
                           <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteStockItem(stock._id, index), setIsOpen(isOpen ? false : true) }}>Si</button>
                         </div>
                         <div>
-                          <button className='rounded-lg border shadow-lg w-20 h-10' onClick={() => { setIsOpen(isOpen ? false : true) }}>No</button>
+                          <button className='rounded-lg border shadow-lg w-20 h-10' onClick={() => { setIsOpen(!isOpen) }}>No</button>
                         </div>
                       </div>
                     </div>
@@ -1088,7 +1089,7 @@ export default function RegistroCuentaDiaria() {
         {productLossItems && productLossItems.length > 0 && productLossItems.map((productLossItem, index) => (
 
 
-          <div key={productLossItem._id} className={(selectedEmployeeId == productLossItem.employee ? '' : 'py-3 ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
+          <div key={productLossItem._id} className={(document.getElementById('employee').value == productLossItem.employee ? '' : 'py-3 ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
 
             <div id='list-element' className='flex col-span-10 items-center'>
               <p className='text-center text-xs w-4/12'>{productLossItem.product.name ? productLossItem.product.name : productLossItem.product}</p>
@@ -1097,7 +1098,7 @@ export default function RegistroCuentaDiaria() {
             </div>
 
 
-            {selectedEmployeeId == productLossItem.employee || currentUser._id == productLossItem.employee ?
+            {document.getElementById('employee').value == productLossItem.employee || currentUser._id == productLossItem.employee ?
 
               <div>
                 <button id={productLossItem._id} onClick={() => { setIsOpen(isOpen ? false : true), setButtonId(productLossItem._id) }} disabled={loading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>

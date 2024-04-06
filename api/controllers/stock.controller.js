@@ -27,13 +27,15 @@ export const getInitialStock = async (req, res, next) => {
   const date = new Date(req.params.date)
   const branchId = req.params.branchId
 
-  const functionalDate = new Date(date)
-  const functionalDateMinusOneDay = new Date(date)
+  const actualLocaleDate = new Date(new Date(date).getTime() - 6 * 60 * 60000)
+  const actualLocaleDay = actualLocaleDate.toISOString().slice(0, 10)
 
-  functionalDateMinusOneDay.setDate(functionalDateMinusOneDay.getDate() - 1)
+  const actualLocaleDateMinusOne = new Date(actualLocaleDay)
+  actualLocaleDateMinusOne.setDate(actualLocaleDateMinusOne.getDate() - 1)
+  const actualLocaleDayMinusOne = actualLocaleDateMinusOne.toISOString().slice(0, 10)
 
-  const topDate = new Date(functionalDate.toISOString().slice(0, 10) + 'T00:00:00.000-06:00')
-  const bottomDate = new Date(functionalDateMinusOneDay.toISOString().slice(0, 10) + 'T00:00:00.000-06:00')
+  const topDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
+  const bottomDate = new Date(actualLocaleDayMinusOne + 'T00:00:00.000-06:00')
 
   try {
 
@@ -97,13 +99,15 @@ export const getBranchDayStock = async (req, res, next) => {
   const date = new Date(req.params.date)
   const branchId = req.params.branchId
 
-  const functionalDate = new Date(date)
-  const functionalDatePlusOneDay = new Date(date)
+  const actualLocaleDate = new Date(new Date(date).getTime() - 6 * 60 * 60000)
+  const actualLocaleDay = actualLocaleDate.toISOString().slice(0, 10)
 
-  functionalDatePlusOneDay.setDate(functionalDatePlusOneDay.getDate() + 1)
+  const actualLocaleDatePlusOne = new Date(actualLocaleDay)
+  actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
+  const actualLocalDayPlusOne = actualLocaleDatePlusOne.toISOString().slice(0, 10)
 
-  const bottomDate = new Date(functionalDate.toISOString().slice(0, 10) + 'T00:00:00.000-06:00')
-  const topDate = new Date(functionalDatePlusOneDay.toISOString().slice(0, 10) + 'T00:00:00.000-06:00')
+  const bottomDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
+  const topDate = new Date(actualLocalDayPlusOne + 'T00:00:00.000-06:00')
 
 
   try {
@@ -149,13 +153,15 @@ export const getCompanyDayStock = async (req, res, next) => {
   const companyId = req.params.companyId
   const date = new Date(req.params.date)
 
-  const functionalDate = new Date(date)
-  const functionalDatePlusOneDay = new Date(date)
+  const actualLocaleDate = new Date(new Date(date).getTime() - 6 * 60 * 60000)
+  const actualLocaleDay = actualLocaleDate.toISOString().slice(0, 10)
 
-  functionalDatePlusOneDay.setDate(functionalDatePlusOneDay.getDate() + 1)
+  const actualLocaleDatePlusOne = new Date(actualLocaleDay)
+  actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
+  const actualLocalDayPlusOne = actualLocaleDatePlusOne.toISOString().slice(0, 10)
 
-  const bottomDate = new Date(functionalDate.toISOString().slice(0, 10) + 'T00:00:00.000-06:00')
-  const topDate = new Date(functionalDatePlusOneDay.toISOString().slice(0, 10) + 'T00:00:00.000-06:00')
+  const bottomDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
+  const topDate = new Date(actualLocalDayPlusOne + 'T00:00:00.000-06:00')
 
 
   try {
