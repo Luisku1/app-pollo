@@ -97,7 +97,7 @@ export default function Sucursales() {
 
               <div className="p-3">
                 <p className="text-lg">{'Día de renta: ' + branch.rentDay}</p>
-                <p className="text-lg">{'Monto de renta: ' + parseFloat(branch.rentAmount.toLocaleString('ex-Mx', { style: 'currency', currency: 'MXN' }))}</p>
+                <p className="text-lg">{'Monto de renta: ' + parseFloat(branch.rentAmount).toLocaleString('ex-Mx', { style: 'currency', currency: 'MXN' })}</p>
                 <p className="text-lg">{'% ' + branch.p}</p>
                 {branch.phoneNumber ?
                   <p className="text-lg">Teléfono: {branch.phoneNumber ? branch.phoneNumber.replace(/(\d{2})(\d{4})(\d{4})/, '$1-$2-$3') : ''}</p>
