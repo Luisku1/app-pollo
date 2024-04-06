@@ -38,7 +38,7 @@ export default function ListadoDeCuentas() {
     <main className="p-3 max-w-lg mx-auto">
 
       <h1 className='text-3xl text-center font-semibold mt-7'>
-        Supervisión
+        Diario de cuentas
       </h1>
 
       {daysReportsData ?
