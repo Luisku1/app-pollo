@@ -5,8 +5,6 @@ export default function ListadoDeCuentas() {
 
   const { company } = useSelector((state) => state.user)
   const [daysReportsData, setDayReportData] = useState([])
-  const [error, setError] = useState(null)
-
 
   useEffect(() => {
 
@@ -21,7 +19,7 @@ export default function ListadoDeCuentas() {
 
         if (data.success === false) {
 
-          setError(data.message)
+          console.log(data.message)
           return
         }
 
@@ -29,7 +27,7 @@ export default function ListadoDeCuentas() {
 
       } catch (error) {
 
-        setError(error.message)
+        console.log(error)
       }
     }
 
@@ -42,8 +40,6 @@ export default function ListadoDeCuentas() {
       <h1 className='text-3xl text-center font-semibold mt-7'>
         Supervisión
       </h1>
-
-      {error ? <p>{error}</p> : ''}
 
       {daysReportsData ?
         <div className="bg-white p-5 mb-4 mt-8 rounded-3xl shadow-lg">
