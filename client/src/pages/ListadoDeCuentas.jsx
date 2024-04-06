@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux'
 
 export default function ListadoDeCuentas() {
 
-  const { currentUser, company } = useSelector((state) => state.user)
+  const { company } = useSelector((state) => state.user)
   const [daysReportsData, setDayReportData] = useState([])
   const [error, setError] = useState(null)
 
@@ -43,6 +43,8 @@ export default function ListadoDeCuentas() {
         Supervisión
       </h1>
 
+      {error ? <p>{error}</p> : ''}
+
       {daysReportsData ?
         <div className="bg-white p-5 mb-4 mt-8 rounded-3xl shadow-lg">
 
@@ -51,22 +53,22 @@ export default function ListadoDeCuentas() {
 
             <div>
 
-            { daysReportsData.length > 0 && daysReportsData.map((reportData) => (
+              {daysReportsData.length > 0 && daysReportsData.map((reportData) => (
 
-              <div key={reportData._id} className=''>
+                <div key={reportData._id} className=''>
 
-                <p className="text-center text-lg font-semibold text-red-500 mb-3">Fecha: {(new Date(reportData.createdAt)).toLocaleDateString()}</p>
-                <p>Efectivo: {reportData.incomes.toLocaleString('es-Mx', {style: 'currency', currency: 'MXN'})}</p>
-                <p>Sobrante: {reportData.stock.toLocaleString('es-Mx', {style: 'currency', currency: 'MXN'})}</p>
-                <p>Gastos: {reportData.outgoings.toLocaleString('es-Mx', {style: 'currency', currency: 'MXN'})}</p>
-                <p>Efectivo neto: {(reportData.incomes - reportData.outgoings).toLocaleString('es-Mx', {style: 'currency', currency: 'MXN'})}</p>
+                  <p className="text-center text-lg font-semibold text-red-500 mb-3">Fecha: {(new Date(reportData.createdAt)).toLocaleDateString()}</p>
+                  <p>Efectivo: {reportData.incomes.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
+                  <p>Sobrante: {reportData.stock.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
+                  <p>Gastos: {reportData.outgoings.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
+                  <p>Efectivo neto: {(reportData.incomes - reportData.outgoings).toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
 
-              </div>
-            ))}
+                </div>
+              ))}
 
             </div>
-          :
-          <p className="text-lg font-semibold text-center">Parece que es tu primer día</p>
+            :
+            <p className="text-lg font-semibold text-center">Parece que es tu primer día</p>
           }
 
         </div>
