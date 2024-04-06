@@ -74,7 +74,7 @@ export const getEmployeesDailyBalances = async (req, res, next) => {
 
 					employee: employee._id,
 					company: companyId,
-					createdAt: bottomRange
+					createdAt: bottomDate
 				}
 
 				bulkOps.push({"insertOne": {'document': document}})
