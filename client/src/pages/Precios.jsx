@@ -16,8 +16,6 @@ export default function Precios() {
 
   const handleInputsChange = (e, productId, branchId) => {
 
-    const button = document.getElementById('button')
-
     setButonDisabled(false)
 
     if(e.target.value == "") {
@@ -41,8 +39,6 @@ export default function Precios() {
         }
       })
     }
-    console.log(button.disabled)
-    console.log(pricesFormData)
   }
 
   const submitPrices = async () => {

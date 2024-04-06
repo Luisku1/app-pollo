@@ -19,12 +19,13 @@ export const newProduct = async (req, res, next) => {
 
 		branches.forEach(branch => {
 
+			const createdAt = new Date().toISOString()
 
 			let document = {
 				price: 0,
 				product: newProduct._id,
 				branch: branch._id,
-				createdAt: functionalDate
+				createdAt: createdAt
 			}
 
 			bulkOps.push({ "insertOne": {"document": document}})

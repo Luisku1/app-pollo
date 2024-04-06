@@ -30,7 +30,6 @@ export default function RegistroEmpresa() {
 
       setLoading(true)
 
-      console.log(formData)
 
       const res = await fetch('api/company/create',
       {

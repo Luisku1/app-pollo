@@ -21,8 +21,6 @@ export default function Productos() {
 
     })
 
-    console.log(productFormData)
-
   }
 
   const productButtonControl = () => {

@@ -66,8 +66,6 @@ export const getInitialStock = async (req, res, next) => {
 
       if(branchPrices.error == null) {
 
-        console.log(branchPrices.data.prices)
-
         initialStock.forEach((stock) => {
 
           const priceIndex = branchPrices.data.prices.findIndex((price) => (price.productId.toString() == stock.product.toString()))

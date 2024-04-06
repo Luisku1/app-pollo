@@ -25,8 +25,6 @@ export default function Supervisores() {
           return
         }
 
-        console.log(data)
-
         setBranchReports(data.branchReports)
         setError(null)
 
@@ -57,7 +55,6 @@ export default function Supervisores() {
       } catch (error) {
 
         setError(error.message)
-        console.log(error)
       }
     }
 

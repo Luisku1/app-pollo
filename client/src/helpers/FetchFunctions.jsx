@@ -12,8 +12,6 @@ export const fetchPrices = async () => {
       return { error: data.message, data: null }
     }
 
-    console.log(data)
-
     if (!data.data.prices.length == 0) {
 
       return { error: null, data: data.data }

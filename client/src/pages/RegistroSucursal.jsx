@@ -49,8 +49,6 @@ export default function RegistroSucursal() {
           return
         }
 
-       console.log(data.branchLastPosition.position)
-
         setBranchesLastPosition(data.branchLastPosition.position)
         setError(null)
 

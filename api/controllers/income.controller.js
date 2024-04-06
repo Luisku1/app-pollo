@@ -172,8 +172,6 @@ export const deleteIncome = async (req, res, next) => {
 
     const deleted = await IncomeCollected.findByIdAndDelete({_id: incomeId})
 
-    console.log(deleted)
-
     if(deleted._id) {
 
       res.status(200).json('Income deleted successfully')

@@ -70,7 +70,6 @@ export default function InicioSesion() {
         return
       }
 
-      console.log(data)
       dispatch(addCompany(data))
 
     } catch (error) {

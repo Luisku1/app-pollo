@@ -129,7 +129,7 @@ export default function ControlSupervisor() {
 
       if (data.success === false) {
 
-        e.target.checked = e.target.checked ? false : true
+        e.target.checked = !e.target.checked
         setError(data.message)
         setLoading(false)
         return
@@ -140,7 +140,7 @@ export default function ControlSupervisor() {
 
     } catch (error) {
 
-      e.target.checked = e.target.checked ? false : true
+      e.target.checked = !e.target.checked
       setError(error.message)
       setLoading(false)
     }
@@ -625,8 +625,6 @@ export default function ControlSupervisor() {
 
       setError(null)
       setIncomes([...incomes, data.income])
-      console.log(incomes)
-      console.log([...incomes, data.income])
       setIncomesTotal(incomesTotal + parseFloat(data.income.amount))
 
       amountInput.value = ''
@@ -646,8 +644,6 @@ export default function ControlSupervisor() {
   const deleteIncome = async (incomeId, index) => {
 
     setLoading(true)
-
-    console.log(index, incomeId)
 
     const { error } = await deleteIncomeFetch(incomeId)
 
@@ -681,8 +677,6 @@ export default function ControlSupervisor() {
     let total = 0
 
     outputs.forEach((output) => {
-
-      console.log(output)
 
       total += parseFloat(output.amount)
     })
@@ -810,8 +804,6 @@ export default function ControlSupervisor() {
           setLoading(false)
           return
         }
-
-        console.log(data)
 
         setEmployeesDailyBalance(data)
         setLoading(false)
@@ -1178,7 +1170,7 @@ export default function ControlSupervisor() {
               {currentUser._id == income.employee._id ?
 
                 <div>
-                  <button id={income._id} onClick={() => { setIsOpen(isOpen ? false : true), setButtonId(income._id) }} disabled={loading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
+                  <button id={income._id} onClick={() => { setIsOpen(!isOpen), setButtonId(income._id) }} disabled={loading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
                     <span>
                       <FaTrash className='text-red-700 m-auto' />
                     </span>
@@ -1192,10 +1184,10 @@ export default function ControlSupervisor() {
                         </div>
                         <div className='flex gap-10'>
                           <div>
-                            <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteIncome(income._id, index), setIsOpen(isOpen ? false : true) }}>Si</button>
+                            <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteIncome(income._id, index), setIsOpen(!isOpen) }}>Si</button>
                           </div>
                           <div>
-                            <button className='rounded-lg border shadow-lg w-20 h-10' onClick={() => { setIsOpen(isOpen ? false : true) }}>No</button>
+                            <button className='rounded-lg border shadow-lg w-20 h-10' onClick={() => { setIsOpen(!isOpen) }}>No</button>
                           </div>
                         </div>
                       </div>
@@ -1247,7 +1239,7 @@ export default function ControlSupervisor() {
               {currentUser._id == extraOutgoing.employee._id ?
 
                 <div>
-                  <button id={extraOutgoing._id} onClick={() => { setIsOpen(isOpen ? false : true), setButtonId(extraOutgoing._id) }} disabled={loading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
+                  <button id={extraOutgoing._id} onClick={() => { setIsOpen(!isOpen), setButtonId(extraOutgoing._id) }} disabled={loading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
                     <span>
                       <FaTrash className='text-red-700 m-auto' />
                     </span>
@@ -1261,10 +1253,10 @@ export default function ControlSupervisor() {
                         </div>
                         <div className='flex gap-10'>
                           <div>
-                            <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteExtraOutgoing(extraOutgoing._id, index), setIsOpen(isOpen ? false : true) }}>Si</button>
+                            <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteExtraOutgoing(extraOutgoing._id, index), setIsOpen(!isOpen) }}>Si</button>
                           </div>
                           <div>
-                            <button className='rounded-lg border shadow-lg w-20 h-10' onClick={() => { setIsOpen(isOpen ? false : true) }}>No</button>
+                            <button className='rounded-lg border shadow-lg w-20 h-10' onClick={() => { setIsOpen(!isOpen) }}>No</button>
                           </div>
                         </div>
                       </div>
@@ -1321,7 +1313,7 @@ export default function ControlSupervisor() {
               {currentUser._id == input.employee._id ?
 
                 <div>
-                  <button id={input._id} onClick={() => { setIsOpen(isOpen ? false : true), setButtonId(input._id) }} disabled={loading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
+                  <button id={input._id} onClick={() => { setIsOpen(!isOpen), setButtonId(input._id) }} disabled={loading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
                     <span>
                       <FaTrash className='text-red-700 m-auto' />
                     </span>
@@ -1335,10 +1327,10 @@ export default function ControlSupervisor() {
                         </div>
                         <div className='flex gap-10'>
                           <div>
-                            <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteInput(input._id, index), setIsOpen(isOpen ? false : true) }}>Si</button>
+                            <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteInput(input._id, index), setIsOpen(!isOpen) }}>Si</button>
                           </div>
                           <div>
-                            <button className='rounded-lg border shadow-lg w-20 h-10' onClick={() => { setIsOpen(isOpen ? false : true) }}>No</button>
+                            <button className='rounded-lg border shadow-lg w-20 h-10' onClick={() => { setIsOpen(!isOpen) }}>No</button>
                           </div>
                         </div>
                       </div>
@@ -1392,7 +1384,7 @@ export default function ControlSupervisor() {
               {currentUser._id == output.employee._id ?
 
                 <div>
-                  <button id={output._id} onClick={() => { setIsOpen(isOpen ? false : true), setButtonId(output._id) }} disabled={loading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
+                  <button id={output._id} onClick={() => { setIsOpen(!isOpen), setButtonId(output._id) }} disabled={loading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
                     <span>
                       <FaTrash className='text-red-700 m-auto' />
                     </span>
@@ -1406,10 +1398,10 @@ export default function ControlSupervisor() {
                         </div>
                         <div className='flex gap-10'>
                           <div>
-                            <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteOutput(output._id, index), setIsOpen(isOpen ? false : true) }}>Si</button>
+                            <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteOutput(output._id, index), setIsOpen(!isOpen) }}>Si</button>
                           </div>
                           <div>
-                            <button className='rounded-lg border shadow-lg w-20 h-10' onClick={() => { setIsOpen(isOpen ? false : true) }}>No</button>
+                            <button className='rounded-lg border shadow-lg w-20 h-10' onClick={() => { setIsOpen(!isOpen) }}>No</button>
                           </div>
                         </div>
                       </div>
@@ -1462,7 +1454,7 @@ export default function ControlSupervisor() {
               {currentUser._id == loan.supervisor._id ?
 
                 <div>
-                  <button id={loan._id} onClick={() => { setIsOpen(isOpen ? false : true), setButtonId(loan._id) }} disabled={loading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
+                  <button id={loan._id} onClick={() => { setIsOpen(!isOpen), setButtonId(loan._id) }} disabled={loading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
                     <span>
                       <FaTrash className='text-red-700 m-auto' />
                     </span>
@@ -1476,10 +1468,10 @@ export default function ControlSupervisor() {
                         </div>
                         <div className='flex gap-10'>
                           <div>
-                            <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteLoan(loan._id, index), setIsOpen(isOpen ? false : true) }}>Si</button>
+                            <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteLoan(loan._id, index), setIsOpen(!isOpen) }}>Si</button>
                           </div>
                           <div>
-                            <button className='rounded-lg border shadow-lg w-20 h-10' onClick={() => { setIsOpen(isOpen ? false : true) }}>No</button>
+                            <button className='rounded-lg border shadow-lg w-20 h-10' onClick={() => { setIsOpen(!isOpen) }}>No</button>
                           </div>
                         </div>
                       </div>

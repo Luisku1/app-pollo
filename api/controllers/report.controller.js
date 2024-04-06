@@ -87,8 +87,6 @@ export const getSupervisorsInfo = async (req, res, next) => {
 
 export const supervisorsInfoQuery = async (companyId, dateTopRange, dateBottomRange, next) => {
 
-  console.log(companyId, dateTopRange, dateBottomRange)
-
   let supervisorsInfo = []
 
   try {

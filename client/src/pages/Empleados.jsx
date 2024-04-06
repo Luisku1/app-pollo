@@ -41,7 +41,6 @@ export default function Empleados() {
 
     } catch (error) {
 
-      console.log(error)
 
       setError(error.message)
     }
