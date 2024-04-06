@@ -26,12 +26,7 @@ const reportDataSchema = mongoose.Schema({
     type: Schema.Types.ObjectId, ref: 'Company',
     required: true
   },
-
-  createdAt: {
-    type: Date,
-    required: true
-  }
-})
+}, { timestamps: true })
 
 const ReportData = mongoose.model('ReportData', reportDataSchema)
 

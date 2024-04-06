@@ -908,65 +908,65 @@ export default function ControlSupervisor() {
       }
     }
 
-  const fetchInputs = async () => {
+    const fetchInputs = async () => {
 
-    const date = new Date().toISOString()
+      const date = new Date().toISOString()
 
-    setLoading(true)
+      setLoading(true)
 
-    try {
+      try {
 
-      const res = await fetch('/api/input/get-inputs/' + company._id + '/' + date)
-      const data = await res.json()
+        const res = await fetch('/api/input/get-inputs/' + company._id + '/' + date)
+        const data = await res.json()
 
-      if (data.success === false) {
+        if (data.success === false) {
 
-        setError(data.message)
+          setError(data.message)
+          setLoading(false)
+          return
+        }
+
+        setInputs(data.inputs)
+        setInputsTotalFunction(data.inputs)
+        setError(null)
         setLoading(false)
-        return
-      }
 
-      setInputs(data.inputs)
-      setInputsTotalFunction(data.inputs)
-      setError(null)
-      setLoading(false)
+      } catch (error) {
 
-    } catch (error) {
-
-      setError(error.message)
-      setLoading(false)
-    }
-  }
-
-  const fetchExtraOutgoings = async () => {
-
-    const date = new Date().toISOString()
-
-    setLoading(true)
-
-    try {
-
-      const res = await fetch('/api/outgoing/get-extra-outgoings/' + company._id + '/' + date)
-      const data = await res.json()
-
-      if (data.success === false) {
-
-        setError(data.message)
+        setError(error.message)
         setLoading(false)
-        return
       }
-
-      setExtraOutgoings(data.extraOutgoings)
-      setExtraOutgoingsTotalFunction(data.extraOutgoings)
-      setError(null)
-      setLoading(false)
-
-    } catch (error) {
-
-      setError(error.message)
-      setLoading(false)
     }
-  }
+
+    const fetchExtraOutgoings = async () => {
+
+      const date = new Date().toISOString()
+
+      setLoading(true)
+
+      try {
+
+        const res = await fetch('/api/outgoing/get-extra-outgoings/' + company._id + '/' + date)
+        const data = await res.json()
+
+        if (data.success === false) {
+
+          setError(data.message)
+          setLoading(false)
+          return
+        }
+
+        setExtraOutgoings(data.extraOutgoings)
+        setExtraOutgoingsTotalFunction(data.extraOutgoings)
+        setError(null)
+        setLoading(false)
+
+      } catch (error) {
+
+        setError(error.message)
+        setLoading(false)
+      }
+    }
 
     fetchEmployeesDailyBalances()
     fetchIncomes()
@@ -1228,7 +1228,7 @@ export default function ControlSupervisor() {
           {extraOutgoings && extraOutgoings.length > 0 && extraOutgoings.map((extraOutgoing, index) => (
 
 
-            <div key={extraOutgoing._id} className='grid grid-cols-12 items-center border border-black border-opacity-30 shadow-m rounded-lg mt-2'>
+            <div key={extraOutgoing._id} className={(currentUser._id == extraOutgoing.employee ? '' : 'py-3 ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
 
               <div id='list-element' className='flex col-span-10 items-center justify-around'>
                 <p className='text-center text-sm w-3/12'>{extraOutgoing.employee.name ? extraOutgoing.employee.name : extraOutgoing.employee}</p>
@@ -1301,7 +1301,7 @@ export default function ControlSupervisor() {
           {inputs && inputs.length > 0 && inputs.map((input, index) => (
 
 
-            <div key={input._id} className='grid grid-cols-12  border border-black border-opacity-30 shadow-sm rounded-lg mt-2'>
+            <div key={input._id} className={(currentUser._id == input.employee ? '' : 'py-3 ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
 
               <div id='list-element' className='flex col-span-10 items-center justify-around'>
                 <p className='text-center text-xs  w-3/12'>{input.branch.branch ? input.branch.branch : input.branch}</p>
@@ -1372,7 +1372,7 @@ export default function ControlSupervisor() {
           {outputs && outputs.length > 0 && outputs.map((output, index) => (
 
 
-            <div key={output._id} className='grid grid-cols-12 items-center border border-black border-opacity-30 rounded-lg shadow-sm mt-2'>
+            <div key={output._id} className={(currentUser._id == output.employee ? '' : 'py-3 ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
 
               <div id='list-element' className='flex col-span-10 items-center justify-around'>
                 <p className='text-center text-xs  w-3/12'>{output.branch.branch ? output.branch.branch : output.branch}</p>
@@ -1443,7 +1443,7 @@ export default function ControlSupervisor() {
           {loans && loans.length > 0 && loans.map((loan, index) => (
 
 
-            <div key={loan._id} className='grid grid-cols-12 items-center border border-black border-opacity-30 rounded-lg shadow-sm mt-2'>
+            <div key={loan._id} className={(currentUser._id == loan.supervisor ? '' : 'py-3 ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
 
               <div id='list-element' className='flex col-span-10 items-center justify-around'>
                 <p className='text-center text-sm w-3/12'>{loan.supervisor.name}</p>
@@ -1506,7 +1506,7 @@ export default function ControlSupervisor() {
 
           {employeesDailyBalances && employeesDailyBalances.length > 0 ?
             <div id='header' className='grid grid-cols-12 gap-4 items-center justify-around font-semibold mt-4'>
-              <p className='p-3 rounded-lg col-span-3 text-sm text-center'>Vendedor</p>
+              <p className='p-3 rounded-lg col-span-3 text-sm text-center'>Empleado</p>
               <p className='p-3 rounded-lg col-span-3 text-sm text-center'>Retardo</p>
               <p className='p-3 rounded-lg col-span-3 text-sm text-center'>Descanso</p>
               <p className='p-3 rounded-lg col-span-3 text-sm text-center'>Falta</p>
@@ -1519,7 +1519,11 @@ export default function ControlSupervisor() {
 
               <div id='list-element' className='flex col-span-12 items-center justify-around'>
                 <p className='text-center text-sm w-3/12'>{dailyBalance.employee.name + ' ' + dailyBalance.employee.lastName}</p>
-                <input className='w-3/12' type="checkbox" name="foodDiscount" id="foodDiscount" defaultChecked={dailyBalance.foodDiscount} onChange={(e) => { handleDailyBalanceInputs(e, dailyBalance._id) }} />
+                <div className='w-3/12'>
+
+                  <input className='w-full' type="checkbox" name="foodDiscount" id="foodDiscount" defaultChecked={dailyBalance.foodDiscount} onChange={(e) => { handleDailyBalanceInputs(e, dailyBalance._id) }} />
+
+                </div>
                 <input className='w-3/12' type="checkbox" name="restDay" id="restDay" defaultChecked={dailyBalance.restDay} onChange={(e) => handleDailyBalanceInputs(e, dailyBalance._id)} />
                 <input className='w-3/12' type="checkbox" name="dayDiscount" id="dayDiscount" defaultChecked={dailyBalance.dayDiscount} onChange={(e) => handleDailyBalanceInputs(e, dailyBalance._id)} />
               </div>
