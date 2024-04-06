@@ -57,13 +57,15 @@ export const getSupervisorsInfo = async (req, res, next) => {
   const date = new Date(req.params.date)
   const companyId = req.params.companyId
 
-  const functionalDate = new Date(date)
-  const functionalDatePlusOneDay = new Date(date)
+  const actualLocaleDate = new Date(new Date(date).getTime() - 6 * 60 * 60000)
+  const actualLocaleDay = actualLocaleDate.toISOString().slice(0, 10)
 
-  functionalDatePlusOneDay.setDate(functionalDatePlusOneDay.getDate() + 1)
+  const actualLocaleDatePlusOne = new Date(actualLocaleDay)
+  actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
+  const actualLocalDayPlusOne = actualLocaleDatePlusOne.toISOString().slice(0, 10)
 
-  const bottomDate = new Date(functionalDate.toISOString().slice(0, 10) + 'T00:00:00.000-06:00')
-  const topDate = new Date(functionalDatePlusOneDay.toISOString().slice(0, 10) + 'T00:00:00.000-06:00')
+  const bottomDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
+  const topDate = new Date(actualLocalDayPlusOne + 'T00:00:00.000-06:00')
 
   try {
 
