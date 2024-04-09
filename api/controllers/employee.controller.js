@@ -98,13 +98,9 @@ const getEmployeeWorkedDays = async (req, res, employeeId, next) => {
 
 			if(employee.payDay - (day - 1) < 0) {
 
-				console.log('hola')
-
 				return (Math.abs(employee.payDay - (day - 1)) + 1)
 
 			} else {
-
-				console.log('regreso 8')
 
 				return 8
 			}

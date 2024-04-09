@@ -175,7 +175,7 @@ export default function Perfil() {
                     <Link className='col-span-10' to={'/formato/' + reportData.createdAt + '/' + reportData.branch}>
 
                       <div className=''>
-                        {index != 0 && (new Date().getDate() - 1) > new Date(new Date(reportData.createdAt).toLocaleDateString().slice(0, 10))  ?
+                        {index != 0 || (new Date()).toISOString().slice(0, 10) >= new Date(reportData.createdAt).toISOString().slice(0, 10) ?
                           <div className="flex gap-2">
                             <p className="text-lg">Faltante: </p>
                             <p className={reportData.balance < 0 ? 'text-red-700 font-bold' : '' + 'text-lg font-bold'}>{parseFloat(reportData.balance).toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
