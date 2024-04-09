@@ -5,6 +5,6 @@ const router = express.Router()
 
 router.get('/get-supervisors-info/:companyId/:date', getSupervisorsInfo)
 router.get('/get-days-reports-data/:companyId/:date', getDaysReportsData)
-router.get('/get-branch-reports/:companyId/:date', getBranchReports)
+router.get('/get-branches-reports/:companyId/:date', getBranchReports)
 
 export default router

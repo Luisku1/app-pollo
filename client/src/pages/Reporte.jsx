@@ -22,15 +22,15 @@ export default function Reporte() {
     setBalanceTotal(0.0)
     setBranchReports([])
 
-    const fetchBranchReports = async () => {
+    const fetchBranchesReports = async () => {
 
-      const date = (paramsDate ? new Date(paramsDate) : new Date() ).toISOString()
+      const date = (paramsDate ? new Date(paramsDate) : new Date()).toISOString()
 
-      console.log(paramsDate)
+      console.log(date)
 
       try {
 
-        const res = await fetch('/api/report/get-branch-reports/' + company._id + '/' + date)
+        const res = await fetch('/api/report/get-branches-reports/' + company._id + '/' + date)
         const data = await res.json()
 
         if (data.success === false) {
@@ -90,12 +90,11 @@ export default function Reporte() {
       }
     }
 
-    if(paramsDate)
 
-    fetchBranchReports()
+    fetchBranchesReports()
     fetchSupervisorsInfo()
 
-  }, [company._id, paramsDate])
+  }, [company._id])
 
   return (
 
@@ -109,33 +108,41 @@ export default function Reporte() {
 
         <table className='border bg-white mt-4 w-full'>
 
-          <tr>
-            <th>Sucursal</th>
-            <th>Gastos</th>
-            <th>Sobrante</th>
-            <th>Efectivo</th>
-            <th>Balance</th>
-          </tr>
+          <thead className="border border-black">
+
+            <tr>
+              <th>Sucursal</th>
+              <th>Gastos</th>
+              <th>Sobrante</th>
+              <th>Efectivo</th>
+              <th>Balance</th>
+            </tr>
+          </thead>
 
           {branchReports.map((branchReport) => (
 
-            <tr key={branchReport._id}>
-              <td className="text-center">{branchReport.branch.branch}</td>
-              <td className="text-center">{branchReport.outgoings.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</td>
-              <td className="text-center">{branchReport.finalStock.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</td>
-              <td className="text-center">{branchReport.incomes.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</td>
-              <td className={branchReport.balance < 0 ? 'text-red-500' : 'text-green-500' + ' text-center'}>{branchReport.balance.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })} </td>
-            </tr>
+            <tbody key={branchReport._id}>
+
+              <tr>
+                <td className="text-center">{branchReport.branch.branch}</td>
+                <td className="text-center">{branchReport.outgoings.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</td>
+                <td className="text-center">{branchReport.finalStock.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</td>
+                <td className="text-center">{branchReport.incomes.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</td>
+                <td className={branchReport.balance < 0 ? 'text-red-500' : 'text-green-500' + ' text-center'}>{branchReport.balance.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })} </td>
+              </tr>
+            </tbody>
           ))}
 
 
-          <tr className="mt-2">
-            <td className="text-center text-m font-bold">Totales:</td>
-            <td className="text-center text-m font-bold">{outgoingsTotal.toLocaleString('es-MX', {style: 'currency', currency: 'MXN'})}</td>
-            <td className="text-center text-m font-bold">{stockTotal.toLocaleString('es-MX', {style: 'currency', currency: 'MXN'})}</td>
-            <td className="text-center text-m font-bold">{incomesTotal.toLocaleString('es-MX', {style: 'currency', currency: 'MXN'})}</td>
-            <td className={(balanceTotal < 0 ? 'text-red-500' : 'text-green-500') + ' text-center text-m font-bold'}>{balanceTotal.toLocaleString('es-MX', {style: 'currency', currency: 'MXN'})}</td>
-          </tr>
+          <tfoot className="border border-black">
+            <tr className="mt-2">
+              <td className="text-center text-m font-bold">Totales:</td>
+              <td className="text-center text-m font-bold">{outgoingsTotal.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
+              <td className="text-center text-m font-bold">{stockTotal.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
+              <td className="text-center text-m font-bold">{incomesTotal.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
+              <td className={(balanceTotal < 0 ? 'text-red-500' : 'text-green-500') + ' text-center text-m font-bold'}>{balanceTotal.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
+            </tr>
+          </tfoot>
 
         </table>
 
