@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { deleteOutgoingFetch, deleteProductLossItemFetch, deleteStockFetch, fetchBranches, fetchEmployees, fetchPrices, fetchProducts } from '../helpers/FetchFunctions';
 import { FaTrash } from 'react-icons/fa';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 
 export default function RegistroCuentaDiaria() {
 
@@ -11,7 +11,6 @@ export default function RegistroCuentaDiaria() {
   const paramsDate = useParams().date
   const [branchId, setBranchId] = useState(useParams().branchId)
   const [error, setError] = useState(null)
-  const [successMessage, setSuccessMessage] = useState(null)
   const [loading, setLoading] = useState(false)
   const [outgoingFormData, setOutgoingFormData] = useState({})
   const [stockFormData, setStockFormData] = useState({})
@@ -36,7 +35,7 @@ export default function RegistroCuentaDiaria() {
   const [productName, setProductName] = useState(null)
   const [isOpen, setIsOpen] = useState(false)
   const [buttonId, setButtonId] = useState(null)
-  const [branchReport, setBranchReport] = useState(null)
+  const navigate = useNavigate()
   const reportDate = (paramsDate ? new Date(paramsDate) : new Date()).toLocaleDateString('es-mx', { weekday: 'long', year: 'numeric', month: '2-digit', day: '2-digit' })
 
   const saveProductName = (e) => {
@@ -521,11 +520,10 @@ export default function RegistroCuentaDiaria() {
         return
       }
 
-      setBranchReport(data.branchReport)
-
       setLoading(false)
       setError(null)
-      setSuccessMessage('Formato registrado, puedes salir de esta página')
+
+      navigate('/perfil/' + employee.value)
 
     } catch (error) {
 
@@ -1287,16 +1285,6 @@ export default function RegistroCuentaDiaria() {
             : ''}
         </div>
         : ''}
-
-      {successMessage && branchReport ?
-        <div className='bg-white p-3 text-lg font-semibold'>
-
-          <p className={branchReport.balance < 0 ? 'text-red-800' : '' + 'mb-4'}>{'Tu balance es de: ' + branchReport.balance}</p>
-          <p className='text-green-900 mb-4'>{successMessage}</p>
-
-        </div>
-        : ''
-      }
 
       <div className='flex flex-col gap-4 mt-4'>
 

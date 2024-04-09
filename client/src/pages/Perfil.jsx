@@ -76,6 +76,8 @@ export default function Perfil() {
 
   useEffect(() => {
 
+    setEmployeeReports([])
+
     const fetchEmployee = async () => {
 
       try {
@@ -221,12 +223,14 @@ export default function Perfil() {
             </div>
             : ''}
 
-          <div className='mt-8 grid grid-1'>
-            <button className='border shadow-lg rounded-full p-3 flex-col-reverse justify-self-end'>
-              <span onClick={handleSignOut} className='text-red-700 cursor-pointer'>Sign out</span>
-            </button>
-            <span>{error ? ' Error al fetch' : ''}</span>
-          </div>
+          {employeeId == currentUser._id ?
+            <div className='mt-8 grid grid-1'>
+              <button className='border shadow-lg rounded-full p-3 flex-col-reverse justify-self-end'>
+                <span onClick={handleSignOut} className='text-red-700 cursor-pointer'>Sign out</span>
+              </button>
+              <span>{error ? ' Error al fetch' : ''}</span>
+            </div>
+            : ''}
         </div>
         : ''}
 
