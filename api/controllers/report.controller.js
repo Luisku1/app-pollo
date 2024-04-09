@@ -208,7 +208,7 @@ export const getDaysReportsData = async (req, res, next) => {
 
   try {
 
-    const reportsData = await ReportData.find({ company: companyId }).sort({ createdAt: 1 }).limit(30)
+    const reportsData = await ReportData.find({ company: companyId }).sort({ createdAt: -1 }).limit(30)
 
     if (reportsData.length > 0) {
 

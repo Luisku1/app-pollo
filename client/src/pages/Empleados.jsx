@@ -5,6 +5,7 @@ import { fetchEmployees } from "../helpers/FetchFunctions"
 import { MdEdit } from "react-icons/md";
 import { weekDays } from "../helpers/Constants"
 import { FaTrash } from "react-icons/fa";
+import { Link } from "react-router-dom"
 
 export default function Empleados() {
 
@@ -86,7 +87,9 @@ export default function Empleados() {
           <div className="my-4 bg-white p-4 grid grid-cols-12" key={employee._id}>
 
             <div className="col-span-10">
+              <Link to={'/perfil/' + employee._id}>
               <p className="text-2xl font-bold">{employee.name + ' ' + employee.lastName}</p>
+              </Link>
 
               <div className="p-3">
                 <div className="flex gap-2">

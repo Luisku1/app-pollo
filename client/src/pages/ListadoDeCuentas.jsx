@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import { useSelector } from 'react-redux'
+import { Link } from "react-router-dom"
 
 export default function ListadoDeCuentas() {
 
@@ -42,29 +43,35 @@ export default function ListadoDeCuentas() {
       </h1>
 
       {daysReportsData ?
-        <div className="bg-white p-5 mb-4 mt-8 rounded-3xl shadow-lg">
 
+        <div>
           {daysReportsData && daysReportsData.length > 0 ?
 
 
             <div>
 
               {daysReportsData.length > 0 && daysReportsData.map((reportData) => (
+                <div className="bg-white p-5 my-4 rounded-3xl shadow-lg" key={reportData._id}>
 
-                <div key={reportData._id} className=''>
+                  <Link to={'/reporte/' + reportData.createdAt}>
 
-                  <p className="text-center text-lg font-semibold text-red-500 mb-3">Fecha: {(new Date(reportData.createdAt)).toLocaleDateString()}</p>
-                  <p>Efectivo: {reportData.incomes.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
-                  <p>Sobrante: {reportData.stock.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
-                  <p>Gastos: {reportData.outgoings.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
-                  <p>Efectivo neto: {(reportData.incomes - reportData.outgoings).toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
+                    <div className=''>
+
+                      <p className="text-center text-lg font-semibold text-red-500 mb-3">Fecha: {(new Date(reportData.createdAt)).toLocaleDateString()}</p>
+                      <p>Efectivo: {reportData.incomes.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
+                      <p>Sobrante: {reportData.stock.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
+                      <p>Gastos: {reportData.outgoings.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
+                      <p>Efectivo neto: {(reportData.incomes - reportData.outgoings).toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
+
+                    </div>
+                  </Link>
 
                 </div>
               ))}
 
             </div>
             :
-            <p className="text-lg font-semibold text-center">Parece que es tu primer día</p>
+            <p className="bg-white p-5 my-4 rounded-3xl shadow-lg text-lg font-semibold text-center">Parece que es tu primer día</p>
           }
 
         </div>

@@ -3,10 +3,13 @@ import { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { deleteOutgoingFetch, deleteProductLossItemFetch, deleteStockFetch, fetchBranches, fetchEmployees, fetchPrices, fetchProducts } from '../helpers/FetchFunctions';
 import { FaTrash } from 'react-icons/fa';
+import { useParams } from 'react-router-dom';
 
 export default function RegistroCuentaDiaria() {
 
   const { currentUser, company } = useSelector((state) => state.user)
+  const paramsDate = useParams().date
+  const [branchId, setBranchId] = useState(useParams().branchId)
   const [error, setError] = useState(null)
   const [successMessage, setSuccessMessage] = useState(null)
   const [loading, setLoading] = useState(false)
@@ -34,7 +37,7 @@ export default function RegistroCuentaDiaria() {
   const [isOpen, setIsOpen] = useState(false)
   const [buttonId, setButtonId] = useState(null)
   const [branchReport, setBranchReport] = useState(null)
-  const date = new Date().toLocaleDateString('es-mx', { weekday: 'long', year: 'numeric', month: '2-digit', day: '2-digit' })
+  const reportDate = (paramsDate ? new Date(paramsDate) : new Date()).toLocaleDateString('es-mx', { weekday: 'long', year: 'numeric', month: '2-digit', day: '2-digit' })
 
   const saveProductName = (e) => {
 
@@ -381,11 +384,11 @@ export default function RegistroCuentaDiaria() {
     }
   }
 
-  const setPricesFunction = async () => {
+  const setPricesFunction = async (branchId) => {
 
     setLoading(true)
 
-    const { error, data } = await fetchPrices()
+    const { error, data } = await fetchPrices(branchId)
 
     setLoading(false)
 
@@ -399,36 +402,7 @@ export default function RegistroCuentaDiaria() {
     }
   }
 
-  const fetchOutgoings = async () => {
 
-    const date = new Date().toISOString()
-    const branch = document.getElementById('branch')
-
-    setLoading(true)
-
-    try {
-
-      const res = await fetch('/api/outgoing/branch-outgoings/' + branch.value + '/' + date)
-      const data = await res.json()
-
-      if (data.success === false) {
-
-        setError(data.message)
-        setLoading(false)
-        return
-      }
-
-      setOutgoings(data.outgoings)
-      setOutgoingsTotalFunction(data.outgoings)
-      setError(null)
-      setLoading(false)
-
-    } catch (error) {
-
-      setError(error.message)
-      setLoading(false)
-    }
-  }
 
   const setOutgoingsTotalFunction = (outgoings) => {
 
@@ -440,37 +414,6 @@ export default function RegistroCuentaDiaria() {
     setOutgoingsTotal(total)
   }
 
-  const fetchStock = async () => {
-
-    const date = new Date().toISOString()
-    const branch = document.getElementById('branch')
-
-    setLoading(true)
-
-    try {
-
-      const res = await fetch('/api/stock/get-branch-stock/' + branch.value + '/' + date)
-      const data = await res.json()
-
-      if (data.success === false) {
-
-        setError(data.message)
-        setLoading(false)
-        return
-      }
-
-      setStockItems(data.stock)
-      setStockTotalFunction(data.stock)
-      setError(null)
-
-      setLoading(false)
-
-    } catch (error) {
-
-      setError(error.message)
-      setLoading(false)
-    }
-  }
 
   const setStockTotalFunction = (stockItems) => {
 
@@ -482,68 +425,9 @@ export default function RegistroCuentaDiaria() {
     setStockTotal(total)
   }
 
-  const fetchInitialStock = async () => {
 
-    const branch = document.getElementById('branch')
-    let date = new Date()
-    date = date.toISOString()
 
-    setLoading(true)
 
-    try {
-
-      const res = await fetch('/api/stock/initial-stock/' + branch.value + '/' + date)
-      const data = await res.json()
-
-      if (data.success === false) {
-
-        setError(data.message)
-        setLoading(false)
-        return
-      }
-
-      setInitialStock(data.initialStock)
-      setError(null)
-      setLoading(false)
-
-    } catch (error) {
-
-      setError(error.message)
-      setLoading(false)
-    }
-
-  }
-
-  const fetchInputs = async () => {
-
-    const branch = document.getElementById('branch')
-    const date = new Date().toISOString()
-
-    setLoading(true)
-
-    try {
-
-      const res = await fetch('/api/input/get-branch-inputs/' + branch.value + '/' + date)
-      const data = await res.json()
-
-      if (data.success === false) {
-
-        setError(data.message)
-        setLoading(false)
-        return
-      }
-
-      setInputs(data.inputs)
-      setInputsTotalFunction(data.inputs)
-      setError(null)
-      setLoading(false)
-
-    } catch (error) {
-
-      setError(error.message)
-      setLoading(false)
-    }
-  }
 
   const setInputsTotalFunction = (inputs) => {
 
@@ -557,37 +441,7 @@ export default function RegistroCuentaDiaria() {
     setInputsTotal(total)
   }
 
-  const fetchOutputs = async () => {
 
-    const branch = document.getElementById('branch')
-    const date = new Date().toISOString()
-
-    setLoading(true)
-
-    try {
-
-      const res = await fetch('/api/output/get-branch-outputs/' + branch.value + '/' + date)
-      const data = await res.json()
-
-      if (data.success === false) {
-
-        setError(data.message)
-        setLoading(false)
-        return
-      }
-
-      setOutputs(data.outputs)
-      setOutputsTotalFunction(data.outputs)
-      setError(null)
-      setLoading(false)
-
-    } catch (error) {
-
-      setError(error.message)
-      setLoading(false)
-
-    }
-  }
 
   const setOutputsTotalFunction = (outputs) => {
 
@@ -599,38 +453,6 @@ export default function RegistroCuentaDiaria() {
     })
 
     setOutputsTotal(total)
-  }
-
-  const fetchIncomes = async () => {
-
-    const branch = document.getElementById('branch')
-    const date = new Date().toISOString()
-
-    setLoading(true)
-
-    try {
-
-      const res = await fetch('/api/income/branch-incomes/' + branch.value + '/' + date)
-      const data = await res.json()
-
-      if (data.success === false) {
-
-        setError(data.message)
-        setLoading(false)
-        return
-      }
-
-      setIncomes(data.branchIncomes)
-      setIncomesTotalFunction(data.branchIncomes)
-      setError(null)
-      setLoading(false)
-
-    } catch (error) {
-
-      setError(error.message)
-      setLoading(false)
-
-    }
   }
 
   const setIncomesTotalFunction = (incomes) => {
@@ -645,36 +467,6 @@ export default function RegistroCuentaDiaria() {
     setIncomesTotal(total)
   }
 
-  const fetchProductLosses = async () => {
-
-    const branch = document.getElementById('branch')
-    const date = new Date().toISOString()
-
-    setLoading(true)
-
-    try {
-
-      const res = await fetch('/api/outgoing/product-loss/get/' + branch.value + '/' + date)
-      const data = await res.json()
-
-      if (date.success === false) {
-
-        setError(data.message)
-        setLoading(false)
-        return
-      }
-
-      setProductLossItems(data.productLosses)
-      setProductLossTotalFunction(data.productLosses)
-      setError(null)
-      setLoading(false)
-
-    } catch (error) {
-
-      setError(error.message)
-      setLoading(false)
-    }
-  }
 
   const setProductLossTotalFunction = (productLosses) => {
 
@@ -688,17 +480,6 @@ export default function RegistroCuentaDiaria() {
     setProductLossTotal(total)
   }
 
-  const fetchs = () => {
-
-    fetchInitialStock()
-    setPricesFunction()
-    fetchOutgoings()
-    fetchStock()
-    fetchIncomes()
-    fetchInputs()
-    fetchOutputs()
-    fetchProductLosses()
-  }
 
   const handleSubmit = async () => {
 
@@ -757,6 +538,238 @@ export default function RegistroCuentaDiaria() {
 
   useEffect(() => {
 
+    const fetchStock = async (branchId) => {
+
+      const date = (paramsDate ? new Date(paramsDate) : new Date()).toISOString()
+
+      setLoading(true)
+
+      try {
+
+        const res = await fetch('/api/stock/get-branch-stock/' + branchId + '/' + date)
+        const data = await res.json()
+
+        if (data.success === false) {
+
+          setError(data.message)
+          setLoading(false)
+          return
+        }
+
+        setStockItems(data.stock)
+        setStockTotalFunction(data.stock)
+        setError(null)
+
+        setLoading(false)
+
+      } catch (error) {
+
+        setError(error.message)
+        setLoading(false)
+      }
+    }
+
+    const fetchOutgoings = async (branchId) => {
+
+      const date = (paramsDate ? new Date(paramsDate) : new Date()).toISOString()
+
+      setLoading(true)
+
+      try {
+
+        const res = await fetch('/api/outgoing/branch-outgoings/' + branchId + '/' + date)
+        const data = await res.json()
+
+        if (data.success === false) {
+
+          setError(data.message)
+          setLoading(false)
+          return
+        }
+
+        setOutgoings(data.outgoings)
+        setOutgoingsTotalFunction(data.outgoings)
+        setError(null)
+        setLoading(false)
+
+      } catch (error) {
+
+        setError(error.message)
+        setLoading(false)
+      }
+    }
+
+    const fetchInitialStock = async (branchId) => {
+
+      const date = (paramsDate ? new Date(paramsDate) : new Date()).toISOString()
+
+      setLoading(true)
+
+      try {
+
+        const res = await fetch('/api/stock/initial-stock/' + branchId + '/' + date)
+        const data = await res.json()
+
+        if (data.success === false) {
+
+          setError(data.message)
+          setLoading(false)
+          return
+        }
+
+        setInitialStock(data.initialStock)
+        setError(null)
+        setLoading(false)
+
+      } catch (error) {
+
+        setError(error.message)
+        setLoading(false)
+      }
+
+    }
+
+    const fetchInputs = async (branchId) => {
+
+      const date = (paramsDate ? new Date(paramsDate) : new Date()).toISOString()
+
+      setLoading(true)
+
+      try {
+
+        const res = await fetch('/api/input/get-branch-inputs/' + branchId + '/' + date)
+        const data = await res.json()
+
+        if (data.success === false) {
+
+          setError(data.message)
+          setLoading(false)
+          return
+        }
+
+        setInputs(data.inputs)
+        setInputsTotalFunction(data.inputs)
+        setError(null)
+        setLoading(false)
+
+      } catch (error) {
+
+        setError(error.message)
+        setLoading(false)
+      }
+    }
+
+    const fetchOutputs = async () => {
+
+      const date = (paramsDate ? new Date(paramsDate) : new Date()).toISOString()
+
+      setLoading(true)
+
+      try {
+
+        const res = await fetch('/api/output/get-branch-outputs/' + branchId + '/' + date)
+        const data = await res.json()
+
+        if (data.success === false) {
+
+          setError(data.message)
+          setLoading(false)
+          return
+        }
+
+        setOutputs(data.outputs)
+        setOutputsTotalFunction(data.outputs)
+        setError(null)
+        setLoading(false)
+
+      } catch (error) {
+
+        setError(error.message)
+        setLoading(false)
+
+      }
+    }
+    const fetchIncomes = async (branchId) => {
+
+      const date = (paramsDate ? new Date(paramsDate) : new Date()).toISOString()
+
+      setLoading(true)
+
+      try {
+
+        const res = await fetch('/api/income/branch-incomes/' + branchId + '/' + date)
+        const data = await res.json()
+
+        if (data.success === false) {
+
+          setError(data.message)
+          setLoading(false)
+          return
+        }
+
+        setIncomes(data.branchIncomes)
+        setIncomesTotalFunction(data.branchIncomes)
+        setError(null)
+        setLoading(false)
+
+      } catch (error) {
+
+        setError(error.message)
+        setLoading(false)
+
+      }
+    }
+
+    const fetchProductLosses = async (branchId) => {
+
+      const date = (paramsDate ? new Date(paramsDate) : new Date()).toISOString()
+
+      setLoading(true)
+
+      try {
+
+        const res = await fetch('/api/outgoing/product-loss/get/' + branchId + '/' + date)
+        const data = await res.json()
+
+        if (date.success === false) {
+
+          setError(data.message)
+          setLoading(false)
+          return
+        }
+
+        setProductLossItems(data.productLosses)
+        setProductLossTotalFunction(data.productLosses)
+        setError(null)
+        setLoading(false)
+
+      } catch (error) {
+
+        setError(error.message)
+        setLoading(false)
+      }
+    }
+
+    const fetchs = () => {
+
+      fetchInitialStock(branchId)
+      setPricesFunction(branchId)
+      fetchOutgoings(branchId)
+      fetchStock(branchId)
+      fetchIncomes(branchId)
+      fetchInputs(branchId)
+      fetchOutputs(branchId)
+      fetchProductLosses(branchId)
+    }
+    if (branchId && branchId != 'none') {
+
+      fetchs(branchId)
+    }
+
+  }, [branchId, paramsDate])
+
+  useEffect(() => {
+
     const setEmployeesFunction = async () => {
 
       const { error, data } = await fetchEmployees(company._id)
@@ -809,7 +822,9 @@ export default function RegistroCuentaDiaria() {
     setBranchesFunction()
     setProductsFunction()
 
-  }, [company])
+
+
+  }, [company, branchId])
 
   return (
 
@@ -818,7 +833,7 @@ export default function RegistroCuentaDiaria() {
         Formato
         <br />
       </h1>
-      <p className='text-center mb-7'>{date}</p>
+      <p className='text-center mb-7'>{reportDate}</p>
 
       <p className='text-red-700 font-semibold'>{error}</p>
 
@@ -829,8 +844,6 @@ export default function RegistroCuentaDiaria() {
 
         <p>Encargado:</p>
         <select name="employee" id="employee" className='border p-3 rounded-lg' onChange={() => { outgoingsButtonControl(), stockButtonControl(), productLossButtonControl() }}>
-
-          <option value="none" selected disabled hidden>Sin encargado</option>
 
           {employees && employees.length == 0 ? <option> No hay empleados </option> : ''}
           {employees && employees.length > 0 && employees.map((employee) => (
@@ -860,7 +873,7 @@ export default function RegistroCuentaDiaria() {
       <div className="flex items-center justify-between">
 
         <p>Sucursal:</p>
-        <select name="branch" id="branch" onChange={() => { fetchs(), outgoingsButtonControl(), stockButtonControl(), productLossButtonControl() }} className='border p-3 rounded-lg'>
+        <select name="branch" id="branch" value={branchId ? branchId : 'none'} onChange={(e) => { setBranchId(e.target.value), outgoingsButtonControl(), stockButtonControl(), productLossButtonControl() }} className='border p-3 rounded-lg'>
 
           <option value="none" disabled selected hidden >Selecciona una sucursal</option>
 
@@ -920,7 +933,7 @@ export default function RegistroCuentaDiaria() {
         {outgoings && outgoings.length > 0 && outgoings.map((outgoing, index) => (
 
 
-          <div key={outgoing._id} className={(document.getElementById('employee').value == outgoing.employee ? '' : 'py-3 ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
+          <div key={outgoing._id} className={(document.getElementById('employee').value == outgoing.employee || outgoing.employee == currentUser._id ? '' : 'py-3 ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
 
             <div id='list-element' className='flex col-span-10 items-center'>
               <p className='text-center text-xs w-6/12'>{outgoing.concept}</p>
@@ -929,7 +942,7 @@ export default function RegistroCuentaDiaria() {
 
             {document.getElementById('employee').value == outgoing.employee || currentUser._id == outgoing.employee ?
 
-              <div>
+             <div>
                 <button id={outgoing._id} onClick={() => { setIsOpen(isOpen ? false : true), setButtonId(outgoing._id) }} disabled={loading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
                   <span>
                     <FaTrash className='text-red-700 m-auto' />

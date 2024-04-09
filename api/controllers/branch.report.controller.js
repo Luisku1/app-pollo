@@ -1,6 +1,7 @@
 import BranchReport from '../models/accounts/branch.report.model.js'
 import ReportData from '../models/accounts/report.data.model.js'
 import EmployeeDailyBalance from '../models/employees/employee.daily.balance.js'
+import { errorHandler } from '../utils/error.js'
 
 export const createBranchReport = async (req, res, next) => {
 
@@ -92,6 +93,29 @@ export const createBranchReport = async (req, res, next) => {
       await newBranchReport.save()
 
       res.status(201).json({branchReport: newBranchReport, reportData: newReportData})
+    }
+
+  } catch (error) {
+
+    next(error)
+  }
+}
+
+export const deleteReport = async (req, res, next) => {
+
+  const reportId = req.params.reportId
+
+  try {
+
+    const deleted = await BranchReport.deleteOne({_id: reportId})
+
+    if(!deleted.deletedCount == 0) {
+
+      res.status(200).json('Report deleted successfully')
+
+    } else {
+
+      next(errorHandler(404, 'Not report found'))
     }
 
   } catch (error) {

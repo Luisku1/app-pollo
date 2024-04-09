@@ -15,7 +15,7 @@ import Empresas from './pages/Empresas'
 import Productos from './pages/Productos'
 import Sucursales from './pages/Sucursales'
 import Precios from './pages/Precios'
-import Supervisores from './pages/Supervisores'
+import Reporte from './pages/Reporte'
 
 
 export default function App() {
@@ -29,19 +29,23 @@ export default function App() {
         <Route element={<PrivateRoute/>}>
 
           <Route path="/" element={<ListadoDeCuentas />} />
-          <Route path="/perfil" element={<Perfil />} />
+          <Route path="/perfil/:employeeId" element={<Perfil />} />
           <Route path="/formato" element={<RegistroCuentaDiaria />} />
+          <Route path="/formato/:date/:branchId" element={<RegistroCuentaDiaria />} />
           <Route path="/listado-de-cuentas" element={<ListadoDeCuentas />} />
           <Route path="/empleados" element={<Empleados />} />
           <Route path="/empresas" element={<Empresas />} />
           <Route path="/productos" element={<Productos />} />
           <Route path="/sucursales" element={<Sucursales />} />
           <Route path="/precios" element={<Precios />} />
+          <Route path="/precios/:date" element={<Precios />} />
           <Route path="/registro-empresa" element={<RegistroEmpresa />} />
           <Route path="/registro-empleado" element={<RegistroEmpleado/>}/>
           <Route path="/registro-sucursal" element={<RegistroSucursal />} />
           <Route path="/supervision-diaria" element={<ControlSupervisor />} />
-          <Route path="/supervisores" element={<Supervisores />} />
+          <Route path="/supervision-diaria/:date" element={<ControlSupervisor />} />
+          <Route path="/reporte" element={<Reporte />} />
+          <Route path="/reporte/:date" element={<Reporte />} />
 
         </Route>
 

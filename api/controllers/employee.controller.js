@@ -1,3 +1,4 @@
+import BranchReport from "../models/accounts/branch.report.model.js"
 import EmployeeDailyBalance from "../models/employees/employee.daily.balance.js"
 import Employee from "../models/employees/employee.model.js"
 import { errorHandler } from "../utils/error.js"
@@ -12,6 +13,95 @@ export const getEmployees = async (req, res, next) => {
 		res.status(200)
 			.json({ employees: employees })
 
+
+	} catch (error) {
+
+		next(error)
+	}
+}
+
+export const getEmployee = async (req, res, next) => {
+
+	const employeeId = req.params.employeeId
+
+	try {
+
+		const employee = await Employee.findById(employeeId).populate('role')
+
+		if (employee) {
+
+			res.status(200).json({employee: employee})
+
+		} else {
+
+			next(errorHandler(404, 'Not employee found'))
+		}
+
+	} catch (error) {
+
+		next(error)
+	}
+}
+
+export const getEmployeeReports = async (req, res, next) => {
+
+	const employeeId = req.params.employeeId
+
+	try {
+
+		const employeeWorkedDays = await getEmployeeWorkedDays(req, res, employeeId, next)
+
+		const employeeReports = await BranchReport.find({
+			$or: [
+				{
+					employee: employeeId
+				},
+				{
+					assistant: employeeId
+				}
+			]
+		}).sort({createdAt: -1}).limit(employeeWorkedDays)
+
+		if(employeeReports.length > 0) {
+
+			res.status(200).json({employeeReports: employeeReports})
+
+		} else {
+
+			next(errorHandler(404, 'Not employee reports found'))
+		}
+
+	} catch (error) {
+
+		next(error)
+	}
+}
+
+const getEmployeeWorkedDays = async (req, res, employeeId, next) => {
+
+	const day = new Date().getDay()
+
+	try {
+
+		const employee = await Employee.findById(employeeId).select('payDay')
+
+		if(employee.payDay - day - 1 > 0) {
+
+			return 8 - employee.payDay - day + 1
+
+		} else {
+
+			if(employee.payDay - day - 1 < 0) {
+
+				return (Math.abs(employee.payDay - day - 1) + 1)
+
+			} else {
+
+				return 8
+			}
+		}
+
+		console.log(employee, day)
 
 	} catch (error) {
 

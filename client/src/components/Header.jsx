@@ -94,7 +94,7 @@ export default function Header() {
 
                 <div>
 
-                  <DropdownItem text={'Perfil'} link={'/perfil'} onClick={()=>{setOpen(!open)}} />
+                  <DropdownItem text={'Perfil'} link={'/perfil/' + currentUser._id} onClick={()=>{setOpen(!open)}} />
 
                   <DropdownItem text={"Crear formato"} link={'/formato'} onClick={()=>{setOpen(!open)}}/>
 
@@ -118,7 +118,7 @@ export default function Header() {
 
                     <div>
 
-                      <DropdownItem text={"Reporte"} link={'/supervisores'} onClick={()=>{setOpen(!open)}}/>
+                      <DropdownItem text={"Reporte"} link={'/reporte'} onClick={()=>{setOpen(!open)}}/>
 
                       <DropdownItem text={"Cuentas"} link={'/listado-de-cuentas'} onClick={()=>{setOpen(!open)}}/>
 

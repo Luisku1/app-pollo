@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react"
 import { useSelector } from "react-redux"
+import { useParams } from "react-router-dom"
 
-export default function Supervisores() {
+export default function Reporte() {
 
   const { company } = useSelector((state) => state.user)
+  const paramsDate = useParams().date
   const [branchReports, setBranchReports] = useState([])
   const [supervisorsInfo, setSupervisorsInfo] = useState([])
   const [error, setError] = useState(null)
@@ -14,9 +16,17 @@ export default function Supervisores() {
 
   useEffect(() => {
 
+    setIncomesTotal(0.0)
+    setStockTotal(0.0)
+    setOutgoingsTotal(0.0)
+    setBalanceTotal(0.0)
+    setBranchReports([])
+
     const fetchBranchReports = async () => {
 
-      const date = new Date().toISOString()
+      const date = (paramsDate ? new Date(paramsDate) : new Date() ).toISOString()
+
+      console.log(paramsDate)
 
       try {
 
@@ -42,10 +52,10 @@ export default function Supervisores() {
           balanceTotalPivot += branchReport.balance
 
         })
-        setIncomesTotal(incomesTotal + incomesTotalPivot)
-        setStockTotal(stockTotal + stockTotalPivot)
-        setOutgoingsTotal(outgoingsTotal + outgoingsTotalPivot)
-        setBalanceTotal(balanceTotal + balanceTotalPivot)
+        setIncomesTotal((prev) => prev + incomesTotalPivot)
+        setStockTotal((prev) => prev + stockTotalPivot)
+        setOutgoingsTotal((prev) => prev + outgoingsTotalPivot)
+        setBalanceTotal((prev) => prev + balanceTotalPivot)
         setBranchReports(data.branchReports)
         setError(null)
 
@@ -57,7 +67,8 @@ export default function Supervisores() {
 
     const fetchSupervisorsInfo = async () => {
 
-      const date = new Date().toISOString()
+      const date = (paramsDate ? new Date(paramsDate) : new Date()).toISOString()
+      console.log(date)
 
       try {
 
@@ -79,10 +90,12 @@ export default function Supervisores() {
       }
     }
 
+    if(paramsDate)
+
     fetchBranchReports()
     fetchSupervisorsInfo()
 
-  }, [company._id])
+  }, [company._id, paramsDate])
 
   return (
 
@@ -111,17 +124,17 @@ export default function Supervisores() {
               <td className="text-center">{branchReport.outgoings.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</td>
               <td className="text-center">{branchReport.finalStock.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</td>
               <td className="text-center">{branchReport.incomes.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</td>
-              <td className={branchReport.balance < 0 ? 'text-red-500' : '' + 'text-center'}>{branchReport.balance.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })} </td>
+              <td className={branchReport.balance < 0 ? 'text-red-500' : 'text-green-500' + ' text-center'}>{branchReport.balance.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })} </td>
             </tr>
           ))}
 
 
           <tr className="mt-2">
-            <td className="text-center text-m">Totales:</td>
-            <td className="text-center text-m">{outgoingsTotal.toLocaleString('es-MX', {style: 'currency', currency: 'MXN'})}</td>
-            <td className="text-center text-m">{stockTotal.toLocaleString('es-MX', {style: 'currency', currency: 'MXN'})}</td>
-            <td className="text-center text-m">{incomesTotal.toLocaleString('es-MX', {style: 'currency', currency: 'MXN'})}</td>
-            <td className={balanceTotal < 0 ? 'text-red-500' : '' + 'text-center text-m'}>{balanceTotal.toLocaleString('es-MX', {style: 'currency', currency: 'MXN'})}</td>
+            <td className="text-center text-m font-bold">Totales:</td>
+            <td className="text-center text-m font-bold">{outgoingsTotal.toLocaleString('es-MX', {style: 'currency', currency: 'MXN'})}</td>
+            <td className="text-center text-m font-bold">{stockTotal.toLocaleString('es-MX', {style: 'currency', currency: 'MXN'})}</td>
+            <td className="text-center text-m font-bold">{incomesTotal.toLocaleString('es-MX', {style: 'currency', currency: 'MXN'})}</td>
+            <td className={(balanceTotal < 0 ? 'text-red-500' : 'text-green-500') + ' text-center text-m font-bold'}>{balanceTotal.toLocaleString('es-MX', {style: 'currency', currency: 'MXN'})}</td>
           </tr>
 
         </table>
@@ -129,7 +142,7 @@ export default function Supervisores() {
         : ''}
 
       {supervisorsInfo && supervisorsInfo.length > 0 && supervisorsInfo.map((info) => (
-        <div key={info.employeeId} className='border bg-white p-3 mt-4'>
+        <div key={info.supervisor._id} className='border bg-white p-3 mt-4'>
           {error ? <p>{error}</p> : ''}
 
           <div className="">
