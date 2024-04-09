@@ -1202,11 +1202,11 @@ export default function ControlSupervisor() {
 
           ))}
 
-          <div className='flex mt-4 border-opacity-30 shadow-lg border-black border rounded-lg p-3'>
+          {/* <div className='flex mt-4 border-opacity-30 shadow-lg border-black border rounded-lg p-3'>
             <p className='w-6/12 text-center'>Total:</p>
             <p className='w-6/12 text-center'>{incomesTotal.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
 
-          </div>
+          </div> */}
 
         </div>
         : ''}
@@ -1272,7 +1272,7 @@ export default function ControlSupervisor() {
 
           ))}
 
-          {extraOutgoings && extraOutgoings.length > 0 ?
+          {/* {extraOutgoings && extraOutgoings.length > 0 ?
 
             <div className='flex mt-4 border-black border border-opacity-30 shadow-lg rounded-lg p-3'>
               <p className='w-6/12 text-center'>Total:</p>
@@ -1280,7 +1280,7 @@ export default function ControlSupervisor() {
 
             </div>
 
-            : ''}
+            : ''} */}
         </div>
 
         : ''}
@@ -1486,7 +1486,7 @@ export default function ControlSupervisor() {
 
           ))}
 
-          {loans && loans.length > 0 ?
+          {/* {loans && loans.length > 0 ?
 
             <div className='flex mt-4 border-black border border-opacity-30 shadow-lg rounded-lg p-3'>
               <p className='w-6/12 text-center'>Total:</p>
@@ -1494,7 +1494,7 @@ export default function ControlSupervisor() {
 
             </div>
 
-            : ''}
+            : ''} */}
 
         </div>
         : ''}
