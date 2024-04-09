@@ -133,7 +133,7 @@ export default function Perfil() {
     <main className="p-3 max-w-lg mx-auto">
 
       {error ? <p>{error}</p> : ''}
-      {fetchError ? <p>{error}</p> : ''}
+      {fetchError ? <p>{fetchError}</p> : ''}
 
       {employee ?
 

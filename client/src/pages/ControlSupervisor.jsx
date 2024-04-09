@@ -34,6 +34,7 @@ export default function ControlSupervisor() {
   const [incomeTypeName, setIncomeTypeName] = useState(null)
   const [buttonId, setButtonId] = useState(null)
   const [isOpen, setIsOpen] = useState(false)
+  const [managerRole, setManagerRole] = useState({})
 
   const SectionHeader = (props) => {
 
@@ -717,6 +718,34 @@ export default function ControlSupervisor() {
 
   useEffect(() => {
 
+    const setManagerRoleFunction = async (roles) => {
+
+      const managerRole = roles.find((elemento) => elemento.name == 'Gerente')
+      setManagerRole(managerRole)
+
+    }
+
+    const fetchRoles = async () => {
+
+      try {
+
+        const res = await fetch('/api/role/get')
+        const data = await res.json()
+
+        if (data.success === false) {
+          setError(data.message)
+          return
+        }
+        await setManagerRoleFunction(data.roles)
+        setError(null)
+
+      } catch (error) {
+
+        setError(error.message)
+
+      }
+    }
+
     const setEmployeesFunction = async () => {
 
       const { error, data } = await fetchEmployees(company._id)
@@ -777,7 +806,7 @@ export default function ControlSupervisor() {
       }
     }
 
-
+    fetchRoles()
     setIncomeTypesFunction()
     setEmployeesFunction()
     setBranchesFunction()
@@ -1202,11 +1231,14 @@ export default function ControlSupervisor() {
 
           ))}
 
-          {/* <div className='flex mt-4 border-opacity-30 shadow-lg border-black border rounded-lg p-3'>
-            <p className='w-6/12 text-center'>Total:</p>
-            <p className='w-6/12 text-center'>{incomesTotal.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
+          {currentUser.role == managerRole._id ?
 
-          </div> */}
+            <div className='flex mt-4 border-opacity-30 shadow-lg border-black border rounded-lg p-3'>
+              <p className='w-6/12 text-center'>Total:</p>
+              <p className='w-6/12 text-center'>{incomesTotal.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
+
+            </div>
+            : ''}
 
         </div>
         : ''}
@@ -1272,7 +1304,7 @@ export default function ControlSupervisor() {
 
           ))}
 
-          {/* {extraOutgoings && extraOutgoings.length > 0 ?
+          {currentUser.role == managerRole._id ?
 
             <div className='flex mt-4 border-black border border-opacity-30 shadow-lg rounded-lg p-3'>
               <p className='w-6/12 text-center'>Total:</p>
@@ -1280,7 +1312,7 @@ export default function ControlSupervisor() {
 
             </div>
 
-            : ''} */}
+            : ''}
         </div>
 
         : ''}
@@ -1486,7 +1518,7 @@ export default function ControlSupervisor() {
 
           ))}
 
-          {/* {loans && loans.length > 0 ?
+          {currentUser.role == managerRole._id ?
 
             <div className='flex mt-4 border-black border border-opacity-30 shadow-lg rounded-lg p-3'>
               <p className='w-6/12 text-center'>Total:</p>
@@ -1494,7 +1526,7 @@ export default function ControlSupervisor() {
 
             </div>
 
-            : ''} */}
+            : ''}
 
         </div>
         : ''}
