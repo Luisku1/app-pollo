@@ -173,6 +173,10 @@ export default function Perfil() {
                     <Link className='col-span-10' to={'/formato/' + reportData.createdAt + '/' + reportData.branch}>
 
                       <div className=''>
+                        <div className="flex gap-2">
+                          <p className="text-lg">Balance: </p>
+                          <p className={reportData.balance < 0 ? 'text-red-700 font-bold' : '' + 'text-lg font-bold'}>{parseFloat(reportData.balance).toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
+                        </div>
                         <p>Efectivo: {reportData.incomes.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
                         <p>Sobrante: {reportData.finalStock.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
                         <p>Gastos: {reportData.outgoings.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
