@@ -81,27 +81,34 @@ const getEmployeeWorkedDays = async (req, res, employeeId, next) => {
 
 	const day = new Date().getDay()
 
+	console.log(day)
+
 	try {
 
 		const employee = await Employee.findById(employeeId).select('payDay')
 
-		if(employee.payDay - day - 1 > 0) {
+		console.log(employee)
+
+		if(employee.payDay - (day - 1) > 0) {
+
 
 			return 8 - employee.payDay - day + 1
 
 		} else {
 
-			if(employee.payDay - day - 1 < 0) {
+			if(employee.payDay - (day - 1) < 0) {
 
-				return (Math.abs(employee.payDay - day - 1) + 1)
+				console.log('hola')
+
+				return (Math.abs(employee.payDay - (day - 1)) + 1)
 
 			} else {
+
+				console.log('regreso 8')
 
 				return 8
 			}
 		}
-
-		console.log(employee, day)
 
 	} catch (error) {
 

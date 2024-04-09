@@ -151,7 +151,7 @@ export default function Perfil() {
               {employee.salary ?
                 <p className="text-lg">{'Sueldo: ' + parseFloat(employee.salary).toLocaleString("es-Mx", { style: 'currency', currency: 'MXN' })}</p>
                 : ''}
-              {employee.payDay ?
+              {employee.payDay > -1 ?
                 <p className="text-lg">{'Día de cobro: ' + weekDays[employee.payDay]}</p>
                 : ''}
               <p className="text-lg">Teléfono: {employee.phoneNumber ? employee.phoneNumber.replace(/(\d{2})(\d{4})(\d{4})/, '$1-$2-$3') : ''}</p>
@@ -175,10 +175,12 @@ export default function Perfil() {
                     <Link className='col-span-10' to={'/formato/' + reportData.createdAt + '/' + reportData.branch}>
 
                       <div className=''>
-                        <div className="flex gap-2">
-                          <p className="text-lg">Balance: </p>
-                          <p className={reportData.balance < 0 ? 'text-red-700 font-bold' : '' + 'text-lg font-bold'}>{parseFloat(reportData.balance).toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
-                        </div>
+                        {index != 0 && (new Date().getDate() - 1) > new Date(new Date(reportData.createdAt).toLocaleDateString().slice(0, 10))  ?
+                          <div className="flex gap-2">
+                            <p className="text-lg">Faltante: </p>
+                            <p className={reportData.balance < 0 ? 'text-red-700 font-bold' : '' + 'text-lg font-bold'}>{parseFloat(reportData.balance).toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
+                          </div>
+                          : ''}
                         <p>Efectivo: {reportData.incomes.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
                         <p>Sobrante: {reportData.finalStock.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
                         <p>Gastos: {reportData.outgoings.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
@@ -186,7 +188,7 @@ export default function Perfil() {
                       </div>
                     </Link>
 
-                    {index == employeeReports.length - 1 && employeeId == currentUser._id ?
+                    {index == 0 && employeeId == currentUser._id ?
 
                       <div className=' col-span-2'>
                         <button id={reportData._id} onClick={() => { setIsOpen(isOpen ? false : true), setButtonId(reportData._id) }} disabled={loading} className='bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
@@ -221,20 +223,23 @@ export default function Perfil() {
 
               ))}
             </div>
-            : ''}
+            : ''
+          }
 
-          {employeeId == currentUser._id ?
-            <div className='mt-8 grid grid-1'>
-              <button className='border shadow-lg rounded-full p-3 flex-col-reverse justify-self-end'>
-                <span onClick={handleSignOut} className='text-red-700 cursor-pointer'>Sign out</span>
-              </button>
-              <span>{error ? ' Error al fetch' : ''}</span>
-            </div>
-            : ''}
-        </div>
+          {
+            employeeId == currentUser._id ?
+              <div className='mt-8 grid grid-1'>
+                <button className='border shadow-lg rounded-full p-3 flex-col-reverse justify-self-end'>
+                  <span onClick={handleSignOut} className='text-red-700 cursor-pointer'>Sign out</span>
+                </button>
+                <span>{error ? ' Error al fetch' : ''}</span>
+              </div>
+              : ''
+          }
+        </div >
         : ''}
 
-    </main>
+    </main >
 
   )
 }

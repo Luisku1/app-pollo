@@ -100,7 +100,7 @@ export default function Empleados() {
                 {employee.salary ?
                   <p className="text-lg">{'Sueldo: ' + parseFloat(employee.salary).toLocaleString("es-Mx", { style: 'currency', currency: 'MXN' })}</p>
                   : ''}
-                {employee.payDay ?
+                {employee.payDay > -1 ?
                   <p className="text-lg">{'Día de cobro: ' + weekDays[employee.payDay]}</p>
                   : ''}
                 <p className="text-lg">Teléfono: {employee.phoneNumber ? employee.phoneNumber.replace(/(\d{2})(\d{4})(\d{4})/, '$1-$2-$3') : ''}</p>
