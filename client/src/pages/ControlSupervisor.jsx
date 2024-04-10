@@ -665,7 +665,7 @@ export default function ControlSupervisor() {
 
     inputs.forEach((input) => {
 
-      total += parseFloat(input.amount)
+      total += parseFloat(input.weight)
     })
 
     setInputsTotal(total)
@@ -679,7 +679,7 @@ export default function ControlSupervisor() {
 
     outputs.forEach((output) => {
 
-      total += parseFloat(output.amount)
+      total += parseFloat(output.weight)
     })
 
     setOutputsTotal(total)
@@ -1380,8 +1380,8 @@ export default function ControlSupervisor() {
           {inputs && inputs.length > 0 ?
 
             <div className='flex mt-4 border border-opacity-30 shadow-lg border-black rounded-lg p-3'>
-              <p className='w-6/12 text-center'>Total:</p>
-              <p className='w-6/12 text-center'>{inputsTotal.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
+              <p className='w-6/12 text-center'>Total {'(Kg)'}:</p>
+              <p className='w-6/12 text-center'>{inputsTotal}</p>
 
             </div>
 
@@ -1451,8 +1451,8 @@ export default function ControlSupervisor() {
           {outputs && outputs.length > 0 ?
 
             <div className='flex mt-4 border-black border border-opacity-30 shadow-lg rounded-lg p-3'>
-              <p className='w-6/12 text-center'>Total:</p>
-              <p className='w-6/12 text-center'>{outputsTotal.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
+              <p className='w-6/12 text-center'>Total {'(Kg)'}:</p>
+              <p className='w-6/12 text-center'>{outputsTotal}</p>
             </div>
 
             : ''}

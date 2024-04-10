@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
-import { deleteOutgoingFetch, deleteProductLossItemFetch, deleteStockFetch, fetchBranches, fetchEmployees, fetchPrices, fetchProducts } from '../helpers/FetchFunctions';
+import { deleteOutgoingFetch, deleteStockFetch, fetchBranches, fetchEmployees, fetchPrices, fetchProducts } from '../helpers/FetchFunctions';
 import { FaTrash } from 'react-icons/fa';
 import { useParams, useNavigate } from 'react-router-dom';
 
@@ -14,8 +14,8 @@ export default function RegistroCuentaDiaria() {
   const [loading, setLoading] = useState(false)
   const [outgoingFormData, setOutgoingFormData] = useState({})
   const [stockFormData, setStockFormData] = useState({})
-  const [productLossFormData, setProductLossFormData] = useState({})
-  const [productLosses, setProductLosses] = useState([])
+  // const [productLossFormData, setProductLossFormData] = useState({})
+  // const [productLosses, setProductLosses] = useState([])
   const [employees, setEmployees] = useState([])
   const [branches, setBranches] = useState([])
   const [outgoings, setOutgoings] = useState([])
@@ -29,7 +29,7 @@ export default function RegistroCuentaDiaria() {
   const [initialStock, setInitialStock] = useState(0.0)
   const [stockItems, setStockItems] = useState([])
   const [stockTotal, setStockTotal] = useState(0.0)
-  const [productLossTotal, setProductLossTotal] = useState(0.0)
+  // const [productLossTotal, setProductLossTotal] = useState(0.0)
   const [products, setProducts] = useState([])
   const [branchPrices, setPrices] = useState([])
   const [productName, setProductName] = useState(null)
@@ -69,13 +69,13 @@ export default function RegistroCuentaDiaria() {
     })
   }
 
-  const handleProductLossInputsChange = (e) => {
+  // const handleProductLossInputsChange = (e) => {
 
-    setProductLossFormData({
-      ...productLossFormData,
-      [e.target.id]: e.target.value,
-    })
-  }
+  //   setProductLossFormData({
+  //     ...productLossFormData,
+  //     [e.target.id]: e.target.value,
+  //   })
+  // }
 
   const outgoingsButtonControl = () => {
 
@@ -296,65 +296,65 @@ export default function RegistroCuentaDiaria() {
     }
   }
 
-  const addProductLossItem = async (e) => {
+  // const addProductLossItem = async (e) => {
 
-    e.preventDefault()
+  //   e.preventDefault()
 
-    const branchSelect = document.getElementById('branch')
-    const employeeSelect = document.getElementById('employee')
-    const productSelect = document.getElementById('product-loss')
-    const weightInput = document.getElementById('productLossWeight')
-    const commentInput = document.getElementById('comment')
-    const amount = parseFloat(getProductPrice(productSelect.value) * productLossFormData.productLossWeight)
+  //   const branchSelect = document.getElementById('branch')
+  //   const employeeSelect = document.getElementById('employee')
+  //   const productSelect = document.getElementById('product-loss')
+  //   const weightInput = document.getElementById('productLossWeight')
+  //   const commentInput = document.getElementById('comment')
+  //   const amount = parseFloat(getProductPrice(productSelect.value) * productLossFormData.productLossWeight)
 
-    setLoading(true)
+  //   setLoading(true)
 
-    try {
+  //   try {
 
-      const res = await fetch('/api/outgoing/product-loss/create', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          ...productLossFormData,
-          amount: amount,
-          product: productSelect.value,
-          employee: employeeSelect.value,
-          branch: branchSelect.value,
-          company: company._id
-        })
-      })
+  //     const res = await fetch('/api/outgoing/product-loss/create', {
+  //       method: 'POST',
+  //       headers: {
+  //         'Content-Type': 'application/json'
+  //       },
+  //       body: JSON.stringify({
+  //         ...productLossFormData,
+  //         amount: amount,
+  //         product: productSelect.value,
+  //         employee: employeeSelect.value,
+  //         branch: branchSelect.value,
+  //         company: company._id
+  //       })
+  //     })
 
-      const data = await res.json()
+  //     const data = await res.json()
 
-      if (data.success === false) {
+  //     if (data.success === false) {
 
-        setError(data.message)
-        setLoading(false)
-        return
-      }
+  //       setError(data.message)
+  //       setLoading(false)
+  //       return
+  //     }
 
-      data.productLoss.product = productName
+  //     data.productLoss.product = productName
 
-      setProductLosses([...productLosses, data.productLoss])
+  //     setProductLosses([...productLosses, data.productLoss])
 
 
-      setProductLossTotal(productLossTotal + data.productLoss.amount)
-      setError(null)
+  //     setProductLossTotal(productLossTotal + data.productLoss.amount)
+  //     setError(null)
 
-      productSelect.value = 'none'
-      weightInput.value = ''
-      commentInput.value = ''
+  //     productSelect.value = 'none'
+  //     weightInput.value = ''
+  //     commentInput.value = ''
 
-      setLoading(false)
+  //     setLoading(false)
 
-    } catch (error) {
+  //   } catch (error) {
 
-      setError(error.message)
-      setLoading(false)
-    }
-  }
+  //     setError(error.message)
+  //     setLoading(false)
+  //   }
+  // }
 
   const deleteStockItem = async (stockId, index) => {
 
@@ -371,20 +371,20 @@ export default function RegistroCuentaDiaria() {
     }
   }
 
-  const deleteProductLossItem = async (productLossItemId, index) => {
+  // const deleteProductLossItem = async (productLossItemId, index) => {
 
-    setLoading(true)
+  //   setLoading(true)
 
-    const { error } = await deleteProductLossItemFetch(productLossItemId)
+  //   const { error } = await deleteProductLossItemFetch(productLossItemId)
 
-    setLoading(false)
+  //   setLoading(false)
 
-    if (error == null) {
+  //   if (error == null) {
 
-      setProductLossTotal(productLossTotal - parseFloat(productLosses[index].amount))
-      productLosses.splice(index, 1)
-    }
-  }
+  //     setProductLossTotal(productLossTotal - parseFloat(productLosses[index].amount))
+  //     productLosses.splice(index, 1)
+  //   }
+  // }
 
   const setPricesFunction = async (branchId) => {
 
@@ -466,17 +466,17 @@ export default function RegistroCuentaDiaria() {
   }
 
 
-  const setProductLossTotalFunction = (productLosses) => {
+  // const setProductLossTotalFunction = (productLosses) => {
 
-    let total = 0
+  //   let total = 0
 
-    productLosses.forEach((productLoss) => {
+  //   productLosses.forEach((productLoss) => {
 
-      total += parseFloat(productLoss.amount)
-    })
+  //     total += parseFloat(productLoss.amount)
+  //   })
 
-    setProductLossTotal(total)
-  }
+  //   setProductLossTotal(total)
+  // }
 
 
   const handleSubmit = async () => {
@@ -504,7 +504,7 @@ export default function RegistroCuentaDiaria() {
           finalStock: stockTotal,
           inputs: inputsTotal,
           outputs: outputsTotal,
-          outgoings: outgoingsTotal + productLossTotal,
+          outgoings: outgoingsTotal,
           incomes: incomesTotal,
 
         })
@@ -723,35 +723,35 @@ export default function RegistroCuentaDiaria() {
       }
     }
 
-    const fetchProductLosses = async (branchId) => {
+    // const fetchProductLosses = async (branchId) => {
 
-      const date = (paramsDate ? new Date(paramsDate) : new Date()).toISOString()
+    //   const date = (paramsDate ? new Date(paramsDate) : new Date()).toISOString()
 
-      setLoading(true)
+    //   setLoading(true)
 
-      try {
+    //   try {
 
-        const res = await fetch('/api/outgoing/product-loss/get/' + branchId + '/' + date)
-        const data = await res.json()
+    //     const res = await fetch('/api/outgoing/product-loss/get/' + branchId + '/' + date)
+    //     const data = await res.json()
 
-        if (date.success === false) {
+    //     if (date.success === false) {
 
-          setError(data.message)
-          setLoading(false)
-          return
-        }
+    //       setError(data.message)
+    //       setLoading(false)
+    //       return
+    //     }
 
-        setProductLosses(data.productLosses)
-        setProductLossTotalFunction(data.productLosses)
-        setError(null)
-        setLoading(false)
+    //     // setProductLosses(data.productLosses)
+    //     setProductLossTotalFunction(data.productLosses)
+    //     setError(null)
+    //     setLoading(false)
 
-      } catch (error) {
+    //   } catch (error) {
 
-        setError(error.message)
-        setLoading(false)
-      }
-    }
+    //     setError(error.message)
+    //     setLoading(false)
+    //   }
+    // }
 
     const fetchs = () => {
 
@@ -762,7 +762,7 @@ export default function RegistroCuentaDiaria() {
       fetchIncomes(branchId)
       fetchInputs(branchId)
       fetchOutputs(branchId)
-      fetchProductLosses(branchId)
+      // fetchProductLosses(branchId)
     }
     if (branchId && branchId != 'none') {
 
