@@ -29,6 +29,7 @@ export default function RegistroCuentaDiaria() {
   const [initialStock, setInitialStock] = useState(0.0)
   const [stockItems, setStockItems] = useState([])
   const [stockTotal, setStockTotal] = useState(0.0)
+  const [initialInput, setInitialInput] = useState({})
   // const [productLossTotal, setProductLossTotal] = useState(0.0)
   const [products, setProducts] = useState([])
   const [branchPrices, setPrices] = useState([])
@@ -506,6 +507,7 @@ export default function RegistroCuentaDiaria() {
           outputs: outputsTotal,
           outgoings: outgoingsTotal,
           incomes: incomesTotal,
+          initialInput: initialInput
 
         })
       })
@@ -753,8 +755,34 @@ export default function RegistroCuentaDiaria() {
     //   }
     // }
 
+    const fetchInitialInput = async (branchId) => {
+
+      setLoading(true)
+
+      try {
+
+        const res = await fetch('/api/input/get-branch-initial-input/' + branchId)
+        const data = await res.json()
+
+        if (data.success === false) {
+
+          setLoading(false)
+          setError(data.message)
+          return
+        }
+
+        setInitialInput(data.initialInput)
+
+      } catch (error) {
+
+        setLoading(false)
+        setError(error.message)
+      }
+    }
+
     const fetchs = () => {
 
+      fetchInitialInput(branchId)
       fetchInitialStock(branchId)
       setPricesFunction(branchId)
       fetchOutgoings(branchId)
@@ -905,6 +933,13 @@ export default function RegistroCuentaDiaria() {
 
           ))}
         </div>
+
+      </div>
+
+      <div className="flex items-center justify-between">
+
+        <p>Pollo entero fresco: </p>
+        <p className=' bg-white p-3 rounded-lg'>Kg: {initialInput[0].weight ? initialInput[0].weight : '0.00'}</p>
 
       </div>
 

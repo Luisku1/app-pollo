@@ -1095,7 +1095,7 @@ export default function ControlSupervisor() {
             ))}
           </select>
 
-          <input type="number" name="inputPieces" id="inputPieces" placeholder='Piezas' step={1} className='border p-3 rounded-lg' required onInput={inputButtonControl} onChange={handleInputInputsChange} />
+          <input type="number" name="inputPieces" id="inputPieces" placeholder='Piezas' step={0.1} className='border p-3 rounded-lg' required onInput={inputButtonControl} onChange={handleInputInputsChange} />
           <input type="number" name="inputWeight" id="inputWeight" placeholder='0.00 kg' step={0.01} className='border p-3 rounded-lg' required onInput={inputButtonControl} onChange={handleInputInputsChange} />
 
           <textarea className='col-span-4 rounded-lg p-3 shadow mt-2' name="inputComment" id="inputComment" cols="30" rows="2" defaultValue={'Todo bien'} onChange={handleInputInputsChange}></textarea>

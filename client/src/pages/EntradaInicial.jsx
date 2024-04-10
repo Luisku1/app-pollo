@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom"
 
 export default function EntradaInicial() {
 
-  const { company } = useSelector((state) => state.user)
+  const { company, currentUser } = useSelector((state) => state.user)
   const [initialInputs, setInitialInputs] = useState([])
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
@@ -34,7 +34,8 @@ export default function EntradaInicial() {
         ...initialInputsFormData,
         [e.target.id]: {
           branch: branchId,
-          weight: e.target.value
+          weight: e.target.value,
+          employee: currentUser._id
         }
       })
     }
@@ -68,7 +69,7 @@ export default function EntradaInicial() {
       setError(null)
       setLoading(false)
 
-      navigate('/precios')
+      navigate('/supervision-diaria')
 
     } catch (error) {
 

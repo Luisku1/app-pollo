@@ -17,6 +17,12 @@ const priceSchema = mongoose.Schema({
     required: true
   },
 
+  company: {
+
+    type: Schema.Types.ObjectId, ref: 'Company',
+    required: true
+  },
+
   createdAt: {
     type: Date,
     required: true

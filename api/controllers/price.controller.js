@@ -25,6 +25,7 @@ export const newPrice = async (req, res, next) => {
 export const newPrices = async (req, res, next) => {
 
   const data = req.body
+  const companyId = req.params.companyId
   const bulkOps = []
 
   try {
@@ -40,6 +41,7 @@ export const newPrices = async (req, res, next) => {
           price: data[key].price,
           product: data[key].product,
           branch: data[key].branch,
+          company: companyId,
           createdAt: createdAt
         }
 

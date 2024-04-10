@@ -4,7 +4,7 @@ import { getAllBranchPrices, getBranchCurrentPrices, initializeBranchPrices, new
 const router = express.Router()
 
 router.post('/new-price', newPrice)
-router.post('/new-prices', newPrices)
+router.post('/new-prices/:companyId', newPrices)
 router.post('/initialize-prices/:companyId/:branchId', initializeBranchPrices)
 router.get('/get-branch-prices/:branchId', getBranchCurrentPrices)
 router.get('/get-products-price/:companyId', getAllBranchPrices)

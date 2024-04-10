@@ -82,6 +82,54 @@ export const getBranchInputs = async (req, res, next) => {
 
 }
 
+export const getBranchInitialInput = async (req, res, next) => {
+
+  const branchId = req.params.branchId
+  const date = new Date()
+  const actualLocaleDate = new Date(new Date(date).getTime() - 6 * 60 * 60000)
+  const actualLocaleDay = actualLocaleDate.toISOString().slice(0, 10)
+
+  const actualLocaleDatePlusOne = new Date(actualLocaleDay)
+  actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
+  const actualLocalDayPlusOne = actualLocaleDatePlusOne.toISOString().slice(0, 10)
+
+  const bottomDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
+  const topDate = new Date(actualLocalDayPlusOne + 'T00:00:00.000-06:00')
+
+  try {
+    const input = await InitialInput.find({
+
+      $and: [{
+
+        createdAt: {
+
+          $gte: bottomDate
+        }
+      },
+      {
+
+        createdAt: {
+
+          $lt: topDate
+        }
+
+      },
+      {
+        branch: branchId
+      }]
+    })
+
+    if(input) {
+
+      res.status(200).json({initialInput: input})
+    }
+
+  } catch (error) {
+
+    next(error)
+  }
+}
+
 export const getInputs = async (req, res, next) => {
 
   const date = new Date(req.params.date)
@@ -363,6 +411,49 @@ export const getInitialInputs = async (req, res, next) => {
         })
       }
     }
+
+  } catch (error) {
+
+    next(error)
+  }
+}
+
+export const updateInitialInputs = async (req, res, next) => {
+
+  const data = req.body
+  const bulkOps = []
+
+  try {
+
+    for(let key in data) {
+
+      if(data.hasOwnProperty(key)) {
+
+
+        let document = {
+
+          weight: data[key].weight
+        }
+
+        console.log(key)
+
+        bulkOps.push(
+          {
+            updateOne: {
+              filter: {_id: key},
+              update: {$set: {weight: data[key].weight, employee: data[key].employee}}
+            }
+          }
+        )
+
+      }
+    }
+
+    InitialInput.bulkWrite(bulkOps)
+    .then(result => {
+      console.log(result)
+      res.status(200).json('weights updated correctly')
+    })
 
   } catch (error) {
 

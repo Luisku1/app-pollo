@@ -47,7 +47,7 @@ export default function Precios() {
 
     try {
 
-      const res = await fetch('/api/product/price/new-prices', {
+      const res = await fetch('/api/product/price/new-prices/' + company._id, {
 
         method: 'POST',
         headers: {

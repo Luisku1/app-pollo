@@ -56,6 +56,24 @@ const branchReportSchema = mongoose.Schema({
     type: Schema.Types.ObjectId, ref: 'Employee'
   },
 
+  initialInputWeight: {
+
+    type: Schema.Types.ObjectId, ref: 'InitialInput',
+    required: true
+  },
+
+  initialInputAmount: {
+
+    type: Number,
+    required: true
+  },
+
+  reportData: {
+
+    type: Schema.Types.ObjectId, ref: 'ReportData',
+    required: true
+  },
+
   createdAt: {
     type: Date,
     required: true
