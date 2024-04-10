@@ -15,6 +15,7 @@ export default function RegistroCuentaDiaria() {
   const [outgoingFormData, setOutgoingFormData] = useState({})
   const [stockFormData, setStockFormData] = useState({})
   const [productLossFormData, setProductLossFormData] = useState({})
+  const [productLosses, setProductLosses] = useState([])
   const [employees, setEmployees] = useState([])
   const [branches, setBranches] = useState([])
   const [outgoings, setOutgoings] = useState([])
@@ -28,7 +29,6 @@ export default function RegistroCuentaDiaria() {
   const [initialStock, setInitialStock] = useState(0.0)
   const [stockItems, setStockItems] = useState([])
   const [stockTotal, setStockTotal] = useState(0.0)
-  const [productLossItems, setProductLossItems] = useState([])
   const [productLossTotal, setProductLossTotal] = useState(0.0)
   const [products, setProducts] = useState([])
   const [branchPrices, setPrices] = useState([])
@@ -202,6 +202,7 @@ export default function RegistroCuentaDiaria() {
       if (data.success === false) {
 
         setError(data.message)
+        setLoading(false)
         return
       }
 
@@ -334,11 +335,13 @@ export default function RegistroCuentaDiaria() {
         return
       }
 
-      data.productLossItem.product = productName
+      data.productLoss.product = productName
 
+      setProductLosses([...productLosses, data.productLoss])
+
+
+      setProductLossTotal(productLossTotal + data.productLoss.amount)
       setError(null)
-      setProductLossItems([...productLossItems, data.productLossItem])
-      setProductLossTotal(productLossTotal + data.productLossItem.amount)
 
       productSelect.value = 'none'
       weightInput.value = ''
@@ -378,8 +381,8 @@ export default function RegistroCuentaDiaria() {
 
     if (error == null) {
 
-      setProductLossTotal(productLossTotal - productLossItems[index].amount)
-      productLossItems.splice(index, 1)
+      setProductLossTotal(productLossTotal - parseFloat(productLosses[index].amount))
+      productLosses.splice(index, 1)
     }
   }
 
@@ -423,10 +426,6 @@ export default function RegistroCuentaDiaria() {
 
     setStockTotal(total)
   }
-
-
-
-
 
   const setInputsTotalFunction = (inputs) => {
 
@@ -730,8 +729,6 @@ export default function RegistroCuentaDiaria() {
 
       setLoading(true)
 
-      setProductLossItems([])
-
       try {
 
         const res = await fetch('/api/outgoing/product-loss/get/' + branchId + '/' + date)
@@ -743,7 +740,8 @@ export default function RegistroCuentaDiaria() {
           setLoading(false)
           return
         }
-        setProductLossItems(data.productLosses)
+
+        setProductLosses(data.productLosses)
         setProductLossTotalFunction(data.productLosses)
         setError(null)
         setLoading(false)
@@ -1079,7 +1077,7 @@ export default function RegistroCuentaDiaria() {
 
       </div>
 
-      <div className='border p-3 mt-4 bg-white'>
+      {/* <div className='border p-3 mt-4 bg-white'>
         <h2 className='flex text-2xl text-center font-semibold mb-4'>Mermas</h2>
 
         <form onSubmit={addProductLossItem} className="grid grid-cols-4 items-center justify-between">
@@ -1099,7 +1097,7 @@ export default function RegistroCuentaDiaria() {
 
         </form>
 
-        {productLossItems && productLossItems.length > 0 ?
+        {productLosses && productLosses.length > 0 ?
           <div id='header' className='grid grid-cols-11 gap-4 items-center justify-around font-semibold my-4'>
             <p className='col-span-3 text-center'>Producto</p>
             <p className='col-span-3 text-center'>Comentario</p>
@@ -1107,7 +1105,7 @@ export default function RegistroCuentaDiaria() {
           </div>
           : ''}
 
-        {productLossItems && productLossItems.length > 0 && productLossItems.map((productLossItem, index) => (
+        {productLosses && productLosses.length > 0 && productLosses.map((productLossItem, index) => (
 
 
           <div key={productLossItem._id} className={(document.getElementById('employee').value == productLossItem.employee ? '' : 'py-3 ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
@@ -1155,7 +1153,7 @@ export default function RegistroCuentaDiaria() {
 
         ))}
 
-        {productLossItems && productLossItems.length > 0 ?
+        {productLosses && productLosses.length > 0 ?
 
           <div className='flex mt-4 border-black border rounded-lg p-3 shadow-lg border-opacity-30'>
             <p className='w-6/12 text-center'>Total:</p>
@@ -1165,7 +1163,7 @@ export default function RegistroCuentaDiaria() {
 
           : ''}
 
-      </div>
+      </div> */}
 
       {inputs && inputs.length > 0 ?
         <div className='border bg-white p-3 mt-4'>

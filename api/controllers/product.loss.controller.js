@@ -6,13 +6,12 @@ export const create = async (req, res, next) => {
   const { amount, productLossWeight, comment, product, employee, company, branch } = req.body
   const createdAt = new Date().toISOString()
 
-
-  const newProductLossItem = new ProductLoss({ amount, weight: productLossWeight, comment, product, employee, company, branch, createdAt: createdAt })
-
   try {
 
-    await newProductLossItem.save()
-    res.status(201).json({ message: 'Product Loss Item created successfully', productLossItem: newProductLossItem })
+    const newProductLossItem = await new ProductLoss({ amount, weight: productLossWeight, comment, product, employee, company, branch, createdAt: createdAt })
+    newProductLossItem.save()
+
+    res.status(201).json({ message: 'Product Loss Item created successfully', productLoss: newProductLossItem })
 
   } catch (error) {
 
@@ -57,13 +56,13 @@ export const getProductLosses = async (req, res, next) => {
       }]
     }).populate({path: 'product', select: 'name'})
 
-    if(productLosses.length == 0) {
+    if(productLosses.length > 0) {
 
-      next(errorHandler(404, 'Not found product losses'))
+      res.status(200).json({productLosses: productLosses})
 
     } else {
 
-      res.status(200).json({productLosses: productLosses})
+      next(errorHandler(404, 'Not found product losses'))
     }
 
   } catch (error) {
