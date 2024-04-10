@@ -104,6 +104,7 @@ export default function Header() {
 
 
                       <DropdownItem text={'Supervisión'} link={'/supervision-diaria'} onClick={()=>{setOpen(!open)}}/>
+                      <DropdownItem text={'Entrada de Entero'} link={'/entrada-inicial'} onClick={()=>{setOpen(!open)}}/>
 
                     </div>
 

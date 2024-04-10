@@ -70,26 +70,34 @@ export const initializeBranchPrices = async (req, res, next) => {
 
     const products = await Product.find({company: companyId}, ['_id'])
 
-    products.forEach((product) => {
+    if(products.length > 0) {
 
-      const createdAt = new Date().toISOString()
+      products.forEach((product) => {
 
-      let document = {
+        const createdAt = new Date().toISOString()
 
-        price: 0,
-        product: product._id,
-        branch: branchId,
-        createdAt: createdAt
-      }
+        let document = {
 
-      bulkOps.push({ "insertOne": {"document": document}})
+          price: 0,
+          product: product._id,
+          branch: branchId,
+          createdAt: createdAt
+        }
 
-    })
+        bulkOps.push({ "insertOne": {"document": document}})
 
-    Price.bulkWrite(bulkOps)
-    .then(result => {
-      res.status(200).json('Prices initialized correctly')
-    })
+      })
+
+      Price.bulkWrite(bulkOps)
+      .then(result => {
+        res.status(200).json('Prices initialized correctly')
+      })
+
+    } else {
+
+      next(errorHandler(404, 'No hay productos registrados en esta companía'))
+    }
+
 
   } catch (error) {
 

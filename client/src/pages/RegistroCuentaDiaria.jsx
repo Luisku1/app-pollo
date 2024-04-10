@@ -541,6 +541,7 @@ export default function RegistroCuentaDiaria() {
       const date = (paramsDate ? new Date(paramsDate) : new Date()).toISOString()
 
       setLoading(true)
+      setStockItems([])
 
       try {
 
@@ -572,6 +573,7 @@ export default function RegistroCuentaDiaria() {
       const date = (paramsDate ? new Date(paramsDate) : new Date()).toISOString()
 
       setLoading(true)
+      setOutgoings([])
 
       try {
 
@@ -602,6 +604,7 @@ export default function RegistroCuentaDiaria() {
       const date = (paramsDate ? new Date(paramsDate) : new Date()).toISOString()
 
       setLoading(true)
+      setInitialStock(0.0)
 
       try {
 
@@ -632,6 +635,7 @@ export default function RegistroCuentaDiaria() {
       const date = (paramsDate ? new Date(paramsDate) : new Date()).toISOString()
 
       setLoading(true)
+      setInputs([])
 
       try {
 
@@ -662,6 +666,7 @@ export default function RegistroCuentaDiaria() {
       const date = (paramsDate ? new Date(paramsDate) : new Date()).toISOString()
 
       setLoading(true)
+      setOutputs([])
 
       try {
 
@@ -692,6 +697,7 @@ export default function RegistroCuentaDiaria() {
       const date = (paramsDate ? new Date(paramsDate) : new Date()).toISOString()
 
       setLoading(true)
+      setIncomes([])
 
       try {
 
@@ -724,6 +730,8 @@ export default function RegistroCuentaDiaria() {
 
       setLoading(true)
 
+      setProductLossItems([])
+
       try {
 
         const res = await fetch('/api/outgoing/product-loss/get/' + branchId + '/' + date)
@@ -735,7 +743,6 @@ export default function RegistroCuentaDiaria() {
           setLoading(false)
           return
         }
-
         setProductLossItems(data.productLosses)
         setProductLossTotalFunction(data.productLosses)
         setError(null)
@@ -940,7 +947,7 @@ export default function RegistroCuentaDiaria() {
 
             {document.getElementById('employee').value == outgoing.employee || currentUser._id == outgoing.employee ?
 
-             <div>
+              <div>
                 <button id={outgoing._id} onClick={() => { setIsOpen(isOpen ? false : true), setButtonId(outgoing._id) }} disabled={loading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
                   <span>
                     <FaTrash className='text-red-700 m-auto' />

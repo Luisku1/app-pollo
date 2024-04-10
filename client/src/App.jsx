@@ -16,6 +16,7 @@ import Productos from './pages/Productos'
 import Sucursales from './pages/Sucursales'
 import Precios from './pages/Precios'
 import Reporte from './pages/Reporte'
+import EntradaInicial from './pages/EntradaInicial'
 
 
 export default function App() {
@@ -43,6 +44,7 @@ export default function App() {
           <Route path="/registro-empleado" element={<RegistroEmpleado/>}/>
           <Route path="/registro-sucursal" element={<RegistroSucursal />} />
           <Route path="/supervision-diaria" element={<ControlSupervisor />} />
+          <Route path="/entrada-inicial" element={<EntradaInicial />} />
           <Route path="/supervision-diaria/:date" element={<ControlSupervisor />} />
           <Route path="/reporte" element={<Reporte />} />
           <Route path="/reporte/:date" element={<Reporte />} />
