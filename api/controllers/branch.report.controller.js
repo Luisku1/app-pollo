@@ -13,7 +13,6 @@ export const createBranchReport = async (req, res, next) => {
   const inputBalance = initialStock + inputs + initialInputAmount
   const outputBalance = outgoings + outputs + incomes + finalStock
   const balance = outputBalance - inputBalance
-  console.log(balance, initialInput, initialInputPrice)
   const createdAt = new Date().toISOString()
 
   const actualLocaleDate = new Date(new Date().getTime() - 6 * 60 * 60000)
@@ -70,6 +69,8 @@ export const createBranchReport = async (req, res, next) => {
 
     if (reportData) {
 
+      console.log(reportData)
+
       const newBranchReport = new BranchReport({ initialStock, finalStock, inputs, outputs, outgoings, incomes, company, branch, employee, assistant, balance, createdAt, reportData: reportData._id, initialInputAmount, initialInputWeight: initialInput[0].weight })
 
       const updated = await ReportData.updateOne({ _id: reportData._id },
@@ -77,6 +78,7 @@ export const createBranchReport = async (req, res, next) => {
       )
 
       if (updated.acknowledged) {
+        console.log(newBranchReport)
 
 
 
@@ -95,11 +97,14 @@ export const createBranchReport = async (req, res, next) => {
 
     } else {
 
-      const newReportData = await new ReportData({ company: companyId, outgoings: newBranchReport.outgoings, stock: newBranchReport.finalStock, incomes: newBranchReport.incomes })
+      const newReportData = await new ReportData({ company: companyId, outgoings: outgoings, stock: finalStock, incomes: incomes })
+      const newBranchReport = new BranchReport({ initialStock, finalStock, inputs, outputs, outgoings, incomes, company, branch, employee, assistant, balance, createdAt, reportData: newReportData._id, initialInputAmount, initialInputWeight: initialInput[0].weight })
 
       await newReportData.save()
 
       await newBranchReport.save()
+
+      console.log(newReportData, newBranchReport)
 
       await BranchReport.updateOne({ _id: newBranchReport._id }, { $set: { 'reportData': newReportData._id } })
 

@@ -2,7 +2,7 @@ import Output from '../models/accounts/output.model.js'
 import Input from '../models/accounts/input.model.js'
 import { errorHandler } from '../utils/error.js'
 import { getProductPrice } from './price.controller.js'
-import InitialInput from '../models/accounts/initial.input.model.js'
+import ProviderInput from '../models/providers/provider.input.model.js'
 import Branch from '../models/branch.model.js'
 
 export const newInput = async (req, res, next) => {
@@ -82,10 +82,10 @@ export const getBranchInputs = async (req, res, next) => {
 
 }
 
-export const getBranchInitialInput = async (req, res, next) => {
+export const getBranchProviderInputs = async (req, res, next) => {
 
   const branchId = req.params.branchId
-  const date = new Date()
+  const date = new Date(req.params.date)
   const actualLocaleDate = new Date(new Date(date).getTime() - 6 * 60 * 60000)
   const actualLocaleDay = actualLocaleDate.toISOString().slice(0, 10)
 
@@ -97,7 +97,7 @@ export const getBranchInitialInput = async (req, res, next) => {
   const topDate = new Date(actualLocalDayPlusOne + 'T00:00:00.000-06:00')
 
   try {
-    const input = await InitialInput.find({
+    const providerInputs = await ProviderInput.find({
 
       $and: [{
 
@@ -117,11 +117,11 @@ export const getBranchInitialInput = async (req, res, next) => {
       {
         branch: branchId
       }]
-    })
+    }).populate({path: 'product', select: 'name'}).populate({path: 'employee', select: 'name lastName'})
 
-    if(input) {
+    if(providerInputs) {
 
-      res.status(200).json({initialInput: input})
+      res.status(200).json({providerInputs: providerInputs})
     }
 
   } catch (error) {
@@ -168,7 +168,7 @@ export const getInputs = async (req, res, next) => {
       {
         company: companyId
       }]
-    }).populate({ path: 'employee', select: 'name lastName' }).populate({ path: 'product', select: 'name' }).populate({ path: 'branch', select: 'branch' })
+    }).populate({ path: 'employee', select: 'name lastName' }).populate({ path: 'product', select: 'name' }).populate({ path: 'branch', select: 'branch position' })
 
     if (inputs.length == 0) {
 
@@ -324,7 +324,7 @@ export const getOutputs = async (req, res, next) => {
       {
         company: companyId
       }]
-    }).populate({ path: 'employee', select: 'name lastName' }).populate({ path: 'product', select: 'name' }).populate({ path: 'branch', select: 'branch' })
+    }).populate({ path: 'employee', select: 'name lastName' }).populate({ path: 'product', select: 'name' }).populate({ path: 'branch', select: 'branch position' })
 
     if (outputs.length == 0) {
 
@@ -341,13 +341,13 @@ export const getOutputs = async (req, res, next) => {
   }
 }
 
-export const initializeInitialInput = async (req, res, next) => {
+export const initializeProviderInput = async (req, res, next) => {
 
 }
 
-export const getInitialInputs = async (req, res, next) => {
+export const getProviderProductInputs = async (req, res, next) => {
 
-  const { companyId, date } = req.params
+  const { companyId, productId, date } = req.params
 
   const actualLocaleDate = new Date(new Date(date).getTime() - 6 * 60 * 60000)
   const actualLocaleDay = actualLocaleDate.toISOString().slice(0, 10)
@@ -358,9 +358,10 @@ export const getInitialInputs = async (req, res, next) => {
 
   const bottomDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
   const topDate = new Date(actualLocalDayPlusOne + 'T00:00:00.000-06:00')
+
   try {
 
-    const initialInputs = await InitialInput.find({
+    const providerInputs = await ProviderInput.find({
 
       $and: [
         {
@@ -376,14 +377,17 @@ export const getInitialInputs = async (req, res, next) => {
           }
         },
         {
+          product: productId
+        },
+        {
           company: companyId
         }
       ]
-    }).populate({path: 'branch', select: 'branch'})
+    }).populate({path: 'branch', select: 'branch position'})
 
-    if(initialInputs.length > 0) {
+    if(providerInputs.length > 0) {
 
-      res.status(200).json({initialInputs: initialInputs})
+      res.status(200).json({providerInputs: providerInputs})
 
     } else {
 
@@ -398,16 +402,19 @@ export const getInitialInputs = async (req, res, next) => {
           let document = {
 
             branch: branch._id,
+            product: productId,
             company: companyId
           }
 
           bulkOps.push({'insertOne': {'document': document}})
         });
 
-        InitialInput.bulkWrite(bulkOps)
-        .then(result => {
+        ProviderInput.bulkWrite(bulkOps)
+        .then(async (result) => {
 
-          res.status(200).json({result: result})
+          const createdProviderInputs = await ProviderInput.find({_id: {$in: result.insertedIds}}).populate({path: 'branch', select: 'branch position'})
+
+          res.status(200).json({providerInputs: createdProviderInputs})
         })
       }
     }
@@ -418,7 +425,7 @@ export const getInitialInputs = async (req, res, next) => {
   }
 }
 
-export const updateInitialInputs = async (req, res, next) => {
+export const updateProviderInputs = async (req, res, next) => {
 
   const data = req.body
   const bulkOps = []
@@ -430,18 +437,14 @@ export const updateInitialInputs = async (req, res, next) => {
       if(data.hasOwnProperty(key)) {
 
 
-        let document = {
-
-          weight: data[key].weight
-        }
-
-        console.log(key)
+        const productPrice = await getProductPrice(data[key].product, data[key].branch)
+        const amount = data[key].weight * productPrice.price
 
         bulkOps.push(
           {
             updateOne: {
               filter: {_id: key},
-              update: {$set: {weight: data[key].weight, employee: data[key].employee}}
+              update: {$set: {weight: data[key].weight, employee: data[key].employee, amount: amount}}
             }
           }
         )
@@ -449,9 +452,8 @@ export const updateInitialInputs = async (req, res, next) => {
       }
     }
 
-    InitialInput.bulkWrite(bulkOps)
+    ProviderInput.bulkWrite(bulkOps)
     .then(result => {
-      console.log(result)
       res.status(200).json('weights updated correctly')
     })
 

@@ -1,15 +1,25 @@
 import mongoose, { Schema } from 'mongoose'
 
 
-const initialInputSchema = mongoose.Schema({
+const providerInputSchema = mongoose.Schema({
 
   weight: {
     type: Number,
     default: 0.0
   },
 
+  amount: {
+    type: Number,
+    default: 0.0
+  },
+
   branch: {
     type: Schema.Types.ObjectId, ref: 'Branch',
+    required: true
+  },
+
+  product: {
+    type: Schema.Types.ObjectId, ref: 'Product',
     required: true
   },
 
@@ -25,6 +35,6 @@ const initialInputSchema = mongoose.Schema({
 
 }, {timestamps: true})
 
-const InitialInput = mongoose.model('InitialInput', initialInputSchema)
+const ProviderInput = mongoose.model('ProviderInput', providerInputSchema)
 
-export default InitialInput
+export default ProviderInput

@@ -894,6 +894,11 @@ export default function ControlSupervisor() {
           return
         }
 
+        data.incomes.sort((income, nextIncome) => {
+
+          return income.branch.position - nextIncome.branch.position
+        })
+
         setIncomes(data.incomes)
         setIncomesTotalFunction(data.incomes)
         setError(null)
@@ -923,6 +928,12 @@ export default function ControlSupervisor() {
           setLoading(false)
           return
         }
+
+        data.outputs.sort((output, nextOutput) => {
+
+          return output.branch.position - nextOutput.branch.position
+
+        })
 
         setOutputs(data.outputs)
         setOutputsTotalFunction(data.outputs)
@@ -955,6 +966,11 @@ export default function ControlSupervisor() {
           return
         }
 
+        data.inputs.sort((input, nextInput) => {
+
+          return input.branch.position - nextInput.branch.position
+        })
+
         setInputs(data.inputs)
         setInputsTotalFunction(data.inputs)
         setError(null)
@@ -984,6 +1000,11 @@ export default function ControlSupervisor() {
           setLoading(false)
           return
         }
+
+        data.extraOutgoings.sort((extraOutgoing, nextExtraOutgoing) => {
+
+          return extraOutgoing.branch.position - nextExtraOutgoing.branch.position
+        })
 
         setExtraOutgoings(data.extraOutgoings)
         setExtraOutgoingsTotalFunction(data.extraOutgoings)

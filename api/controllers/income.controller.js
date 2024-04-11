@@ -129,7 +129,7 @@ export const getIncomes = async (req, res, next) => {
       {
         company: companyId
       }]
-    }).populate({path: 'employee', select: 'name lastName'}).populate({path: 'branch', select: 'branch'}).populate({path: 'type', select: 'name'})
+    }).populate({path: 'employee', select: 'name lastName'}).populate({path: 'branch', select: 'branch position'}).populate({path: 'type', select: 'name'})
 
     if (incomes.length > 0) {
 

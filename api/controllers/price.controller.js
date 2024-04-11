@@ -235,7 +235,7 @@ export const getProductPrice = async (productId, branchId) => {
 
   try {
 
-    const price = await Price.find({ branch: branchId, product: productId }, 'price').sort({ createdAt: -1 })
+    const price = await Price.find({ branch: branchId, product: productId }, 'price').sort({ createdAt: -1 }).limit(1)
 
     if (price) {
 

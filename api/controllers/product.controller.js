@@ -71,9 +71,18 @@ export const getProducts = async (req, res, next) => {
 	try {
 
 		const products = await Product.find({company: companyId})
-		res.status(200).json({products: products})
+
+		if(products.length > 0) {
+
+			res.status(200).json({products: products})
+
+		} else {
+
+			next(errorHandler(404, 'No products found'))
+		}
 
 	} catch (error) {
 
+		next(error)
 	}
 }

@@ -184,7 +184,6 @@ export default function Perfil() {
                         <p>Efectivo: {reportData.incomes.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
                         <p>Sobrante: {reportData.finalStock.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
                         <p>Gastos: {reportData.outgoings.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
-                        <p>Efectivo neto: {(reportData.incomes - reportData.outgoings).toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
                       </div>
                     </Link>
 

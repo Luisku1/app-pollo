@@ -44,7 +44,7 @@ export default function App() {
           <Route path="/registro-empleado" element={<RegistroEmpleado/>}/>
           <Route path="/registro-sucursal" element={<RegistroSucursal />} />
           <Route path="/supervision-diaria" element={<ControlSupervisor />} />
-          <Route path="/entrada-inicial" element={<EntradaInicial />} />
+          <Route path="/entrada-inicial/:productId/:productName" element={<EntradaInicial />} />
           <Route path="/supervision-diaria/:date" element={<ControlSupervisor />} />
           <Route path="/reporte" element={<Reporte />} />
           <Route path="/reporte/:date" element={<Reporte />} />

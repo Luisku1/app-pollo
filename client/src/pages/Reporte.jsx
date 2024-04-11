@@ -44,6 +44,12 @@ export default function Reporte() {
         let outgoingsTotalPivot = 0.0
         let balanceTotalPivot = 0.0
 
+        data.branchReports.sort((report, nextReport) => {
+
+
+          return report.branch.position - nextReport.branch.position
+        })
+
         data.branchReports.forEach((branchReport) => {
 
           incomesTotalPivot += branchReport.incomes

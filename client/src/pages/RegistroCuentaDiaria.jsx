@@ -29,7 +29,8 @@ export default function RegistroCuentaDiaria() {
   const [initialStock, setInitialStock] = useState(0.0)
   const [stockItems, setStockItems] = useState([])
   const [stockTotal, setStockTotal] = useState(0.0)
-  const [initialInput, setInitialInput] = useState({})
+  const [providerInputs, setProviderInputs] = useState([])
+  const [providerInputsTotal, setProviderInputsTotal] = useState(0.0)
   // const [productLossTotal, setProductLossTotal] = useState(0.0)
   const [products, setProducts] = useState([])
   const [branchPrices, setPrices] = useState([])
@@ -466,6 +467,18 @@ export default function RegistroCuentaDiaria() {
     setIncomesTotal(total)
   }
 
+  const setProviderInputsTotalFunction = (providerInputs) => {
+
+    let total = 0
+
+    providerInputs.forEach((input) => {
+
+      total += parseFloat(input.amount)
+    })
+
+    setProviderInputsTotal(total)
+  }
+
 
   // const setProductLossTotalFunction = (productLosses) => {
 
@@ -507,7 +520,6 @@ export default function RegistroCuentaDiaria() {
           outputs: outputsTotal,
           outgoings: outgoingsTotal,
           incomes: incomesTotal,
-          initialInput: initialInput
 
         })
       })
@@ -755,13 +767,15 @@ export default function RegistroCuentaDiaria() {
     //   }
     // }
 
-    const fetchInitialInput = async (branchId) => {
+    const fetchProviderInputs = async (branchId) => {
+
+      const date = (paramsDate ? new Date(paramsDate) : new Date()).toISOString()
 
       setLoading(true)
 
       try {
 
-        const res = await fetch('/api/input/get-branch-initial-input/' + branchId)
+        const res = await fetch('/api/input/get-branch-provider-inputs/' + branchId + '/' + date)
         const data = await res.json()
 
         if (data.success === false) {
@@ -771,7 +785,13 @@ export default function RegistroCuentaDiaria() {
           return
         }
 
-        setInitialInput(data.initialInput)
+        console.log(data.providerInputs)
+
+        setProviderInputs(data.providerInputs)
+        setProviderInputsTotalFunction(data.providerInputs)
+
+        setLoading(false)
+        setError(null)
 
       } catch (error) {
 
@@ -782,13 +802,13 @@ export default function RegistroCuentaDiaria() {
 
     const fetchs = () => {
 
-      fetchInitialInput(branchId)
       fetchInitialStock(branchId)
       setPricesFunction(branchId)
       fetchOutgoings(branchId)
       fetchStock(branchId)
       fetchIncomes(branchId)
       fetchInputs(branchId)
+      fetchProviderInputs(branchId)
       fetchOutputs(branchId)
       // fetchProductLosses(branchId)
     }
@@ -890,7 +910,7 @@ export default function RegistroCuentaDiaria() {
         <p>Auxiliar:</p>
         <select name="assistant" id="assistant" className='border p-3 rounded-lg'>
 
-          <option value="none" selected hidden disabled >Sin auxiliar</option>
+          <option value={null} selected  >Sin auxiliar</option>
 
           {employees && employees.length == 0 ? <option> No hay empleados </option> : ''}
           {employees && employees.length > 0 && employees.map((employee) => (
@@ -935,15 +955,6 @@ export default function RegistroCuentaDiaria() {
         </div>
 
       </div>
-
-      {initialInput.length > 0 ?
-      <div className="flex items-center justify-between">
-
-        <p>Pollo entero fresco: </p>
-        <p className=' bg-white p-3 rounded-lg'>Kg: {initialInput[0].weight ? initialInput[0].weight : '0.00'}</p>
-
-      </div>
-      : ''}
 
       <div className="flex items-center justify-between">
 
@@ -1215,22 +1226,22 @@ export default function RegistroCuentaDiaria() {
           </div>
           {inputs && inputs.length > 0 && inputs.map((input) => (
 
+            <div key={input._id}>
+              <div className='grid grid-cols-12 items-center border border-black border-opacity-30 rounded-lg shadow-sm mb-2 py-3'>
+                <div id='list-element' className='flex col-span-12 items-center'>
+                  <p className='text-center text-xs w-3/12'>{input.employee.name + ' ' + input.employee.lastName}</p>
+                  <p className='text-center text-xs w-3/12'>{input.product.name}</p>
+                  <p className='text-center text-xs w-2/12'>{input.pieces}</p>
+                  <p className='text-center text-xs w-2/12'>{input.weight}</p>
+                  <p className='text-center text-xs w-2/12'>{input.amount.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
+                </div>
 
-            <div key={input._id} className='grid grid-cols-12 items-center border border-black border-opacity-30 rounded-lg shadow-sm mb-2 py-3'>
-              <div id='list-element' className='flex col-span-12 items-center'>
-                <p className='text-center text-xs w-3/12'>{input.employee.name + ' ' + input.employee.lastName}</p>
-                <p className='text-center text-xs w-3/12'>{input.product.name}</p>
-                <p className='text-center text-xs w-2/12'>{input.pieces}</p>
-                <p className='text-center text-xs w-2/12'>{input.weight}</p>
-                <p className='text-center text-xs w-2/12'>{input.amount.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
+                <div className='col-span-12'>
+                  <p className='text-m text-center font-semibold'>{input.comment}</p>
+                </div>
+
               </div>
-
-              <div className='col-span-12'>
-                <p className='text-m text-center font-semibold'>{input.comment}</p>
-              </div>
-
             </div>
-
           ))}
 
           {inputs && inputs.length > 0 ?
@@ -1238,6 +1249,52 @@ export default function RegistroCuentaDiaria() {
             <div className='flex mt-4 border-black border rounded-lg p-3 shadow-lg border-opacity-30'>
               <p className='w-6/12 text-center'>Total:</p>
               <p className='w-6/12 text-center font-bold'>{inputsTotal.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
+
+            </div>
+
+            : ''}
+        </div>
+
+        : ''}
+
+      {providerInputs && providerInputs.length > 0 ?
+        <div className='border bg-white p-3 mt-4'>
+          <h2 className='flex text-2xl text-center font-semibold mb-4'>Entrada de Proveedores</h2>
+
+          <div id='header' className='grid grid-cols-12 items-center justify-around font-semibold my-4'>
+            <p className='col-span-3 text-center'>Encargado</p>
+            <p className='col-span-3 text-center'>Producto</p>
+            <p className='col-span-2 text-center'>Piezas</p>
+            <p className='col-span-2 text-center'>Kg</p>
+            <p className='col-span-2 text-center'>Monto</p>
+          </div>
+          {providerInputs && providerInputs.length > 0 && providerInputs.map((input) => (
+
+            <div key={input._id}>
+              {input.weight != 0 ?
+                <div className='grid grid-cols-12 items-center border border-black border-opacity-30 rounded-lg shadow-sm mb-2 py-3'>
+                  <div id='list-element' className='flex col-span-12 items-center'>
+                    <p className='text-center text-xs w-3/12'>{input.employee.name + ' ' + input.employee.lastName}</p>
+                    <p className='text-center text-xs w-3/12'>{input.product.name}</p>
+                    <p className='text-center text-xs w-2/12'>{input.pieces}</p>
+                    <p className='text-center text-xs w-2/12'>{input.weight}</p>
+                    <p className='text-center text-xs w-2/12'>{input.amount.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
+                  </div>
+
+                  <div className='col-span-12'>
+                    <p className='text-m text-center font-semibold'>{input.comment}</p>
+                  </div>
+
+                </div>
+                : ''}
+            </div>
+          ))}
+
+          {providerInputs && providerInputs.length > 0 ?
+
+            <div className='flex mt-4 border-black border rounded-lg p-3 shadow-lg border-opacity-30'>
+              <p className='w-6/12 text-center'>Total:</p>
+              <p className='w-6/12 text-center font-bold'>{providerInputsTotal.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
 
             </div>
 

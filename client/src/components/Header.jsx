@@ -4,19 +4,44 @@ import { useSelector } from 'react-redux'
 import { useEffect, useRef, useState } from 'react'
 import DropdownItem from './DropdownItem'
 import { MdOutlineMenu } from "react-icons/md";
+import { MdKeyboardArrowRight, MdKeyboardArrowDown } from "react-icons/md";
+
 import '../assets/dropdown.css'
 
 export default function Header() {
 
   const [error, setError] = useState(null)
   const [roles, setRoles] = useState([])
-  const { currentUser, company} = useSelector((state) => state.user)
+  const [products, setProducts] = useState([])
+  const { currentUser, company } = useSelector((state) => state.user)
   const [open, setOpen] = useState(false);
+  const [providerIsOpen, setProviderIsOpen] = useState(false)
   let menuRef = useRef();
   let supervisorRole
   let managerRole
 
   useEffect(() => {
+
+    const fetchProducts = async () => {
+
+      try {
+
+        const res = await fetch('/api/product/get-products/' + company._id)
+        const data = await res.json()
+
+        if (data.success === false) {
+
+          setError(data.message)
+          return
+        }
+
+        setProducts(data.products)
+
+      } catch (error) {
+
+        setError(error.message)
+      }
+    }
 
     const fetchRoles = async () => {
 
@@ -40,31 +65,32 @@ export default function Header() {
       }
     }
 
-    if(currentUser) {
+    if (currentUser) {
 
       fetchRoles()
+      fetchProducts()
 
     }
 
-    let handler = (e)=>{
-      if(!menuRef.current.contains(e.target)){
+    let handler = (e) => {
+      if (!menuRef.current.contains(e.target)) {
         setOpen(false);
+        setProviderIsOpen(false)
       }
     };
 
     document.addEventListener("mousedown", handler);
 
 
-    return() =>{
+    return () => {
       document.removeEventListener("mousedown", handler);
     }
 
-  }, [currentUser])
+  }, [currentUser, company])
 
 
-  if(roles && error == null)
-  {
-    supervisorRole = roles.find((role) => ( role.name == "Supervisor" ))
+  if (roles && error == null) {
+    supervisorRole = roles.find((role) => (role.name == "Supervisor"))
     managerRole = roles.find((role) => (role.name == "Gerente"))
 
   }
@@ -76,14 +102,14 @@ export default function Header() {
         <Link to='/'>
           <h1 className='font-bold text-sm sm:text-xl flex flex-wrap space-x-1 items-center'>
             <span className='text-red-700'>{company ? company.name : 'Pio App'}</span>
-            <GiChicken className='text-red-400 h-7 w-7'/>
+            <GiChicken className='text-red-400 h-7 w-7' />
           </h1>
         </Link>
 
         <div className='menu-container' ref={menuRef}>
 
-          <div className="menu-trigger" onClick={()=>{setOpen(!open)}}>
-            <MdOutlineMenu className='w-5 h-5 mdoutline'/>
+          <div className="menu-trigger" onClick={() => { setProviderIsOpen(false), setOpen(!open) }}>
+            <MdOutlineMenu className='w-5 h-5 mdoutline' />
           </div>
 
           <div className={`dropdown-menu ${open ? 'active' : 'inactive'}`} >
@@ -94,21 +120,40 @@ export default function Header() {
 
                 <div>
 
-                  <DropdownItem text={'Perfil'} link={'/perfil/' + currentUser._id} onClick={()=>{setOpen(!open)}} />
+                  <DropdownItem text={'Perfil'} link={'/perfil/' + currentUser._id} onClick={() => { setOpen(!open) }} />
 
-                  <DropdownItem text={"Crear formato"} link={'/formato'} onClick={()=>{setOpen(!open)}}/>
+                  <DropdownItem text={"Crear formato"} link={'/formato'} onClick={() => { setOpen(!open) }} />
 
                   {supervisorRole && managerRole && (currentUser.role == supervisorRole._id || currentUser.role == managerRole._id) ? (
 
                     <div>
 
 
-                      <DropdownItem text={'Supervisión'} link={'/supervision-diaria'} onClick={()=>{setOpen(!open)}}/>
-                      <DropdownItem text={'Entrada de Entero'} link={'/entrada-inicial'} onClick={()=>{setOpen(!open)}}/>
+                      <DropdownItem text={'Supervisión'} link={'/supervision-diaria'} onClick={() => { setOpen(!open) }} />
+
+                      <div>
+                        <div className='menu-trigger flex items-center' onClick={() => { setProviderIsOpen(!providerIsOpen) }}>
+                          <DropdownItem text={'Entradas Proveedores'} link={'#'}  />
+
+                          {providerIsOpen ? <MdKeyboardArrowDown className='text-3xl' /> : <MdKeyboardArrowRight className='text-3xl'/>}
+                        </div>
+
+                        <div className={`${providerIsOpen ? '' : 'hidden'} pl-2 text-m`}>
+                          <ul className='border-l pl-5 border-gray-400'>
+                            {products && products.length > 0 && products.map((product) => (
+
+
+                              <DropdownItem key={product._id} text={product.name} link={'/entrada-inicial/' + product._id + '/' + product.name} onClick={() => { setProviderIsOpen(!providerIsOpen), setOpen(!open) }} />
+
+
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
 
                     </div>
 
-                  ): (
+                  ) : (
 
                     <p></p>
 
@@ -119,23 +164,23 @@ export default function Header() {
 
                     <div>
 
-                      <DropdownItem text={"Reporte"} link={'/reporte'} onClick={()=>{setOpen(!open)}}/>
+                      <DropdownItem text={"Reporte"} link={'/reporte'} onClick={() => { setOpen(!open) }} />
 
-                      <DropdownItem text={"Cuentas"} link={'/listado-de-cuentas'} onClick={()=>{setOpen(!open)}}/>
+                      <DropdownItem text={"Cuentas"} link={'/listado-de-cuentas'} onClick={() => { setOpen(!open) }} />
 
-                      <DropdownItem text={'Empleados'} link={'/empleados'} onClick={()=>{setOpen(!open)}}/>
+                      <DropdownItem text={'Empleados'} link={'/empleados'} onClick={() => { setOpen(!open) }} />
 
-                      <DropdownItem text={'Sucursales'} link={'/sucursales'} onClick={()=>{setOpen(!open)}}/>
+                      <DropdownItem text={'Sucursales'} link={'/sucursales'} onClick={() => { setOpen(!open) }} />
 
-                      <DropdownItem text={'Productos'} link={'/productos'} onClick={()=>{setOpen(!open)}}/>
+                      <DropdownItem text={'Productos'} link={'/productos'} onClick={() => { setOpen(!open) }} />
 
-                      <DropdownItem text={'Precios'} link={'/precios'} onClick={()=>{setOpen(!open)}}/>
+                      <DropdownItem text={'Precios'} link={'/precios'} onClick={() => { setOpen(!open) }} />
 
-                      <DropdownItem text={'Empresa'} link={'/empresas'} onClick={()=>{setOpen(!open)}}/>
+                      <DropdownItem text={'Empresa'} link={'/empresas'} onClick={() => { setOpen(!open) }} />
 
                     </div>
 
-                  ): (
+                  ) : (
 
                     <p></p>
 
@@ -143,9 +188,9 @@ export default function Header() {
 
                 </div>
 
-              ): (
+              ) : (
 
-                <DropdownItem text={'Inicio de Sesión'} link={'/inicio-sesion'} onClick={()=>{setOpen(!open)}}/>
+                <DropdownItem text={'Inicio de Sesión'} link={'/inicio-sesion'} onClick={() => { setOpen(!open) }} />
 
               )}
 
