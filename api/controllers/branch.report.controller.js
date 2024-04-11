@@ -7,7 +7,7 @@ export const createBranchReport = async (req, res, next) => {
 
   const companyId = req.params.companyId
   const { initialStock, finalStock, inputs, outputs, outgoings, incomes, company, branch, employee, assistant } = req.body
-  const inputBalance = initialStock + inputs + initialInputAmount
+  const inputBalance = initialStock + inputs
   const outputBalance = outgoings + outputs + incomes + finalStock
   const balance = outputBalance - inputBalance
   const createdAt = new Date().toISOString()
@@ -66,8 +66,6 @@ export const createBranchReport = async (req, res, next) => {
 
     if (reportData) {
 
-      console.log(reportData)
-
       const newBranchReport = new BranchReport({ initialStock, finalStock, inputs, outputs, outgoings, incomes, company, branch, employee, assistant, balance, createdAt, reportData: reportData._id })
 
       const updated = await ReportData.updateOne({ _id: reportData._id },
@@ -75,10 +73,6 @@ export const createBranchReport = async (req, res, next) => {
       )
 
       if (updated.acknowledged) {
-        console.log(newBranchReport)
-
-
-
 
         await newBranchReport.save()
         console.log(newBranchReport)
@@ -101,8 +95,6 @@ export const createBranchReport = async (req, res, next) => {
 
       await newBranchReport.save()
 
-      console.log(newReportData, newBranchReport)
-
       await BranchReport.updateOne({ _id: newBranchReport._id }, { $set: { 'reportData': newReportData._id } })
 
       res.status(201).json({ branchReport: newBranchReport, reportData: newReportData })
@@ -124,11 +116,7 @@ export const deleteReport = async (req, res, next) => {
 
     if (deleted) {
 
-      console.log(deleted)
-
       const reportData = await ReportData.findOne({_id: deleted.reportData})
-
-      console.log(reportData)
 
       await ReportData.updateOne({_id: reportData}, {$set: { incomes: (reportData.incomes - deleted.incomes), stock: (reportData.stock - deleted.finalStock), outgoings: (reportData.outgoings - deleted.outgoings) }})
 
