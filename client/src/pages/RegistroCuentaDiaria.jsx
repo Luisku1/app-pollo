@@ -516,7 +516,7 @@ export default function RegistroCuentaDiaria() {
           company: company._id,
           initialStock: initialStock,
           finalStock: stockTotal,
-          inputs: inputsTotal,
+          inputs: inputsTotal + providerInputsTotal,
           outputs: outputsTotal,
           outgoings: outgoingsTotal,
           incomes: incomesTotal,

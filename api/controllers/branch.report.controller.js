@@ -2,14 +2,11 @@ import BranchReport from '../models/accounts/branch.report.model.js'
 import ReportData from '../models/accounts/report.data.model.js'
 import EmployeeDailyBalance from '../models/employees/employee.daily.balance.js'
 import { errorHandler } from '../utils/error.js'
-import { getProductPrice } from './price.controller.js'
 
 export const createBranchReport = async (req, res, next) => {
 
   const companyId = req.params.companyId
-  const { initialStock, finalStock, inputs, outputs, outgoings, incomes, company, branch, employee, assistant, initialInput } = req.body
-  const initialInputPrice = await getProductPrice('65f5f1666199f6bd4cb9b960', branch)
-  const initialInputAmount = initialInput[0].weight * initialInputPrice.price
+  const { initialStock, finalStock, inputs, outputs, outgoings, incomes, company, branch, employee, assistant } = req.body
   const inputBalance = initialStock + inputs + initialInputAmount
   const outputBalance = outgoings + outputs + incomes + finalStock
   const balance = outputBalance - inputBalance
@@ -71,7 +68,7 @@ export const createBranchReport = async (req, res, next) => {
 
       console.log(reportData)
 
-      const newBranchReport = new BranchReport({ initialStock, finalStock, inputs, outputs, outgoings, incomes, company, branch, employee, assistant, balance, createdAt, reportData: reportData._id, initialInputAmount, initialInputWeight: initialInput[0].weight })
+      const newBranchReport = new BranchReport({ initialStock, finalStock, inputs, outputs, outgoings, incomes, company, branch, employee, assistant, balance, createdAt, reportData: reportData._id })
 
       const updated = await ReportData.updateOne({ _id: reportData._id },
         { $set: { incomes: (reportData.incomes + newBranchReport.incomes), stock: (reportData.stock + newBranchReport.finalStock), outgoings: (reportData.outgoings + newBranchReport.outgoings) } }
@@ -98,7 +95,7 @@ export const createBranchReport = async (req, res, next) => {
     } else {
 
       const newReportData = await new ReportData({ company: companyId, outgoings: outgoings, stock: finalStock, incomes: incomes })
-      const newBranchReport = new BranchReport({ initialStock, finalStock, inputs, outputs, outgoings, incomes, company, branch, employee, assistant, balance, createdAt, reportData: newReportData._id, initialInputAmount, initialInputWeight: initialInput[0].weight })
+      const newBranchReport = new BranchReport({ initialStock, finalStock, inputs, outputs, outgoings, incomes, company, branch, employee, assistant, balance, createdAt, reportData: newReportData._id })
 
       await newReportData.save()
 
