@@ -12,6 +12,7 @@ export default function EntradaInicial() {
   const [successMessage, setSuccessMessage] = useState(null)
   const [initialInputsFormData, setInitialInputsFormData] = useState({})
   const navigate = useNavigate()
+  const [total, setTotal] = useState(0.0)
   const [buttonDisabled, setButonDisabled] = useState(true)
 
 
@@ -100,6 +101,11 @@ export default function EntradaInicial() {
 
           return providerInput.branch.position - nextProviderInput.branch.position
         })
+
+        data.providerInputs.forEach((input) => {
+
+          setTotal((prev) => prev + input.weight)
+        })
         setInitialInputs(data.providerInputs)
         setError(null)
 
@@ -139,8 +145,13 @@ export default function EntradaInicial() {
 
             </div>
 
+
           </div>
         ))}
+        <div className="my-4 bg-white p-3 flex justify-around font-bold shadow-lg rounded-lg">
+          <p>Total (Kg): </p>
+          <p>{total}</p>
+        </div>
       </div>
 
 
