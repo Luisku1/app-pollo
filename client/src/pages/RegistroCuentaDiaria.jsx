@@ -936,12 +936,14 @@ export default function RegistroCuentaDiaria() {
 
       </div>
 
+      {initialInput.length > 0 ?
       <div className="flex items-center justify-between">
 
         <p>Pollo entero fresco: </p>
         <p className=' bg-white p-3 rounded-lg'>Kg: {initialInput[0].weight ? initialInput[0].weight : '0.00'}</p>
 
       </div>
+      : ''}
 
       <div className="flex items-center justify-between">
 
