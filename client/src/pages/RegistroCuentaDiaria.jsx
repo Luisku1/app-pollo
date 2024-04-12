@@ -812,7 +812,7 @@ export default function RegistroCuentaDiaria() {
       fetchOutputs(branchId)
       // fetchProductLosses(branchId)
     }
-    if (branchId && branchId != 'none') {
+    if (branchId && branchId != 'none' && paramsDate) {
 
       fetchs(branchId)
     }

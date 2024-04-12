@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { useSelector } from "react-redux"
-import { useParams } from "react-router-dom"
+import { useParams, Link } from "react-router-dom"
 
 export default function Reporte() {
 
@@ -129,8 +129,11 @@ export default function Reporte() {
 
             <tbody key={branchReport._id}>
 
+
               <tr>
-                <td className="text-center">{branchReport.branch.branch}</td>
+                <Link className='' to={'/formato/' + branchReport.createdAt + '/' + branchReport.branch._id}>
+                  <td className="text-center">{branchReport.branch.branch}</td>
+                </Link>
                 <td className="text-center">{branchReport.outgoings.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</td>
                 <td className="text-center">{branchReport.finalStock.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</td>
                 <td className="text-center">{branchReport.incomes.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</td>

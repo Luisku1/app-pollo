@@ -116,7 +116,6 @@ export default function EntradaInicial() {
 
     }
 
-
     if (productId) {
 
       fetchProviderInputs()
@@ -137,15 +136,11 @@ export default function EntradaInicial() {
         {initialInputs && initialInputs.length > 0 && initialInputs.map((initialInput) => (
 
           <div key={initialInput._id} className="shadow-lg bg-gray-100 rounded-lg mt-1">
-
             <div key={initialInput._id} className="grid grid-cols-2 p-1 border ">
-
               <p>{initialInput.branch.branch}:</p>
               <input type="number" name="weight" id={initialInput._id} className="" onChange={(e) => { handleInputsChange(e, initialInput.branch._id) }} placeholder={initialInput.weight ? initialInput.weight : '0.0'} />
 
             </div>
-
-
           </div>
         ))}
         <div className="my-4 bg-white p-3 flex justify-around font-bold shadow-lg rounded-lg">
