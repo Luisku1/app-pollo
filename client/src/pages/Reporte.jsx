@@ -26,8 +26,6 @@ export default function Reporte() {
 
       const date = (paramsDate ? new Date(paramsDate) : new Date()).toISOString()
 
-      console.log(date)
-
       try {
 
         const res = await fetch('/api/report/get-branches-reports/' + company._id + '/' + date)
@@ -74,7 +72,6 @@ export default function Reporte() {
     const fetchSupervisorsInfo = async () => {
 
       const date = (paramsDate ? new Date(paramsDate) : new Date()).toISOString()
-      console.log(date)
 
       try {
 
@@ -100,7 +97,7 @@ export default function Reporte() {
     fetchBranchesReports()
     fetchSupervisorsInfo()
 
-  }, [company._id])
+  }, [company._id, paramsDate])
 
   return (
 

@@ -10,6 +10,7 @@ export default function Perfil() {
   const { error, currentUser } = useSelector((state) => state.user)
   const { employeeId } = useParams()
   const [employee, setEmployee] = useState(null)
+  const [supervisorInfo, setSupervisorInfo] = useState({})
   const [employeeReports, setEmployeeReports] = useState([])
   const [isOpen, setIsOpen] = useState(false)
   const [buttonId, setButtonId] = useState(null)
@@ -78,6 +79,26 @@ export default function Perfil() {
 
     setEmployeeReports([])
 
+    const fetchSupervisorDayInfo = async () => {
+
+      try {
+
+        const res = await fetch('/api/report/get-supervisor-info/' + employeeId)
+        const data = await res.json()
+
+        if (data.success === false) {
+
+          setFetchError(data.message)
+          return
+        }
+        setSupervisorInfo(data.supervisorInfo)
+
+      } catch (error) {
+
+        setFetchError(error)
+      }
+    }
+
     const fetchEmployee = async () => {
 
       try {
@@ -124,6 +145,7 @@ export default function Perfil() {
 
     fetchEmployee()
     fetchEmployeeReports()
+    fetchSupervisorDayInfo()
 
   }, [employeeId])
 
@@ -137,7 +159,7 @@ export default function Perfil() {
 
       {employee ?
 
-        <div className="my-4 bg-white p-4" key={employee._id}>
+        <div id='personal-info' className="my-4 bg-white p-4" key={employee._id}>
 
           <div className="">
             <h1 className="text-3xl font-bold">{employee.name + ' ' + employee.lastName}</h1>
@@ -158,11 +180,32 @@ export default function Perfil() {
             </div>
           </div>
 
+          {(employee.role.name == 'Supervisor' || employee.role.name == 'Gerente') ?
+
+            <div className=''>
+              <h2 className='text-2xl font-semibold'>Supervisión</h2>
+
+              <div className='p-3 text-lg'>
+
+                <div className='flex gap-2'>
+                  <p>Efectivo y depósitos: </p>
+                  <p>{parseFloat(supervisorInfo.incomes).toLocaleString('es-MX', {style: 'currency', currency: 'MXN'})}</p>
+                </div>
+
+                <div className='flex gap-2'>
+                  <p>Gastos: </p>
+                  <p>{parseFloat(supervisorInfo.outgoings).toLocaleString('es-MX', {style: 'currency', currency: 'MXN'})}</p>
+                </div>
+              </div>
+
+            </div>
+
+            : ''}
           {employeeReports && employeeReports.length > 0 ?
 
             <div className='mt-10'>
 
-              <h2 className='text-2xl font-bold'>Cuentas</h2>
+              <h3 className='text-2xl font-bold'>Cuentas</h3>
 
               {employeeReports.map((reportData, index) => (
 

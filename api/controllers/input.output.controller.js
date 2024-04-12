@@ -117,11 +117,11 @@ export const getBranchProviderInputs = async (req, res, next) => {
       {
         branch: branchId
       }]
-    }).populate({path: 'product', select: 'name'}).populate({path: 'employee', select: 'name lastName'})
+    }).populate({ path: 'product', select: 'name' }).populate({ path: 'employee', select: 'name lastName' })
 
-    if(providerInputs) {
+    if (providerInputs) {
 
-      res.status(200).json({providerInputs: providerInputs})
+      res.status(200).json({ providerInputs: providerInputs })
     }
 
   } catch (error) {
@@ -383,20 +383,18 @@ export const getProviderProductInputs = async (req, res, next) => {
           company: companyId
         }
       ]
-    }).populate({path: 'branch', select: 'branch position'})
+    }).populate({ path: 'branch', select: 'branch position' })
 
-    if(providerInputs.length > 0) {
+    if (providerInputs.length > 0) {
 
-      res.status(200).json({providerInputs: providerInputs})
+      res.status(200).json({ providerInputs: providerInputs })
 
     } else {
 
       let bulkOps = []
-      const branches = await Branch.find({company: companyId}, ['_id'])
+      const branches = await Branch.find({ company: companyId }, ['_id'])
 
-
-      if(branches.length > 0)
-      {
+      if (branches.length > 0) {
         branches.forEach(branch => {
 
           let document = {
@@ -406,16 +404,32 @@ export const getProviderProductInputs = async (req, res, next) => {
             company: companyId
           }
 
-          bulkOps.push({'insertOne': {'document': document}})
+          bulkOps.push({ 'insertOne': { 'document': document } })
         });
 
-        ProviderInput.bulkWrite(bulkOps)
-        .then(async (result) => {
+        const result = await ProviderInput.bulkWrite(bulkOps)
 
-          const createdProviderInputs = await ProviderInput.find({_id: {$in: result.insertedIds}}).populate({path: 'branch', select: 'branch position'})
+        if(result.insertedCount > 0) {
 
-          res.status(200).json({providerInputs: createdProviderInputs})
-        })
+          let ids = []
+
+          for(let key in result.insertedIds) {
+
+            if(result.insertedIds.hasOwnProperty(key)) {
+
+              ids.push(result.insertedIds[key])
+            }
+          }
+
+          const createdProviderInputs = await ProviderInput.find({ _id: { $in: ids } }).populate({ path: 'branch', select: 'branch position' })
+
+          res.status(200).json({ providerInputs: createdProviderInputs })
+
+        } else {
+
+          next(errorHandler(404, 'No se pudieron crear los inputs'))
+        }
+
       }
     }
 
@@ -432,9 +446,9 @@ export const updateProviderInputs = async (req, res, next) => {
 
   try {
 
-    for(let key in data) {
+    for (let key in data) {
 
-      if(data.hasOwnProperty(key)) {
+      if (data.hasOwnProperty(key)) {
 
 
         const productPrice = await getProductPrice(data[key].product, data[key].branch)
@@ -443,8 +457,8 @@ export const updateProviderInputs = async (req, res, next) => {
         bulkOps.push(
           {
             updateOne: {
-              filter: {_id: key},
-              update: {$set: {weight: data[key].weight, employee: data[key].employee, amount: amount}}
+              filter: { _id: key },
+              update: { $set: { weight: data[key].weight, employee: data[key].employee, amount: amount } }
             }
           }
         )
@@ -453,9 +467,9 @@ export const updateProviderInputs = async (req, res, next) => {
     }
 
     ProviderInput.bulkWrite(bulkOps)
-    .then(result => {
-      res.status(200).json('weights updated correctly')
-    })
+      .then(result => {
+        res.status(200).json('weights updated correctly')
+      })
 
   } catch (error) {
 

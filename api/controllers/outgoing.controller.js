@@ -131,7 +131,7 @@ export const getExtraOutgoings = async (req, res, next) => {
       {
         company: companyId
       }]
-    }).populate({ path: 'employee' }).populate({path: 'branch', select: 'branch position'})
+    }).populate({ path: 'employee' })
 
     if (extraOutgoings.length == 0) {
 

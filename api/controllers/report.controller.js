@@ -89,6 +89,90 @@ export const getSupervisorsInfo = async (req, res, next) => {
 
 }
 
+export const getSupervisorInfo = async (req, res, next) => {
+
+  const employeeId = req.params.employeeId
+
+  const actualLocaleDate = new Date(new Date().getTime() - 6 * 60 * 60000)
+  const actualLocaleDay = actualLocaleDate.toISOString().slice(0, 10)
+
+  const actualLocaleDatePlusOne = new Date(actualLocaleDay)
+  actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
+  const actualLocalDayPlusOne = actualLocaleDatePlusOne.toISOString().slice(0, 10)
+
+  const bottomDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
+  const topDate = new Date(actualLocalDayPlusOne + 'T00:00:00.000-06:00')
+  const supervisorInfo = {
+    incomes: 0.0,
+    outgoings: 0.0
+  }
+
+  try {
+
+    const outgoings = await ExtraOutgoing.find({
+
+      $and: [
+        {
+          createdAt: {
+
+            $gte: bottomDate
+          }
+        },
+        {
+          createdAt: {
+
+            $lt: topDate
+          }
+        },
+        {
+          employee: employeeId
+        }
+      ]
+    }, 'amount')
+
+    const incomes = await IncomeCollected.find({
+
+      $and: [
+        {
+          createdAt: {
+
+            $gte: bottomDate
+          }
+        },
+        {
+          createdAt: {
+
+            $lt: topDate
+          }
+        },
+        {
+          employee: employeeId
+        }
+      ]
+    }, 'amount')
+
+    if(outgoings.length > 0) {
+
+      outgoings.forEach(outgoing => {
+        supervisorInfo.outgoings += outgoing.amount
+      });
+
+    }
+
+    if(incomes.length > 0) {
+
+      incomes.forEach(income => {
+        supervisorInfo.incomes += income.amount
+      })
+    }
+    res.status(200).json({supervisorInfo: supervisorInfo})
+
+  } catch (error) {
+
+    next(error)
+  }
+}
+
 export const supervisorsInfoQuery = async (companyId, dateTopRange, dateBottomRange, next) => {
 
   let supervisorsInfo = []

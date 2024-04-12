@@ -81,13 +81,9 @@ const getEmployeeWorkedDays = async (req, res, employeeId, next) => {
 
 	const day = new Date().getDay()
 
-	console.log(day)
-
 	try {
 
 		const employee = await Employee.findById(employeeId).select('payDay')
-
-		console.log(employee)
 
 		if(employee.payDay - (day - 1) > 0) {
 

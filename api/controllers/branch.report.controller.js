@@ -75,7 +75,6 @@ export const createBranchReport = async (req, res, next) => {
       if (updated.acknowledged) {
 
         await newBranchReport.save()
-        console.log(newBranchReport)
         res.status(201).json({ branchReport: newBranchReport, message: 'Report data updated' })
 
 
