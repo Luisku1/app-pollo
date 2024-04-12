@@ -554,6 +554,7 @@ export default function RegistroCuentaDiaria() {
       const date = (paramsDate ? new Date(paramsDate) : new Date()).toISOString()
 
       setLoading(true)
+      setStockTotal(0.0)
       setStockItems([])
 
       try {
@@ -586,6 +587,7 @@ export default function RegistroCuentaDiaria() {
       const date = (paramsDate ? new Date(paramsDate) : new Date()).toISOString()
 
       setLoading(true)
+      setOutgoingsTotal(0.0)
       setOutgoings([])
 
       try {
@@ -648,6 +650,7 @@ export default function RegistroCuentaDiaria() {
       const date = (paramsDate ? new Date(paramsDate) : new Date()).toISOString()
 
       setLoading(true)
+      setInputsTotal(0.0)
       setInputs([])
 
       try {
@@ -679,6 +682,7 @@ export default function RegistroCuentaDiaria() {
       const date = (paramsDate ? new Date(paramsDate) : new Date()).toISOString()
 
       setLoading(true)
+      setOutputsTotal(0.0)
       setOutputs([])
 
       try {
@@ -710,6 +714,7 @@ export default function RegistroCuentaDiaria() {
       const date = (paramsDate ? new Date(paramsDate) : new Date()).toISOString()
 
       setLoading(true)
+      setIncomesTotal(0.0)
       setIncomes([])
 
       try {
@@ -812,7 +817,7 @@ export default function RegistroCuentaDiaria() {
       fetchOutputs(branchId)
       // fetchProductLosses(branchId)
     }
-    if (branchId && branchId != 'none' && paramsDate) {
+    if (branchId && branchId != 'none') {
 
       fetchs(branchId)
     }
