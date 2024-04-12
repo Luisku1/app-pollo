@@ -287,7 +287,7 @@ export default function EntradaInicial() {
                 <div id='header' className='grid grid-cols-12 items-center justify-around font-semibold mt-4'>
                   <p className='col-span-3 text-center'>Sucursal</p>
                   <p className='col-span-3 text-center'>Encargado</p>
-                  <p className='col-span-3 text-center'>Producto</p>
+                  <p className='col-span-3 text-center'>Piezas</p>
                   <p className='col-span-1 text-center'>Kg</p>
                 </div>
                 : ''}
@@ -299,11 +299,11 @@ export default function EntradaInicial() {
                   <div id='list-element' className='flex col-span-10 items-center justify-around'>
                     <p className='text-center text-xs  w-3/12'>{providerInput.branch.branch ? providerInput.branch.branch : providerInput.branch}</p>
                     <p className='text-center text-xs w-3/12'>{providerInput.employee != null ? providerInput.employee.name + ' ' + providerInput.employee.lastName : ''}</p>
-                    <p className='text-center text-xs w-3/12'>{productName}</p>
+                    <p className='text-center text-xs w-3/12'>{providerInput.pieces ? providerInput.pieces : '0'}</p>
                     <p className='text-center text-xs w-1/12'>{providerInput.weight}</p>
                   </div>
 
-                  {
+                  {providerInput.employee._id == currentUser._id ?
 
                     <div>
                       <button id={providerInput._id} onClick={() => { setIsOpen(!isOpen), setButtonId(providerInput._id) }} disabled={loading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
@@ -332,7 +332,7 @@ export default function EntradaInicial() {
 
                     </div>
 
-                    }
+                   : ''}
 
                 </div>
 
