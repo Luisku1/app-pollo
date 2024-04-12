@@ -13,6 +13,16 @@ const providerInputSchema = mongoose.Schema({
     default: 0.0
   },
 
+  pieces: {
+    type: Number,
+    required: true
+  },
+
+  comment: {
+    type: String,
+    required: true
+  },
+
   branch: {
     type: Schema.Types.ObjectId, ref: 'Branch',
     required: true

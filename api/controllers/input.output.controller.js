@@ -383,7 +383,7 @@ export const getProviderProductInputs = async (req, res, next) => {
           company: companyId
         }
       ]
-    }).populate({ path: 'branch', select: 'branch position' })
+    }).populate({ path: 'branch', select: 'branch position' }).populate({path: 'employee', select: 'name lastName'})
 
     if (providerInputs.length > 0) {
 
@@ -391,46 +391,7 @@ export const getProviderProductInputs = async (req, res, next) => {
 
     } else {
 
-      let bulkOps = []
-      const branches = await Branch.find({ company: companyId }, ['_id'])
-
-      if (branches.length > 0) {
-        branches.forEach(branch => {
-
-          let document = {
-
-            branch: branch._id,
-            product: productId,
-            company: companyId
-          }
-
-          bulkOps.push({ 'insertOne': { 'document': document } })
-        });
-
-        const result = await ProviderInput.bulkWrite(bulkOps)
-
-        if(result.insertedCount > 0) {
-
-          let ids = []
-
-          for(let key in result.insertedIds) {
-
-            if(result.insertedIds.hasOwnProperty(key)) {
-
-              ids.push(result.insertedIds[key])
-            }
-          }
-
-          const createdProviderInputs = await ProviderInput.find({ _id: { $in: ids } }).populate({ path: 'branch', select: 'branch position' })
-
-          res.status(200).json({ providerInputs: createdProviderInputs })
-
-        } else {
-
-          next(errorHandler(404, 'No se pudieron crear los inputs'))
-        }
-
-      }
+      next(errorHandler(404, 'No provider inputs found'))
     }
 
   } catch (error) {
@@ -439,37 +400,40 @@ export const getProviderProductInputs = async (req, res, next) => {
   }
 }
 
-export const updateProviderInputs = async (req, res, next) => {
+export const createProviderInput = async (req, res, next) => {
 
-  const data = req.body
-  const bulkOps = []
+  const {weight, product, employee, branch, company, comment, pieces} = req.body
+  const productPrice = await getProductPrice(product, branch)
+  const amount = productPrice.price * weight
+  const newProviderInput = ProviderInput({weight, product, employee, branch, company, comment, pieces, amount})
 
   try {
 
-    for (let key in data) {
+    await newProviderInput.save()
+    res.status(200).json({providerInput: newProviderInput})
 
-      if (data.hasOwnProperty(key)) {
+  } catch (error) {
 
+    next(error)
+  }
+}
 
-        const productPrice = await getProductPrice(data[key].product, data[key].branch)
-        const amount = data[key].weight * productPrice.price
+export const deleteProviderInput = async (req, res, next) => {
 
-        bulkOps.push(
-          {
-            updateOne: {
-              filter: { _id: key },
-              update: { $set: { weight: data[key].weight, employee: data[key].employee, amount: amount } }
-            }
-          }
-        )
+  const providerInputId = req.params.providerInputId
 
-      }
+  try {
+
+    const deleted = await ProviderInput.deleteOne({_id : providerInputId})
+
+    if(deleted.acknowledged == 1) {
+
+      res.status(200).json({message: 'Provider input deleted correctly'})
+
+    } else {
+
+      next(errorHandler(404, 'Provider input not found'))
     }
-
-    ProviderInput.bulkWrite(bulkOps)
-      .then(result => {
-        res.status(200).json('weights updated correctly')
-      })
 
   } catch (error) {
 
@@ -491,7 +455,7 @@ export const deleteOutput = async (req, res, next) => {
 
     } else {
 
-      next(errorHandler(404, 'Output not founded'))
+      next(errorHandler(404, 'Output not found'))
     }
 
   } catch (error) {

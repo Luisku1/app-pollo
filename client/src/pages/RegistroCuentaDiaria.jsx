@@ -1051,7 +1051,7 @@ export default function RegistroCuentaDiaria() {
             ))}
           </select>
 
-          <input type="number" name="pieces" id="pieces" placeholder='Piezas' step={1} className='border p-3 rounded-lg' required onInput={stockButtonControl} onChange={handleStockInputsChange} />
+          <input type="number" name="pieces" id="pieces" placeholder='Piezas' step={0.1} className='border p-3 rounded-lg' required onInput={stockButtonControl} onChange={handleStockInputsChange} />
           <input type="number" name="weight" id="weight" placeholder='0.00 kg' step={0.01} className='border p-3 rounded-lg' required onInput={stockButtonControl} onChange={handleStockInputsChange} />
           <button type='submit' id='stock-button' disabled className='bg-slate-500 text-white p-3 rounded-lg'>Agregar</button>
 

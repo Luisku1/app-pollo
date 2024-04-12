@@ -192,9 +192,14 @@ export default function Perfil() {
                   <p>{parseFloat(supervisorInfo.incomes).toLocaleString('es-MX', {style: 'currency', currency: 'MXN'})}</p>
                 </div>
 
-                <div className='flex gap-2'>
+               <div className='flex gap-2'>
                   <p>Gastos: </p>
                   <p>{parseFloat(supervisorInfo.outgoings).toLocaleString('es-MX', {style: 'currency', currency: 'MXN'})}</p>
+                </div>
+
+                <div className='flex gap-2'>
+                  <p>Efectivo Neto: </p>
+                  <p>{parseFloat(supervisorInfo.incomes - supervisorInfo.outgoings).toLocaleString('es-MX', {style: 'currency', currency: 'MXN'})}</p>
                 </div>
               </div>
 
