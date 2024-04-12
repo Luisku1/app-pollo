@@ -4,8 +4,40 @@ import { Link } from "react-router-dom"
 
 export default function ListadoDeCuentas() {
 
-  const { company } = useSelector((state) => state.user)
+  const { company, currentUser } = useSelector((state) => state.user)
+  const [error, setError] = useState(null)
   const [daysReportsData, setDayReportData] = useState([])
+  const [roles, setRoles] = useState([])
+
+
+  useEffect(() => {
+
+
+    const fetchRoles = async () => {
+
+      try {
+
+        const res = await fetch('/api/role/get')
+        const data = await res.json()
+
+        if (data.success === false) {
+          setError(data.message)
+          return
+        }
+
+        setRoles(data.roles)
+        setError(null)
+
+      } catch (error) {
+
+        setError(error.message)
+
+      }
+    }
+
+    fetchRoles()
+
+  }, [])
 
   useEffect(() => {
 
@@ -20,7 +52,7 @@ export default function ListadoDeCuentas() {
 
         if (data.success === false) {
 
-          console.log(data.message)
+          setError(data.message)
           return
         }
 
@@ -28,12 +60,29 @@ export default function ListadoDeCuentas() {
 
       } catch (error) {
 
-        console.log(error)
+        setError(error.message)
       }
     }
 
-    fetchDayReportsData()
-  }, [company._id])
+    if (roles && roles.length > 0) {
+
+      const currentUserRole = roles.find((role) =>
+
+        role._id == currentUser.role
+      )
+
+      if (currentUserRole.name != 'Gerente') {
+
+        setError('No puedes acceder a esta información')
+
+      } else {
+
+        fetchDayReportsData()
+
+      }
+    }
+
+  }, [company._id, currentUser, roles])
 
   return (
     <main className="p-3 max-w-lg mx-auto">
@@ -69,7 +118,16 @@ export default function ListadoDeCuentas() {
 
             </div>
             :
-            <p className="bg-white p-5 my-4 rounded-3xl shadow-lg text-lg font-semibold text-center">Parece que es tu primer día</p>
+
+            <div className="bg-white p-5 my-4 rounded-3xl shadow-lg text-lg font-semibold text-center">
+
+              {error ?
+                <p>{error}</p>
+                :
+                <p>Parece que es tu primer día</p>
+              }
+
+            </div>
           }
 
         </div>
