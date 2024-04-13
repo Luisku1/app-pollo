@@ -71,13 +71,13 @@ export default function ListadoDeCuentas() {
         role._id == currentUser.role
       )
 
-      if (currentUserRole.name != 'Gerente') {
+      if (currentUserRole.name == 'Gerente') {
 
-        setError('No puedes acceder a esta información')
+        fetchDayReportsData()
 
       } else {
 
-        fetchDayReportsData()
+        setError('No puedes acceder a esta información')
 
       }
     }

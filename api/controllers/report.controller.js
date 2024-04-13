@@ -228,7 +228,7 @@ export const supervisorsInfoQuery = async (companyId, dateTopRange, dateBottomRa
             employee: supervisors[supervisor]._id
           }
         ]
-      })
+      }).populate({path: 'branch', select: 'branch'}).populate({path: 'type', select: 'name'})
 
       if (supervisorModel.incomes.length > 0) {
 
