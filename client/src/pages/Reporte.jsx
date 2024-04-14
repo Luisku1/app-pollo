@@ -190,7 +190,9 @@ export default function Reporte() {
 
             <tr>
               <th>Sucursal</th>
-              <th>Gastos</th>
+              <Link to={'/gastos/' + paramsDate}>
+                <th>Gastos</th>
+              </Link>
               <th>Sobrante</th>
               <th>Efectivo</th>
               <th>Balance</th>
@@ -318,13 +320,6 @@ export default function Reporte() {
                         <p className='text-center text-xs w-2/12'>{income.type.name ? income.type.name : income.type}</p>
                         <p className='text-center text-xs w-3/12'>{income.amount.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
                       </div>
-
-
-                      <button id={income._id} disabled={loading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
-                        <span>
-                          <FaCheck className='text-green-700 m-auto' />
-                        </span>
-                      </button>
 
                     </div>
 

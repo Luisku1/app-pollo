@@ -16,6 +16,7 @@ export default function Header() {
   const { currentUser, company } = useSelector((state) => state.user)
   const [open, setOpen] = useState(false);
   const [providerIsOpen, setProviderIsOpen] = useState(false)
+  const [reportIsOpen, setReportIsOpen] = useState(false)
   let menuRef = useRef();
   let supervisorRole
   let managerRole
@@ -108,7 +109,7 @@ export default function Header() {
 
         <div className='menu-container' ref={menuRef}>
 
-          <div className="menu-trigger" onClick={() => { setProviderIsOpen(false), setOpen(!open) }}>
+          <div className="menu-trigger" onClick={() => { setProviderIsOpen(false), setReportIsOpen(false), setOpen(!open) }}>
             <MdOutlineMenu className='w-5 h-5 mdoutline' />
           </div>
 
@@ -132,10 +133,10 @@ export default function Header() {
                       <DropdownItem text={'Supervisión'} link={'/supervision-diaria'} onClick={() => { setOpen(!open) }} />
 
                       <div>
-                        <div className='menu-trigger flex items-center' onClick={() => { setProviderIsOpen(!providerIsOpen) }}>
-                          <DropdownItem text={'Entradas Proveedores'} link={'#'}  />
+                        <div className='menu-trigger flex items-center justify-between' onClick={() => { setProviderIsOpen(!providerIsOpen) }}>
+                          <DropdownItem text={'Entradas Proveedores'} link={'#'} />
 
-                          {providerIsOpen ? <MdKeyboardArrowDown className='text-3xl' /> : <MdKeyboardArrowRight className='text-3xl'/>}
+                          {providerIsOpen ? <MdKeyboardArrowDown className='text-3xl' /> : <MdKeyboardArrowRight className='text-3xl' />}
                         </div>
 
                         <div className={`${providerIsOpen ? '' : 'hidden'} pl-2 text-m`}>
@@ -164,7 +165,21 @@ export default function Header() {
 
                     <div>
 
-                      <DropdownItem text={"Reporte"} link={'/reporte'} onClick={() => { setOpen(!open) }} />
+                      <div>
+                        <div className='menu-trigger flex items-center justify-between' onClick={() => { setReportIsOpen(!reportIsOpen) }}>
+                          <DropdownItem text={'Reporte'} link={'#'} />
+
+                          {reportIsOpen ? <MdKeyboardArrowDown className='text-3xl' /> : <MdKeyboardArrowRight className='text-3xl' />}
+                        </div>
+
+                        <div className={`${reportIsOpen ? '' : 'hidden'} pl-2 text-m`}>
+                          <ul className='border-l pl-5 border-gray-400'>
+                            <DropdownItem text={"Gastos en cuentas"} link={'/gastos'} onClick={() => { setOpen(!open) }} />
+                            <DropdownItem text={"Sobrante"} link={'/sobrante'} onClick={() => { setOpen(!open) }} />
+                            <DropdownItem text={"Concentrado"} link={'/reporte'} onClick={() => { setOpen(!open) }} />
+                          </ul>
+                        </div>
+                      </div>
 
                       <DropdownItem text={"Cuentas"} link={'/listado-de-cuentas'} onClick={() => { setOpen(!open) }} />
 
