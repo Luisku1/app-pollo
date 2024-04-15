@@ -189,8 +189,9 @@ export default function Reporte() {
           <thead className="border border-black">
 
             <tr>
+              {/* <th></th> */}
               <th>Sucursal</th>
-              <Link to={'/gastos/' + paramsDate}>
+              <Link className="flex justify-center" to={paramsDate ? '/gastos/' + paramsDate : '/gastos'}>
                 <th>Gastos</th>
               </Link>
               <th>Sobrante</th>
@@ -205,7 +206,8 @@ export default function Reporte() {
 
 
               <tr>
-                <Link className='' to={'/formato/' + branchReport.createdAt + '/' + branchReport.branch._id}>
+                {/* <td className="text-xs">{branchReport.branch.position}</td> */}
+                <Link className='flex justify-center' to={'/formato/' + branchReport.createdAt + '/' + branchReport.branch._id}>
                   <td className="text-center">{branchReport.branch.branch}</td>
                 </Link>
                 <td className="text-center">{branchReport.outgoings.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</td>
