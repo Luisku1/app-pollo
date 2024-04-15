@@ -234,16 +234,21 @@ export default function Reporte() {
         : ''}
 
       {supervisorsInfo && supervisorsInfo.length > 0 && supervisorsInfo.map((info) => (
+
         <div key={info.supervisor._id} className='border bg-white p-3 mt-4'>
+
           {error ? <p>{error}</p> : ''}
 
           <div className="">
 
-            <div className="flex">
+            <div className="flex gap-4">
 
               <p className="text-2xl font-semibold">{info.supervisor.name + ' ' + info.supervisor.lastName}</p>
-              <p className="text-lg">Efectivo neto {(info.totalIncomes - info.totalExtraOutgoings).toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
-              <p></p>
+
+              <div className="grid grid-rows-2">
+                <p className="text-lg">Efectivo neto {(info.cash - info.totalExtraOutgoings).toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
+                <p className="text-lg">Depósitos {(info.deposits).toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
+              </div>
             </div>
 
             <div className="p-3 mt-6">
@@ -308,19 +313,19 @@ export default function Reporte() {
 
 
                   <div id='header' className='grid grid-cols-12 items-center justify-around font-semibold mt-4'>
-                    <p className='col-span-3 text-center'>Sucursal</p>
-                    <p className='col-span-3 text-center'>Tipo</p>
-                    <p className='col-span-1 text-center'>Monto</p>
+                    <p className='col-span-4 text-center'>Sucursal</p>
+                    <p className='col-span-4 text-center'>Tipo</p>
+                    <p className='col-span-4 text-center'>Monto</p>
                   </div>
 
                   {info && info.incomes.length > 0 && info.incomes.map((income) => (
 
                     <div key={income._id} className='grid grid-cols-12 items-center border border-black border-opacity-30 mt-2 shadow-m rounded-lg'>
 
-                      <div id='list-element' className=' flex col-span-10 items-center justify-around pt-3 pb-3'>
-                        <p className='text-center text-xs w-3/12'>{income.branch.branch ? income.branch.branch : income.branch}</p>
-                        <p className='text-center text-xs w-2/12'>{income.type.name ? income.type.name : income.type}</p>
-                        <p className='text-center text-xs w-3/12'>{income.amount.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
+                      <div id='list-element' className=' flex col-span-12 items-center justify-around pt-3 pb-3'>
+                        <p className='text-center text-xs w-4/12'>{income.branch.branch ? income.branch.branch : income.branch}</p>
+                        <p className='text-center text-xs w-4/12'>{income.type.name ? income.type.name : income.type}</p>
+                        <p className='text-center text-xs w-4/12'>{income.amount.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
                       </div>
 
                     </div>

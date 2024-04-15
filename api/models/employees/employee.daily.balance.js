@@ -2,12 +2,7 @@ import mongoose, { Schema } from 'mongoose'
 
 const employeeDailyBalanceSchema = mongoose.Schema({
 
-  lostMoney: {
-    type: Number,
-    default: 0.0
-  },
-
-  lostProduct: {
+  accountBalance: {
     type: Number,
     default: 0.0
   },

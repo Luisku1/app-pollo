@@ -108,6 +108,41 @@ const getEmployeeWorkedDays = async (req, res, employeeId, next) => {
 	}
 }
 
+export const getEmployeeDayInfo = async (req, res, next) => {
+
+	const employeeId = req.params.employeeId
+
+  const actualLocaleDate = new Date(new Date().getTime() - 6 * 60 * 60000)
+  const actualLocaleDay = actualLocaleDate.toISOString().slice(0, 10)
+
+  const bottomDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
+
+	try {
+
+		const employeeDayInfo = await EmployeeDailyBalance.findOne({
+			$and:[
+				{
+					createdAt: {
+
+						$gte: bottomDate
+					}
+				},
+				{
+					employee: employeeId
+				}
+			]
+		}).populate({path: 'employee', select: 'name lastName'})
+
+		if(employeeDayInfo) {
+
+			res.status(200).json({employeeDayInfo: employeeDayInfo})
+		}
+
+	} catch (error) {
+
+	}
+}
+
 export const getEmployeesDailyBalances = async (req, res, next) => {
 
 	const date = new Date(req.params.date)

@@ -10,6 +10,7 @@ export default function Perfil() {
   const { error, currentUser } = useSelector((state) => state.user)
   const { employeeId } = useParams()
   const [employee, setEmployee] = useState(null)
+  const [employeeDayInfo, setEmployeeDayInfo] = useState(null)
   const [supervisorInfo, setSupervisorInfo] = useState({})
   const [employeeReports, setEmployeeReports] = useState([])
   const [isOpen, setIsOpen] = useState(false)
@@ -121,6 +122,35 @@ export default function Perfil() {
       }
     }
 
+    const fetchEmployeeDayInformation = async () => {
+
+      setLoading(true)
+
+      try {
+
+        const res = await fetch('/api/employee/get-employee-day-information/' + employeeId)
+        const data = await res.json()
+
+        if (data.success === false) {
+
+          setFetchError(data.message)
+          setLoading(false)
+          return
+        }
+
+        console.log(data.employeeDayInfo)
+
+        setEmployeeDayInfo(data.employeeDayInfo)
+        setLoading(false)
+        setFetchError(null)
+
+      } catch (error) {
+
+        setLoading(false)
+        setFetchError(error.message)
+      }
+    }
+
     const fetchEmployeeReports = async () => {
 
       try {
@@ -144,6 +174,7 @@ export default function Perfil() {
     }
 
     fetchEmployee()
+    fetchEmployeeDayInformation()
     fetchEmployeeReports()
     fetchSupervisorDayInfo()
 
@@ -161,23 +192,21 @@ export default function Perfil() {
 
         <div id='personal-info' className="my-4 bg-white p-4" key={employee._id}>
 
-          <div className="">
-            <h1 className="text-3xl font-bold">{employee.name + ' ' + employee.lastName}</h1>
+          <h1 className="text-3xl font-bold">{employee.name + ' ' + employee.lastName}</h1>
 
-            <div className="p-3">
-              <div className="flex gap-2">
-                <p className="text-lg">Balance: </p>
-                <p className={employee.balance < 0 ? 'text-red-700 font-bold' : '' + 'text-lg font-bold'}>{parseFloat(employee.balance).toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
-              </div>
-              <p className="text-lg">{'Rol: ' + employee.role.name}</p>
-              {employee.salary ?
-                <p className="text-lg">{'Sueldo: ' + parseFloat(employee.salary).toLocaleString("es-Mx", { style: 'currency', currency: 'MXN' })}</p>
-                : ''}
-              {employee.payDay > -1 ?
-                <p className="text-lg">{'Día de cobro: ' + weekDays[employee.payDay]}</p>
-                : ''}
-              <p className="text-lg">Teléfono: {employee.phoneNumber ? employee.phoneNumber.replace(/(\d{2})(\d{4})(\d{4})/, '$1-$2-$3') : ''}</p>
+          <div className="p-3">
+            <div className="flex gap-2">
+              <p className="text-lg">Balance: </p>
+              <p className={employee.balance < 0 ? 'text-red-700 font-bold' : '' + 'text-lg font-bold'}>{parseFloat(employee.balance).toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
             </div>
+            <p className="text-lg">{'Rol: ' + employee.role.name}</p>
+            {employee.salary ?
+              <p className="text-lg">{'Sueldo: ' + parseFloat(employee.salary).toLocaleString("es-Mx", { style: 'currency', currency: 'MXN' })}</p>
+              : ''}
+            {employee.payDay > -1 ?
+              <p className="text-lg">{'Día de cobro: ' + weekDays[employee.payDay]}</p>
+              : ''}
+            <p className="text-lg">Teléfono: {employee.phoneNumber ? employee.phoneNumber.replace(/(\d{2})(\d{4})(\d{4})/, '$1-$2-$3') : ''}</p>
           </div>
 
           {(employee.role.name == 'Supervisor' || employee.role.name == 'Gerente') ?
@@ -189,26 +218,68 @@ export default function Perfil() {
 
                 <div className='flex gap-2'>
                   <p>Efectivo y depósitos: </p>
-                  <p>{parseFloat(supervisorInfo.incomes).toLocaleString('es-MX', {style: 'currency', currency: 'MXN'})}</p>
+                  <p>{parseFloat(supervisorInfo.incomes).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>
                 </div>
 
-               <div className='flex gap-2'>
+                <div className='flex gap-2'>
                   <p>Gastos: </p>
-                  <p>{parseFloat(supervisorInfo.outgoings).toLocaleString('es-MX', {style: 'currency', currency: 'MXN'})}</p>
+                  <p>{parseFloat(supervisorInfo.outgoings).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>
                 </div>
 
                 <div className='flex gap-2'>
                   <p>Efectivo Neto: </p>
-                  <p>{parseFloat(supervisorInfo.incomes - supervisorInfo.outgoings).toLocaleString('es-MX', {style: 'currency', currency: 'MXN'})}</p>
+                  <p>{parseFloat(supervisorInfo.incomes - supervisorInfo.outgoings).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>
                 </div>
               </div>
 
             </div>
 
             : ''}
+
+          <div className='border bg-white shadow-lg p-3 mt-4'>
+
+
+            {employeeDayInfo ?
+
+              <div className='p-3'>
+
+                <div id='header' className='grid grid-cols-12 items-center justify-around font-semibold'>
+                  <p className='p-3 rounded-lg col-span-4 text-sm text-center'>Retardo</p>
+                  <p className='p-3 rounded-lg col-span-4 text-sm text-center'>Descanso</p>
+                  <p className='p-3 rounded-lg col-span-4 text-sm text-center'>Falta</p>
+                </div>
+
+
+                <div key={employeeDayInfo._id} className='grid grid-cols-12 items-center border border-black border-opacity-30 rounded-lg shadow-sm mt-2'>
+
+                  <div id='list-element' className='flex col-span-12 items-center justify-around py-3'>
+                    <input className='w-4/12' type="checkbox" name="foodDiscount" id="foodDiscount" checked={employeeDayInfo.foodDiscount} />
+                    <input className='w-4/12' type="checkbox" name="restDay" id="restDay" checked={employeeDayInfo.restDay} />
+                    <input className='w-4/12' type="checkbox" name="dayDiscount" id="dayDiscount" checked={employeeDayInfo.dayDiscount} />
+                  </div>
+
+                </div>
+
+              </div>
+              : ''}
+
+          </div>
+
+
+          {
+            employeeId == currentUser._id ?
+              <div className='mt-8 grid grid-1'>
+                <button className='border shadow-lg rounded-full p-3 flex-col-reverse justify-self-end'>
+                  <span onClick={handleSignOut} className='text-red-700 cursor-pointer'>Sign out</span>
+                </button>
+                <span>{error ? ' Error al fetch' : ''}</span>
+              </div>
+              : ''
+          }
+
           {employeeReports && employeeReports.length > 0 ?
 
-            <div className='mt-10'>
+            <div className='mt-4'>
 
               <h3 className='text-2xl font-bold'>Cuentas</h3>
 
@@ -273,16 +344,6 @@ export default function Perfil() {
             : ''
           }
 
-          {
-            employeeId == currentUser._id ?
-              <div className='mt-8 grid grid-1'>
-                <button className='border shadow-lg rounded-full p-3 flex-col-reverse justify-self-end'>
-                  <span onClick={handleSignOut} className='text-red-700 cursor-pointer'>Sign out</span>
-                </button>
-                <span>{error ? ' Error al fetch' : ''}</span>
-              </div>
-              : ''
-          }
         </div >
         : ''}
 

@@ -5,7 +5,7 @@ import { FaCheck } from "react-icons/fa"
 
 export default function Gastos() {
 
-  const { currentUser, company } = useSelector((state) => state.user)
+  const { company } = useSelector((state) => state.user)
   const [outgoings, setOutgoings] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -20,6 +20,42 @@ export default function Gastos() {
     })
 
     setOutgoingsTotal(total)
+  }
+
+  const rejectOutgoing = async (outgoingId, index) => {
+
+    setLoading(true)
+
+    try {
+
+      const res = await fetch('/api/outgoing/reject-outgoing/' + outgoingId, {
+
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+
+          approved: outgoings[index].addmitted
+        })
+      })
+
+      const data = await res.json()
+
+      if (data.success === false) {
+
+        setError(data.message)
+        setLoading(false)
+        return
+      }
+
+      outgoings[index].addmitted = !outgoings[index].addmitted
+      setError(null)
+      setLoading(false)
+
+    } catch (error) {
+      setError(error.message)
+    }
   }
 
   useEffect(() => {
@@ -80,6 +116,8 @@ export default function Gastos() {
 
         <div className="bg-white p-3 mt-4">
 
+          <p className="p-3 my-4">{outgoingsTotal.toLocaleString('ex-MX', {style: 'currency', currency: 'MXN'})}</p>
+
           {outgoings && outgoings.length > 0 ?
             <div id='header' className='grid grid-cols-12 gap-4 items-center justify-around font-semibold'>
               <p className='p-3 rounded-lg col-span-3 text-center'>Sucursal</p>
@@ -99,7 +137,7 @@ export default function Gastos() {
               </div>
 
               <div>
-                <button id={outgoing._id} disabled={loading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
+                <button id={outgoing._id} disabled={loading} onClick={() => rejectOutgoing(outgoing._id, index)} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
                   <span>
                     <FaCheck className='text-green-700 m-auto' />
                   </span>

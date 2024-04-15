@@ -149,7 +149,7 @@ export const getSupervisorInfo = async (req, res, next) => {
           employee: employeeId
         }
       ]
-    }, 'amount')
+    }, 'amount type').populate({path: 'type', select: 'name'})
 
     if(outgoings.length > 0) {
 
@@ -202,6 +202,8 @@ export const supervisorsInfoQuery = async (companyId, dateTopRange, dateBottomRa
 
       let supervisorModel = {
         supervisor: {},
+        deposits: 0,
+        cash: 0,
         totalIncomes: 0,
         totalExtraOutgoings: 0,
         incomes: [],
@@ -235,8 +237,17 @@ export const supervisorsInfoQuery = async (companyId, dateTopRange, dateBottomRa
         for (let income in supervisorModel.incomes) {
 
           supervisorModel.totalIncomes += supervisorModel.incomes[income].amount
-        }
 
+          if(supervisorModel.incomes[income].type.name == 'Efectivo') {
+
+            supervisorModel.cash += supervisorModel.incomes[income].amount
+
+          } else {
+
+            supervisorModel.deposits += supervisorModel.incomes[income].amount
+
+          }
+        }
       }
 
 
