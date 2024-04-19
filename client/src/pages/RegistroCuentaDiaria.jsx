@@ -100,7 +100,7 @@ export default function RegistroCuentaDiaria() {
       filledInputs = false
     }
 
-    if (filledInputs && branchSelect.value != 'none' && employee.value != 'none') {
+    if (filledInputs && branchSelect.value != 'none' && employee.value != 'none' && !loading) {
 
       button.disabled = false
 
@@ -131,7 +131,7 @@ export default function RegistroCuentaDiaria() {
       filledInputs = false
     }
 
-    if (filledInputs && branchSelect.value != 'none' && employeeSelect.value != 'none') {
+    if (filledInputs && branchSelect.value != 'none' && employeeSelect.value != 'none' && !loading) {
 
       button.disabled = false
 
@@ -162,7 +162,7 @@ export default function RegistroCuentaDiaria() {
       filledInputs = false
     }
 
-    if (filledInputs && branchSelect.value != 'none' && employeeSelect.value != 'none') {
+    if (filledInputs && branchSelect.value != 'none' && employeeSelect.value != 'none' && !loading) {
 
       button.disabled = false
 
@@ -405,8 +405,6 @@ export default function RegistroCuentaDiaria() {
       setError(error)
     }
   }
-
-
 
   const setOutgoingsTotalFunction = (outgoings) => {
 
@@ -891,7 +889,6 @@ export default function RegistroCuentaDiaria() {
       </h1>
       <p className='text-center mb-7'>{reportDate}</p>
 
-      <p className='text-red-700 font-semibold'>{error}</p>
 
 
       <h2 className='flex text-2xl text-center font-semibold mb-4'>Información básica</h2>
@@ -1135,8 +1132,8 @@ export default function RegistroCuentaDiaria() {
 
         <form onSubmit={addProductLossItem} className="grid grid-cols-4 items-center justify-between">
 
-          <select name="product-loss" id="product-loss" onChange={(e) => { productLossButtonControl(), saveProductName(e) }} className='border p-3 rounded-lg text-xs'>
-            <option value="none" selected hidden >Productos</option>
+        <select name="product-loss" id="product-loss" onChange={(e) => { productLossButtonControl(), saveProductName(e) }} className='border p-3 rounded-lg text-xs'>
+        <option value="none" selected hidden >Productos</option>
 
             {products && products.length != 0 && products.map((product) => (
 
@@ -1148,54 +1145,54 @@ export default function RegistroCuentaDiaria() {
           <textarea name="comment" id="comment" cols="30" rows="0" placeholder='Comentario' onInput={productLossButtonControl} onChange={handleProductLossInputsChange}></textarea>
           <button type='submit' id='product-loss-button' disabled className='bg-slate-500 text-white p-3 rounded-lg'>Agregar</button>
 
-        </form>
+          </form>
 
         {productLosses && productLosses.length > 0 ?
           <div id='header' className='grid grid-cols-11 gap-4 items-center justify-around font-semibold my-4'>
-            <p className='col-span-3 text-center'>Producto</p>
-            <p className='col-span-3 text-center'>Comentario</p>
-            <p className='col-span-3 text-center'>Monto</p>
+          <p className='col-span-3 text-center'>Producto</p>
+          <p className='col-span-3 text-center'>Comentario</p>
+          <p className='col-span-3 text-center'>Monto</p>
           </div>
           : ''}
 
-        {productLosses && productLosses.length > 0 && productLosses.map((productLossItem, index) => (
+          {productLosses && productLosses.length > 0 && productLosses.map((productLossItem, index) => (
 
 
-          <div key={productLossItem._id} className={(document.getElementById('employee').value == productLossItem.employee ? '' : 'py-3 ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
+            <div key={productLossItem._id} className={(document.getElementById('employee').value == productLossItem.employee ? '' : 'py-3 ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
 
             <div id='list-element' className='flex col-span-10 items-center'>
-              <p className='text-center text-xs w-4/12'>{productLossItem.product.name ? productLossItem.product.name : productLossItem.product}</p>
-              <p className='text-center text-xs w-4/12'>{productLossItem.comment}</p>
-              <p className='text-center text-xs w-4/12'>{productLossItem.amount.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
+            <p className='text-center text-xs w-4/12'>{productLossItem.product.name ? productLossItem.product.name : productLossItem.product}</p>
+            <p className='text-center text-xs w-4/12'>{productLossItem.comment}</p>
+            <p className='text-center text-xs w-4/12'>{productLossItem.amount.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
             </div>
 
 
             {document.getElementById('employee').value == productLossItem.employee || currentUser._id == productLossItem.employee ?
 
-              <div>
-                <button id={productLossItem._id} onClick={() => { setIsOpen(isOpen ? false : true), setButtonId(productLossItem._id) }} disabled={loading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
-                  <span>
-                    <FaTrash className='text-red-700 m-auto' />
-                  </span>
-                </button>
+            <div>
+            <button id={productLossItem._id} onClick={() => { setIsOpen(isOpen ? false : true), setButtonId(productLossItem._id) }} disabled={loading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
+            <span>
+            <FaTrash className='text-red-700 m-auto' />
+            </span>
+            </button>
 
-                {isOpen && productLossItem._id == buttonId ?
-                  <div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center items-center'>
-                    <div className='bg-white p-5 rounded-lg flex flex-col justify-center items-center gap-5'>
-                      <div>
-                        <p className='text-3xl font-semibold'>¿Estás seguro de borrar este registro?</p>
-                      </div>
-                      <div className='flex gap-10'>
-                        <div>
-                          <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteProductLossItem(productLossItem._id, index), setIsOpen(isOpen ? false : true) }}>Si</button>
-                        </div>
-                        <div>
-                          <button className='rounded-lg border shadow-lg w-20 h-10' onClick={() => { setIsOpen(isOpen ? false : true) }}>No</button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  : ''}
+            {isOpen && productLossItem._id == buttonId ?
+              <div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center items-center'>
+              <div className='bg-white p-5 rounded-lg flex flex-col justify-center items-center gap-5'>
+              <div>
+              <p className='text-3xl font-semibold'>¿Estás seguro de borrar este registro?</p>
+              </div>
+              <div className='flex gap-10'>
+              <div>
+              <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteProductLossItem(productLossItem._id, index), setIsOpen(isOpen ? false : true) }}>Si</button>
+              </div>
+              <div>
+              <button className='rounded-lg border shadow-lg w-20 h-10' onClick={() => { setIsOpen(isOpen ? false : true) }}>No</button>
+              </div>
+              </div>
+              </div>
+              </div>
+              : ''}
 
               </div>
 
@@ -1209,14 +1206,14 @@ export default function RegistroCuentaDiaria() {
         {productLosses && productLosses.length > 0 ?
 
           <div className='flex mt-4 border-black border rounded-lg p-3 shadow-lg border-opacity-30'>
-            <p className='w-6/12 text-center'>Total:</p>
-            <p className='w-6/12 text-center font-bold'>{productLossTotal.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
+          <p className='w-6/12 text-center'>Total:</p>
+          <p className='w-6/12 text-center font-bold'>{productLossTotal.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
 
           </div>
 
           : ''}
 
-      </div> */}
+        </div> */}
 
       {inputs && inputs.length > 0 ?
         <div className='border bg-white p-3 mt-4'>
@@ -1396,6 +1393,7 @@ export default function RegistroCuentaDiaria() {
 
       </div>
 
+      <p className='text-red-700 font-semibold'>{error}</p>
     </main>
   )
 }

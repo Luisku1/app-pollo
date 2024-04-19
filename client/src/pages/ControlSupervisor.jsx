@@ -167,7 +167,7 @@ export default function ControlSupervisor() {
 
     }
 
-    if (filledInputs && branchSelect.value != 'none') {
+    if (filledInputs && branchSelect.value != 'none' && !loading) {
 
       button.disabled = false
 
@@ -196,7 +196,7 @@ export default function ControlSupervisor() {
       filledInputs = false
     }
 
-    if (filledInputs) {
+    if (filledInputs && !loading) {
 
       button.disabled = false
 
@@ -227,7 +227,7 @@ export default function ControlSupervisor() {
       filledInputs = false
     }
 
-    if (filledInputs && branchSelect.value != 'none' && productSelect.value != 'none') {
+    if (filledInputs && branchSelect.value != 'none' && productSelect.value != 'none' && !loading) {
 
       button.disabled = false
 
@@ -258,7 +258,7 @@ export default function ControlSupervisor() {
       filledInputs = false
     }
 
-    if (filledInputs && branchSelect.value != 'none' && productSelect.value != 'none') {
+    if (filledInputs && branchSelect.value != 'none' && productSelect.value != 'none' && !loading) {
 
       button.disabled = false
 
@@ -282,7 +282,7 @@ export default function ControlSupervisor() {
       filledInputs = false
     }
 
-    if (filledInputs && branchSelect.value != 'none' && typeSelect.value != 'none') {
+    if (filledInputs && branchSelect.value != 'none' && typeSelect.value != 'none' && !loading) {
 
       button.disabled = false
 

@@ -115,7 +115,7 @@ export default function Precios() {
         Precios
       </h1>
 
-      <div className="grid my-4 grid-cols-1 rounded-lg" id="list-element">
+      <div className="grid my-4 grid-cols-1 rounded-lg mx-auto" id="list-element">
 
         {prices && prices.length > 0 && prices.map((data) => (
 
@@ -125,10 +125,10 @@ export default function Precios() {
 
             {data.prices && data.prices.length > 0 && data.prices.map((price) => (
 
-              <div key={price.productId} className="grid grid-cols-2 p-1 border ">
+              <div key={price.productId} className="grid grid-cols-12 p-1 border ">
 
-                <p>{price.product}:</p>
-                <input type="number" name="price" id={price.productId + data._id.branchId} className="" onChange={(e) => {handleInputsChange(e, price.productId, data._id.branchId)}} placeholder={price.latestPrice ? price.latestPrice : '0'}/>
+                <p className="col-span-8">{price.product}:</p>
+                <input type="number" name="price" id={price.productId + data._id.branchId} className="col-span-4" onChange={(e) => {handleInputsChange(e, price.productId, data._id.branchId)}} placeholder={price.latestPrice ? price.latestPrice : '0'}/>
 
               </div>
 
