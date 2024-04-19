@@ -25,6 +25,7 @@ export const newProduct = async (req, res, next) => {
 				price: 0,
 				product: newProduct._id,
 				branch: branch._id,
+				company: company,
 				createdAt: createdAt
 			}
 

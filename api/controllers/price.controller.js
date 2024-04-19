@@ -83,6 +83,7 @@ export const initializeBranchPrices = async (req, res, next) => {
           price: 0,
           product: product._id,
           branch: branchId,
+          company: companyId,
           createdAt: createdAt
         }
 
