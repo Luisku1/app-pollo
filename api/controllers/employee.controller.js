@@ -60,7 +60,7 @@ export const getEmployeeReports = async (req, res, next) => {
 					assistant: employeeId
 				}
 			]
-		}).sort({createdAt: -1}).limit(employeeWorkedDays)
+		}).sort({createdAt: -1}).limit(employeeWorkedDays).populate({path: 'branch', select: 'branch'})
 
 		if(employeeReports.length > 0) {
 

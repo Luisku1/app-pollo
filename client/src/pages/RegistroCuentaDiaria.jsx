@@ -526,7 +526,7 @@ export default function RegistroCuentaDiaria() {
 
       if (data.success === false) {
 
-        setError(data.message)
+        setError('Ya está registrado el reporte de esta pollería, mira si ya está en tu perfil.')
         setLoading(false)
         return
       }

@@ -24,8 +24,7 @@ export const createBranchReport = async (req, res, next) => {
 
   try {
 
-    await EmployeeDailyBalance.updateOne({
-
+    const originalBranchReport = await BranchReport.findOne({
       $and: [
         {
           createdAt: {
@@ -40,39 +39,62 @@ export const createBranchReport = async (req, res, next) => {
           }
         },
         {
-          employee: employee
-        }
-      ]
-    }, { lostMoney: balance })
-
-    const reportData = await ReportData.findOne({
-      $and: [
-        {
-          company: companyId
-        },
-        {
-          createdAt: {
-            $gte: bottomDate
-          }
-        },
-        {
-          createdAt: {
-            $lt: topDate
-          }
+          branch: branch
         }
       ]
     })
 
+    if(!originalBranchReport) {
 
-    if (reportData) {
+      await EmployeeDailyBalance.updateOne({
 
-      const newBranchReport = new BranchReport({ initialStock, finalStock, inputs, outputs, outgoings, incomes, company, branch, employee, assistant, balance, createdAt, reportData: reportData._id })
+        $and: [
+          {
+            createdAt: {
 
-      const updated = await ReportData.updateOne({ _id: reportData._id },
-        { $set: { incomes: (reportData.incomes + newBranchReport.incomes), stock: (reportData.stock + newBranchReport.finalStock), outgoings: (reportData.outgoings + newBranchReport.outgoings) } }
-      )
+              $lt: topDate
+            }
+          },
+          {
+            createdAt: {
 
-      if (updated.acknowledged) {
+              $gte: bottomDate
+            }
+          },
+          {
+            employee: employee
+          }
+        ]
+      }, { lostMoney: balance })
+
+      const reportData = await ReportData.findOne({
+        $and: [
+          {
+            company: companyId
+          },
+          {
+            createdAt: {
+              $gte: bottomDate
+            }
+          },
+          {
+            createdAt: {
+              $lt: topDate
+            }
+          }
+        ]
+      })
+
+
+      if (reportData) {
+
+        const newBranchReport = new BranchReport({ initialStock, finalStock, inputs, outputs, outgoings, incomes, company, branch, employee, assistant, balance, createdAt, reportData: reportData._id })
+
+        const updated = await ReportData.updateOne({ _id: reportData._id },
+          { $set: { incomes: (reportData.incomes + newBranchReport.incomes), stock: (reportData.stock + newBranchReport.finalStock), outgoings: (reportData.outgoings + newBranchReport.outgoings) } }
+        )
+
+        if (updated.acknowledged) {
 
         await newBranchReport.save()
         res.status(201).json({ branchReport: newBranchReport, message: 'Report data updated' })
@@ -98,6 +120,11 @@ export const createBranchReport = async (req, res, next) => {
 
       res.status(201).json({ branchReport: newBranchReport, reportData: newReportData })
     }
+
+  } else {
+
+    next(errorHandler(404, 'Report already exists'))
+  }
 
   } catch (error) {
 

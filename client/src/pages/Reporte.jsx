@@ -257,7 +257,7 @@ export default function Reporte() {
 
                 <button className="m-auto border border-black border-opacity-20 shadow-lg rounded-3xl w-10/12 p-3" onClick={() => { incomesIsOpenFunctionControl(info.incomes.length, info.supervisor._id) }}>
 
-                  <p className="text-lg">Efectivo bruto</p>
+                  <p className="text-lg">Ingreso bruto</p>
                   <p>{info.totalIncomes.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
                 </button>
 

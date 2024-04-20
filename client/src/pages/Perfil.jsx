@@ -287,7 +287,16 @@ export default function Perfil() {
 
                 <div key={reportData._id} className="bg-white p-5 mb-4 mt-4 rounded-3xl shadow-lg border" >
 
-                  <p className="text-center text-lg font-semibold text-red-500 mb-3">Fecha: {(new Date(reportData.createdAt)).toLocaleDateString()}</p>
+                  <div className='flex justify-around'>
+                    <div className='flex justify-center my-auto gap-1'>
+                      <p className="text-center text-lg font-semibold text-red-500 mb-3">Fecha:</p>
+                      <p className="text-center text-lg font-semibold text-black mb-3">{(new Date(reportData.createdAt)).toLocaleDateString()}</p>
+                    </div>
+                    <div className='flex my-auto gap-1'>
+                      <p className="text-center text-lg font-semibold text-red-500 mb-3">{reportData.branch.branch}</p>
+                    </div>
+                  </div>
+
 
                   <div className='grid grid-cols-12'>
 
