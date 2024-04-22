@@ -141,7 +141,7 @@ export default function RegistroEmpleadoNuevo() {
 
               {weekDays && weekDays.length > 0 && weekDays.map((element, index) => (
 
-                <option key={index} value={index} selected={index == day - 1 ? 'selected' : ""}>{element}</option>
+                <option key={index} value={index} selected={index == day? 'selected' : ""}>{element}</option>
               ))}
 
             </select>

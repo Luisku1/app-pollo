@@ -1,3 +1,4 @@
+import { Types } from "mongoose"
 import BranchReport from "../models/accounts/branch.report.model.js"
 import EmployeeDailyBalance from "../models/employees/employee.daily.balance.js"
 import Employee from "../models/employees/employee.model.js"
@@ -218,6 +219,47 @@ export const getEmployeesDailyBalances = async (req, res, next) => {
 
 		next(error)
 
+	}
+}
+
+export const getEmployeePayroll = async (req, res, next) => {
+
+	const companyId = req.params.companyId
+	const day = (new Date()).getDay()
+
+	try {
+
+		const employeePayroll = await Employee.aggregate([
+
+			{
+				$match: {
+					'company': new Types.ObjectId(companyId)
+				}
+			},
+
+			{
+				$lookup: {
+					from: 'employeedailybalances',
+					localField: '_id',
+					foreignField: 'employee',
+					as: 'dailybalances'
+				}
+			},
+
+			{
+				$project: {
+
+					_id: 1,
+					dailybalances: 1
+				}
+			}
+		])
+
+		res.status(200).json(employeePayroll)
+
+	} catch (error) {
+
+		next(error)
 	}
 }
 
