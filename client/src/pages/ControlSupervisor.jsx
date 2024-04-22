@@ -480,7 +480,7 @@ export default function ControlSupervisor() {
 
       setError(null)
       setOutputs([...outputs, data.output])
-      setOutputsTotal(outputsTotal + parseFloat(data.output.amount))
+      setOutputsTotal(outputsTotal + parseFloat(data.output.weight))
 
       piecesInput.value = ''
       weightInput.value = ''
@@ -507,7 +507,7 @@ export default function ControlSupervisor() {
 
     if (error == null) {
 
-      setOutputsTotal(outputsTotal - parseFloat(outputs[index].amount))
+      setOutputsTotal(outputsTotal - parseFloat(outputs[index].weight))
       outputs.splice(index, 1)
     }
   }
@@ -558,7 +558,7 @@ export default function ControlSupervisor() {
 
       setError(null)
       setInputs([...inputs, data.input])
-      setInputsTotal(inputsTotal + parseFloat(data.input.amount))
+      setInputsTotal(inputsTotal + parseFloat(data.input.weight))
 
       piecesInput.value = ''
       weightInput.value = ''
@@ -585,7 +585,7 @@ export default function ControlSupervisor() {
 
     if (error == null) {
 
-      setInputsTotal(inputsTotal - parseFloat(inputs[index].amount))
+      setInputsTotal(inputsTotal - parseFloat(inputs[index].weight))
       inputs.splice(index, 1)
     }
   }
@@ -1622,7 +1622,7 @@ export default function ControlSupervisor() {
             <div key={dailyBalance._id} className='grid grid-cols-12 items-center border border-black border-opacity-30 rounded-lg shadow-sm mt-2'>
 
               <div id='list-element' className='flex col-span-12 items-center justify-around'>
-                <p className='text-center text-sm w-3/12'>{dailyBalance.employee.name + ' ' + dailyBalance.employee.lastName}</p>
+                <p className='text-center text-sm w-3/12'>{dailyBalance.employee != null ? dailyBalance.employee.name + ' ' + dailyBalance.employee.lastName : 'Trabajador despedido'}</p>
                 <div className='w-3/12'>
 
                   <input className='w-full' type="checkbox" name="foodDiscount" id="foodDiscount" defaultChecked={dailyBalance.foodDiscount} onChange={(e) => { handleDailyBalanceInputs(e, dailyBalance._id) }} />

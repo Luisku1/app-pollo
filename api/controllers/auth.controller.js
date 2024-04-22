@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken'
 import Employee from '../models/employees/employee.model.js'
 import Role from '../models/role.model.js'
 import { errorHandler } from '../utils/error.js'
+import EmployeeDailyBalance from '../models/employees/employee.daily.balance.js'
 
 export const signUp = async (req, res, next) => {
 
@@ -36,11 +37,21 @@ export const signUp = async (req, res, next) => {
 
   }
 
-
   try {
 
+    const employeeDailyBalance = new EmployeeDailyBalance({employee: newEmployee._id, company: newEmployee.company, createdAt: (new Date().toISOString())})
     await newEmployee.save()
-    res.status(201).json('New employee created successfully')
+    await employeeDailyBalance.save()
+
+    if(employeeDailyBalance && newEmployee) {
+
+      res.status(201).json('New employee created successfully')
+
+    } else {
+
+      res.status(404).json('New employee created, but an error ocurred in the daily balance')
+    }
+
 
   } catch (error) {
 

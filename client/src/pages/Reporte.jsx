@@ -179,7 +179,7 @@ export default function Reporte() {
     <main className="p-3 max-w-lg mx-auto">
 
       <h1 className='text-3xl text-center font-semibold mt-7'>
-        Supervisores
+        Reporte
       </h1>
 
       {branchReports && branchReports.length > 0 ?

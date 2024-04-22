@@ -80,25 +80,7 @@ export default function Perfil() {
 
     setEmployeeReports([])
 
-    const fetchSupervisorDayInfo = async () => {
 
-      try {
-
-        const res = await fetch('/api/report/get-supervisor-info/' + employeeId)
-        const data = await res.json()
-
-        if (data.success === false) {
-
-          setFetchError(data.message)
-          return
-        }
-        setSupervisorInfo(data.supervisorInfo)
-
-      } catch (error) {
-
-        setFetchError(error)
-      }
-    }
 
     const fetchEmployee = async () => {
 
@@ -176,9 +158,42 @@ export default function Perfil() {
     fetchEmployee()
     fetchEmployeeDayInformation()
     fetchEmployeeReports()
-    fetchSupervisorDayInfo()
+
+
 
   }, [employeeId])
+
+  useEffect(() => {
+
+    const fetchSupervisorDayInfo = async () => {
+
+      try {
+
+        const res = await fetch('/api/report/get-supervisor-info/' + employeeId)
+        const data = await res.json()
+
+        if (data.success === false) {
+
+          setFetchError(data.message)
+          return
+        }
+        setSupervisorInfo(data.supervisorInfo)
+
+      } catch (error) {
+
+        setFetchError(error)
+      }
+    }
+
+
+    if (employee) {
+
+      if (employee.role.name == 'Supervisor' || employee.role.name == 'Gerente') {
+
+        fetchSupervisorDayInfo()
+      }
+    }
+  }, [employee, employeeId])
 
 
   return (
@@ -300,7 +315,7 @@ export default function Perfil() {
 
                   <div className='grid grid-cols-12'>
 
-                    <Link className='col-span-10' to={'/formato/' + reportData.createdAt + '/' + reportData.branch}>
+                    <Link className='col-span-10' to={'/formato/' + reportData.createdAt + '/' + reportData.branch._id}>
 
                       <div className=''>
                         {index != 0 || (new Date()).toISOString().slice(0, 10) >= new Date(reportData.createdAt).toISOString().slice(0, 10) ?
