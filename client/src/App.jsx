@@ -18,6 +18,7 @@ import Precios from './pages/Precios'
 import Reporte from './pages/Reporte'
 import EntradaInicial from './pages/EntradaInicial'
 import Gastos from './pages/Gastos'
+import Nomina from './pages/Nomina'
 
 
 export default function App() {
@@ -47,6 +48,8 @@ export default function App() {
           <Route path="/supervision-diaria" element={<ControlSupervisor />} />
           <Route path="/entrada-inicial/:productId/:productName" element={<EntradaInicial />} />
           <Route path="/supervision-diaria/:date" element={<ControlSupervisor />} />
+          <Route path="/nomina/" element={<Nomina />} />
+          <Route path="/nomina/:date" element={<Nomina />} />
           <Route path="/reporte" element={<Reporte />} />
           <Route path="/reporte/:date" element={<Reporte />} />
           <Route path="/gastos" element={<Gastos />} />

@@ -25,7 +25,7 @@ const employeeSchema = new mongoose.Schema({
   },
 
   salary: {
-    type: String,
+    type: Number,
   },
 
   payDay: {
@@ -33,7 +33,7 @@ const employeeSchema = new mongoose.Schema({
   },
 
   balance: {
-    type: String,
+    type: Number,
     default: 0.0
   },
 

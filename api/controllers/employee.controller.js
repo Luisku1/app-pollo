@@ -227,13 +227,22 @@ export const getEmployeePayroll = async (req, res, next) => {
 	const companyId = req.params.companyId
 	const day = (new Date()).getDay()
 
+	const actualLocaleDate = new Date(new Date().getTime() - 6 * 60 * 60000)
+  const actualLocaleDay = actualLocaleDate.toISOString().slice(0, 10)
+
+  const actualLocaleDatePlusOne = new Date(actualLocaleDay)
+  actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
+
+  const bottomDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
+
 	try {
 
-		const employeePayroll = await Employee.aggregate([
+		const employeesPayroll = await Employee.aggregate([
 
 			{
 				$match: {
-					'company': new Types.ObjectId(companyId)
+					'company': new Types.ObjectId(companyId),
+					'payDay': day
 				}
 			},
 
@@ -242,20 +251,36 @@ export const getEmployeePayroll = async (req, res, next) => {
 					from: 'employeedailybalances',
 					localField: '_id',
 					foreignField: 'employee',
-					as: 'dailybalances'
+					as: 'dailyBalances',
+					pipeline: [
+						{$match: {createdAt: {$lt: bottomDate}}},
+						{$sort: {createdAt: -1}},
+						{$limit: 7}
+					]
 				}
 			},
 
 			{
 				$project: {
-
 					_id: 1,
-					dailybalances: 1
+					name: 1,
+					lastName: 1,
+					balance: 1,
+					salary: 1,
+					dailyBalances: 1
 				}
 			}
 		])
 
-		res.status(200).json(employeePayroll)
+		if(employeesPayroll.length > 0) {
+
+			res.status(200).json({employeesPayroll: employeesPayroll})
+
+		} else {
+
+			res.status(200).json('Not data found')
+		}
+
 
 	} catch (error) {
 

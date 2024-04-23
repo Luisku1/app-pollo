@@ -44,7 +44,7 @@ export const createBranchReport = async (req, res, next) => {
       ]
     })
 
-    if(!originalBranchReport) {
+    if (!originalBranchReport) {
 
       await EmployeeDailyBalance.updateOne({
 
@@ -65,7 +65,7 @@ export const createBranchReport = async (req, res, next) => {
             employee: employee
           }
         ]
-      }, { lostMoney: balance })
+      }, { accountBalance: balance })
 
       const reportData = await ReportData.findOne({
         $and: [
@@ -96,35 +96,35 @@ export const createBranchReport = async (req, res, next) => {
 
         if (updated.acknowledged) {
 
-        await newBranchReport.save()
-        res.status(201).json({ branchReport: newBranchReport, message: 'Report data updated' })
+          await newBranchReport.save()
+          res.status(201).json({ branchReport: newBranchReport, message: 'Report data updated' })
+
+
+        } else {
+
+          await newBranchReport.save()
+          res.status(201).json({ branchReport: newBranchReport })
+        }
 
 
       } else {
 
-        await newBranchReport.save()
-        res.status(201).json({ branchReport: newBranchReport })
-      }
+        const newReportData = await new ReportData({ company: companyId, outgoings: outgoings, stock: finalStock, incomes: incomes })
+        const newBranchReport = new BranchReport({ initialStock, finalStock, inputs, outputs, outgoings, incomes, company, branch, employee, assistant, balance, createdAt, reportData: newReportData._id })
 
+        await newReportData.save()
+
+        await newBranchReport.save()
+
+        await BranchReport.updateOne({ _id: newBranchReport._id }, { $set: { 'reportData': newReportData._id } })
+
+        res.status(201).json({ branchReport: newBranchReport, reportData: newReportData })
+      }
 
     } else {
 
-      const newReportData = await new ReportData({ company: companyId, outgoings: outgoings, stock: finalStock, incomes: incomes })
-      const newBranchReport = new BranchReport({ initialStock, finalStock, inputs, outputs, outgoings, incomes, company, branch, employee, assistant, balance, createdAt, reportData: newReportData._id })
-
-      await newReportData.save()
-
-      await newBranchReport.save()
-
-      await BranchReport.updateOne({ _id: newBranchReport._id }, { $set: { 'reportData': newReportData._id } })
-
-      res.status(201).json({ branchReport: newBranchReport, reportData: newReportData })
+      next(errorHandler(404, 'Report already exists'))
     }
-
-  } else {
-
-    next(errorHandler(404, 'Report already exists'))
-  }
 
   } catch (error) {
 
@@ -142,9 +142,9 @@ export const deleteReport = async (req, res, next) => {
 
     if (deleted) {
 
-      const reportData = await ReportData.findOne({_id: deleted.reportData})
+      const reportData = await ReportData.findOne({ _id: deleted.reportData })
 
-      await ReportData.updateOne({_id: reportData}, {$set: { incomes: (reportData.incomes - deleted.incomes), stock: (reportData.stock - deleted.finalStock), outgoings: (reportData.outgoings - deleted.outgoings) }})
+      await ReportData.updateOne({ _id: reportData }, { $set: { incomes: (reportData.incomes - deleted.incomes), stock: (reportData.stock - deleted.finalStock), outgoings: (reportData.outgoings - deleted.outgoings) } })
 
       res.status(200).json('Report deleted successfully')
 

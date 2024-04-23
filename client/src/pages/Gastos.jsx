@@ -116,7 +116,7 @@ export default function Gastos() {
 
         <div className="bg-white p-3 mt-4">
 
-          <p className="p-3 my-4">{outgoingsTotal.toLocaleString('ex-MX', {style: 'currency', currency: 'MXN'})}</p>
+          <p className="p-3 my-4">{outgoingsTotal.toLocaleString('es-MX', {style: 'currency', currency: 'MXN'})}</p>
 
           {outgoings && outgoings.length > 0 ?
             <div id='header' className='grid grid-cols-12 gap-4 items-center justify-around font-semibold'>
