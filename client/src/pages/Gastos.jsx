@@ -2,6 +2,8 @@ import { useEffect, useState } from "react"
 import { useParams } from "react-router-dom"
 import { useSelector } from 'react-redux'
 import { FaCheck } from "react-icons/fa"
+import { fetchEmployees } from "../helpers/FetchFunctions"
+import { MdCancel } from "react-icons/md";
 
 export default function Gastos() {
 
@@ -9,6 +11,9 @@ export default function Gastos() {
   const [outgoings, setOutgoings] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const [isOpen, setIsOpen] = useState(false)
+  const [buttonId, setButtonId] = useState(null)
+  const [employees, setEmployees] = useState([])
   const paramsDate = useParams().date
   const [outgoingsTotal, setOutgoingsTotal] = useState(0.0)
 
@@ -22,7 +27,7 @@ export default function Gastos() {
     setOutgoingsTotal(total)
   }
 
-  const rejectOutgoing = async (outgoingId, index) => {
+  const rejectOutgoing = async (employeeId, outgoingId, index) => {
 
     setLoading(true)
 
@@ -35,6 +40,7 @@ export default function Gastos() {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
+
 
           approved: outgoings[index].addmitted
         })
@@ -49,7 +55,7 @@ export default function Gastos() {
         return
       }
 
-      outgoings[index].addmitted = !outgoings[index].addmitted
+      outgoings[index].addmitted = !(outgoings[index].addmitted)
       setError(null)
       setLoading(false)
 
@@ -97,6 +103,23 @@ export default function Gastos() {
       }
     }
 
+    const setEmployeesFunction = async () => {
+
+      const { error, data } = await fetchEmployees(company._id)
+
+      if (error == null) {
+
+        setError(null)
+        setEmployees(data)
+
+      } else {
+
+        setError(error)
+      }
+
+    }
+
+    setEmployeesFunction()
     fetchOutgoings()
 
   }, [paramsDate, company])
@@ -116,7 +139,7 @@ export default function Gastos() {
 
         <div className="bg-white p-3 mt-4">
 
-          <p className="p-3 my-4">{outgoingsTotal.toLocaleString('es-MX', {style: 'currency', currency: 'MXN'})}</p>
+          <p className="p-3 my-4">{outgoingsTotal.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>
 
           {outgoings && outgoings.length > 0 ?
             <div id='header' className='grid grid-cols-12 gap-4 items-center justify-around font-semibold'>
@@ -137,16 +160,38 @@ export default function Gastos() {
               </div>
 
               <div>
-                <button id={outgoing._id} disabled={loading} onClick={() => rejectOutgoing(outgoing._id, index)} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
+                <button id={outgoing._id} disabled={loading} onClick={() => { setIsOpen(!isOpen), setButtonId(outgoing._id) }} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
                   <span>
                     <FaCheck className='text-green-700 m-auto' />
                   </span>
                 </button>
+                {isOpen && outgoing._id == buttonId ?
+                  <div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center'>
+                    <div className='bg-white p-5 rounded-lg justify-center items-center h-4/6 my-auto'>
+                      <div className="mb-10 flex">
+                        <p className='text-3xl font-semibold text-red-500'>Selecciona el empleado al que se le cobrará el gasto</p>
+                        <button className="m-auto" onClick={() => { setIsOpen(!isOpen) }}><MdCancel className="h-7 w-7" /></button>
+                      </div>
+                      <div className='h-5/6 overflow-y-scroll'>
+                        <div className={"border border-red-800 p-3 shadow-lg rounded-lg overflow-y-scroll mb-4"}>
+                          <p className="font-bold text-lg">{outgoing.employee.name + ' ' + outgoing.employee.lastName}</p>
+                        </div>
 
+                        {employees && employees.length > 0 && employees.map((employee) => (
+                          <div key={employee._id} onClick={() => {rejectOutgoing(employee._id, outgoing._id, index)}}>
+                            {employee._id != outgoing.employee._id ?
+                              <div className=" p-3 shadow-lg rounded-lg">
+                                <p className="font-bold text-lg">{employee.name + ' ' + employee.lastName}</p>
+                              </div>
+                              : ''}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  : ''}
               </div>
-
             </div>
-
           ))}
         </div>
         : ''}

@@ -4,8 +4,11 @@ import { deleteOutgoing, getBranchOutgoings, newOutgoing, getExtraOutgoings, del
 const router = express.Router()
 
 router.post('/create', newOutgoing)
+router.put('/reject-outgoing/:outgoingId/:employeeId/:date')
 router.post('/extra-outgoing/create', newExtraOutgoing)
+router.put('/extra-outgoing/reject-extra-outgoing/:extraOutgoingId/:employeeId/:date')
 router.post('/loan/create', createLoan)
+router.put('/loan/reject-loan/:loanId/:employeeId/:date')
 router.get('/loan/get-loans/:companyId/:date', getLoans)
 router.get('/branch-outgoings/:branchId/:date', getBranchOutgoings)
 router.get('/get-outgoings/:companyId/:date', getOutgoings)

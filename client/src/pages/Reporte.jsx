@@ -216,7 +216,7 @@ export default function Reporte() {
             <tr>
               {/* <th></th> */}
               <th>Sucursal</th>
-              <Link className="flex justify-center" to={paramsDate ? '/gastos/' + paramsDate : '/gastos'}>
+              <Link className="flex justify-center" to={'/gastos/' + stringDatePickerValue}>
                 <th>Gastos</th>
               </Link>
               <th>Sobrante</th>
