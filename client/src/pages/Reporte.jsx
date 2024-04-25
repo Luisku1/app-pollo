@@ -30,8 +30,9 @@ export default function Reporte() {
 
   const changeDatePickerValue = (e) => {
 
-    datePickerValue = new Date(e.target.value)
+    datePickerValue = (e.target.value)
     stringDatePickerValue = e.target.value
+    fetchData()
   }
 
   const extraOutgoingsIsOpenFunctionControl = (arrayLength, selectedSupervisorId) => {
@@ -98,6 +99,89 @@ export default function Reporte() {
       }
     }
   }
+  const fetchBranchesReports = async () => {
+
+    const date = new Date(stringDatePickerValue).toISOString()
+
+    try {
+
+      const res = await fetch('/api/report/get-branches-reports/' + company._id + '/' + date)
+      const data = await res.json()
+
+      if (data.success === false) {
+
+        setError(data.message)
+        return
+      }
+
+      let incomesTotalPivot = 0.0
+      let stockTotalPivot = 0.0
+      let extraOutgoingsTotalPivot = 0.0
+      let balanceTotalPivot = 0.0
+
+      data.branchReports.sort((report, nextReport) => {
+
+
+        return report.branch.position - nextReport.branch.position
+      })
+
+      data.branchReports.forEach((branchReport) => {
+
+        incomesTotalPivot += branchReport.incomes
+        stockTotalPivot += branchReport.finalStock
+        extraOutgoingsTotalPivot += branchReport.outgoings
+        balanceTotalPivot += branchReport.balance
+
+      })
+
+      setIncomesTotal((prev) => prev + incomesTotalPivot)
+      setStockTotal((prev) => prev + stockTotalPivot)
+      setExtraOutgoingsTotal((prev) => prev + extraOutgoingsTotalPivot)
+      setBalanceTotal((prev) => prev + balanceTotalPivot)
+      setBranchReports(data.branchReports)
+      setError(null)
+
+    } catch (error) {
+
+      setError(error.message)
+    }
+  }
+
+  const fetchSupervisorsInfo = async () => {
+
+    const date = new Date(stringDatePickerValue).toISOString()
+
+    setLoading(true)
+
+    try {
+
+      const res = await fetch('/api/report/get-supervisors-info/' + company._id + '/' + date)
+      const data = await res.json()
+
+      if (data.success === false) {
+
+        setError(data.message)
+        setLoading(false)
+        return
+      }
+
+      setSupervisorsInfo(data.supervisorsInfo.data)
+      setLoading(false)
+      setError(null)
+
+    } catch (error) {
+
+      setLoading(false)
+      setError(error.message)
+    }
+  }
+
+  const fetchData = () => {
+
+    fetchBranchesReports()
+    fetchSupervisorsInfo()
+
+  }
 
   useEffect(() => {
 
@@ -107,93 +191,15 @@ export default function Reporte() {
     setBalanceTotal(0.0)
     setBranchReports([])
 
-    const fetchBranchesReports = async () => {
+    fetchData()
 
-      const date = new Date(stringDatePickerValue).toISOString()
-
-      try {
-
-        const res = await fetch('/api/report/get-branches-reports/' + company._id + '/' + date)
-        const data = await res.json()
-
-        if (data.success === false) {
-
-          setError(data.message)
-          return
-        }
-
-        let incomesTotalPivot = 0.0
-        let stockTotalPivot = 0.0
-        let extraOutgoingsTotalPivot = 0.0
-        let balanceTotalPivot = 0.0
-
-        data.branchReports.sort((report, nextReport) => {
-
-
-          return report.branch.position - nextReport.branch.position
-        })
-
-        data.branchReports.forEach((branchReport) => {
-
-          incomesTotalPivot += branchReport.incomes
-          stockTotalPivot += branchReport.finalStock
-          extraOutgoingsTotalPivot += branchReport.outgoings
-          balanceTotalPivot += branchReport.balance
-
-        })
-
-        setIncomesTotal((prev) => prev + incomesTotalPivot)
-        setStockTotal((prev) => prev + stockTotalPivot)
-        setExtraOutgoingsTotal((prev) => prev + extraOutgoingsTotalPivot)
-        setBalanceTotal((prev) => prev + balanceTotalPivot)
-        setBranchReports(data.branchReports)
-        setError(null)
-
-      } catch (error) {
-
-        setError(error.message)
-      }
-    }
-
-    const fetchSupervisorsInfo = async () => {
-
-      const date = new Date(stringDatePickerValue).toISOString()
-
-      setLoading(true)
-
-      try {
-
-        const res = await fetch('/api/report/get-supervisors-info/' + company._id + '/' + date)
-        const data = await res.json()
-
-        if (data.success === false) {
-
-          setError(data.message)
-          setLoading(false)
-          return
-        }
-
-        setSupervisorsInfo(data.supervisorsInfo.data)
-        setLoading(false)
-        setError(null)
-
-      } catch (error) {
-
-        setLoading(false)
-        setError(error.message)
-      }
-    }
-
-    fetchBranchesReports()
-    fetchSupervisorsInfo()
-
-  }, [company._id, stringDatePickerValue])
+  }, [company])
 
   return (
 
     <main className="p-3 max-w-lg mx-auto">
 
-      <div className="flex gap-2 justify-center">
+      <div className="flex justify-center">
         <input className="p-1" type="date" name="date" id="date" onChange={changeDatePickerValue} defaultValue={stringDatePickerValue} />
       </div>
 
