@@ -22,13 +22,36 @@ export default function Nomina() {
 
         data.employeesPayroll.forEach((employeePayroll) => {
 
+          employeePayroll.totalDebt = 0.0
           employeePayroll.totalAccountBalance = 0.0
+          employeePayroll.totalLoan = 0.0
+          employeePayroll.totalFoodDiscount = 0.0
+          employeePayroll.totalDayDiscount = 0.0
+          employeePayroll.didEmployeeRest = 'No'
 
           employeePayroll.dailyBalances.forEach((dailyBalance) => {
 
             employeePayroll.totalAccountBalance += dailyBalance.accountBalance
+            employeePayroll.totalLoan += dailyBalance.loan
+
+            if (dailyBalance.dayDiscount) {
+
+              employeePayroll.totalDayDiscount -= employeePayroll.salary / 7
+            }
+
+            if (dailyBalance.foodDiscount) {
+
+              employeePayroll.totalFoodDiscount -= 60
+            }
+
+            if (dailyBalance.restDay) {
+
+              employeePayroll.didEmployeeRest = 'Si'
+            }
+
           })
 
+          employeePayroll.totalDebt = employeePayroll.totalAccountBalance + employeePayroll.totalLoan + employeePayroll.totalFoodDiscount + employeePayroll.totalDayDiscount
         })
 
         setEmployeesPayroll(data.employeesPayroll)
@@ -55,45 +78,54 @@ export default function Nomina() {
 
         {employeesPayroll && employeesPayroll.length > 0 && employeesPayroll.map((employeePayroll) => (
 
-          <div key={employeePayroll._id} className='grid grid-cols-1 items-center border border-black border-opacity-30 rounded-lg shadow-sm mt-2'>
-
-            <div id='list-element' className='grid grid-cols-12 py-3'>
-
+          <div key={employeePayroll._id} className='grid grid-cols-1 items-center border border-black rounded-lg shadow-sm my-2'>
+            <div id='list-element' className='grid grid-cols-12 py-3 my-2'>
               <div id="header" className="col-span-12 mt-1 mb-4 border-b border-black shadow-sm text-center">
-
                 <div className="grid grid-cols-1">
-
-
                   <div className="grid grid-cols-12 col-span-12">
-
-
                     <p className='text-lg col-span-5 pb-3 pl-3 text-left font-bold my-auto'>{employeePayroll.name + ' ' + employeePayroll.lastName}</p>
-                    <div className="grid grid-cols-7 col-span-7 grid-rows-2">
 
+                    <div className="grid grid-cols-7 col-span-7 grid-rows-2">
                       <div className="col-span-7 row-span-1 mb-3">
-                        <p>Salario: {employeePayroll.salary}</p>
-                        <p>Balance anterior: {employeePayroll.balance}</p>
-                        <p>Deuda total: {employeePayroll.totalAccountBalance}</p>
+                        <div className="flex gap-2">
+                          <p>Salario: </p>
+                          <p className={(employeePayroll.salary < 0 ? 'text-red-500 ' : ' ') + 'text-xs'}>{employeePayroll.salary.toLocaleString('es-MX', {style: 'currency', currency: 'MXN'})}</p>
+                        </div>
+                        <div className="flex gap-2">
+                          <p>Balance anterior: </p>
+                          <p className={(employeePayroll.balance < 0 ? 'text-red-500 ' : ' ') + 'text-xs'}>{employeePayroll.balance.toLocaleString('es-MX', {style: 'currency', currency: 'MXN'})}</p>
+                        </div>
+                        <div className="flex gap-2">
+                          <p>Deuda total: </p>
+                          <p className={(employeePayroll.totalDebt < 0 ? 'text-red-500' : '') + ' text-xs'}>{employeePayroll.totalDebt.toLocaleString('es-MX', {style: 'currency', currency: 'MXN'})}</p>
+                        </div>
                       </div>
 
                       <div className="grid col-span-7 grid-cols-7 row-span-1 mt-3">
-
-
                         <div className="col-span-2">
-
                           <p>Cuenta</p>
-                          <p>{employeePayroll.totalAccountBalance}</p>
-
+                          <p className={(employeePayroll.totalAccountBalance < 0 ? 'text-red-500' : '') + ' text-xs'}>{employeePayroll.totalAccountBalance.toLocaleString('es-MX', {style: 'currency', currency: 'MXN'})}</p>
                         </div>
-                        <p className="col-span-2">Préstamo</p>
-                        <p className="col-span-1">R</p>
-                        <p className="col-span-1">D</p>
-                        <p className="col-span-1">F</p>
+                        <div className="col-span-2">
+                          <p>Préstamo</p>
+                          <p className={(employeePayroll.totalLoan < 0 ? 'text-red-500' : '') + ' text-xs'}>{employeePayroll.totalLoan.toLocaleString('es-MX', {style: 'currency', currency: 'MXN'})}</p>
+                        </div>
+                        <div className="col-span-1">
+                          <p>R</p>
+                          <p className={(employeePayroll.totalFoodDiscount < 0 ? 'text-red-500 ' : ' ') + 'text-xs'}>{employeePayroll.totalFoodDiscount.toLocaleString('es-MX', {style: 'currency', currency: 'MXN'})}</p>
+                        </div>
+                        <div className="col-span-1">
+                          <p>D</p>
+                          <p className="text-xs">{employeePayroll.didEmployeeRest}</p>
+                        </div>
+                        <div className="col-span-1">
+                          <p>F</p>
+                          <p className={(employeePayroll.totalDayDiscount < 0 ? 'text-red-500' : '') + ' text-xs'}>{employeePayroll.totalDayDiscount.toLocaleString('es-MX', {style: 'currency', currency: 'MXN'})}</p>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-
               </div>
 
               {employeePayroll.dailyBalances && employeePayroll.dailyBalances.length > 0 && employeePayroll.dailyBalances.map((dailyBalance) => (
@@ -108,9 +140,13 @@ export default function Nomina() {
                   <input className='col-span-1' type="checkbox" name="restDay" id="restDay" defaultChecked={dailyBalance.restDay} />
                   <input className='col-span-1' type="checkbox" name="dayDiscount" id="dayDiscount" defaultChecked={dailyBalance.dayDiscount} />
                 </div>
-              ))}
-            </div>
 
+              ))}
+
+              <div className="col-span-12 mt-4 p-2 bg-slate-600 text-white rounded-lg mx-2">
+                <button className="w-full">Liberar nómina</button>
+              </div>
+            </div>
           </div>
 
         ))}

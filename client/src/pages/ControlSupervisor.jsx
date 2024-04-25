@@ -23,6 +23,8 @@ export default function ControlSupervisor() {
   const [outputsTotal, setOutputsTotal] = useState(0.0)
   const [inputsTotal, setInputsTotal] = useState(0.0)
   const [extraOutgoingsTotal, setExtraOutgoingsTotal] = useState(0.0)
+  const [netDifference, setNetDifference] = useState([])
+  const [totalNetDifference, setTotalNetDifference] = useState(0.0)
   const [incomes, setIncomes] = useState([])
   const [incomeTypes, setIncomeTypes] = useState([])
   const [incomesTotal, setIncomesTotal] = useState(0.0)
@@ -40,6 +42,7 @@ export default function ControlSupervisor() {
   const [loansIsOpen, setLoansIsOpen] = useState(false)
   const [inputsIsOpen, setInputsIsOpen] = useState(false)
   const [outputsIsOpen, setOutputsIsOpen] = useState(false)
+  const [differencesIsOpen, setDifferencesIsOpen] = useState(false)
   const [managerRole, setManagerRole] = useState({})
 
   const SectionHeader = (props) => {
@@ -1024,6 +1027,39 @@ export default function ControlSupervisor() {
       }
     }
 
+    const fetchNetDifference = async () => {
+
+      const date = new Date().toISOString()
+
+      try {
+
+        const res = await fetch('/api/input/get-net-difference/' + company._id + '/' + date)
+        const data = await res.json()
+
+        if (data.success === false) {
+
+          setError(data.message)
+          setLoading(false)
+          return
+        }
+
+        Object.values(data.netDifference).map(productDifference => {
+
+          setTotalNetDifference((prev) => prev + productDifference.difference)
+        })
+
+        setNetDifference(data.netDifference)
+
+        setError(null)
+        setLoading(false)
+
+      } catch (error) {
+
+        console.log(error)
+      }
+    }
+
+    fetchNetDifference()
     fetchEmployeesDailyBalances()
     fetchIncomes()
     fetchExtraOutgoings()
@@ -1523,67 +1559,34 @@ export default function ControlSupervisor() {
         </div>
         : ''}
 
-      {loans && loans.length > 0 ?
+      {Object.values(netDifference) && Object.values(netDifference).length > 0 && managerRole._id == currentUser.role ?
+
         <div className='border bg-white shadow-lg p-3 mt-4'>
 
-          <div className='flex gap-4 display-flex justify-between' onClick={() => setLoansIsOpen(!loansIsOpen)} >
+          <div className='flex gap-4 display-flex justify-between' onClick={() => setDifferencesIsOpen(!differencesIsOpen)} >
 
-            <SectionHeader label={'Préstamos'} />
-            {loansIsOpen ? <MdKeyboardArrowDown className='text-5xl' /> : <MdKeyboardArrowRight className='text-5xl' />}
+            <SectionHeader label={'Diferencia neta'} />
+            {differencesIsOpen ? <MdKeyboardArrowDown className='text-5xl' /> : <MdKeyboardArrowRight className='text-5xl' />}
 
           </div>
 
-          <div className={loansIsOpen ? '' : 'hidden'} >
+          <div className={differencesIsOpen ? '' : 'hidden'} >
 
-            {loans && loans.length > 0 ?
-              <div id='header' className='grid grid-cols-11 gap-4 items-center justify-around font-semibold mt-4'>
-                <p className='p-3 rounded-lg col-span-3 text-center'>Supervisor</p>
-                <p className='p-3 rounded-lg col-span-3 text-center'>Deudor</p>
-                <p className='p-3 rounded-lg col-span-3 text-center'>Monto</p>
+            {Object.values(netDifference) && Object.values(netDifference).length > 0 ?
+              < div id='header' className='grid grid-cols-12 gap-4 items-center justify-around font-semibold mt-4'>
+                <p className='p-3 rounded-lg col-span-6 text-center'>Producto</p>
+                <p className='p-3 rounded-lg col-span-6 text-center'>Diferencia</p>
               </div>
               : ''}
-            {loans && loans.length > 0 && loans.map((loan, index) => (
+            {Object.values(netDifference) && Object.values(netDifference).length > 0 && Object.values(netDifference).map((productDifference) => (
 
 
-              <div key={loan._id} className={(currentUser._id == loan.supervisor ? '' : 'py-3 ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
+              <div key={productDifference.name} className={'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2 p-3'}>
 
-                <div id='list-element' className='flex col-span-10 items-center justify-around'>
-                  <p className='text-center text-sm w-3/12'>{loan.supervisor.name}</p>
-                  <p className='text-center text-sm w-3/12'>{loan.employee.name ? loan.employee.name + ' ' + loan.employee.lastName : loan.employee}</p>
-                  <p className='text-center text-sm w-3/12'>{loan.amount.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
+                <div id='list-element' className='flex col-span-12 items-center justify-around p-1'>
+                  <p className='text-center text-sm w-6/12'>{productDifference.name}</p>
+                  <p className={'text-center text-sm w-6/12 ' + (productDifference.difference < 0 ? 'text-red-500' : '')}>{Math.abs(productDifference.difference)}</p>
                 </div>
-
-                {currentUser._id == loan.supervisor._id ?
-
-                  <div>
-                    <button id={loan._id} onClick={() => { setIsOpen(!isOpen), setButtonId(loan._id) }} disabled={loading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
-                      <span>
-                        <FaTrash className='text-red-700 m-auto' />
-                      </span>
-                    </button>
-
-                    {isOpen && loan._id == buttonId ?
-                      <div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center items-center'>
-                        <div className='bg-white p-5 rounded-lg flex flex-col justify-center items-center gap-5'>
-                          <div>
-                            <p className='text-3xl font-semibold'>¿Estás seguro de borrar este registro?</p>
-                          </div>
-                          <div className='flex gap-10'>
-                            <div>
-                              <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteLoan(loan._id, index), setIsOpen(!isOpen) }}>Si</button>
-                            </div>
-                            <div>
-                              <button className='rounded-lg border shadow-lg w-20 h-10' onClick={() => { setIsOpen(!isOpen) }}>No</button>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      : ''}
-
-                  </div>
-
-                  : ''}
-
               </div>
 
             ))}
@@ -1594,7 +1597,7 @@ export default function ControlSupervisor() {
 
             <div className='flex mt-4 border-black border border-opacity-30 shadow-lg rounded-lg p-3'>
               <p className='w-6/12 text-center'>Total:</p>
-              <p className='w-6/12 text-center'>{loansTotal.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
+              <p className={'w-6/12 text-center' + (totalNetDifference < 0 ? 'text-red-500' : '')}>{Math.abs(totalNetDifference)}</p>
 
             </div>
 
@@ -1603,41 +1606,124 @@ export default function ControlSupervisor() {
         </div>
         : ''}
 
-      {employeesDailyBalances && employeesDailyBalances.length > 0 ?
-        <div className='border bg-white shadow-lg p-3 mt-4'>
+      {
+        loans && loans.length > 0 ?
+          <div className='border bg-white shadow-lg p-3 mt-4'>
 
-          <SectionHeader label={'Empleados'} />
+            <div className='flex gap-4 display-flex justify-between' onClick={() => setLoansIsOpen(!loansIsOpen)} >
 
-          {employeesDailyBalances && employeesDailyBalances.length > 0 ?
-            <div id='header' className='grid grid-cols-12 gap-4 items-center justify-around font-semibold mt-4'>
-              <p className='p-3 rounded-lg col-span-3 text-sm text-center'>Empleado</p>
-              <p className='p-3 rounded-lg col-span-3 text-sm text-center'>Retardo</p>
-              <p className='p-3 rounded-lg col-span-3 text-sm text-center'>Descanso</p>
-              <p className='p-3 rounded-lg col-span-3 text-sm text-center'>Falta</p>
+              <SectionHeader label={'Préstamos'} />
+              {loansIsOpen ? <MdKeyboardArrowDown className='text-5xl' /> : <MdKeyboardArrowRight className='text-5xl' />}
+
             </div>
-            : ''}
-          {employeesDailyBalances && employeesDailyBalances.length > 0 && employeesDailyBalances.map((dailyBalance) => (
+
+            <div className={loansIsOpen ? '' : 'hidden'} >
+
+              {loans && loans.length > 0 ?
+                <div id='header' className='grid grid-cols-11 gap-4 items-center justify-around font-semibold mt-4'>
+                  <p className='p-3 rounded-lg col-span-3 text-center'>Supervisor</p>
+                  <p className='p-3 rounded-lg col-span-3 text-center'>Deudor</p>
+                  <p className='p-3 rounded-lg col-span-3 text-center'>Monto</p>
+                </div>
+                : ''}
+              {loans && loans.length > 0 && loans.map((loan, index) => (
 
 
-            <div key={dailyBalance._id} className='grid grid-cols-12 items-center border border-black border-opacity-30 rounded-lg shadow-sm mt-2'>
+                <div key={loan._id} className={(currentUser._id == loan.supervisor ? '' : 'py-3 ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
 
-              <div id='list-element' className='flex col-span-12 items-center justify-around'>
-                <p className='text-center text-sm w-3/12'>{dailyBalance.employee != null ? dailyBalance.employee.name + ' ' + dailyBalance.employee.lastName : 'Trabajador despedido'}</p>
-                <div className='w-3/12'>
+                  <div id='list-element' className='flex col-span-10 items-center justify-around'>
+                    <p className='text-center text-sm w-3/12'>{loan.supervisor.name}</p>
+                    <p className='text-center text-sm w-3/12'>{loan.employee.name ? loan.employee.name + ' ' + loan.employee.lastName : loan.employee}</p>
+                    <p className='text-center text-sm w-3/12'>{loan.amount.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
+                  </div>
 
-                  <input className='w-full' type="checkbox" name="foodDiscount" id="foodDiscount" defaultChecked={dailyBalance.foodDiscount} onChange={(e) => { handleDailyBalanceInputs(e, dailyBalance._id) }} />
+                  {currentUser._id == loan.supervisor._id ?
+
+                    <div>
+                      <button id={loan._id} onClick={() => { setIsOpen(!isOpen), setButtonId(loan._id) }} disabled={loading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
+                        <span>
+                          <FaTrash className='text-red-700 m-auto' />
+                        </span>
+                      </button>
+
+                      {isOpen && loan._id == buttonId ?
+                        <div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center items-center'>
+                          <div className='bg-white p-5 rounded-lg flex flex-col justify-center items-center gap-5'>
+                            <div>
+                              <p className='text-3xl font-semibold'>¿Estás seguro de borrar este registro?</p>
+                            </div>
+                            <div className='flex gap-10'>
+                              <div>
+                                <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteLoan(loan._id, index), setIsOpen(!isOpen) }}>Si</button>
+                              </div>
+                              <div>
+                                <button className='rounded-lg border shadow-lg w-20 h-10' onClick={() => { setIsOpen(!isOpen) }}>No</button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        : ''}
+
+                    </div>
+
+                    : ''}
 
                 </div>
-                <input className='w-3/12' type="checkbox" name="restDay" id="restDay" defaultChecked={dailyBalance.restDay} onChange={(e) => handleDailyBalanceInputs(e, dailyBalance._id)} />
-                <input className='w-3/12' type="checkbox" name="dayDiscount" id="dayDiscount" defaultChecked={dailyBalance.dayDiscount} onChange={(e) => handleDailyBalanceInputs(e, dailyBalance._id)} />
-              </div>
+
+              ))}
 
             </div>
 
-          ))}
+            {currentUser.role == managerRole._id ?
 
-        </div>
-        : ''}
+              <div className='flex mt-4 border-black border border-opacity-30 shadow-lg rounded-lg p-3'>
+                <p className='w-6/12 text-center'>Total:</p>
+                <p className='w-6/12 text-center'>{loansTotal.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
+
+              </div>
+
+              : ''}
+
+          </div>
+          : ''}
+
+      {
+        employeesDailyBalances && employeesDailyBalances.length > 0 ?
+          <div className='border bg-white shadow-lg p-3 mt-4'>
+
+            <SectionHeader label={'Empleados'} />
+
+            {employeesDailyBalances && employeesDailyBalances.length > 0 ?
+              <div id='header' className='grid grid-cols-12 gap-4 items-center justify-around font-semibold mt-4'>
+                <p className='p-3 rounded-lg col-span-3 text-sm text-center'>Empleado</p>
+                <p className='p-3 rounded-lg col-span-3 text-sm text-center'>Retardo</p>
+                <p className='p-3 rounded-lg col-span-3 text-sm text-center'>Descanso</p>
+                <p className='p-3 rounded-lg col-span-3 text-sm text-center'>Falta</p>
+              </div>
+              : ''}
+            {employeesDailyBalances && employeesDailyBalances.length > 0 && employeesDailyBalances.map((dailyBalance) => (
+
+
+              <div key={dailyBalance._id} className='grid grid-cols-12 items-center border border-black border-opacity-30 rounded-lg shadow-sm mt-2'>
+
+                <div id='list-element' className='flex col-span-12 items-center justify-around'>
+                  <p className='text-center text-sm w-3/12'>{dailyBalance.employee != null ? dailyBalance.employee.name + ' ' + dailyBalance.employee.lastName : 'Trabajador despedido'}</p>
+                  <div className='w-3/12'>
+
+                    <input className='w-full' type="checkbox" name="foodDiscount" id="foodDiscount" defaultChecked={dailyBalance.foodDiscount} onChange={(e) => { handleDailyBalanceInputs(e, dailyBalance._id) }} />
+
+                  </div>
+                  <input className='w-3/12' type="checkbox" name="restDay" id="restDay" defaultChecked={dailyBalance.restDay} onChange={(e) => handleDailyBalanceInputs(e, dailyBalance._id)} />
+                  <input className='w-3/12' type="checkbox" name="dayDiscount" id="dayDiscount" defaultChecked={dailyBalance.dayDiscount} onChange={(e) => handleDailyBalanceInputs(e, dailyBalance._id)} />
+                </div>
+
+              </div>
+
+            ))}
+
+          </div>
+          : ''
+      }
 
       {error && <p className='text-red-500 mt-05'>{error}</p>}
 

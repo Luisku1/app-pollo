@@ -40,6 +40,14 @@ export default function RegistroCuentaDiaria() {
   const navigate = useNavigate()
   const reportDate = (paramsDate ? new Date(paramsDate) : new Date()).toLocaleDateString('es-mx', { weekday: 'long', year: 'numeric', month: '2-digit', day: '2-digit' })
 
+  const SectionHeader = (props) => {
+
+    return (
+
+      <h2 className='flex text-2xl text-center font-semibold mb-4 text-red-800' onClick={props.onClick}>{props.label}</h2>
+    )
+  }
+
   const saveProductName = (e) => {
 
     let index = e.target.selectedIndex
@@ -891,7 +899,7 @@ export default function RegistroCuentaDiaria() {
 
 
 
-      <h2 className='flex text-2xl text-center font-semibold mb-4'>Información básica</h2>
+      <SectionHeader label={'Información básica'} />
 
       <div className="flex items-center justify-between">
 
@@ -966,7 +974,7 @@ export default function RegistroCuentaDiaria() {
       </div>
 
       <div className='border p-3 mt-4 bg-white'>
-        <h2 className='flex text-2xl text-center font-semibold mb-4'>Gastos</h2>
+        <SectionHeader label={'Gastos'} />
 
         <form id='outgoingForm' onSubmit={addOutgoing} className="grid grid-cols-3 items-center justify-between">
 
@@ -1040,7 +1048,7 @@ export default function RegistroCuentaDiaria() {
       </div>
 
       <div className='border bg-white p-3 mt-4'>
-        <h2 className='flex text-2xl text-center font-semibold mb-4'>Sobrante</h2>
+        <SectionHeader label={'Sobrante'} />
 
         <form onSubmit={addStockItem} className="grid grid-cols-4 items-center justify-between">
 
@@ -1128,7 +1136,7 @@ export default function RegistroCuentaDiaria() {
       </div>
 
       {/* <div className='border p-3 mt-4 bg-white'>
-        <h2 className='flex text-2xl text-center font-semibold mb-4'>Mermas</h2>
+        <SectionHeader label={'Mermas'} />
 
         <form onSubmit={addProductLossItem} className="grid grid-cols-4 items-center justify-between">
 
@@ -1217,7 +1225,7 @@ export default function RegistroCuentaDiaria() {
 
       {inputs && inputs.length > 0 ?
         <div className='border bg-white p-3 mt-4'>
-          <h2 className='flex text-2xl text-center font-semibold mb-4'>Entradas</h2>
+          <SectionHeader label={'Entradas'} />
 
           <div id='header' className='grid grid-cols-12 items-center justify-around font-semibold my-4'>
             <p className='col-span-3 text-center'>Encargado</p>
@@ -1261,7 +1269,7 @@ export default function RegistroCuentaDiaria() {
 
       {providerInputs && providerInputs.length > 0 ?
         <div className='border bg-white p-3 mt-4'>
-          <h2 className='flex text-2xl text-center font-semibold mb-4'>Entrada de Proveedores</h2>
+          <SectionHeader label={'Entradas de Rastro'} />
 
           <div id='header' className='grid grid-cols-12 items-center justify-around font-semibold my-4'>
             <p className='col-span-3 text-center'>Encargado</p>
@@ -1307,7 +1315,7 @@ export default function RegistroCuentaDiaria() {
 
       {outputs && outputs.length > 0 ?
         <div className='border bg-white p-3 mt-4'>
-          <h2 className='flex text-2xl text-center font-semibold mb-4'>Salidas</h2>
+          <SectionHeader label={'Salidas'} />
 
           <div id='header' className='grid grid-cols-12 items-center justify-around font-semibold mt-4'>
             <p className='col-span-3 text-center'>Supervisor</p>
@@ -1350,7 +1358,7 @@ export default function RegistroCuentaDiaria() {
 
       {incomes && incomes.length > 0 ?
         <div className='border bg-white p-3 mt-4'>
-          <h2 className='flex text-2xl text-center font-semibold mb-4'>Efectivos</h2>
+          <SectionHeader label={'Dinero entregado'} />
 
           <div id='income-header' className='grid grid-cols-12 items-center justify-around font-semibold mt-4'>
             <p className='col-span-4 text-center'>Sucursal</p>

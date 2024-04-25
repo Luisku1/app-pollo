@@ -200,15 +200,17 @@ export default function Reporte() {
             </tr>
           </thead>
 
-          {branchReports.map((branchReport) => (
+          {branchReports.map((branchReport, index) => (
 
-            <tbody key={branchReport._id}>
+            <tbody key={branchReport._id} className="">
 
 
-              <tr>
+              <tr className={ 'border-x ' + (index + 1 != branchReports.length ? "border-b " : '') + 'border-black border-opacity-40'}>
                 {/* <td className="text-xs">{branchReport.branch.position}</td> */}
-                <Link className='flex justify-center' to={'/formato/' + branchReport.createdAt + '/' + branchReport.branch._id}>
-                  <td className="text-center">{branchReport.branch.branch}</td>
+                <Link className='' to={'/formato/' + branchReport.createdAt + '/' + branchReport.branch._id}>
+                  <td className="">
+                    <p className="">{branchReport.branch.branch}</p>
+                  </td>
                 </Link>
                 <td className="text-center">{branchReport.outgoings.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</td>
                 <td className="text-center">{branchReport.finalStock.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</td>
