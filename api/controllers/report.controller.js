@@ -12,7 +12,7 @@ export const getBranchReports = async (req, res, next) => {
   const date = new Date(req.params.date)
   const companyId = req.params.companyId
 
-  const actualLocaleDate = new Date(new Date(date).getTime() - 6 * 60 * 60000)
+  const actualLocaleDate = new Date(new Date(date))
   const actualLocaleDay = actualLocaleDate.toISOString().slice(0, 10)
 
   const actualLocaleDatePlusOne = new Date(actualLocaleDay)
@@ -59,7 +59,7 @@ export const getSupervisorsInfo = async (req, res, next) => {
   const date = new Date(req.params.date)
   const companyId = req.params.companyId
 
-  const actualLocaleDate = new Date(new Date(date).getTime() - 6 * 60 * 60000)
+  const actualLocaleDate = new Date(new Date(date))
   const actualLocaleDay = actualLocaleDate.toISOString().slice(0, 10)
 
   const actualLocaleDatePlusOne = new Date(actualLocaleDay)

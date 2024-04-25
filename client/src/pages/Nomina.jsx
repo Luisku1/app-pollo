@@ -89,30 +89,30 @@ export default function Nomina() {
                       <div className="col-span-7 row-span-1 mb-3">
                         <div className="flex gap-2">
                           <p>Salario: </p>
-                          <p className={(employeePayroll.salary < 0 ? 'text-red-500 ' : ' ') + 'text-xs'}>{employeePayroll.salary.toLocaleString('es-MX', {style: 'currency', currency: 'MXN'})}</p>
+                          <p className={(employeePayroll.salary < 0 ? 'text-red-500 ' : ' ') + 'text-xs my-auto'}>{employeePayroll.salary.toLocaleString('es-MX', {style: 'currency', currency: 'MXN'})}</p>
                         </div>
                         <div className="flex gap-2">
                           <p>Balance anterior: </p>
-                          <p className={(employeePayroll.balance < 0 ? 'text-red-500 ' : ' ') + 'text-xs'}>{employeePayroll.balance.toLocaleString('es-MX', {style: 'currency', currency: 'MXN'})}</p>
+                          <p className={(employeePayroll.balance < 0 ? 'text-red-500 ' : ' ') + 'text-xs my-auto'}>{employeePayroll.balance.toLocaleString('es-MX', {style: 'currency', currency: 'MXN'})}</p>
                         </div>
                         <div className="flex gap-2">
                           <p>Deuda total: </p>
-                          <p className={(employeePayroll.totalDebt < 0 ? 'text-red-500' : '') + ' text-xs'}>{employeePayroll.totalDebt.toLocaleString('es-MX', {style: 'currency', currency: 'MXN'})}</p>
+                          <p className={(employeePayroll.totalDebt < 0 ? 'text-red-500' : '') + ' text-xs my-auto'}>{employeePayroll.totalDebt.toLocaleString('es-MX', {style: 'currency', currency: 'MXN'})}</p>
                         </div>
                       </div>
 
                       <div className="grid col-span-7 grid-cols-7 row-span-1 mt-3">
                         <div className="col-span-2">
                           <p>Cuenta</p>
-                          <p className={(employeePayroll.totalAccountBalance < 0 ? 'text-red-500' : '') + ' text-xs'}>{employeePayroll.totalAccountBalance.toLocaleString('es-MX', {style: 'currency', currency: 'MXN'})}</p>
+                          <p className={(employeePayroll.totalAccountBalance < 0 ? 'text-red-500' : '') + ' text-xs my-auto'}>{employeePayroll.totalAccountBalance.toLocaleString('es-MX', {style: 'currency', currency: 'MXN'})}</p>
                         </div>
                         <div className="col-span-2">
                           <p>Préstamo</p>
-                          <p className={(employeePayroll.totalLoan < 0 ? 'text-red-500' : '') + ' text-xs'}>{employeePayroll.totalLoan.toLocaleString('es-MX', {style: 'currency', currency: 'MXN'})}</p>
+                          <p className={(employeePayroll.totalLoan < 0 ? 'text-red-500' : '') + ' text-xs my-auto'}>{employeePayroll.totalLoan.toLocaleString('es-MX', {style: 'currency', currency: 'MXN'})}</p>
                         </div>
                         <div className="col-span-1">
                           <p>R</p>
-                          <p className={(employeePayroll.totalFoodDiscount < 0 ? 'text-red-500 ' : ' ') + 'text-xs'}>{employeePayroll.totalFoodDiscount.toLocaleString('es-MX', {style: 'currency', currency: 'MXN'})}</p>
+                          <p className={(employeePayroll.totalFoodDiscount < 0 ? 'text-red-500 ' : ' ') + 'text-xs my-auto'}>{employeePayroll.totalFoodDiscount.toLocaleString('es-MX', {style: 'currency', currency: 'MXN'})}</p>
                         </div>
                         <div className="col-span-1">
                           <p>D</p>
@@ -120,7 +120,7 @@ export default function Nomina() {
                         </div>
                         <div className="col-span-1">
                           <p>F</p>
-                          <p className={(employeePayroll.totalDayDiscount < 0 ? 'text-red-500' : '') + ' text-xs'}>{employeePayroll.totalDayDiscount.toLocaleString('es-MX', {style: 'currency', currency: 'MXN'})}</p>
+                          <p className={(employeePayroll.totalDayDiscount < 0 ? 'text-red-500' : '') + ' text-xs my-auto'}>{employeePayroll.totalDayDiscount.toLocaleString('es-MX', {style: 'currency', currency: 'MXN'})}</p>
                         </div>
                       </div>
                     </div>

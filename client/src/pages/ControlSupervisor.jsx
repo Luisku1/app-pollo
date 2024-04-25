@@ -1059,12 +1059,12 @@ export default function ControlSupervisor() {
       }
     }
 
-    fetchNetDifference()
-    fetchEmployeesDailyBalances()
     fetchIncomes()
     fetchExtraOutgoings()
+    fetchEmployeesDailyBalances()
     fetchInputs()
     fetchOutputs()
+    fetchNetDifference()
     fetchLoans()
 
   }, [company._id])

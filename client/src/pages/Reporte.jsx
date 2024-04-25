@@ -18,6 +18,21 @@ export default function Reporte() {
   const [loading, setLoading] = useState(false)
   const [selectedSupervisor, setSelectedSupervisor] = useState(null)
   const [balanceTotal, setBalanceTotal] = useState(0.0)
+  let datePickerValue = (paramsDate ? new Date(paramsDate) : new Date())
+
+  const formatDate = (date) => {
+
+    return (date.getFullYear() + '-' + (date.getMonth() < 9 ? '0' + ((date.getMonth()) + 1) : ((date.getMonth()))) + '-' + ((date.getDate() < 10 ? '0' : '') + date.getDate()))
+
+  }
+
+  let stringDatePickerValue = formatDate(datePickerValue)
+
+  const changeDatePickerValue = (e) => {
+
+    datePickerValue = new Date(e.target.value)
+    stringDatePickerValue = e.target.value
+  }
 
   const extraOutgoingsIsOpenFunctionControl = (arrayLength, selectedSupervisorId) => {
 
@@ -94,7 +109,7 @@ export default function Reporte() {
 
     const fetchBranchesReports = async () => {
 
-      const date = (paramsDate ? new Date(paramsDate) : new Date()).toISOString()
+      const date = new Date(stringDatePickerValue).toISOString()
 
       try {
 
@@ -142,7 +157,7 @@ export default function Reporte() {
 
     const fetchSupervisorsInfo = async () => {
 
-      const date = (paramsDate ? new Date(paramsDate) : new Date()).toISOString()
+      const date = new Date(stringDatePickerValue).toISOString()
 
       setLoading(true)
 
@@ -172,11 +187,15 @@ export default function Reporte() {
     fetchBranchesReports()
     fetchSupervisorsInfo()
 
-  }, [company._id, paramsDate])
+  }, [company._id, stringDatePickerValue])
 
   return (
 
     <main className="p-3 max-w-lg mx-auto">
+
+      <div className="flex gap-2 justify-center">
+        <input className="p-1" type="date" name="date" id="date" onChange={changeDatePickerValue} defaultValue={stringDatePickerValue} />
+      </div>
 
       <h1 className='text-3xl text-center font-semibold mt-7'>
         Reporte
@@ -205,7 +224,7 @@ export default function Reporte() {
             <tbody key={branchReport._id} className="">
 
 
-              <tr className={ 'border-x ' + (index + 1 != branchReports.length ? "border-b " : '') + 'border-black border-opacity-40'}>
+              <tr className={'border-x ' + (index + 1 != branchReports.length ? "border-b " : '') + 'border-black border-opacity-40'}>
                 {/* <td className="text-xs">{branchReport.branch.position}</td> */}
                 <Link className='' to={'/formato/' + branchReport.createdAt + '/' + branchReport.branch._id}>
                   <td className="">

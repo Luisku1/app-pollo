@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux'
 import { deleteOutgoingFetch, deleteStockFetch, fetchBranches, fetchEmployees, fetchPrices, fetchProducts } from '../helpers/FetchFunctions';
 import { FaTrash } from 'react-icons/fa';
 import { useParams, useNavigate } from 'react-router-dom';
+import { MdKeyboardArrowDown, MdKeyboardArrowRight } from 'react-icons/md';
 
 export default function RegistroCuentaDiaria() {
 
@@ -31,6 +32,10 @@ export default function RegistroCuentaDiaria() {
   const [stockTotal, setStockTotal] = useState(0.0)
   const [providerInputs, setProviderInputs] = useState([])
   const [providerInputsTotal, setProviderInputsTotal] = useState(0.0)
+  const [inputsIsOpen, setInputsIsOpen] = useState(false)
+  const [outputsIsOpen, setOutputsIsOpen] = useState(false)
+  const [incomesIsOpen, setIncomesIsOpen] = useState(false)
+  const [providerInputsIsOpen, setProviderInputsIsOpen] = useState(false)
   // const [productLossTotal, setProductLossTotal] = useState(0.0)
   const [products, setProducts] = useState([])
   const [branchPrices, setPrices] = useState([])
@@ -1225,34 +1230,45 @@ export default function RegistroCuentaDiaria() {
 
       {inputs && inputs.length > 0 ?
         <div className='border bg-white p-3 mt-4'>
-          <SectionHeader label={'Entradas'} />
 
-          <div id='header' className='grid grid-cols-12 items-center justify-around font-semibold my-4'>
-            <p className='col-span-3 text-center'>Encargado</p>
-            <p className='col-span-3 text-center'>Producto</p>
-            <p className='col-span-2 text-center'>Piezas</p>
-            <p className='col-span-2 text-center'>Kg</p>
-            <p className='col-span-2 text-center'>Monto</p>
+          <div className='flex gap-4 display-flex justify-between' onClick={() => setInputsIsOpen(!inputsIsOpen)} >
+
+            <SectionHeader label={'Entradas'} />
+            {inputsIsOpen ? <MdKeyboardArrowDown className='text-5xl' /> : <MdKeyboardArrowRight className='text-5xl' />}
+
           </div>
-          {inputs && inputs.length > 0 && inputs.map((input) => (
 
-            <div key={input._id}>
-              <div className='grid grid-cols-12 items-center border border-black border-opacity-30 rounded-lg shadow-sm mb-2 py-3'>
-                <div id='list-element' className='flex col-span-12 items-center'>
-                  <p className='text-center text-xs w-3/12'>{input.employee.name + ' ' + input.employee.lastName}</p>
-                  <p className='text-center text-xs w-3/12'>{input.product.name}</p>
-                  <p className='text-center text-xs w-2/12'>{input.pieces}</p>
-                  <p className='text-center text-xs w-2/12'>{input.weight}</p>
-                  <p className='text-center text-xs w-2/12'>{input.amount.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
-                </div>
+          <div className={inputsIsOpen ? '' : 'hidden'} >
 
-                <div className='col-span-12'>
-                  <p className='text-m text-center font-semibold'>{input.comment}</p>
-                </div>
-
-              </div>
+            <div id='header' className='grid grid-cols-12 items-center justify-around font-semibold my-4'>
+              <p className='col-span-3 text-center'>Encargado</p>
+              <p className='col-span-3 text-center'>Producto</p>
+              <p className='col-span-2 text-center'>Piezas</p>
+              <p className='col-span-2 text-center'>Kg</p>
+              <p className='col-span-2 text-center'>Monto</p>
             </div>
-          ))}
+
+            {inputs && inputs.length > 0 && inputs.map((input) => (
+
+              <div key={input._id}>
+                <div className='grid grid-cols-12 items-center border border-black border-opacity-30 rounded-lg shadow-sm mb-2 py-3'>
+                  <div id='list-element' className='flex col-span-12 items-center'>
+                    <p className='text-center text-xs w-3/12'>{input.employee.name + ' ' + input.employee.lastName}</p>
+                    <p className='text-center text-xs w-3/12'>{input.product.name}</p>
+                    <p className='text-center text-xs w-2/12'>{input.pieces}</p>
+                    <p className='text-center text-xs w-2/12'>{input.weight}</p>
+                    <p className='text-center text-xs w-2/12'>{input.amount.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
+                  </div>
+
+                  <div className='col-span-12'>
+                    <p className='text-m text-center font-semibold'>{input.comment}</p>
+                  </div>
+
+                </div>
+              </div>
+            ))}
+
+          </div>
 
           {inputs && inputs.length > 0 ?
 
@@ -1269,36 +1285,46 @@ export default function RegistroCuentaDiaria() {
 
       {providerInputs && providerInputs.length > 0 ?
         <div className='border bg-white p-3 mt-4'>
-          <SectionHeader label={'Entradas de Rastro'} />
 
-          <div id='header' className='grid grid-cols-12 items-center justify-around font-semibold my-4'>
-            <p className='col-span-3 text-center'>Encargado</p>
-            <p className='col-span-3 text-center'>Producto</p>
-            <p className='col-span-2 text-center'>Piezas</p>
-            <p className='col-span-2 text-center'>Kg</p>
-            <p className='col-span-2 text-center'>Monto</p>
+          <div className='flex gap-4 display-flex justify-between' onClick={() => setProviderInputsIsOpen(!providerInputsIsOpen)} >
+
+            <SectionHeader label={'Entradas de Rastro'} />
+            {providerInputsIsOpen ? <MdKeyboardArrowDown className='text-5xl' /> : <MdKeyboardArrowRight className='text-5xl' />}
+
           </div>
-          {providerInputs && providerInputs.length > 0 && providerInputs.map((input) => (
 
-            <div key={input._id}>
-              {input.weight != 0 ?
-                <div className='grid grid-cols-12 items-center border border-black border-opacity-30 rounded-lg shadow-sm mb-2 py-3'>
-                  <div id='list-element' className='flex col-span-12 items-center'>
-                    <p className='text-center text-xs w-3/12'>{input.employee.name + ' ' + input.employee.lastName}</p>
-                    <p className='text-center text-xs w-3/12'>{input.product.name}</p>
-                    <p className='text-center text-xs w-2/12'>{input.pieces}</p>
-                    <p className='text-center text-xs w-2/12'>{input.weight}</p>
-                    <p className='text-center text-xs w-2/12'>{input.amount.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
-                  </div>
+          <div className={providerInputsIsOpen ? '' : 'hidden'} >
 
-                  <div className='col-span-12'>
-                    <p className='text-m text-center font-semibold'>{input.comment}</p>
-                  </div>
-
-                </div>
-                : ''}
+            <div id='header' className='grid grid-cols-12 items-center justify-around font-semibold my-4'>
+              <p className='col-span-3 text-center'>Encargado</p>
+              <p className='col-span-3 text-center'>Producto</p>
+              <p className='col-span-2 text-center'>Piezas</p>
+              <p className='col-span-2 text-center'>Kg</p>
+              <p className='col-span-2 text-center'>Monto</p>
             </div>
-          ))}
+            {providerInputs && providerInputs.length > 0 && providerInputs.map((input) => (
+
+              <div key={input._id}>
+                {input.weight != 0 ?
+                  <div className='grid grid-cols-12 items-center border border-black border-opacity-30 rounded-lg shadow-sm mb-2 py-3'>
+                    <div id='list-element' className='flex col-span-12 items-center'>
+                      <p className='text-center text-xs w-3/12'>{input.employee.name + ' ' + input.employee.lastName}</p>
+                      <p className='text-center text-xs w-3/12'>{input.product.name}</p>
+                      <p className='text-center text-xs w-2/12'>{input.pieces}</p>
+                      <p className='text-center text-xs w-2/12'>{input.weight}</p>
+                      <p className='text-center text-xs w-2/12'>{input.amount.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
+                    </div>
+
+                    <div className='col-span-12'>
+                      <p className='text-m text-center font-semibold'>{input.comment}</p>
+                    </div>
+
+                  </div>
+                  : ''}
+              </div>
+            ))}
+
+          </div>
 
           {providerInputs && providerInputs.length > 0 ?
 
@@ -1315,33 +1341,43 @@ export default function RegistroCuentaDiaria() {
 
       {outputs && outputs.length > 0 ?
         <div className='border bg-white p-3 mt-4'>
-          <SectionHeader label={'Salidas'} />
 
-          <div id='header' className='grid grid-cols-12 items-center justify-around font-semibold mt-4'>
-            <p className='col-span-3 text-center'>Supervisor</p>
-            <p className='col-span-3 text-center'>Producto</p>
-            <p className='col-span-2 text-center'>Piezas</p>
-            <p className='col-span-2 text-center'>Kg</p>
-            <p className='col-span-2 text-center'>Monto</p>
+          <div className='flex gap-4 display-flex justify-between' onClick={() => setOutputsIsOpen(!outputsIsOpen)} >
+
+            <SectionHeader label={'Salidas'} />
+            {outputsIsOpen ? <MdKeyboardArrowDown className='text-5xl' /> : <MdKeyboardArrowRight className='text-5xl' />}
+
           </div>
-          {outputs && outputs.length > 0 && outputs.map((output) => (
 
+          <div className={outputsIsOpen ? '' : 'hidden'} >
 
-            <div key={output._id} className='grid grid-cols-12 items-center my-2 py-3 border-opacity-30 rounded-lg border border-black shadow-sm gap-4'>
-              <div id='list-element' className='flex col-span-12 items-center '>
-                <p className='text-center text-xs w-3/12'>{output.employee.name + ' ' + output.employee.lastName}</p>
-                <p className='text-center text-xs w-3/12'>{output.product.name}</p>
-                <p className='text-center text-xs w-2/12'>{output.pieces}</p>
-                <p className='text-center text-xs w-2/12'>{output.weight}</p>
-                <p className='text-center text-xs w-2/12'>{output.amount.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
-              </div>
-              <div className='col-span-12'>
-                <p className='text-m text-center font-semibold'>{output.comment}</p>
-              </div>
+            <div id='header' className='grid grid-cols-12 items-center justify-around font-semibold mt-4'>
+              <p className='col-span-3 text-center'>Supervisor</p>
+              <p className='col-span-3 text-center'>Producto</p>
+              <p className='col-span-2 text-center'>Piezas</p>
+              <p className='col-span-2 text-center'>Kg</p>
+              <p className='col-span-2 text-center'>Monto</p>
             </div>
 
-          ))}
+            {outputs && outputs.length > 0 && outputs.map((output) => (
 
+
+              <div key={output._id} className='grid grid-cols-12 items-center my-2 py-3 border-opacity-30 rounded-lg border border-black shadow-sm gap-4'>
+                <div id='list-element' className='flex col-span-12 items-center '>
+                  <p className='text-center text-xs w-3/12'>{output.employee.name + ' ' + output.employee.lastName}</p>
+                  <p className='text-center text-xs w-3/12'>{output.product.name}</p>
+                  <p className='text-center text-xs w-2/12'>{output.pieces}</p>
+                  <p className='text-center text-xs w-2/12'>{output.weight}</p>
+                  <p className='text-center text-xs w-2/12'>{output.amount.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
+                </div>
+                <div className='col-span-12'>
+                  <p className='text-m text-center font-semibold'>{output.comment}</p>
+                </div>
+              </div>
+
+            ))}
+
+          </div>
           {outputs && outputs.length > 0 ?
 
             <div className='flex mt-4 border-black border rounded-lg p-3 border-opacity-30 shadow-lg'>
@@ -1358,30 +1394,40 @@ export default function RegistroCuentaDiaria() {
 
       {incomes && incomes.length > 0 ?
         <div className='border bg-white p-3 mt-4'>
-          <SectionHeader label={'Dinero entregado'} />
 
-          <div id='income-header' className='grid grid-cols-12 items-center justify-around font-semibold mt-4'>
-            <p className='col-span-4 text-center'>Sucursal</p>
-            <p className='col-span-2 text-center'>Tipo</p>
-            <p className='col-span-3 text-center'>Supervisor</p>
-            <p className='col-span-3 text-center'>Monto</p>
+          <div className='flex gap-4 display-flex justify-between' onClick={() => setIncomesIsOpen(!incomesIsOpen)} >
+
+            <SectionHeader label={'Dinero Entregado'} />
+            {incomesIsOpen ? <MdKeyboardArrowDown className='text-5xl' /> : <MdKeyboardArrowRight className='text-5xl' />}
+
           </div>
 
-          {incomes && incomes.length > 0 && incomes.map((income) => (
+          <div className={incomesIsOpen ? '' : 'hidden'} >
 
-
-            <div key={incomes._id} className='grid grid-cols-12 items-center my-2 py-3 border border-black border-opacity-30 shadow-sm rounded-lg'>
-
-              <div id='list-element' className=' flex col-span-12 items-center'>
-                <p className='text-center text-xs w-4/12'>{income.branch.branch ? income.branch.branch : income.branch}</p>
-                <p className='text-center text-xs w-2/12 truncate'>{income.type.name ? income.type.name : income.type}</p>
-                <p className='text-center text-xs w-3/12 truncate'>{income.employee.name}</p>
-                <p className='text-center text-xs w-3/12'>{income.amount.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
-              </div>
-
+            <div id='income-header' className='grid grid-cols-12 items-center justify-around font-semibold mt-4'>
+              <p className='col-span-4 text-center'>Sucursal</p>
+              <p className='col-span-2 text-center'>Tipo</p>
+              <p className='col-span-3 text-center'>Supervisor</p>
+              <p className='col-span-3 text-center'>Monto</p>
             </div>
 
-          ))}
+            {incomes && incomes.length > 0 && incomes.map((income) => (
+
+
+              <div key={incomes._id} className='grid grid-cols-12 items-center my-2 py-3 border border-black border-opacity-30 shadow-sm rounded-lg'>
+
+                <div id='list-element' className=' flex col-span-12 items-center'>
+                  <p className='text-center text-xs w-4/12'>{income.branch.branch ? income.branch.branch : income.branch}</p>
+                  <p className='text-center text-xs w-2/12 truncate'>{income.type.name ? income.type.name : income.type}</p>
+                  <p className='text-center text-xs w-3/12 truncate'>{income.employee.name}</p>
+                  <p className='text-center text-xs w-3/12'>{income.amount.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
+                </div>
+
+              </div>
+
+            ))}
+
+          </div>
 
           {incomes && incomes.length > 0 ?
 
