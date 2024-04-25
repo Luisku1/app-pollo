@@ -1585,7 +1585,7 @@ export default function ControlSupervisor() {
 
                 <div id='list-element' className='flex col-span-12 items-center justify-around p-1'>
                   <p className='text-center text-sm w-6/12'>{productDifference.name}</p>
-                  <p className={'text-center text-sm w-6/12 ' + (productDifference.difference < 0 ? 'text-red-500' : '')}>{Math.abs(productDifference.difference)}</p>
+                  <p className={'text-center text-sm w-6/12 ' + (productDifference.difference < 0 ? 'text-red-500' : '')}>{Math.abs(productDifference.difference).toFixed(2)}</p>
                 </div>
               </div>
 
