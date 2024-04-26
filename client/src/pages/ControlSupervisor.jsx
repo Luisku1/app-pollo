@@ -1604,7 +1604,7 @@ export default function ControlSupervisor() {
 
                   <div className='flex mt-4 border-black border border-opacity-30 shadow-lg rounded-lg p-3'>
                     <p className='w-6/12 text-center'>Total:</p>
-                    <p className={'w-6/12 text-center ' + employeeDifferences.totalDifference < 0 ? 'text-red-500' : ''}>{Math.abs(employeeDifferences.totalDifference)}</p>
+                    <p className={'w-6/12 text-center ' + (employeeDifferences.totalDifference < 0 ? 'text-red-500' : '')}>{Math.abs(employeeDifferences.totalDifference)}</p>
                   </div>
                 </div>
               </div>
