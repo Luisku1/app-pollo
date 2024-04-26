@@ -1045,7 +1045,7 @@ export default function ControlSupervisor() {
 
         Object.values(data.netDifference).map(productDifference => {
 
-          setTotalNetDifference((prev) => prev + productDifference.difference)
+          setTotalNetDifference((prev) => prev + productDifference.totalDifference)
         })
 
         setNetDifference(data.netDifference)
@@ -1572,23 +1572,42 @@ export default function ControlSupervisor() {
 
           <div className={differencesIsOpen ? '' : 'hidden'} >
 
-            {Object.values(netDifference) && Object.values(netDifference).length > 0 ?
-              < div id='header' className='grid grid-cols-12 gap-4 items-center justify-around font-semibold mt-4'>
-                <p className='p-3 rounded-lg col-span-6 text-center'>Producto</p>
-                <p className='p-3 rounded-lg col-span-6 text-center'>Diferencia</p>
-              </div>
-              : ''}
-            {Object.values(netDifference) && Object.values(netDifference).length > 0 && Object.values(netDifference).map((productDifference) => (
+            {Object.values(netDifference) && Object.values(netDifference).length > 0 && Object.values(netDifference).map((employeeDifferences) => (
+
+              <div className='border border-black mt-5' key={employeeDifferences.employee._id}>
+
+                <div>
+                  <p className='font-bold text-xl p-3'>{employeeDifferences.employee.name + ' ' + employeeDifferences.employee.lastName}</p>
+                </div>
 
 
-              <div key={productDifference.name} className={'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2 p-3'}>
+                {Object.values(employeeDifferences.netDifference) && Object.values(employeeDifferences.netDifference).length > 0 ?
+                  < div id='header' className='grid grid-cols-12 gap-4 items-center justify-around font-semibold mt-4'>
+                    <p className='p-3 rounded-lg col-span-6 text-center'>Producto</p>
+                    <p className='p-3 rounded-lg col-span-6 text-center'>Diferencia</p>
+                  </div>
+                  : ''}
+                {Object.values(employeeDifferences.netDifference) && Object.values(employeeDifferences.netDifference).length > 0 && Object.values(employeeDifferences.netDifference).map((productDifference) => (
 
-                <div id='list-element' className='flex col-span-12 items-center justify-around p-1'>
-                  <p className='text-center text-sm w-6/12'>{productDifference.name}</p>
-                  <p className={'text-center text-sm w-6/12 ' + (productDifference.difference < 0 ? 'text-red-500' : '')}>{Math.abs(productDifference.difference).toFixed(2)}</p>
+
+                  <div key={productDifference.name} className={'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2 p-3'}>
+
+                    <div id='list-element' className='flex col-span-12 items-center justify-around p-1'>
+                      <p className='text-center text-sm w-6/12'>{productDifference.name}</p>
+                      <p className={'text-center text-sm w-6/12 ' + (productDifference.difference < 0 ? 'text-red-500' : '')}>{Math.abs(productDifference.difference).toFixed(2)}</p>
+                    </div>
+                  </div>
+
+                ))}
+
+                <div className='p-3'>
+
+                  <div className='flex mt-4 border-black border border-opacity-30 shadow-lg rounded-lg p-3'>
+                    <p className='w-6/12 text-center'>Total:</p>
+                    <p className={'w-6/12 text-center ' + employeeDifferences.totalDifference < 0 ? 'text-red-500' : ''}>{Math.abs(employeeDifferences.totalDifference)}</p>
+                  </div>
                 </div>
               </div>
-
             ))}
 
           </div>
@@ -1597,7 +1616,7 @@ export default function ControlSupervisor() {
 
             <div className='flex mt-4 border-black border border-opacity-30 shadow-lg rounded-lg p-3'>
               <p className='w-6/12 text-center'>Total:</p>
-              <p className={'w-6/12 text-center' + (totalNetDifference < 0 ? 'text-red-500' : '')}>{Math.abs(totalNetDifference)}</p>
+              <p className={'w-6/12 text-center ' + (totalNetDifference < 0 ? 'text-red-500' : '')}>{Math.abs(totalNetDifference)}</p>
 
             </div>
 

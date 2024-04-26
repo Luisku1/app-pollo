@@ -61,7 +61,7 @@ export const getNetDifference = async (req, res, next) => {
         {
           company: companyId
         }]
-    }).populate({ path: 'branch', select: 'p' }).populate({ path: 'product', select: 'name' })
+    }).populate({ path: 'branch', select: 'p' }).populate({ path: 'product', select: 'name' }).populate({ path: 'employee', select: 'name lastName' })
 
     const inputs = await Input.find({
       $and: [{
@@ -82,36 +82,71 @@ export const getNetDifference = async (req, res, next) => {
       {
         company: companyId
       }]
-    }).populate({ path: 'branch', select: 'p' }).populate({ path: 'product', select: 'name' })
+    }).populate({ path: 'branch', select: 'p' }).populate({ path: 'product', select: 'name' }).populate({ path: 'employee', select: 'name lastName' })
 
-    const productsInputs = groupAndSumFunction(inputs)
+    const employeesInputs = groupAndSumFunction(inputs)
 
-    const productsOutputs = groupAndSumFunction(outputs)
+    const employeesOutputs = groupAndSumFunction(outputs)
 
-    const netDifference = {}
+    const employeeNetDifference = {}
 
-    Object.keys(productsOutputs).forEach(product => {
+    Object.keys(employeesOutputs).forEach(employeeOutputs => {
 
-      netDifference[product] = {
+      if(!employeeNetDifference[employeeOutputs]) {
 
-        name: productsOutputs[product].name,
-        difference: (productsInputs[product] ? productsInputs[product].weight : 0) - (productsOutputs[product].weight)
-      }
-    })
+        employeeNetDifference[employeeOutputs] = {
 
-    Object.keys(productsInputs).forEach(product => {
-
-      if (!netDifference[product]) {
-
-        netDifference[product] = {
-
-          name: productsInputs[product].name,
-          difference: (productsInputs[product].weight) - (productsOutputs[product].weight || 0)
+          employee: employeesOutputs[employeeOutputs].employee,
+          totalDifference: 0.00,
+          netDifference: {}
         }
       }
+
+      Object.keys(employeesOutputs[employeeOutputs].productsMovement).forEach((product => {
+
+        const difference = (employeesInputs[employeeOutputs] ? employeesInputs[employeeOutputs].productsMovement[product] ? employeesInputs[employeeOutputs].productsMovement[product].weight : 0 : 0) - (employeesOutputs[employeeOutputs].productsMovement[product].weight)
+
+        employeeNetDifference[employeeOutputs].totalDifference += difference
+
+        employeeNetDifference[employeeOutputs].netDifference[product] = {
+
+          name: employeesOutputs[employeeOutputs].productsMovement[product].name,
+          difference: difference
+        }
+      }))
     })
 
-    res.status(200).json({ netDifference: netDifference })
+
+    Object.keys(employeesInputs).forEach(employeeInputs => {
+
+      if(!employeeNetDifference[employeeInputs]) {
+
+        employeeNetDifference[employeeInputs] = {
+
+          employee: employeesInputs[employeeInputs].employee ,
+          totalDifference: 0.00,
+          netDifference: {}
+        }
+      }
+
+      Object.keys(employeesInputs[employeeInputs].productsMovement).forEach((product => {
+
+        if(!employeeNetDifference[employeeInputs].netDifference[product]) {
+
+          const difference = (employeesInputs[employeeInputs].productsMovement[product].weight) - (employeesOutputs[employeeInputs] ? employeesOutputs[employeeInputs].productsMovement[product] ? employeesOutputs[employeeInputs].productsMovement[product].weight : 0 : 0)
+
+          employeeNetDifference[employeeInputs].totalDifference += difference
+
+          employeeNetDifference[employeeInputs].netDifference[product] = {
+
+            name: employeesInputs[employeeInputs].productsMovement[product].name,
+            difference: difference
+          }
+        }
+      }))
+    })
+
+    res.status(200).json({ netDifference: employeeNetDifference })
 
   } catch (error) {
 
@@ -125,17 +160,36 @@ const groupAndSumFunction = (items) => {
 
   items.forEach(element => {
 
+    const employee = element.employee
     const product = element.product._id
     const productName = element.product.name
     const weight = element.weight
 
-    if (result[product]) {
+    if (!result[employee._id]) {
 
-      result[product].weight += weight / element.branch.p
+      result[employee._id] = {
+        employee: employee,
+        productsMovement: {}
+      }
+    }
+
+    if (result[employee._id].productsMovement) {
+
+      if (result[employee._id].productsMovement[product]) {
+
+        result[employee._id].productsMovement[product].weight += weight / element.branch.p
+
+      } else {
+
+        result[employee._id].productsMovement[product] = {
+          weight: weight / element.branch.p,
+          name: productName
+        }
+      }
 
     } else {
 
-      result[product] = {
+      result[employee._id].productsMovement[product] = {
         weight: weight / element.branch.p,
         name: productName
       }
