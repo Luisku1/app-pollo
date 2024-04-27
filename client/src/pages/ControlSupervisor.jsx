@@ -1009,11 +1009,13 @@ export default function ControlSupervisor() {
           setLoading(false)
           return
         }
+        console.log(data.extraOutgoings)
 
         data.extraOutgoings.sort((extraOutgoing, nextExtraOutgoing) => {
 
-          return extraOutgoing.branch.position - nextExtraOutgoing.branch.position
+          return extraOutgoing.createdAt - nextExtraOutgoing.createdAt
         })
+
 
         setExtraOutgoings(data.extraOutgoings)
         setExtraOutgoingsTotalFunction(data.extraOutgoings)

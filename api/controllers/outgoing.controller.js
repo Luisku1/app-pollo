@@ -176,7 +176,6 @@ export const getExtraOutgoings = async (req, res, next) => {
         }
       },
       {
-
         createdAt: {
 
           $lt: topDate
