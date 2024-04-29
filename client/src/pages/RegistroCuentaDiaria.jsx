@@ -1047,6 +1047,7 @@ export default function RegistroCuentaDiaria() {
       <div className="flex items-center justify-between">
 
         <p>Auxiliar:</p>
+
         <select name="assistant" id="assistant" className='border p-3 rounded-lg'>
 
           <option value={null} selected  >Sin auxiliar</option>
