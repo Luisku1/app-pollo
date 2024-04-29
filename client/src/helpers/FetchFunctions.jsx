@@ -1,8 +1,8 @@
-export const fetchPrices = async (branchId) => {
+export const fetchPrices = async (branchId, date) => {
 
   try {
 
-    const res = await fetch('/api/product/price/get-branch-prices/' + branchId)
+    const res = await fetch('/api/product/price/get-branch-prices/' + branchId + '/' + date)
     const data = await res.json()
 
     if (data.success === false) {

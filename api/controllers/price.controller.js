@@ -111,10 +111,17 @@ export const initializeBranchPrices = async (req, res, next) => {
 export const getBranchCurrentPrices = async (req, res, next) => {
 
   const branchId = req.params.branchId
+  const date = req.params.date
+
+	const actualLocaleDate = new Date(new Date(date).getTime() - 6 * 60 * 60000)
+  actualLocaleDate.setDate(actualLocaleDate.getDate() + 1)
+  const actualLocaleDay = actualLocaleDate.toISOString().slice(0, 10)
+
+  const topDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
 
   try {
 
-    const productsPrice = await pricesAggregate(branchId)
+    const productsPrice = await pricesAggregate(branchId, topDate)
 
     if (productsPrice.error == null) {
 
@@ -250,7 +257,7 @@ export const getProductPrice = async (productId, branchId) => {
   }
 }
 
-export const pricesAggregate = async (branchId) => {
+export const pricesAggregate = async (branchId, topDate) => {
 
   try {
 
@@ -261,13 +268,15 @@ export const pricesAggregate = async (branchId) => {
           from: "prices",
           localField: "_id",
           foreignField: "branch",
-          as: "prices"
+          as: "prices",
+          pipeline: [
+            {$match: {createdAt: {$lt: topDate}}}
+          ]
         }
       },
       {
         $unwind: {
           path: "$prices",
-          preserveNullAndEmptyArrays: true
         }
       },
       {

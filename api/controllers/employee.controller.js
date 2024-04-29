@@ -230,10 +230,7 @@ export const getEmployeePayroll = async (req, res, next) => {
 	const actualLocaleDate = new Date(new Date().getTime() - 6 * 60 * 60000)
   const actualLocaleDay = actualLocaleDate.toISOString().slice(0, 10)
 
-  const actualLocaleDatePlusOne = new Date(actualLocaleDay)
-  actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
-
-  const bottomDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
+  const topDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
 
 	try {
 
@@ -253,7 +250,7 @@ export const getEmployeePayroll = async (req, res, next) => {
 					foreignField: 'employee',
 					as: 'dailyBalances',
 					pipeline: [
-						{$match: {createdAt: {$lt: bottomDate}}},
+						{$match: {createdAt: {$lt: topDate}}},
 						{$sort: {createdAt: -1}},
 						{$limit: 7}
 					]

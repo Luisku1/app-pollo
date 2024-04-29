@@ -54,7 +54,7 @@ export default function App() {
           <Route path="/reporte/:date" element={<Reporte />} />
           <Route path="/gastos" element={<Gastos />} />
           <Route path="/gastos/:date" element={<Gastos />} />
-          <Route path="/reporte/:date" element={<Reporte />} />
+          <Route path="/reporte" element={<Reporte />} />
           <Route path="/reporte/:date" element={<Reporte />} />
 
         </Route>

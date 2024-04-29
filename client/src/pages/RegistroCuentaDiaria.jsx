@@ -11,6 +11,7 @@ export default function RegistroCuentaDiaria() {
   const { currentUser, company } = useSelector((state) => state.user)
   const paramsDate = useParams().date
   const [branchId, setBranchId] = useState(useParams().branchId)
+  const [branchReport, setBranchReport] = useState({})
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
   const [outgoingFormData, setOutgoingFormData] = useState({})
@@ -18,6 +19,7 @@ export default function RegistroCuentaDiaria() {
   // const [productLossFormData, setProductLossFormData] = useState({})
   // const [productLosses, setProductLosses] = useState([])
   const [employees, setEmployees] = useState([])
+  const [managerRole, setManagerRole] = useState({})
   const [branches, setBranches] = useState([])
   const [outgoings, setOutgoings] = useState([])
   const [outgoingsTotal, setOutgoingsTotal] = useState(0.0)
@@ -243,18 +245,20 @@ export default function RegistroCuentaDiaria() {
 
     const { error } = await deleteOutgoingFetch(outgoingId)
 
-    setLoading(false)
 
     if (error == null) {
 
       setOutgoingsTotal(outgoingsTotal - parseFloat(outgoings[index].amount))
       outgoings.splice(index, 1)
     }
+
+    setLoading(false)
   }
 
   const addStockItem = async (e) => {
 
     e.preventDefault()
+    setLoading(true)
 
     const branchSelected = document.getElementById('branch')
     const productSelect = document.getElementById('product')
@@ -263,7 +267,6 @@ export default function RegistroCuentaDiaria() {
     const employeeSelect = document.getElementById('employee')
     const amount = parseFloat(getProductPrice(productSelect.value) * stockFormData.weight)
 
-    setLoading(true)
 
     try {
 
@@ -297,7 +300,6 @@ export default function RegistroCuentaDiaria() {
       setStockItems([...stockItems, data.stock])
       setStockTotal(stockTotal + data.stock.amount)
 
-      productSelect.value = 'none'
       weightInput.value = ''
       piecesInput.value = ''
 
@@ -314,6 +316,7 @@ export default function RegistroCuentaDiaria() {
   // const addProductLossItem = async (e) => {
 
   //   e.preventDefault()
+  //   setLoading(true)
 
   //   const branchSelect = document.getElementById('branch')
   //   const employeeSelect = document.getElementById('employee')
@@ -322,7 +325,6 @@ export default function RegistroCuentaDiaria() {
   //   const commentInput = document.getElementById('comment')
   //   const amount = parseFloat(getProductPrice(productSelect.value) * productLossFormData.productLossWeight)
 
-  //   setLoading(true)
 
   //   try {
 
@@ -358,7 +360,6 @@ export default function RegistroCuentaDiaria() {
   //     setProductLossTotal(productLossTotal + data.productLoss.amount)
   //     setError(null)
 
-  //     productSelect.value = 'none'
   //     weightInput.value = ''
   //     commentInput.value = ''
 
@@ -377,13 +378,13 @@ export default function RegistroCuentaDiaria() {
 
     const { error } = await deleteStockFetch(stockId)
 
-    setLoading(false)
 
     if (error == null) {
 
       setStockTotal(stockTotal - parseFloat(stockItems[index].amount))
       stockItems.splice(index, 1)
     }
+    setLoading(false)
   }
 
   // const deleteProductLossItem = async (productLossItemId, index) => {
@@ -401,23 +402,7 @@ export default function RegistroCuentaDiaria() {
   //   }
   // }
 
-  const setPricesFunction = async (branchId) => {
 
-    setLoading(true)
-
-    const { error, data } = await fetchPrices(branchId)
-
-    setLoading(false)
-
-    if (error == null) {
-      setPrices(data)
-      setError(null)
-
-    } else {
-
-      setError(error)
-    }
-  }
 
   const setOutgoingsTotalFunction = (outgoings) => {
 
@@ -506,12 +491,14 @@ export default function RegistroCuentaDiaria() {
 
   const handleSubmit = async () => {
 
+    setLoading(true)
+
     const employee = document.getElementById('employee')
     const assistant = document.getElementById('assistant')
     const branch = document.getElementById('branch')
     const assistantValue = assistant.value == 'none' ? null : assistant.value
+    const date = (paramsDate ? new Date(paramsDate) : new Date()).toISOString()
 
-    setLoading(true)
 
     try {
 
@@ -521,11 +508,63 @@ export default function RegistroCuentaDiaria() {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
+          date: date,
           employee: employee.value,
           assistant: assistantValue,
           branch: branch.value,
           company: company._id,
           initialStock: initialStock,
+          finalStock: stockTotal,
+          inputs: inputsTotal + providerInputsTotal,
+          outputs: outputsTotal,
+          outgoings: outgoingsTotal,
+          incomes: incomesTotal,
+        })
+      })
+
+      const data = await res.json()
+
+      if (data.success === false) {
+
+        setError('Ya está registrado el reporte de esta pollería, mira si ya está en tu perfil.')
+        setLoading(false)
+        return
+      }
+
+      setError(null)
+      setLoading(false)
+
+      navigate('/perfil/' + employee.value)
+
+    } catch (error) {
+
+      setError(error.message)
+      setLoading(false)
+
+    }
+
+  }
+
+  const handleUpdate = async () => {
+
+    setLoading(true)
+
+    const employee = document.getElementById('employee')
+    const assistant = document.getElementById('assistant')
+    const assistantValue = assistant.value == 'none' ? null : assistant.value
+
+    try {
+
+      const res = await fetch('/api/branch/report/update/', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          branchReport: branchReport,
+          employee: employee.value,
+          assistant: assistantValue,
+          initialStock: branchReport.initialStock,
           finalStock: stockTotal,
           inputs: inputsTotal + providerInputsTotal,
           outputs: outputsTotal,
@@ -539,7 +578,7 @@ export default function RegistroCuentaDiaria() {
 
       if (data.success === false) {
 
-        setError('Ya está registrado el reporte de esta pollería, mira si ya está en tu perfil.')
+        setError('Algún error ha ocurrido, intenta más tarde.')
         setLoading(false)
         return
       }
@@ -555,12 +594,65 @@ export default function RegistroCuentaDiaria() {
       setError(error.message)
 
     }
-
   }
 
   useEffect(() => {
 
-    const fetchStock = async (branchId) => {
+    const setManagerRoleFunction = async (roles) => {
+
+      const managerRole = roles.find((elemento) => elemento.name == 'Gerente')
+      setManagerRole(managerRole)
+
+    }
+
+    const fetchRoles = async () => {
+
+      try {
+
+        const res = await fetch('/api/role/get')
+        const data = await res.json()
+
+        if (data.success === false) {
+          setError(data.message)
+          return
+        }
+        await setManagerRoleFunction(data.roles)
+        setError(null)
+
+      } catch (error) {
+
+        setError(error.message)
+
+      }
+    }
+
+    fetchRoles()
+
+  }, [branchId, paramsDate])
+
+  useEffect(() => {
+
+    const setPricesFunction = async () => {
+
+      const date = (paramsDate ? new Date(paramsDate) : new Date()).toISOString()
+
+      setLoading(true)
+
+      const { error, data } = await fetchPrices(branchId, date)
+
+
+      if (error == null) {
+        setPrices(data)
+        setError(null)
+
+      } else {
+
+        setError(error)
+      }
+      setLoading(false)
+    }
+
+    const fetchStock = async () => {
 
       const date = (paramsDate ? new Date(paramsDate) : new Date()).toISOString()
 
@@ -593,7 +685,7 @@ export default function RegistroCuentaDiaria() {
       }
     }
 
-    const fetchOutgoings = async (branchId) => {
+    const fetchOutgoings = async () => {
 
       const date = (paramsDate ? new Date(paramsDate) : new Date()).toISOString()
 
@@ -625,7 +717,7 @@ export default function RegistroCuentaDiaria() {
       }
     }
 
-    const fetchInitialStock = async (branchId) => {
+    const fetchInitialStock = async () => {
 
       const date = (paramsDate ? new Date(paramsDate) : new Date()).toISOString()
 
@@ -656,7 +748,7 @@ export default function RegistroCuentaDiaria() {
 
     }
 
-    const fetchInputs = async (branchId) => {
+    const fetchInputs = async () => {
 
       const date = (paramsDate ? new Date(paramsDate) : new Date()).toISOString()
 
@@ -720,7 +812,7 @@ export default function RegistroCuentaDiaria() {
 
       }
     }
-    const fetchIncomes = async (branchId) => {
+    const fetchIncomes = async () => {
 
       const date = (paramsDate ? new Date(paramsDate) : new Date()).toISOString()
 
@@ -753,7 +845,7 @@ export default function RegistroCuentaDiaria() {
       }
     }
 
-    // const fetchProductLosses = async (branchId) => {
+    // const fetchProductLosses = async () => {
 
     //   const date = (paramsDate ? new Date(paramsDate) : new Date()).toISOString()
 
@@ -783,11 +875,12 @@ export default function RegistroCuentaDiaria() {
     //   }
     // }
 
-    const fetchProviderInputs = async (branchId) => {
+    const fetchProviderInputs = async () => {
 
       const date = (paramsDate ? new Date(paramsDate) : new Date()).toISOString()
 
       setLoading(true)
+      setProviderInputs([])
 
       try {
 
@@ -800,8 +893,6 @@ export default function RegistroCuentaDiaria() {
           setError(data.message)
           return
         }
-
-        console.log(data.providerInputs)
 
         setProviderInputs(data.providerInputs)
         setProviderInputsTotalFunction(data.providerInputs)
@@ -816,16 +907,49 @@ export default function RegistroCuentaDiaria() {
       }
     }
 
+    const fetchBranchReport = async () => {
+
+      const date = (paramsDate ? new Date(paramsDate) : new Date()).toISOString()
+
+      setLoading(true)
+      setBranchReport({})
+
+      try {
+
+        const res = await fetch('/api/branch/report/get-branch-report/' + branchId + '/' + date)
+        const data = await res.json()
+
+        if (data.success === false) {
+
+          setLoading(false)
+          setError(data.message)
+          return
+        }
+
+        setBranchReport(data.originalBranchReport)
+
+        setLoading(false)
+        setError(null)
+
+      } catch (error) {
+
+        setError(error.message)
+        setLoading(false)
+      }
+    }
+
+
     const fetchs = () => {
 
-      fetchInitialStock(branchId)
-      setPricesFunction(branchId)
-      fetchOutgoings(branchId)
-      fetchStock(branchId)
-      fetchIncomes(branchId)
-      fetchInputs(branchId)
-      fetchProviderInputs(branchId)
-      fetchOutputs(branchId)
+      fetchBranchReport()
+      fetchInitialStock()
+      setPricesFunction()
+      fetchOutgoings()
+      fetchStock()
+      fetchIncomes()
+      fetchInputs()
+      fetchProviderInputs()
+      fetchOutputs()
       // fetchProductLosses(branchId)
     }
     if (branchId && branchId != 'none') {
@@ -914,7 +1038,7 @@ export default function RegistroCuentaDiaria() {
           {employees && employees.length == 0 ? <option> No hay empleados </option> : ''}
           {employees && employees.length > 0 && employees.map((employee) => (
 
-            <option selected={employee._id == currentUser._id ? 'selected' : ''} key={employee._id} value={employee._id}>{employee.name + ' ' + employee.lastName}</option>
+            <option selected={branchReport && branchReport.employee && employee._id == branchReport.employee ? 'selected' : employee._id == currentUser._id ? 'selected' : ''} key={employee._id} value={employee._id}>{employee.name + ' ' + employee.lastName}</option>
 
           ))}
         </select>
@@ -974,7 +1098,7 @@ export default function RegistroCuentaDiaria() {
       <div className="flex items-center justify-between">
 
         <p>Sobrante inicial: </p>
-        <p className=' bg-white p-3 rounded-lg'>{initialStock ? initialStock.toLocaleString("es-Mx", { style: 'currency', currency: 'MXN' }) : '$0.00'}</p>
+        <p className=' bg-white p-3 rounded-lg'>{(branchReport && branchReport.initialStock) ? branchReport.initialStock.toLocaleString("es-Mx", { style: 'currency', currency: 'MXN' }) : initialStock ? initialStock.toLocaleString("es-Mx", { style: 'currency', currency: 'MXN' }) : '$0.00'}</p>
 
       </div>
 
@@ -999,14 +1123,14 @@ export default function RegistroCuentaDiaria() {
         {outgoings && outgoings.length > 0 && outgoings.map((outgoing, index) => (
 
 
-          <div key={outgoing._id} className={(document.getElementById('employee').value == outgoing.employee || outgoing.employee == currentUser._id ? '' : 'py-3 ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
+          <div key={outgoing._id} className={(currentUser._id == outgoing.employee || currentUser.role == managerRole._id ? '' : 'py-3 ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
 
             <div id='list-element' className='flex col-span-10 items-center'>
               <p className='text-center text-xs w-6/12'>{outgoing.concept}</p>
               <p className='text-center text-xs w-6/12'>{outgoing.amount.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
             </div>
 
-            {document.getElementById('employee').value == outgoing.employee || currentUser._id == outgoing.employee ?
+            {currentUser._id == outgoing.employee || currentUser.role == managerRole._id ?
 
               <div>
                 <button id={outgoing._id} onClick={() => { setIsOpen(isOpen ? false : true), setButtonId(outgoing._id) }} disabled={loading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
@@ -1083,7 +1207,7 @@ export default function RegistroCuentaDiaria() {
         {stockItems && stockItems.length > 0 && stockItems.map((stock, index) => (
 
 
-          <div key={stock._id} className={(document.getElementById('employee').value == stock.employee ? '' : 'py-3 ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
+          <div key={stock._id} className={(currentUser._id == stock.employee || currentUser.role == managerRole._id ? '' : 'py-3 ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
 
             <div id='list-element' className='flex col-span-10 items-center '>
               <p className='text-center w-4/12'>{stock.product.name ? stock.product.name : stock.product}</p>
@@ -1093,7 +1217,7 @@ export default function RegistroCuentaDiaria() {
             </div>
 
 
-            {document.getElementById('employee').value == stock.employee || currentUser._id == stock.employee ?
+            {currentUser._id == stock.employee || currentUser.role == managerRole._id ?
 
               <div>
                 <button id={stock._id} onClick={() => { setIsOpen(!isOpen), setButtonId(stock._id) }} disabled={loading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
@@ -1443,7 +1567,22 @@ export default function RegistroCuentaDiaria() {
 
       <div className='flex flex-col gap-4 mt-4'>
 
-        <button disabled={loading} className='bg-slate-600 text-white p-3 rounded-lg uppercase hover:opacity-95 disabled:opacity-80' onClick={() => handleSubmit()}>Enviar formato</button>
+        {branchReport && branchReport._id ?
+
+          <div>
+
+            {managerRole._id == currentUser.role ?
+
+              <button disabled={loading} className='bg-slate-600 text-white p-3 rounded-lg uppercase hover:opacity-95 disabled:opacity-80' onClick={() => handleUpdate()}>Actualizar formato</button>
+
+              : ''}
+
+          </div>
+          :
+
+          <button disabled={loading} className='bg-slate-600 text-white p-3 rounded-lg uppercase hover:opacity-95 disabled:opacity-80' onClick={() => handleSubmit()}>Enviar formato</button>
+        }
+
 
       </div>
 

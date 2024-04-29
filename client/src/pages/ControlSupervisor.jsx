@@ -1269,7 +1269,7 @@ export default function ControlSupervisor() {
                   <p className='text-center text-xs w-3/12'>{income.amount.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
                 </div>
 
-                {currentUser._id == income.employee._id ?
+                {currentUser._id == income.employee._id || currentUser.role == managerRole._id ?
 
                   <div>
                     <button id={income._id} onClick={() => { setIsOpen(!isOpen), setButtonId(income._id) }} disabled={loading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
@@ -1341,7 +1341,7 @@ export default function ControlSupervisor() {
             {extraOutgoings && extraOutgoings.length > 0 && extraOutgoings.map((extraOutgoing, index) => (
 
 
-              <div key={extraOutgoing._id} className={(currentUser._id == extraOutgoing.employee ? '' : 'py-3 ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
+              <div key={extraOutgoing._id} className={(currentUser._id == extraOutgoing.employee || currentUser.role == managerRole._id ? '' : 'py-3 ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
 
                 <div id='list-element' className='flex col-span-10 items-center justify-around'>
                   <p className='text-center text-sm w-3/12'>{extraOutgoing.employee.name ? extraOutgoing.employee.name : extraOutgoing.employee}</p>
@@ -1349,7 +1349,7 @@ export default function ControlSupervisor() {
                   <p className='text-center text-sm w-3/12'>{extraOutgoing.amount.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
                 </div>
 
-                {currentUser._id == extraOutgoing.employee._id ?
+                {currentUser._id == extraOutgoing.employee._id || currentUser.role == managerRole._id ?
 
                   <div>
                     <button id={extraOutgoing._id} onClick={() => { setIsOpen(!isOpen), setButtonId(extraOutgoing._id) }} disabled={loading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
@@ -1423,7 +1423,7 @@ export default function ControlSupervisor() {
             {inputs && inputs.length > 0 && inputs.map((input, index) => (
 
 
-              <div key={input._id} className={(currentUser._id == input.employee ? '' : 'py-3 ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
+              <div key={input._id} className={(currentUser._id == input.employee || currentUser.role == managerRole._id ? '' : 'py-3 ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
 
                 <div id='list-element' className='flex col-span-10 items-center justify-around'>
                   <p className='text-center text-xs  w-3/12'>{input.branch.branch ? input.branch.branch : input.branch}</p>
@@ -1432,7 +1432,7 @@ export default function ControlSupervisor() {
                   <p className='text-center text-xs w-1/12'>{input.weight}</p>
                 </div>
 
-                {currentUser._id == input.employee._id ?
+                {currentUser._id == input.employee._id || currentUser.role == managerRole._id ?
 
                   <div>
                     <button id={input._id} onClick={() => { setIsOpen(!isOpen), setButtonId(input._id) }} disabled={loading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
@@ -1503,7 +1503,7 @@ export default function ControlSupervisor() {
             {outputs && outputs.length > 0 && outputs.map((output, index) => (
 
 
-              <div key={output._id} className={(currentUser._id == output.employee ? '' : 'py-3 ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
+              <div key={output._id} className={(currentUser._id == output.employee || currentUser.role == managerRole._id ? '' : 'py-3 ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
 
                 <div id='list-element' className='flex col-span-10 items-center justify-around'>
                   <p className='text-center text-xs  w-3/12'>{output.branch.branch ? output.branch.branch : output.branch}</p>
@@ -1512,7 +1512,7 @@ export default function ControlSupervisor() {
                   <p className='text-center text-xs w-1/12'>{output.weight}</p>
                 </div>
 
-                {currentUser._id == output.employee._id ?
+                {currentUser._id == output.employee._id || currentUser.role == managerRole._id ?
 
                   <div>
                     <button id={output._id} onClick={() => { setIsOpen(!isOpen), setButtonId(output._id) }} disabled={loading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
@@ -1650,7 +1650,7 @@ export default function ControlSupervisor() {
               {loans && loans.length > 0 && loans.map((loan, index) => (
 
 
-                <div key={loan._id} className={(currentUser._id == loan.supervisor ? '' : 'py-3 ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
+                <div key={loan._id} className={(currentUser._id == loan.supervisor || currentUser.role == managerRole._id ? '' : 'py-3 ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
 
                   <div id='list-element' className='flex col-span-10 items-center justify-around'>
                     <p className='text-center text-sm w-3/12'>{loan.supervisor.name}</p>
@@ -1658,7 +1658,7 @@ export default function ControlSupervisor() {
                     <p className='text-center text-sm w-3/12'>{loan.amount.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
                   </div>
 
-                  {currentUser._id == loan.supervisor._id ?
+                  {currentUser._id == loan.supervisor._id || currentUser.role == managerRole._id ?
 
                     <div>
                       <button id={loan._id} onClick={() => { setIsOpen(!isOpen), setButtonId(loan._id) }} disabled={loading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>

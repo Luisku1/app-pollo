@@ -6,13 +6,13 @@ import { errorHandler } from '../utils/error.js'
 export const createBranchReport = async (req, res, next) => {
 
   const companyId = req.params.companyId
-  const { initialStock, finalStock, inputs, outputs, outgoings, incomes, company, branch, employee, assistant } = req.body
+  const { initialStock, finalStock, inputs, outputs, outgoings, incomes, company, branch, employee, assistant, date } = req.body
   const inputBalance = initialStock + inputs
   const outputBalance = outgoings + outputs + incomes + finalStock
   const balance = outputBalance - inputBalance
-  const createdAt = new Date().toISOString()
+  const createdAt = new Date(date).toISOString()
 
-  const actualLocaleDate = new Date(new Date().getTime() - 6 * 60 * 60000)
+  const actualLocaleDate = new Date(new Date(date).getTime() - 6 * 60 * 60000)
   const actualLocaleDay = actualLocaleDate.toISOString().slice(0, 10)
 
   const actualLocaleDatePlusOne = new Date(actualLocaleDay)
@@ -124,6 +124,131 @@ export const createBranchReport = async (req, res, next) => {
     } else {
 
       next(errorHandler(404, 'Report already exists'))
+    }
+
+  } catch (error) {
+
+    next(error)
+  }
+}
+
+export const updateBranchReport = async (req, res, next) => {
+
+  const { branchReport, employee, assistant, branch, company, initialStock, finalStock, inputs, outputs, outgoings, incomes } = req.body
+  const inputBalance = initialStock + inputs
+  const outputBalance = outgoings + outputs + incomes + finalStock
+  const balance = outputBalance - inputBalance
+
+  const actualLocaleDate = new Date(new Date(branchReport.createdAt).getTime() - 6 * 60 * 60000)
+  const actualLocaleDay = actualLocaleDate.toISOString().slice(0, 10)
+
+  const actualLocaleDatePlusOne = new Date(actualLocaleDay)
+  actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
+  const actualLocalDayPlusOne = actualLocaleDatePlusOne.toISOString().slice(0, 10)
+
+  const bottomDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
+  const topDate = new Date(actualLocalDayPlusOne + 'T00:00:00.000-06:00')
+
+  try {
+
+    const reportData = await ReportData.findOne({ _id: branchReport.reportData })
+
+    if (reportData) {
+
+      const updatedBranchReport = await BranchReport.updateOne({ _id: branchReport._id }, {
+        $set: { initialStock: initialStock, finalStock: finalStock, inputs: inputs, outputs: outputs, outgoings: outgoings, incomes: incomes, balance: balance, employee: employee, assistant: assistant }
+      })
+
+      if (updatedBranchReport.acknowledged) {
+
+        const updatedEmployeeDailyBalance = await EmployeeDailyBalance.updateOne({
+
+          $and: [
+            {
+              createdAt: {
+
+                $lt: topDate
+              }
+            },
+            {
+              createdAt: {
+
+                $gte: bottomDate
+              }
+            },
+            {
+              employee: employee
+            }
+          ]
+        }, { accountBalance: balance })
+
+        const updatedReportData = await ReportData.updateOne({ _id: branchReport.reportData }, {
+
+          $set: { incomes: (reportData.incomes + incomes - branchReport.incomes), stock: (reportData.stock + finalStock - branchReport.finalStock), outgoings: (reportData.outgoings + outgoings - branchReport.outgoings) }
+        })
+
+        if(updatedReportData.acknowledged) {
+
+          res.status(200).json('Branch report updated successfully')
+
+        } else {
+
+          next(errorHandler(404, 'An error has ocurred'))
+        }
+      }
+    }
+
+
+  } catch (error) {
+
+    next(error)
+  }
+}
+
+export const getBranchReport = async (req, res, next) => {
+
+  const branchId = req.params.branchId
+  const date = req.params.date
+
+  const actualLocaleDate = new Date(new Date(date).getTime() - 6 * 60 * 60000)
+  const actualLocaleDay = actualLocaleDate.toISOString().slice(0, 10)
+
+  const actualLocaleDatePlusOne = new Date(actualLocaleDay)
+  actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
+  const actualLocalDayPlusOne = actualLocaleDatePlusOne.toISOString().slice(0, 10)
+
+  const bottomDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
+  const topDate = new Date(actualLocalDayPlusOne + 'T00:00:00.000-06:00')
+
+  try {
+
+    const originalBranchReport = await BranchReport.findOne({
+      $and: [
+        {
+          createdAt: {
+
+            $lt: topDate
+          }
+        },
+        {
+          createdAt: {
+
+            $gte: bottomDate
+          }
+        },
+        {
+          branch: branchId
+        }
+      ]
+    })
+
+    if (originalBranchReport) {
+
+      res.status(200).json({ originalBranchReport: originalBranchReport })
+
+    } else {
+
+      next(errorHandler(404, 'No branch report found'))
     }
 
   } catch (error) {
