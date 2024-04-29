@@ -13,8 +13,8 @@ export default function Perfil() {
   const [employeeDayInfo, setEmployeeDayInfo] = useState(null)
   const [supervisorInfo, setSupervisorInfo] = useState({})
   const [employeeReports, setEmployeeReports] = useState([])
-  const [isOpen, setIsOpen] = useState(false)
-  const [buttonId, setButtonId] = useState(null)
+  // const [isOpen, setIsOpen] = useState(false)
+  // const [buttonId, setButtonId] = useState(null)
   const [fetchError, setFetchError] = useState(null)
   const [loading, setLoading] = useState(false)
   const dispatch = useDispatch()
@@ -330,7 +330,7 @@ export default function Perfil() {
                       </div>
                     </Link>
 
-                    {index == 0 && employeeId == currentUser._id ?
+                    {/* {index == 0 && employeeId == currentUser._id ?
 
                       <div className=' col-span-2'>
                         <button id={reportData._id} onClick={() => { setIsOpen(isOpen ? false : true), setButtonId(reportData._id) }} disabled={loading} className='bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
@@ -359,7 +359,7 @@ export default function Perfil() {
 
                       </div>
 
-                      : ''}
+                      : ''} */}
                   </div>
                 </div>
 
