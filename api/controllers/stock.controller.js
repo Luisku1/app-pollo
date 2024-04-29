@@ -31,8 +31,11 @@ export const getInitialStock = async (req, res, next) => {
   const actualLocaleDay = actualLocaleDate.toISOString().slice(0, 10)
 
   const actualLocaleDateMinusOne = new Date(actualLocaleDay)
+  const actualLocaleDatePlusOne = new Date(actualLocaleDate)
+  actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
   actualLocaleDateMinusOne.setDate(actualLocaleDateMinusOne.getDate() - 1)
   const actualLocaleDayMinusOne = actualLocaleDateMinusOne.toISOString().slice(0, 10)
+  const actualLocaleDayPlusOne = actualLocaleDateMinusOne.toISOString().slice(0, 10)
 
   const topDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
   const bottomDate = new Date(actualLocaleDayMinusOne + 'T00:00:00.000-06:00')
@@ -60,14 +63,16 @@ export const getInitialStock = async (req, res, next) => {
         }]
     })
 
+
     if(initialStock) {
 
-      const branchPrices = await pricesAggregate(branchId)
+      const branchPrices = await pricesAggregate(branchId, actualLocaleDatePlusOne)
 
       let total = 0.0
 
       if(branchPrices.error == null) {
 
+        console.log(branchPrices)
         initialStock.forEach((stock) => {
 
           const priceIndex = branchPrices.data.prices.findIndex((price) => (price.productId.toString() == stock.product.toString()))
