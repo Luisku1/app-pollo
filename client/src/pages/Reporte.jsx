@@ -34,10 +34,7 @@ export default function Reporte() {
   const changeDatePickerValue = (e) => {
 
     datePickerValue = new Date(e.target.value)
-    console.log(datePickerValue)
     stringDatePickerValue = e.target.value
-
-    console.log(e.target.value, stringDatePickerValue)
 
     navigate('/reporte/' + stringDatePickerValue)
 
