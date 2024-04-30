@@ -115,6 +115,7 @@ export default function Reporte() {
     setExtraOutgoingsTotal(0.0)
     setBalanceTotal(0.0)
     setBranchReports([])
+    setSupervisorsInfo([])
 
     const fetchBranchesReports = async () => {
 
