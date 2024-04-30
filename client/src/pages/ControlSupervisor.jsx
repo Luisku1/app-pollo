@@ -487,8 +487,6 @@ export default function ControlSupervisor() {
 
       piecesInput.value = ''
       weightInput.value = ''
-      branchInput.value = 'none'
-      productInput.value = 'none'
 
       setLoading(false)
 
@@ -565,8 +563,6 @@ export default function ControlSupervisor() {
 
       piecesInput.value = ''
       weightInput.value = ''
-      branchInput.value = 'none'
-      productInput.value = 'none'
 
       setLoading(false)
 

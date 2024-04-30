@@ -28,8 +28,7 @@ export const getOutgoings = async (req, res, next) => {
   const companyId = req.params.companyId
   const date = new Date(req.params.date)
 
-  const actualLocaleDate = new Date(new Date(date).getTime() - 6 * 60 * 60000)
-  const actualLocaleDay = actualLocaleDate.toISOString().slice(0, 10)
+  const actualLocaleDay = date.toISOString().slice(0, 10)
 
   const actualLocaleDatePlusOne = new Date(actualLocaleDay)
   actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
@@ -37,6 +36,8 @@ export const getOutgoings = async (req, res, next) => {
 
   const bottomDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
   const topDate = new Date(actualLocalDayPlusOne + 'T00:00:00.000-06:00')
+
+
   try {
 
     const outgoings = await Outgoing.find({
