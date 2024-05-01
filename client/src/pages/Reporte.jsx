@@ -6,7 +6,7 @@ import { useParams, useNavigate, Link } from "react-router-dom"
 export default function Reporte() {
 
   const { company } = useSelector((state) => state.user)
-  const paramsDate = useParams().date
+  let paramsDate = useParams().date
   const [branchReports, setBranchReports] = useState([])
   const [supervisorsInfo, setSupervisorsInfo] = useState([])
   const [error, setError] = useState(null)
@@ -21,21 +21,25 @@ export default function Reporte() {
   const navigate = useNavigate()
   let datePickerValue = (paramsDate ? new Date(paramsDate) : new Date())
 
+  console.log(paramsDate)
+
   const formatDate = (date) => {
 
     const actualLocaleDate = date
 
-    return (actualLocaleDate.getFullYear() + '-' + (actualLocaleDate.getMonth() < 9 ? '0' + ((actualLocaleDate.getMonth()) + 1) : ((actualLocaleDate.getMonth()))) + '-' + ((actualLocaleDate.getDate() < 10 ? '0' : '') + actualLocaleDate.getDate()))
+    return (actualLocaleDate.getFullYear() + '-' + (actualLocaleDate.getMonth() < 9 ? '0' + ((actualLocaleDate.getMonth()) + 1) : ((actualLocaleDate.getMonth()))) + '-' + ((actualLocaleDate.getDate() < 10 ? '0' : '') + actualLocaleDate.getDate()) + 'T06:00:00.000Z')
 
   }
+
 
   let stringDatePickerValue = formatDate(datePickerValue)
 
   const changeDatePickerValue = (e) => {
 
     datePickerValue = new Date(e.target.value)
-    stringDatePickerValue = e.target.value
+    stringDatePickerValue = formatDate(new Date(e.target.value + 'T06:00:00.000Z'))
 
+    console.log(stringDatePickerValue)
     navigate('/reporte/' + stringDatePickerValue)
 
   }
@@ -208,7 +212,7 @@ export default function Reporte() {
     <main className="p-3 max-w-lg mx-auto">
 
       <div className="flex justify-center">
-        <input className="p-1" type="date" name="date" id="date" onChange={changeDatePickerValue} defaultValue={stringDatePickerValue} />
+        <input className="p-1" type="date" name="date" id="date" onChange={changeDatePickerValue} defaultValue={stringDatePickerValue.slice(0, 10)} />
       </div>
 
       <h1 className='text-3xl text-center font-semibold mt-7'>
