@@ -23,7 +23,7 @@ export default function Reporte() {
 
   const formatDate = (date) => {
 
-    const actualLocaleDate = new Date(new Date(date).getTime() + 6 * 60 * 60000)
+    const actualLocaleDate = date
 
     return (actualLocaleDate.getFullYear() + '-' + (actualLocaleDate.getMonth() < 9 ? '0' + ((actualLocaleDate.getMonth()) + 1) : ((actualLocaleDate.getMonth()))) + '-' + ((actualLocaleDate.getDate() < 10 ? '0' : '') + actualLocaleDate.getDate()))
 
@@ -224,9 +224,11 @@ export default function Reporte() {
             <tr>
               {/* <th></th> */}
               <th>Sucursal</th>
-              <Link className="flex justify-center" to={'/gastos/' + stringDatePickerValue}>
-                <th>Gastos</th>
-              </Link>
+              <th>
+                <Link className="flex justify-center" to={'/gastos/' + stringDatePickerValue}>
+                  Gastos
+                </Link>
+              </th>
               <th>Sobrante</th>
               <th>Efectivo</th>
               <th>Balance</th>

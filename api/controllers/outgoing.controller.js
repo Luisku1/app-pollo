@@ -26,7 +26,7 @@ export const newOutgoing = async (req, res, next) => {
 export const getOutgoings = async (req, res, next) => {
 
   const companyId = req.params.companyId
-  const date = new Date(req.params.date)
+  const date = (new Date(req.params.date).getTime() + 6 * 60 * 60000)
 
   const actualLocaleDay = date.toISOString().slice(0, 10)
 
