@@ -21,8 +21,6 @@ export default function Reporte() {
   const navigate = useNavigate()
   let datePickerValue = (paramsDate ? new Date(paramsDate) : new Date())
 
-  console.log(paramsDate)
-
   const formatDate = (date) => {
 
     const actualLocaleDate = date
@@ -39,7 +37,6 @@ export default function Reporte() {
     datePickerValue = new Date(e.target.value)
     stringDatePickerValue = formatDate(new Date(e.target.value + 'T06:00:00.000Z'))
 
-    console.log(stringDatePickerValue)
     navigate('/reporte/' + stringDatePickerValue)
 
   }
@@ -233,7 +230,11 @@ export default function Reporte() {
                   Gastos
                 </Link>
               </th>
-              <th>Sobrante</th>
+              <th>
+                <Link className="flex justify-center" to={'/sobrante/' + stringDatePickerValue}>
+                  Sobrante
+                </Link>
+              </th>
               <th>Efectivo</th>
               <th>Balance</th>
             </tr>
@@ -246,11 +247,18 @@ export default function Reporte() {
 
               <tr className={'border-x ' + (index + 1 != branchReports.length ? "border-b " : '') + 'border-black border-opacity-40'}>
                 {/* <td className="text-xs">{branchReport.branch.position}</td> */}
-                <Link className='' to={'/formato/' + branchReport.createdAt + '/' + branchReport.branch._id}>
-                  <td className="">
+                <td className="group">
+                  <Link className='' to={'/formato/' + branchReport.createdAt + '/' + branchReport.branch._id}>
                     <p className="">{branchReport.branch.branch}</p>
-                  </td>
-                </Link>
+                    <div className="hidden group-hover:block group-hover:fixed group-hover:overflow-hidden group-hover:mt-2 ml-24 bg-slate-600 text-white shadow-2xl rounded-md p-2">
+                      <p>{branchReport.employee.name + ' ' + branchReport.employee.lastName}</p>
+                      {branchReport.assistant != null ?
+
+                        <p>{branchReport.assistant.name + ' ' + branchReport.assistant.lastName}</p>
+                        : ''}
+                    </div>
+                  </Link>
+                </td>
                 <td className="text-center">{branchReport.outgoings.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</td>
                 <td className="text-center">{branchReport.finalStock.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</td>
                 <td className="text-center">{branchReport.incomes.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</td>

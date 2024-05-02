@@ -19,6 +19,7 @@ import Reporte from './pages/Reporte'
 import EntradaInicial from './pages/EntradaInicial'
 import Gastos from './pages/Gastos'
 import Nomina from './pages/Nomina'
+import Sobrante from './pages/Sobrante'
 
 
 export default function App() {
@@ -54,6 +55,8 @@ export default function App() {
           <Route path="/reporte/:date" element={<Reporte />} />
           <Route path="/gastos" element={<Gastos />} />
           <Route path="/gastos/:date" element={<Gastos />} />
+          <Route path="/sobrante" element={<Sobrante />} />
+          <Route path="/sobrante/:date" element={<Sobrante />} />
           <Route path="/reporte" element={<Reporte />} />
           <Route path="/reporte/:date" element={<Reporte />} />
 

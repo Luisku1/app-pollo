@@ -38,7 +38,7 @@ export const getBranchReports = async (req, res, next) => {
           company: companyId
         }
       ]
-    }).populate({ path: 'branch', select: 'branch position' })
+    }).populate({ path: 'branch', select: 'branch position' }).populate({path: 'employee', select: 'name lastName'}).populate({path: 'assistant', select: 'name lastName'})
 
     if (branchReports.length > 0) {
 
