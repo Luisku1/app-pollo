@@ -267,13 +267,20 @@ export const getTotalStock = async (req, res, next) => {
           company: companyId
         }
       ]
-    }).populate({ path: 'branch', select: 'branch' }).populate({ path: 'product', select: 'name createdAt' })
+    }).populate({ path: 'branch', select: 'branch position' }).populate({ path: 'product', select: 'name createdAt' })
 
     if (stock.length > 0) {
 
       stock.sort((prevStock, nextStock) => prevStock.product.createdAt - nextStock.product.createdAt)
 
       const groupedStock = groupFunction(stock)
+
+      console.log(groupedStock)
+
+      Object.values(groupedStock).forEach((stockProduct) => {
+
+        stockProduct.branches.sort((a, b) => a.branch.position - b.branch.position)
+      })
 
       res.status(200).json({ stock: groupedStock })
 
@@ -301,22 +308,25 @@ const groupFunction = (stock) => {
 
         product: stock.product,
         total: 0.0,
-        branches: {}
+        branches: []
       }
     }
 
-    if (result[stock.product._id].branches[stock.branch._id]) {
+
+    const index = result[stock.product._id].branches.findIndex((branch) => stock.branch._id == branch.branch._id)
+
+    if (index != -1) {
 
       result[stock.product._id].total = stock.weight + result[stock.product._id].total
-      result[stock.product._id].branches[stock.branch._id].weight = stock.weight + result[stock.product._id].branches[stock.branch._id].weight
+      result[stock.product._id].branches[index].weight += stock.weight
 
     } else {
 
-      result[stock.product._id].branches[stock.branch._id] = {
+      result[stock.product._id].branches.push({
 
         branch: stock.branch,
         weight: stock.weight
-      }
+      })
 
       result[stock.product._id].total += stock.weight
     }

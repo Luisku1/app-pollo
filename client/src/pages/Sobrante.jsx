@@ -102,9 +102,9 @@ export default function Sobrante() {
 
         {stock && Object.values(stock) && Object.values(stock).length > 0 && Object.values(stock).map((stock) => (
 
-          <div key={stock.product._id} onClick={() => {productsBranches(stock.product._id)}} className="rounded-lg">
+          <div key={stock.product._id} className="rounded-lg">
 
-            <button className="text-center p-2 shadow-lg w-full hover:bg-slate-100 active:bg-gray-300 border">
+            <button className="text-center p-2 shadow-lg w-full hover:bg-slate-100 active:bg-gray-300 border" onClick={() => {productsBranches(stock.product._id)}}>
               <p className="font-bold text-red-800">{stock.product.name}</p>
               <p>{stock.total.toFixed(2) + ' Kg'}</p>
             </button>
