@@ -45,7 +45,6 @@ const employeeDailyBalanceSchema = mongoose.Schema({
 
   createdAt: {
     type: Date,
-    unique: true,
     required: true
   }
 })

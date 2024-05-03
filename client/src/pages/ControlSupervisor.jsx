@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { fetchBranches, fetchEmployees, fetchProducts, deleteOutputFetch, deleteExtraOutgoingFetch, deleteInputFetch, deleteIncomeFetch, fetchIncomeTypes, deleteLoanFetch } from '../helpers/FetchFunctions';
 import { FaTrash } from 'react-icons/fa';
+import { useParams, useNavigate, Link } from "react-router-dom"
 import { MdKeyboardArrowDown, MdKeyboardArrowRight } from 'react-icons/md';
 
 export default function ControlSupervisor() {
@@ -1726,7 +1727,9 @@ export default function ControlSupervisor() {
               <div key={dailyBalance._id} className='grid grid-cols-12 items-center border border-black border-opacity-30 rounded-lg shadow-sm mt-2'>
 
                 <div id='list-element' className='flex col-span-12 items-center justify-around'>
-                  <p className='text-center text-sm w-3/12'>{dailyBalance.employee != null ? dailyBalance.employee.name + ' ' + dailyBalance.employee.lastName : 'Trabajador despedido'}</p>
+                  <Link className='w-3/12' to={dailyBalance.employee != null ? '/perfil/' + dailyBalance.employee._id : ''}>
+                    <p className='text-center text-sm'>{dailyBalance.employee != null ? dailyBalance.employee.name + ' ' + dailyBalance.employee.lastName : 'Trabajador despedido'}</p>
+                  </Link>
                   <div className='w-3/12'>
 
                     <input className='w-full' type="checkbox" name="foodDiscount" id="foodDiscount" defaultChecked={dailyBalance.foodDiscount} onChange={(e) => { handleDailyBalanceInputs(e, dailyBalance._id) }} />
