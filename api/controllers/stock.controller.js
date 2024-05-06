@@ -5,8 +5,7 @@ import { pricesAggregate } from "./price.controller.js";
 
 export const createStock = async (req, res, next) => {
 
-  const { pieces, weight, amount, branch, product, company, employee } = req.body
-  const createdAt = new Date().toISOString()
+  const { pieces, weight, amount, branch, product, company, employee, createdAt } = req.body
 
   try {
 
@@ -24,18 +23,18 @@ export const createStock = async (req, res, next) => {
 
 export const getInitialStock = async (req, res, next) => {
 
-  const date = req.params.date
+  const date = new Date(req.params.date)
   const branchId = req.params.branchId
 
-  const actualLocaleDate = new Date(new Date(date).getTime() - 6 * 60 * 60000)
-  const actualLocaleDay = actualLocaleDate.toISOString().slice(0, 10)
 
-  const actualLocaleDateMinusOne = new Date(actualLocaleDay)
-  const actualLocaleDatePlusOne = new Date(actualLocaleDate)
+
+  const actualLocaleDatePlusOne = new Date(date)
+  const actualLocaleDateMinusOne = new Date(date)
   actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
   actualLocaleDateMinusOne.setDate(actualLocaleDateMinusOne.getDate() - 1)
   const actualLocaleDayMinusOne = actualLocaleDateMinusOne.toISOString().slice(0, 10)
   const actualLocaleDayPlusOne = actualLocaleDatePlusOne.toISOString().slice(0, 10)
+  const actualLocaleDay = date.toISOString().slice(0, 10)
 
   const topDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
   const bottomDate = new Date(actualLocaleDayMinusOne + 'T00:00:00.000-06:00')
@@ -108,15 +107,14 @@ export const getBranchDayStock = async (req, res, next) => {
   const date = new Date(req.params.date)
   const branchId = req.params.branchId
 
-  const actualLocaleDate = new Date(new Date(date).getTime() - 6 * 60 * 60000)
-  const actualLocaleDay = actualLocaleDate.toISOString().slice(0, 10)
+  const actualLocaleDay = date.toISOString().slice(0, 10)
 
   const actualLocaleDatePlusOne = new Date(actualLocaleDay)
   actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
-  const actualLocalDayPlusOne = actualLocaleDatePlusOne.toISOString().slice(0, 10)
+  const actualLocaleDayPlusOne = actualLocaleDatePlusOne.toISOString().slice(0, 10)
 
   const bottomDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
-  const topDate = new Date(actualLocalDayPlusOne + 'T00:00:00.000-06:00')
+  const topDate = new Date(actualLocaleDayPlusOne + 'T00:00:00.000-06:00')
 
 
   try {
@@ -167,10 +165,10 @@ export const getCompanyDayStock = async (req, res, next) => {
 
   const actualLocaleDatePlusOne = new Date(actualLocaleDay)
   actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
-  const actualLocalDayPlusOne = actualLocaleDatePlusOne.toISOString().slice(0, 10)
+  const actualLocaleDayPlusOne = actualLocaleDatePlusOne.toISOString().slice(0, 10)
 
   const bottomDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
-  const topDate = new Date(actualLocalDayPlusOne + 'T00:00:00.000-06:00')
+  const topDate = new Date(actualLocaleDayPlusOne + 'T00:00:00.000-06:00')
 
 
   try {
@@ -242,10 +240,10 @@ export const getTotalStock = async (req, res, next) => {
 
   const actualLocaleDatePlusOne = new Date(date)
   actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
-  const actualLocalDayPlusOne = actualLocaleDatePlusOne.toISOString()
+  const actualLocaleDayPlusOne = actualLocaleDatePlusOne.toISOString()
 
   const bottomDate = new Date(date)
-  const topDate = new Date(actualLocalDayPlusOne)
+  const topDate = new Date(actualLocaleDayPlusOne)
 
   try {
 

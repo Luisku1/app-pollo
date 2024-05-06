@@ -24,10 +24,9 @@ export const getProductLosses = async (req, res, next) => {
   const branchId = req.params.branchId
   const date = new Date(req.params.date)
 
-  const actualLocaleDate = new Date(new Date(date).getTime() - 6 * 60 * 60000)
-  const actualLocaleDay = actualLocaleDate.toISOString().slice(0, 10)
+  const actualLocaleDay = date.toISOString().slice(0, 10)
 
-  const actualLocaleDatePlusOne = new Date(actualLocaleDay)
+  const actualLocaleDatePlusOne = new Date(date)
   actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
   const actualLocaleDayPlusOne = actualLocaleDatePlusOne.toISOString().slice(0, 10)
 

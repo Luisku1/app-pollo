@@ -92,7 +92,7 @@ export const getNetDifference = async (req, res, next) => {
 
     Object.keys(employeesOutputs).forEach(employeeOutputs => {
 
-      if(!employeeNetDifference[employeeOutputs]) {
+      if (!employeeNetDifference[employeeOutputs]) {
 
         employeeNetDifference[employeeOutputs] = {
 
@@ -119,11 +119,11 @@ export const getNetDifference = async (req, res, next) => {
 
     Object.keys(employeesInputs).forEach(employeeInputs => {
 
-      if(!employeeNetDifference[employeeInputs]) {
+      if (!employeeNetDifference[employeeInputs]) {
 
         employeeNetDifference[employeeInputs] = {
 
-          employee: employeesInputs[employeeInputs].employee ,
+          employee: employeesInputs[employeeInputs].employee,
           totalDifference: 0.00,
           netDifference: {}
         }
@@ -131,7 +131,7 @@ export const getNetDifference = async (req, res, next) => {
 
       Object.keys(employeesInputs[employeeInputs].productsMovement).forEach((product => {
 
-        if(!employeeNetDifference[employeeInputs].netDifference[product]) {
+        if (!employeeNetDifference[employeeInputs].netDifference[product]) {
 
           const difference = (employeesInputs[employeeInputs].productsMovement[product].weight) - (employeesOutputs[employeeInputs] ? employeesOutputs[employeeInputs].productsMovement[product] ? employeesOutputs[employeeInputs].productsMovement[product].weight : 0 : 0)
 
@@ -204,15 +204,14 @@ export const getBranchInputs = async (req, res, next) => {
   const date = new Date(req.params.date)
   const branchId = req.params.branchId
 
-  const actualLocaleDate = new Date(new Date(date).getTime() - 6 * 60 * 60000)
-  const actualLocaleDay = actualLocaleDate.toISOString().slice(0, 10)
+  const actualLocaleDay = date.toISOString().slice(0, 10)
 
-  const actualLocaleDatePlusOne = new Date(actualLocaleDay)
+  const actualLocaleDatePlusOne = new Date(date)
   actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
-  const actualLocalDayPlusOne = actualLocaleDatePlusOne.toISOString().slice(0, 10)
+  const actualLocaleDayPlusOne = actualLocaleDatePlusOne.toISOString().slice(0, 10)
 
   const bottomDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
-  const topDate = new Date(actualLocalDayPlusOne + 'T00:00:00.000-06:00')
+  const topDate = new Date(actualLocaleDayPlusOne + 'T00:00:00.000-06:00')
 
 
   try {
@@ -259,15 +258,15 @@ export const getBranchProviderInputs = async (req, res, next) => {
 
   const branchId = req.params.branchId
   const date = new Date(req.params.date)
-  const actualLocaleDate = new Date(new Date(date).getTime() - 6 * 60 * 60000)
-  const actualLocaleDay = actualLocaleDate.toISOString().slice(0, 10)
 
-  const actualLocaleDatePlusOne = new Date(actualLocaleDay)
+  const actualLocaleDay = date.toISOString().slice(0, 10)
+
+  const actualLocaleDatePlusOne = new Date(date)
   actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
-  const actualLocalDayPlusOne = actualLocaleDatePlusOne.toISOString().slice(0, 10)
+  const actualLocaleDayPlusOne = actualLocaleDatePlusOne.toISOString().slice(0, 10)
 
   const bottomDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
-  const topDate = new Date(actualLocalDayPlusOne + 'T00:00:00.000-06:00')
+  const topDate = new Date(actualLocaleDayPlusOne + 'T00:00:00.000-06:00')
 
   try {
     const providerInputs = await ProviderInput.find({
@@ -408,16 +407,14 @@ export const getBranchOutputs = async (req, res, next) => {
   const date = new Date(req.params.date)
   const branchId = req.params.branchId
 
-  const actualLocaleDate = new Date(new Date(date).getTime() - 6 * 60 * 60000)
-  const actualLocaleDay = actualLocaleDate.toISOString().slice(0, 10)
+  const actualLocaleDay = date.toISOString().slice(0, 10)
 
-  const actualLocaleDatePlusOne = new Date(actualLocaleDay)
+  const actualLocaleDatePlusOne = new Date(date)
   actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
-  const actualLocalDayPlusOne = actualLocaleDatePlusOne.toISOString().slice(0, 10)
+  const actualLocaleDayPlusOne = actualLocaleDatePlusOne.toISOString().slice(0, 10)
 
   const bottomDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
-  const topDate = new Date(actualLocalDayPlusOne + 'T00:00:00.000-06:00')
-
+  const topDate = new Date(actualLocaleDayPlusOne + 'T00:00:00.000-06:00')
 
   try {
 

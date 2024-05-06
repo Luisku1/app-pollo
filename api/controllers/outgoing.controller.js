@@ -5,12 +5,11 @@ import { errorHandler } from "../utils/error.js"
 
 export const newOutgoing = async (req, res, next) => {
 
-  const { amount, concept, company, branch, employee } = req.body
-  const date = new Date().toISOString()
+  const { amount, concept, company, branch, employee, createdAt } = req.body
 
   try {
 
-    const outgoing = new Outgoing({ amount, concept, company, branch, employee, createdAt: date })
+    const outgoing = new Outgoing({ amount, concept, company, branch, employee, createdAt})
     await outgoing.save()
 
     res.status(201).json({ message: 'New outgoing created successfully', outgoing: outgoing })
@@ -99,8 +98,7 @@ export const getBranchOutgoings = async (req, res, next) => {
   const date = new Date(req.params.date)
   const branchId = req.params.branchId
 
-  const actualLocaleDate = new Date(new Date(date).getTime() - 6 * 60 * 60000)
-  const actualLocaleDay = actualLocaleDate.toISOString().slice(0, 10)
+  const actualLocaleDay = date.toISOString().slice(0, 10)
 
   const actualLocaleDatePlusOne = new Date(actualLocaleDay)
   actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)

@@ -12,16 +12,14 @@ export const getBranchReports = async (req, res, next) => {
   const date = new Date(req.params.date)
   const companyId = req.params.companyId
 
-
   const actualLocaleDay = date.toISOString().slice(0, 10)
 
   const actualLocaleDatePlusOne = new Date(actualLocaleDay)
   actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
-  const actualLocalDayPlusOne = actualLocaleDatePlusOne.toISOString().slice(0, 10)
+  const actualLocaleDayPlusOne = actualLocaleDatePlusOne.toISOString().slice(0, 10)
 
   const bottomDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
-  const topDate = new Date(actualLocalDayPlusOne + 'T00:00:00.000-06:00')
-  console.log(bottomDate, topDate)
+  const topDate = new Date(actualLocaleDayPlusOne + 'T00:00:00.000-06:00')
 
   try {
 

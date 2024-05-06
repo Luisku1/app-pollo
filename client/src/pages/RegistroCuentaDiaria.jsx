@@ -46,6 +46,27 @@ export default function RegistroCuentaDiaria() {
   const [buttonId, setButtonId] = useState(null)
   const navigate = useNavigate()
   const reportDate = (paramsDate ? new Date(paramsDate) : new Date()).toLocaleDateString('es-mx', { weekday: 'long', year: 'numeric', month: '2-digit', day: '2-digit' })
+  let datePickerValue = (paramsDate ? new Date(paramsDate) : new Date())
+
+  const formatDate = (date) => {
+
+    const actualLocaleDate = date
+
+    return (actualLocaleDate.getFullYear() + '-' + (actualLocaleDate.getMonth() < 9 ? '0' + ((actualLocaleDate.getMonth()) + 1) : ((actualLocaleDate.getMonth()))) + '-' + ((actualLocaleDate.getDate() < 10 ? '0' : '') + actualLocaleDate.getDate()) + 'T06:00:00.000Z')
+
+  }
+
+
+  let stringDatePickerValue = formatDate(datePickerValue)
+
+  const changeDatePickerValue = (e) => {
+
+    datePickerValue = new Date(e.target.value)
+    stringDatePickerValue = formatDate(new Date(e.target.value + 'T06:00:00.000Z'))
+
+    navigate('/formato/' + stringDatePickerValue + '/' + branchId)
+
+  }
 
   const SectionHeader = (props) => {
 
@@ -192,6 +213,7 @@ export default function RegistroCuentaDiaria() {
     const conceptInput = document.getElementById('concept')
     const amountInput = document.getElementById('amount')
     const employee = document.getElementById('employee')
+    const date = new Date(stringDatePickerValue).toISOString()
 
     e.preventDefault()
 
@@ -208,6 +230,7 @@ export default function RegistroCuentaDiaria() {
         },
         body: JSON.stringify({
           ...outgoingFormData,
+          createdAt: date,
           employee: employee.value,
           branch: branchSelected.value,
           company: company._id
@@ -266,6 +289,7 @@ export default function RegistroCuentaDiaria() {
     const weightInput = document.getElementById('weight')
     const employeeSelect = document.getElementById('employee')
     const amount = parseFloat(getProductPrice(productSelect.value) * stockFormData.weight)
+    const date = new Date(stringDatePickerValue).toISOString()
 
 
     try {
@@ -281,6 +305,7 @@ export default function RegistroCuentaDiaria() {
           employee: employeeSelect.value,
           product: productSelect.value,
           branch: branchSelected.value,
+          createdAt: date,
           company: company._id
         })
       })
@@ -324,6 +349,7 @@ export default function RegistroCuentaDiaria() {
   //   const weightInput = document.getElementById('productLossWeight')
   //   const commentInput = document.getElementById('comment')
   //   const amount = parseFloat(getProductPrice(productSelect.value) * productLossFormData.productLossWeight)
+  //   const date = new Date(stringDatePickerValue).toISOString()
 
 
   //   try {
@@ -497,7 +523,7 @@ export default function RegistroCuentaDiaria() {
     const assistant = document.getElementById('assistant')
     const branch = document.getElementById('branch')
     const assistantValue = assistant.value == 'none' ? null : assistant.value
-    const date = (paramsDate ? new Date(paramsDate) : new Date()).toISOString()
+    const date = new Date(stringDatePickerValue).toISOString()
 
 
     try {
@@ -564,7 +590,7 @@ export default function RegistroCuentaDiaria() {
           branchReport: branchReport,
           employee: employee.value,
           assistant: assistantValue,
-          initialStock: branchReport.initialStock,
+          initialStock: branchReport.initialStock != 0 ? branchReport.initialStock : initialStock,
           finalStock: stockTotal,
           inputs: inputsTotal + providerInputsTotal,
           outputs: outputsTotal,
@@ -634,7 +660,7 @@ export default function RegistroCuentaDiaria() {
 
     const setPricesFunction = async () => {
 
-      const date = (paramsDate ? new Date(paramsDate) : new Date()).toISOString()
+      const date = new Date(stringDatePickerValue).toISOString()
 
       setLoading(true)
 
@@ -654,7 +680,7 @@ export default function RegistroCuentaDiaria() {
 
     const fetchStock = async () => {
 
-      const date = (paramsDate ? new Date(paramsDate) : new Date()).toISOString()
+      const date = new Date(stringDatePickerValue).toISOString()
 
       setLoading(true)
       setStockTotal(0.0)
@@ -687,7 +713,7 @@ export default function RegistroCuentaDiaria() {
 
     const fetchOutgoings = async () => {
 
-      const date = (paramsDate ? new Date(paramsDate) : new Date()).toISOString()
+      const date = new Date(stringDatePickerValue).toISOString()
 
       setLoading(true)
       setOutgoingsTotal(0.0)
@@ -719,7 +745,7 @@ export default function RegistroCuentaDiaria() {
 
     const fetchInitialStock = async () => {
 
-      const date = (paramsDate ? new Date(paramsDate) : new Date()).toISOString()
+      const date = new Date(stringDatePickerValue).toISOString()
 
       setLoading(true)
       setInitialStock(0.0)
@@ -750,7 +776,7 @@ export default function RegistroCuentaDiaria() {
 
     const fetchInputs = async () => {
 
-      const date = (paramsDate ? new Date(paramsDate) : new Date()).toISOString()
+      const date = new Date(stringDatePickerValue).toISOString()
 
       setLoading(true)
       setInputsTotal(0.0)
@@ -782,7 +808,7 @@ export default function RegistroCuentaDiaria() {
 
     const fetchOutputs = async () => {
 
-      const date = (paramsDate ? new Date(paramsDate) : new Date()).toISOString()
+      const date = new Date(stringDatePickerValue).toISOString()
 
       setLoading(true)
       setOutputsTotal(0.0)
@@ -814,7 +840,7 @@ export default function RegistroCuentaDiaria() {
     }
     const fetchIncomes = async () => {
 
-      const date = (paramsDate ? new Date(paramsDate) : new Date()).toISOString()
+      const date = new Date(stringDatePickerValue).toISOString()
 
       setLoading(true)
       setIncomesTotal(0.0)
@@ -847,7 +873,7 @@ export default function RegistroCuentaDiaria() {
 
     // const fetchProductLosses = async () => {
 
-    //   const date = (paramsDate ? new Date(paramsDate) : new Date()).toISOString()
+    // const date = new Date(stringDatePickerValue).toISOString()
 
     //   setLoading(true)
 
@@ -877,7 +903,7 @@ export default function RegistroCuentaDiaria() {
 
     const fetchProviderInputs = async () => {
 
-      const date = (paramsDate ? new Date(paramsDate) : new Date()).toISOString()
+      const date = new Date(stringDatePickerValue).toISOString()
 
       setLoading(true)
       setProviderInputs([])
@@ -909,7 +935,7 @@ export default function RegistroCuentaDiaria() {
 
     const fetchBranchReport = async () => {
 
-      const date = (paramsDate ? new Date(paramsDate) : new Date()).toISOString()
+      const date = new Date(stringDatePickerValue).toISOString()
 
       setLoading(true)
       setBranchReport({})
@@ -957,7 +983,7 @@ export default function RegistroCuentaDiaria() {
       fetchs(branchId)
     }
 
-  }, [branchId, paramsDate])
+  }, [branchId, stringDatePickerValue])
 
   useEffect(() => {
 
@@ -1020,6 +1046,15 @@ export default function RegistroCuentaDiaria() {
   return (
 
     <main className="p-3 max-w-lg mx-auto">
+
+      {managerRole._id == currentUser.role ?
+
+        <div className="flex justify-center">
+          <input className="p-1" type="date" name="date" id="date" onChange={changeDatePickerValue} defaultValue={stringDatePickerValue.slice(0, 10)} />
+        </div>
+
+        : ''}
+
       <h1 className='text-3xl text-center font-semibold mt-7'>
         Formato
         <br />
@@ -1055,7 +1090,7 @@ export default function RegistroCuentaDiaria() {
           {employees && employees.length == 0 ? <option> No hay empleados </option> : ''}
           {employees && employees.length > 0 && employees.map((employee) => (
 
-            <option key={employee._id} value={employee._id}>{employee.name + ' ' + employee.lastName}</option>
+            <option key={employee._id} selected={branchReport && branchReport.assistant && employee._id == branchReport.assistant ? 'selected' : ''} value={employee._id}>{employee.name + ' ' + employee.lastName}</option>
 
           ))}
         </select>
@@ -1518,6 +1553,7 @@ export default function RegistroCuentaDiaria() {
 
 
       {incomes && incomes.length > 0 ?
+
         <div className='border bg-white p-3 mt-4'>
 
           <div className='flex gap-4 display-flex justify-between' onClick={() => setIncomesIsOpen(!incomesIsOpen)} >
