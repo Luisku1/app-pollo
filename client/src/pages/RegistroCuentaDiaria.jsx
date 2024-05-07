@@ -11,7 +11,7 @@ export default function RegistroCuentaDiaria() {
 
   const { currentUser, company } = useSelector((state) => state.user)
   const paramsDate = useParams().date
-  const [branchId, setBranchId] = useState(useParams().branchId)
+  const [branchId, setBranchId] = useState(useParams().branchId || null)
   const [branchReport, setBranchReport] = useState({})
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
@@ -55,7 +55,6 @@ export default function RegistroCuentaDiaria() {
   const handleEmployeeSelectChange = (employee) => {
 
     setSelectedEmployee(employee)
-
   }
 
   const handleAssistantSelectChange = (assistant) => {
@@ -66,7 +65,15 @@ export default function RegistroCuentaDiaria() {
   const handleBranchSelectChange = (branch) => {
 
     setSelectedBranch(branch)
-    setBranchId(branch.value)
+
+    if (branch != null) {
+
+      setBranchId(branch.value)
+
+    } else {
+
+      setBranchId(null)
+    }
   }
 
   const formatDate = (date) => {
@@ -233,12 +240,9 @@ export default function RegistroCuentaDiaria() {
 
     const conceptInput = document.getElementById('concept')
     const amountInput = document.getElementById('amount')
-    const employee = document.getElementById('employee')
     const date = new Date(stringDatePickerValue).toISOString()
 
     e.preventDefault()
-
-    const branchSelected = document.getElementById('branch')
 
     setLoading(true)
 
@@ -252,8 +256,8 @@ export default function RegistroCuentaDiaria() {
         body: JSON.stringify({
           ...outgoingFormData,
           createdAt: date,
-          employee: employee.value,
-          branch: branchSelected.value,
+          employee: selectedEmployee.value,
+          branch: selectedBranch.value,
           company: company._id
         })
       })
@@ -303,11 +307,9 @@ export default function RegistroCuentaDiaria() {
     e.preventDefault()
     setLoading(true)
 
-    const branchSelected = document.getElementById('branch')
     const productSelect = document.getElementById('product')
     const piecesInput = document.getElementById('pieces')
     const weightInput = document.getElementById('weight')
-    const employeeSelect = document.getElementById('employee')
     const amount = parseFloat(getProductPrice(productSelect.value) * stockFormData.weight)
     const date = new Date(stringDatePickerValue).toISOString()
 
@@ -321,9 +323,9 @@ export default function RegistroCuentaDiaria() {
         body: JSON.stringify({
           ...stockFormData,
           amount: amount,
-          employee: employeeSelect.value,
+          employee: selectedEmployee.value,
           product: productSelect.value,
-          branch: branchSelected.value,
+          branch: selectedBranch.value,
           createdAt: date,
           company: company._id
         })
@@ -538,12 +540,8 @@ export default function RegistroCuentaDiaria() {
 
     setLoading(true)
 
-    const employee = document.getElementById('employee')
-    const assistant = document.getElementById('assistant')
-    const branch = document.getElementById('branch')
-    const assistantValue = assistant.value == 'none' ? null : assistant.value
     const date = new Date(stringDatePickerValue).toISOString()
-
+    const assistant = selectedAssistant == null ? null : selectedAssistant.value
 
     try {
 
@@ -554,9 +552,9 @@ export default function RegistroCuentaDiaria() {
         },
         body: JSON.stringify({
           date: date,
-          employee: employee.value,
-          assistant: assistantValue,
-          branch: branch.value,
+          employee: selectedEmployee.value,
+          assistant: assistant,
+          branch: selectedBranch.value,
           company: company._id,
           initialStock: initialStock,
           finalStock: stockTotal,
@@ -579,7 +577,7 @@ export default function RegistroCuentaDiaria() {
       setError(null)
       setLoading(false)
 
-      navigate('/perfil/' + employee.value)
+      navigate('/perfil/' + selectedEmployee.value)
 
     } catch (error) {
 
@@ -593,10 +591,7 @@ export default function RegistroCuentaDiaria() {
   const handleUpdate = async () => {
 
     setLoading(true)
-
-    const employee = document.getElementById('employee')
-    const assistant = document.getElementById('assistant')
-    const assistantValue = assistant.value == 'none' ? null : assistant.value
+    const assistant = selectedAssistant == null ? null : selectedAssistant.value
 
     try {
 
@@ -607,8 +602,8 @@ export default function RegistroCuentaDiaria() {
         },
         body: JSON.stringify({
           branchReport: branchReport,
-          employee: employee.value,
-          assistant: assistantValue,
+          employee: selectedEmployee.value,
+          assistant: assistant,
           initialStock: branchReport.initialStock != 0 ? branchReport.initialStock : initialStock,
           finalStock: stockTotal,
           inputs: inputsTotal + providerInputsTotal,
@@ -631,7 +626,7 @@ export default function RegistroCuentaDiaria() {
       setLoading(false)
       setError(null)
 
-      navigate('/perfil/' + employee.value)
+      navigate('/perfil/' + selectedEmployee.value)
 
     } catch (error) {
 
@@ -673,7 +668,7 @@ export default function RegistroCuentaDiaria() {
 
     fetchRoles()
 
-  }, [branchId, paramsDate])
+  }, [])
 
   useEffect(() => {
 
@@ -857,6 +852,7 @@ export default function RegistroCuentaDiaria() {
 
       }
     }
+
     const fetchIncomes = async () => {
 
       const date = new Date(stringDatePickerValue).toISOString()
@@ -952,58 +948,11 @@ export default function RegistroCuentaDiaria() {
       }
     }
 
-    const fetchBranchReport = async () => {
 
-      const date = new Date(stringDatePickerValue).toISOString()
-
-      setLoading(true)
-      setBranchReport({})
-
-      try {
-
-        const res = await fetch('/api/branch/report/get-branch-report/' + branchId + '/' + date)
-        const data = await res.json()
-
-        if (data.success === false) {
-
-          setLoading(false)
-          setError(data.message)
-          return
-        }
-
-
-        const employeeTempOption = employees.find((employee) =>
-
-          employee.value == data.originalBranchReport.employee
-        )
-        const assistantTempOption = employees.find((assistant) => assistant.value == data.originalBranchReport.assistant)
-
-        if (employeeTempOption) {
-
-          setSelectedEmployee(employeeTempOption)
-        }
-
-        if (assistantTempOption) {
-
-          setSelectedAssistant(assistantTempOption)
-        }
-
-        setBranchReport(data.originalBranchReport)
-
-        setLoading(false)
-        setError(null)
-
-      } catch (error) {
-
-        setError(error.message)
-        setLoading(false)
-      }
-    }
 
 
     const fetchs = () => {
 
-      fetchBranchReport()
       fetchInitialStock()
       setPricesFunction()
       fetchOutgoings()
@@ -1014,12 +963,13 @@ export default function RegistroCuentaDiaria() {
       fetchOutputs()
       // fetchProductLosses(branchId)
     }
-    if (branchId && branchId != 'none') {
+
+    if (branchId != null) {
 
       fetchs(branchId)
     }
 
-  }, [branchId, stringDatePickerValue, employees])
+  }, [branchId, stringDatePickerValue])
 
   useEffect(() => {
 
@@ -1112,6 +1062,63 @@ export default function RegistroCuentaDiaria() {
 
 
   }, [company, branchId, currentUser])
+
+  useEffect(() => {
+
+    const fetchBranchReport = async () => {
+
+      const date = new Date(stringDatePickerValue).toISOString()
+
+      setLoading(true)
+      setBranchReport({})
+
+      try {
+
+        const res = await fetch('/api/branch/report/get-branch-report/' + branchId + '/' + date)
+        const data = await res.json()
+
+        if (data.success === false) {
+
+          setLoading(false)
+          setError(data.message)
+          return
+        }
+
+
+        const employeeTempOption = employees.find((employee) =>
+
+          employee.value == data.originalBranchReport.employee
+        )
+        const assistantTempOption = employees.find((assistant) => assistant.value == data.originalBranchReport.assistant)
+
+        if (employeeTempOption) {
+
+          setSelectedEmployee(employeeTempOption)
+        }
+
+        if (assistantTempOption) {
+
+          setSelectedAssistant(assistantTempOption)
+        }
+
+        setBranchReport(data.originalBranchReport)
+
+        setLoading(false)
+        setError(null)
+
+      } catch (error) {
+
+        setError(error.message)
+        setLoading(false)
+      }
+    }
+
+    if (branchId != null) {
+
+      fetchBranchReport()
+    }
+
+  }, [branchId, employees, stringDatePickerValue])
 
   return (
 
