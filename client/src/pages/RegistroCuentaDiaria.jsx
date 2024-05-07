@@ -140,9 +140,9 @@ export default function RegistroCuentaDiaria() {
 
     const amountInput = document.getElementById('amount')
     const conceptInput = document.getElementById('concept')
-    const employee = document.getElementById('employee')
     const button = document.getElementById('outgoing-button')
-    const branchSelect = document.getElementById('branch')
+    const employeeSelect = selectedEmployee != null
+    const branchSelect = selectedBranch != null
 
     let filledInputs = true
 
@@ -157,7 +157,7 @@ export default function RegistroCuentaDiaria() {
       filledInputs = false
     }
 
-    if (filledInputs && branchSelect.value != 'none' && employee.value != 'none' && !loading) {
+    if (filledInputs && branchSelect && employeeSelect && !loading) {
 
       button.disabled = false
 
@@ -172,8 +172,8 @@ export default function RegistroCuentaDiaria() {
     const productSelect = document.getElementById('product')
     const weightInput = document.getElementById('weight')
     const button = document.getElementById('stock-button')
-    const branchSelect = document.getElementById('branch')
-    const employeeSelect = document.getElementById('employee')
+    const branchSelect = selectedBranch != null
+    const employeeSelect = selectedEmployee != null
 
     let filledInputs = true
 
@@ -188,7 +188,7 @@ export default function RegistroCuentaDiaria() {
       filledInputs = false
     }
 
-    if (filledInputs && branchSelect.value != 'none' && employeeSelect.value != 'none' && !loading) {
+    if (filledInputs && branchSelect && employeeSelect && !loading) {
 
       button.disabled = false
 
