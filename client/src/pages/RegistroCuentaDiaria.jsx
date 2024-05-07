@@ -5,6 +5,7 @@ import { deleteOutgoingFetch, deleteStockFetch, fetchBranches, fetchEmployees, f
 import { FaTrash } from 'react-icons/fa';
 import { useParams, useNavigate } from 'react-router-dom';
 import { MdKeyboardArrowDown, MdKeyboardArrowRight } from 'react-icons/md';
+import Select from "react-tailwindcss-select";
 
 export default function RegistroCuentaDiaria() {
 
@@ -44,9 +45,29 @@ export default function RegistroCuentaDiaria() {
   const [productName, setProductName] = useState(null)
   const [isOpen, setIsOpen] = useState(false)
   const [buttonId, setButtonId] = useState(null)
+  const [selectedEmployee, setSelectedEmployee] = useState(null)
+  const [selectedAssistant, setSelectedAssistant] = useState(null)
+  const [selectedBranch, setSelectedBranch] = useState(null)
   const navigate = useNavigate()
   const reportDate = (paramsDate ? new Date(paramsDate) : new Date()).toLocaleDateString('es-mx', { weekday: 'long', year: 'numeric', month: '2-digit', day: '2-digit' })
   let datePickerValue = (paramsDate ? new Date(paramsDate) : new Date())
+
+  const handleEmployeeSelectChange = (employee) => {
+
+    setSelectedEmployee(employee)
+
+  }
+
+  const handleAssistantSelectChange = (assistant) => {
+
+    setSelectedAssistant(assistant)
+  }
+
+  const handleBranchSelectChange = (branch) => {
+
+    setSelectedBranch(branch)
+    setBranchId(branch.value)
+  }
 
   const formatDate = (date) => {
 
@@ -258,7 +279,6 @@ export default function RegistroCuentaDiaria() {
 
       setError(error.message)
       setLoading(false)
-
     }
   }
 
@@ -290,7 +310,6 @@ export default function RegistroCuentaDiaria() {
     const employeeSelect = document.getElementById('employee')
     const amount = parseFloat(getProductPrice(productSelect.value) * stockFormData.weight)
     const date = new Date(stringDatePickerValue).toISOString()
-
 
     try {
 
@@ -334,7 +353,6 @@ export default function RegistroCuentaDiaria() {
 
       setError(error.message)
       setLoading(false)
-
     }
   }
 
@@ -410,6 +428,7 @@ export default function RegistroCuentaDiaria() {
       setStockTotal(stockTotal - parseFloat(stockItems[index].amount))
       stockItems.splice(index, 1)
     }
+
     setLoading(false)
   }
 
@@ -952,6 +971,23 @@ export default function RegistroCuentaDiaria() {
           return
         }
 
+
+        const employeeTempOption = employees.find((employee) =>
+
+          employee.value == data.originalBranchReport.employee
+        )
+        const assistantTempOption = employees.find((assistant) => assistant.value == data.originalBranchReport.assistant)
+
+        if (employeeTempOption) {
+
+          setSelectedEmployee(employeeTempOption)
+        }
+
+        if (assistantTempOption) {
+
+          setSelectedAssistant(assistantTempOption)
+        }
+
         setBranchReport(data.originalBranchReport)
 
         setLoading(false)
@@ -983,7 +1019,7 @@ export default function RegistroCuentaDiaria() {
       fetchs(branchId)
     }
 
-  }, [branchId, stringDatePickerValue])
+  }, [branchId, stringDatePickerValue, employees])
 
   useEffect(() => {
 
@@ -993,8 +1029,24 @@ export default function RegistroCuentaDiaria() {
 
       if (error == null) {
 
+        const tempOptions = []
+
+        data.map((employee) => {
+
+          const option = {
+            value: employee._id,
+            label: employee.name + ' ' + employee.lastName
+          }
+
+          if (currentUser._id == employee._id) {
+            setSelectedEmployee(option)
+          }
+
+          tempOptions.push(option)
+        })
+
         setError(null)
-        setEmployees(data)
+        setEmployees(tempOptions)
 
       } else {
 
@@ -1009,8 +1061,26 @@ export default function RegistroCuentaDiaria() {
 
       if (error == null) {
 
+        const tempOptions = []
+
+        data.map((branch) => {
+
+          const option = {
+
+            value: branch._id,
+            label: branch.branch
+          }
+
+          if (branchId == branch._id) {
+
+            setSelectedBranch(option)
+          }
+
+          tempOptions.push(option)
+        })
+
         setError(null)
-        setBranches(data)
+        setBranches(tempOptions)
 
       } else {
 
@@ -1041,7 +1111,7 @@ export default function RegistroCuentaDiaria() {
 
 
 
-  }, [company, branchId])
+  }, [company, branchId, currentUser])
 
   return (
 
@@ -1065,52 +1135,48 @@ export default function RegistroCuentaDiaria() {
 
       <SectionHeader label={'Información básica'} />
 
-      <div className="flex items-center justify-between">
+      <div className="grid grid-cols-12 items-center mt-1 ">
+        <p className='col-span-4'>Encargado:</p>
+        <div className='col-span-8'>
 
-        <p>Encargado:</p>
-        <select name="employee" id="employee" className='border p-3 rounded-lg' onChange={() => { outgoingsButtonControl(), stockButtonControl(), productLossButtonControl() }}>
-
-          {employees && employees.length == 0 ? <option> No hay empleados </option> : ''}
-          {employees && employees.length > 0 && employees.map((employee) => (
-
-            <option selected={branchReport && branchReport.employee && employee._id == branchReport.employee ? 'selected' : employee._id == currentUser._id ? 'selected' : ''} key={employee._id} value={employee._id}>{employee.name + ' ' + employee.lastName}</option>
-
-          ))}
-        </select>
+          <Select
+            value={selectedEmployee}
+            onChange={handleEmployeeSelectChange}
+            options={employees}
+            isSearchable={true}
+          />
+        </div>
       </div>
 
-      <div className="flex items-center justify-between">
+      <div className="grid grid-cols-12 items-center mt-1 ">
+        <p className='col-span-4'>Auxiliar:</p>
+        <div className='col-span-8'>
 
-        <p>Auxiliar:</p>
-
-        <select name="assistant" id="assistant" className='border p-3 rounded-lg'>
-
-          <option value={null} selected  >Sin auxiliar</option>
-
-          {employees && employees.length == 0 ? <option> No hay empleados </option> : ''}
-          {employees && employees.length > 0 && employees.map((employee) => (
-
-            <option key={employee._id} selected={branchReport && branchReport.assistant && employee._id == branchReport.assistant ? 'selected' : ''} value={employee._id}>{employee.name + ' ' + employee.lastName}</option>
-
-          ))}
-        </select>
+          <Select
+            value={selectedAssistant}
+            onChange={handleAssistantSelectChange}
+            options={employees}
+            placeholder='Sin auxiliar'
+            isSearchable={true}
+            isClearable={true}
+          />
+        </div>
       </div>
 
-      <div className="flex items-center justify-between">
+      <div className="grid grid-cols-12 items-center mt-1 ">
 
-        <p>Sucursal:</p>
-        <select name="branch" id="branch" value={branchId ? branchId : 'none'} onChange={(e) => { setBranchId(e.target.value), outgoingsButtonControl(), stockButtonControl(), productLossButtonControl() }} className='border p-3 rounded-lg'>
+        <p className='col-span-4'>Sucursal:</p>
+        <div className='col-span-8'>
 
-          <option value="none" disabled selected hidden >Selecciona una sucursal</option>
+          <Select
+            value={selectedBranch}
+            onChange={handleBranchSelectChange}
+            options={branches}
+            placeholder='Elige una sucursal'
+            isSearchable={true}
+          />
 
-          {branches && branches.length == 0 ? <option> No hay sucursales registradas </option> : ''}
-          {branches && branches.length > 0 && branches.map((branch) => (
-
-            <option key={branch._id} value={branch._id}>{branch.branch}</option>
-
-          ))}
-        </select>
-
+        </div>
       </div>
 
       <div className='grid grid-cols-5'>
@@ -1578,7 +1644,7 @@ export default function RegistroCuentaDiaria() {
               <div key={incomes._id} className='grid grid-cols-12 items-center my-2 py-3 border border-black border-opacity-30 shadow-sm rounded-lg'>
 
                 <div id='list-element' className=' flex col-span-12 items-center'>
-                  <p className='text-center text-xs w-4/12'>{income.branch.branch ? income.branch.branch : income.branch}</p>
+                  <p className='text-center text-xs w-4/12'>{income.branch.branch}</p>
                   <p className='text-center text-xs w-2/12 truncate'>{income.type.name ? income.type.name : income.type}</p>
                   <p className='text-center text-xs w-3/12 truncate'>{income.employee.name}</p>
                   <p className='text-center text-xs w-3/12'>{income.amount.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>

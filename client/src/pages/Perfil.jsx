@@ -120,8 +120,6 @@ export default function Perfil() {
           return
         }
 
-        console.log(data.employeeDayInfo)
-
         setEmployeeDayInfo(data.employeeDayInfo)
         setLoading(false)
         setFetchError(null)
