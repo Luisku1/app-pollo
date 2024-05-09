@@ -62,11 +62,11 @@ export default function ControlSupervisor() {
 
     return (
 
-      <div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center'>
+      <div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center max-w-lg my-auto mx-auto'>
         <div className='bg-white p-5 rounded-lg justify-center items-center h-4/6 my-auto w-11/12'>
-          <div className="mb-10 flex">
+          <div className="mb-10 flex relative items-center">
             <p className='text-3xl font-semibold text-red-500'>Detalles de la entrada</p>
-            <button className="m-auto" onClick={() => { setMovementDetailsIsOpen(!movementDetailsIsOpen) }}><MdCancel className="h-7 w-7" /></button>
+            <button className="absolute right-0" onClick={() => { setMovementDetailsIsOpen(!movementDetailsIsOpen) }}><MdCancel className="h-7 w-7" /></button>
           </div>
           <div className='h-5/6 overflow-y-scroll'>
             <div className={"grid grid-cols-2 p-3 shadow-lg rounded-lg mb-4 gap-2 items-center"}>
@@ -87,15 +87,15 @@ export default function ControlSupervisor() {
             </div>
             <div className={"grid grid-cols-2 p-3 shadow-lg rounded-lg mb-4 gap-2 items-center"}>
               <p className="font-bold text-lg">{'Piezas:'}</p>
-              <p>{input.pieces}</p>
+              <p>{input.pieces.toFixed(2)}</p>
             </div>
             <div className={"grid grid-cols-2 p-3 shadow-lg rounded-lg mb-4 gap-2 items-center"}>
               <p className={(input.specialPrice ? 'text-red-500' : '') + " font-bold text-lg"}>{input.specialPrice ? 'Precio especial:' : 'Precio:'}</p>
-              <p>{input.price}</p>
+              <p>{input.price.toLocaleString('es-MX', {style: 'currency', currency: 'MXN'})}</p>
             </div>
             <div className={"grid grid-cols-2 p-3 shadow-lg rounded-lg mb-4 gap-2 items-center"}>
               <p className="font-bold text-lg">{'Peso:'}</p>
-              <p>{input.weight + ' Kg'}</p>
+              <p>{input.weight.toFixed(2) + ' Kg'}</p>
             </div>
             <div className={"grid grid-cols-2 p-3 shadow-lg rounded-lg mb-4 gap-2 items-center"}>
               <p className="font-bold text-lg">{'Monto:'}</p>
@@ -113,11 +113,11 @@ export default function ControlSupervisor() {
 
     return (
 
-      <div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center'>
+      <div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center max-w-lg my-auto mx-auto'>
         <div className='bg-white p-5 rounded-lg justify-center items-center h-4/6 my-auto w-11/12'>
-          <div className="mb-10 flex">
+          <div className="mb-10 flex relative items-center">
             <p className='text-3xl font-semibold text-red-500'>Detalles de la salida</p>
-            <button className="m-auto" onClick={() => { setMovementDetailsIsOpen(!movementDetailsIsOpen) }}><MdCancel className="h-7 w-7" /></button>
+            <button className="absolute right-0" onClick={() => { setMovementDetailsIsOpen(!movementDetailsIsOpen) }}><MdCancel className="h-7 w-7" /></button>
           </div>
           <div className='h-5/6 overflow-y-scroll'>
             <div className={"grid grid-cols-2 p-3 shadow-lg rounded-lg mb-4 gap-2 items-center"}>
@@ -138,15 +138,15 @@ export default function ControlSupervisor() {
             </div>
             <div className={"grid grid-cols-2 p-3 shadow-lg rounded-lg mb-4 gap-2 items-center"}>
               <p className="font-bold text-lg">{'Piezas:'}</p>
-              <p>{output.pieces}</p>
+              <p>{output.pieces.toFixed(2)}</p>
             </div>
             <div className={"grid grid-cols-2 p-3 shadow-lg rounded-lg mb-4 gap-2 items-center"}>
               <p className={(output.specialPrice ? 'text-red-500' : '') + " font-bold text-lg"}>{output.specialPrice ? 'Precio especial:' : 'Precio:'}</p>
-              <p>{output.price}</p>
+              <p>{output.price.toLocaleString('es-MX', {style: 'currency', currency: 'MXN'})}</p>
             </div>
             <div className={"grid grid-cols-2 p-3 shadow-lg rounded-lg mb-4 gap-2 items-center"}>
               <p className="font-bold text-lg">{'Peso:'}</p>
-              <p>{output.weight + ' Kg'}</p>
+              <p>{output.weight.toFixed(2) + ' Kg'}</p>
             </div>
             <div className={"grid grid-cols-2 p-3 shadow-lg rounded-lg mb-4 gap-2 items-center"}>
               <p className="font-bold text-lg">{'Monto:'}</p>
@@ -1530,7 +1530,7 @@ export default function ControlSupervisor() {
 
               <div key={input._id} className={(currentUser._id == input.employee || currentUser.role == managerRole._id ? '' : 'py-3 ') + (input.specialPrice ? 'border border-red-500 ' : 'border border-black ') + 'grid grid-cols-12 items-center border-opacity-70 rounded-lg shadow-sm mt-2'}>
 
-                <button onClick={() => { setSelectedMovement(input), setMovementDetailsIsOpen(!movementDetailsIsOpen) }}  id='list-element' className='flex col-span-10 items-center justify-around'>
+                <button onClick={() => { setSelectedMovement(input), setMovementDetailsIsOpen(!movementDetailsIsOpen) }}  id='list-element' className='flex col-span-10 items-center justify-around h-full'>
                   <p className='text-center text-xs  w-3/12'>{input.branch.branch ? input.branch.branch : input.branch}</p>
                   <p className='text-center text-xs w-3/12'>{input.employee.name + ' ' + input.employee.lastName}</p>
                   <p className='text-center text-xs w-3/12'>{input.product.name ? input.product.name : input.product}</p>
