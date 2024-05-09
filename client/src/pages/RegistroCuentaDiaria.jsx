@@ -65,15 +65,8 @@ export default function RegistroCuentaDiaria() {
   const handleBranchSelectChange = (branch) => {
 
     setSelectedBranch(branch)
+    setBranchId(branch.value)
 
-    if (branch != null) {
-
-      setBranchId(branch.value)
-
-    } else {
-
-      setBranchId(null)
-    }
   }
 
   const formatDate = (date) => {
@@ -210,8 +203,8 @@ export default function RegistroCuentaDiaria() {
     const productSelect = document.getElementById('product-loss')
     const weightInput = document.getElementById('productLossWeight')
     const button = document.getElementById('product-loss-button')
-    const branchSelect = document.getElementById('branch')
-    const employeeSelect = document.getElementById('employee')
+    const employeeSelect = selectedEmployee != null
+    const branchSelect = selectedBranch != null
 
     let filledInputs = true
 
@@ -226,7 +219,7 @@ export default function RegistroCuentaDiaria() {
       filledInputs = false
     }
 
-    if (filledInputs && branchSelect.value != 'none' && employeeSelect.value != 'none' && !loading) {
+    if (filledInputs && branchSelect && employeeSelect && !loading) {
 
       button.disabled = false
 

@@ -86,16 +86,15 @@ const getEmployeeWorkedDays = async (req, res, employeeId, next) => {
 
 		const employee = await Employee.findById(employeeId).select('payDay')
 
-		if(employee.payDay - (day - 1) > 0) {
+		if(employee.payDay - day > 0) {
 
-
-			return 8 - employee.payDay - day + 1
+			return 8 - (employee.payDay - day)
 
 		} else {
 
-			if(employee.payDay - (day - 1) < 0) {
+			if(employee.payDay - day < 0) {
 
-				return (Math.abs(employee.payDay - (day - 1)) + 1)
+				return (Math.abs(employee.payDay - day) + 1)
 
 			} else {
 
