@@ -198,36 +198,36 @@ export default function RegistroCuentaDiaria() {
     }
   }
 
-  const productLossButtonControl = () => {
+  // const productLossButtonControl = () => {
 
-    const productSelect = document.getElementById('product-loss')
-    const weightInput = document.getElementById('productLossWeight')
-    const button = document.getElementById('product-loss-button')
-    const employeeSelect = selectedEmployee != null
-    const branchSelect = selectedBranch != null
+  //   const productSelect = document.getElementById('product-loss')
+  //   const weightInput = document.getElementById('productLossWeight')
+  //   const button = document.getElementById('product-loss-button')
+  //   const employeeSelect = selectedEmployee != null
+  //   const branchSelect = selectedBranch != null
 
-    let filledInputs = true
+  //   let filledInputs = true
 
-    if (productSelect.value == 'none') {
+  //   if (productSelect.value == 'none') {
 
-      filledInputs = false
+  //     filledInputs = false
 
-    }
+  //   }
 
-    if (weightInput.value == '') {
+  //   if (weightInput.value == '') {
 
-      filledInputs = false
-    }
+  //     filledInputs = false
+  //   }
 
-    if (filledInputs && branchSelect && employeeSelect && !loading) {
+  //   if (filledInputs && branchSelect && employeeSelect && !loading) {
 
-      button.disabled = false
+  //     button.disabled = false
 
-    } else {
+  //   } else {
 
-      button.disabled = true
-    }
-  }
+  //     button.disabled = true
+  //   }
+  // }
 
   const addOutgoing = async (e) => {
 
@@ -1477,7 +1477,7 @@ export default function RegistroCuentaDiaria() {
             {inputs && inputs.length > 0 && inputs.map((input) => (
 
               <div key={input._id}>
-                <div className='grid grid-cols-12 items-center border border-black border-opacity-30 rounded-lg shadow-sm mb-2 py-3'>
+                <div className={(input.specialPrice ? 'border border-red-500' : 'border border-black') + ' grid grid-cols-12 items-center border-opacity-70 rounded-lg shadow-sm mb-2 py-3'}>
                   <div id='list-element' className='flex col-span-12 items-center'>
                     <p className='text-center text-xs w-3/12'>{input.employee.name + ' ' + input.employee.lastName}</p>
                     <p className='text-center text-xs w-3/12'>{input.product.name}</p>

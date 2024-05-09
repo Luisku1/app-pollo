@@ -446,6 +446,7 @@ export default function ControlSupervisor() {
     const weightInput = document.getElementById('outputWeight')
     const branchInput = document.getElementById('outputBranch')
     const commentInput = document.getElementById('outputComment')
+    const inputSpecialPrice = document.getElementById('inputSpecialPrice')
 
     e.preventDefault()
 
@@ -488,6 +489,7 @@ export default function ControlSupervisor() {
 
       piecesInput.value = ''
       weightInput.value = ''
+      inputSpecialPrice.value = ''
       productInput.value = 'none'
 
       setLoading(false)
@@ -523,11 +525,11 @@ export default function ControlSupervisor() {
     const weightInput = document.getElementById('inputWeight')
     const branchInput = document.getElementById('inputBranch')
     const commentInput = document.getElementById('inputComment')
+    const inputSpecialPrice = document.getElementById('inputSpecialPrice')
 
     e.preventDefault()
 
     setLoading(true)
-
 
     try {
 
@@ -566,6 +568,7 @@ export default function ControlSupervisor() {
       piecesInput.value = ''
       weightInput.value = ''
       productInput.value = 'none'
+      inputSpecialPrice.value = ''
 
       setLoading(false)
 
@@ -720,9 +723,6 @@ export default function ControlSupervisor() {
 
     setLoansTotal(total)
   }
-
-
-
 
   useEffect(() => {
 
@@ -1137,8 +1137,8 @@ export default function ControlSupervisor() {
 
         <SectionHeader label={'Entradas'} />
 
-        <form onSubmit={addInput} className="grid grid-cols-4 items-center justify-between">
-          <select name="inputBranch" id="inputBranch" onChange={(e) => { inputButtonControl(), saveBranchName(e) }} className='border p-3 rounded-lg text-xs'>
+        <form onSubmit={addInput} className="grid grid-cols-12 items-center justify-between">
+          <select name="inputBranch" id="inputBranch" onChange={(e) => { inputButtonControl(), saveBranchName(e) }} className='border p-3 rounded-lg text-xs col-span-3'>
 
             <option value="none" disabled selected hidden >Sucursal</option>
 
@@ -1150,7 +1150,7 @@ export default function ControlSupervisor() {
             ))}
           </select>
 
-          <select name="inputProduct" id="inputProduct" className='border p-3 rounded-lg text-xs' onChange={(e) => { inputButtonControl(), saveProductName(e) }}>
+          <select name="inputProduct" id="inputProduct" className='border p-3 rounded-lg text-xs col-span-3' onChange={(e) => { inputButtonControl(), saveProductName(e) }}>
             <option value="none" selected hidden >Productos</option>
 
             {products && products.length != 0 && products.map((product) => (
@@ -1159,13 +1159,14 @@ export default function ControlSupervisor() {
             ))}
           </select>
 
-          <input type="number" name="inputPieces" id="inputPieces" placeholder='Piezas' step={0.1} className='border p-3 rounded-lg' required onInput={inputButtonControl} onChange={handleInputInputsChange} />
-          <input type="number" name="inputWeight" id="inputWeight" placeholder='0.00 kg' step={0.01} className='border p-3 rounded-lg' required onInput={inputButtonControl} onChange={handleInputInputsChange} />
+          <input type="number" name="inputPieces" id="inputPieces" placeholder='Piezas' step={0.1} className='border p-3 rounded-lg col-span-3' required onInput={inputButtonControl} onChange={handleInputInputsChange} />
+          <input type="number" name="inputWeight" id="inputWeight" placeholder='0.00 kg' step={0.01} className='border p-3 rounded-lg col-span-3' required onInput={inputButtonControl} onChange={handleInputInputsChange} />
 
-          <textarea className='col-span-4 rounded-lg p-3 shadow mt-2' name="inputComment" id="inputComment" cols="30" rows="2" defaultValue={'Todo bien'} onChange={handleInputInputsChange}></textarea>
+          <input className='col-span-4 p-3 border border-black shadow-md' name='inputSpecialPrice' id='inputSpecialPrice' step={0.01} placeholder='Precio especial' type="number" onChange={handleInputInputsChange} />
+          <textarea className='col-span-8 rounded-lg p-3 shadow mt-2' name="inputComment" id="inputComment" cols="30" rows="2" defaultValue={'Todo bien'} onChange={handleInputInputsChange}></textarea>
 
 
-          <button type='submit' id='input-button' disabled className='bg-slate-500 text-white p-3 rounded-lg col-span-4 mt-8'>Agregar</button>
+          <button type='submit' id='input-button' disabled className='bg-slate-500 text-white p-3 rounded-lg col-span-12 mt-8'>Agregar</button>
 
         </form>
 
@@ -1176,8 +1177,8 @@ export default function ControlSupervisor() {
 
         <SectionHeader label={'Salidas'} />
 
-        <form onSubmit={addOutput} className="grid grid-cols-4 items-center justify-between">
-          <select name="outputBranch" id="outputBranch" className='border p-3 rounded-lg text-xs' onChange={(e) => { outputButtonControl(), saveBranchName(e) }}>
+        <form onSubmit={addOutput} className="grid grid-cols-12 items-center justify-between">
+          <select name="outputBranch" id="outputBranch" className='border p-3 rounded-lg text-xs col-span-3' onChange={(e) => { outputButtonControl(), saveBranchName(e) }}>
 
             <option value="none" disabled selected hidden >Sucursal</option>
 
@@ -1189,7 +1190,7 @@ export default function ControlSupervisor() {
             ))}
           </select>
 
-          <select name="outputProduct" id="outputProduct" onChange={(e) => { outputButtonControl(), saveProductName(e) }} className='border p-3 rounded-lg text-xs'>
+          <select name="outputProduct" id="outputProduct" onChange={(e) => { outputButtonControl(), saveProductName(e) }} className='col-span-3 border p-3 rounded-lg text-xs'>
             <option value="none" selected hidden >Productos</option>
 
             {products && products.length != 0 && products.map((product) => (
@@ -1198,12 +1199,13 @@ export default function ControlSupervisor() {
             ))}
           </select>
 
-          <input type="number" name="outputPieces" id="outputPieces" placeholder='Piezas' step={1} className='border p-3 rounded-lg' required onInput={outputButtonControl} onChange={handleOutputInputsChange} />
-          <input type="number" name="outputWeight" id="outputWeight" placeholder='0.00 kg' step={0.01} className='border p-3 rounded-lg' required onInput={outputButtonControl} onChange={handleOutputInputsChange} />
+          <input type="number" name="outputPieces" id="outputPieces" placeholder='Piezas' step={0.1} className='border p-3 rounded-lg col-span-3' required onInput={outputButtonControl} onChange={handleOutputInputsChange} />
+          <input type="number" name="outputWeight" id="outputWeight" placeholder='0.00 kg' step={0.01} className='border p-3 rounded-lg col-span-3' required onInput={outputButtonControl} onChange={handleOutputInputsChange} />
 
-          <textarea className='col-span-4 rounded-lg p-3 shadow mt-2' name="outputComment" id="outputComment" cols="30" rows="2" defaultValue={'Todo bien'} onChange={handleOutputInputsChange}></textarea>
+          <input className='col-span-4 p-3 border border-black shadow-md' name='outputSpecialPrice' id='outputSpecialPrice' step={0.01} placeholder='Precio especial' type="number" onChange={handleOutputInputsChange} />
+          <textarea className='col-span-8 rounded-lg p-3 shadow mt-2' name="outputComment" id="outputComment" cols="30" rows="2" defaultValue={'Todo bien'} onChange={handleOutputInputsChange}></textarea>
 
-          <button type='submit' id='outputButton' disabled className='bg-slate-500 text-white p-3 rounded-lg col-span-4 mt-8'>Agregar</button>
+          <button type='submit' id='outputButton' disabled className='bg-slate-500 text-white p-3 rounded-lg col-span-12 mt-8'>Agregar</button>
 
         </form>
 
@@ -1422,7 +1424,7 @@ export default function ControlSupervisor() {
             {inputs && inputs.length > 0 && inputs.map((input, index) => (
 
 
-              <div key={input._id} className={(currentUser._id == input.employee || currentUser.role == managerRole._id ? '' : 'py-3 ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
+              <div key={input._id} className={(currentUser._id == input.employee || currentUser.role == managerRole._id ? '' : 'py-3 ') + (input.specialPrice ? 'border border-red-500 ' : 'border border-black ') + 'grid grid-cols-12 items-center border-opacity-70 rounded-lg shadow-sm mt-2'}>
 
                 <div id='list-element' className='flex col-span-10 items-center justify-around'>
                   <p className='text-center text-xs  w-3/12'>{input.branch.branch ? input.branch.branch : input.branch}</p>
@@ -1502,7 +1504,7 @@ export default function ControlSupervisor() {
             {outputs && outputs.length > 0 && outputs.map((output, index) => (
 
 
-              <div key={output._id} className={(currentUser._id == output.employee || currentUser.role == managerRole._id ? '' : 'py-3 ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
+              <div key={output._id} className={(currentUser._id == output.employee || currentUser.role == managerRole._id ? '' : 'py-3 ') + (output.specialPrice ? 'border border-red-500 ' : 'border border-black ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-70 shadow-sm mt-2'}>
 
                 <div id='list-element' className='flex col-span-10 items-center justify-around'>
                   <p className='text-center text-xs  w-3/12'>{output.branch.branch ? output.branch.branch : output.branch}</p>

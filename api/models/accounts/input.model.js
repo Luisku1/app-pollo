@@ -26,6 +26,11 @@ const inputSchema = mongoose.Schema(
       required: true
     },
 
+    specialPrice: {
+      type: Boolean,
+      required: true
+    },
+
     company: {
       type: Schema.Types.ObjectId, ref: 'Company',
       required: true

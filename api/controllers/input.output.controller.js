@@ -7,14 +7,28 @@ import Branch from '../models/branch.model.js'
 
 export const newInput = async (req, res, next) => {
 
-  const { inputWeight, inputComment, inputPieces, company, product, employee, branch } = req.body
+  const { inputWeight, inputComment, inputPieces, company, product, employee, branch, inputSpecialPrice } = req.body
   const createdAt = new Date().toISOString()
 
   try {
 
-    const price = await getProductPrice(product, branch)
-    const amount = price.price * inputWeight
-    const newInput = new Input({ weight: inputWeight, comment: inputComment, pieces: inputPieces, company, product, employee, branch, amount, price: price.price, createdAt })
+    let amount = 0
+    let price = 0
+    let specialPrice = false
+
+    if (inputSpecialPrice) {
+
+      price = inputSpecialPrice
+      amount = price * inputWeight
+      specialPrice = !specialPrice
+
+    } else {
+
+      price = (await getProductPrice(product, branch)).price
+      amount = price * inputWeight
+    }
+
+    const newInput = new Input({ weight: inputWeight, comment: inputComment, pieces: inputPieces, company, product, employee, branch, amount, price: price, createdAt, specialPrice })
 
     await newInput.save()
 
@@ -383,14 +397,27 @@ export const deleteInput = async (req, res, next) => {
 
 export const newOutput = async (req, res, next) => {
 
-  const { outputWeight, outputComment, pieces, company, product, employee, branch } = req.body
+  const { outputWeight, outputComment, pieces, company, product, employee, branch, outputSpecialPrice } = req.body
   const createdAt = new Date().toISOString()
 
   try {
 
-    const price = await getProductPrice(product, branch)
-    const amount = price.price * outputWeight
-    const newOutput = new Output({ weight: outputWeight, comment: outputComment, pieces, company, product, employee, branch, amount, price: price.price, createdAt: createdAt })
+    let amount = 0
+    let price = 0
+    let specialPrice = false
+
+    if (outputSpecialPrice) {
+
+      price = outputSpecialPrice
+      amount = price * outputWeight
+      specialPrice = !specialPrice
+
+    } else {
+
+      price = (await getProductPrice(product, branch)).price
+      amount = price * outputWeight
+    }
+    const newOutput = new Output({ weight: outputWeight, comment: outputComment, pieces, company, product, employee, branch, amount, price: price, createdAt: createdAt, specialPrice })
 
     await newOutput.save()
 
