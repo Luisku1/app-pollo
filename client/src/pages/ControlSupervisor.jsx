@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux'
 import { fetchBranches, fetchEmployees, fetchProducts, deleteOutputFetch, deleteExtraOutgoingFetch, deleteInputFetch, deleteIncomeFetch, fetchIncomeTypes, deleteLoanFetch } from '../helpers/FetchFunctions';
 import { FaTrash } from 'react-icons/fa';
 import { useParams, useNavigate, Link } from "react-router-dom"
-import { MdKeyboardArrowDown, MdKeyboardArrowRight } from 'react-icons/md';
+import { MdCancel, MdKeyboardArrowDown, MdKeyboardArrowRight } from 'react-icons/md';
 
 export default function ControlSupervisor() {
 
@@ -43,6 +43,8 @@ export default function ControlSupervisor() {
   const [loansIsOpen, setLoansIsOpen] = useState(false)
   const [inputsIsOpen, setInputsIsOpen] = useState(false)
   const [outputsIsOpen, setOutputsIsOpen] = useState(false)
+  const [selectedMovement, setSelectedMovement] = useState(null)
+  const [movementDetailsIsOpen, setMovementDetailsIsOpen] = useState(false)
   const [differencesIsOpen, setDifferencesIsOpen] = useState(false)
   const [managerRole, setManagerRole] = useState({})
 
@@ -51,6 +53,108 @@ export default function ControlSupervisor() {
     return (
 
       <h2 className='flex text-2xl text-center font-semibold mb-4 text-red-800' onClick={props.onClick}>{props.label}</h2>
+    )
+  }
+
+  const ShowInputDetails = (props) => {
+
+    const input = props.input
+
+    return (
+
+      <div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center'>
+        <div className='bg-white p-5 rounded-lg justify-center items-center h-4/6 my-auto w-11/12'>
+          <div className="mb-10 flex">
+            <p className='text-3xl font-semibold text-red-500'>Detalles de la entrada</p>
+            <button className="m-auto" onClick={() => { setMovementDetailsIsOpen(!movementDetailsIsOpen) }}><MdCancel className="h-7 w-7" /></button>
+          </div>
+          <div className='h-5/6 overflow-y-scroll'>
+            <div className={"grid grid-cols-2 p-3 shadow-lg rounded-lg mb-4 gap-2 items-center"}>
+              <p className="font-bold text-lg">{'Destino:'}</p>
+              <p>{input.branch.branch ? input.branch.branch : input.branch}</p>
+            </div>
+            <div className={"grid grid-cols-2 p-3 shadow-lg rounded-lg mb-4 gap-2 items-center"}>
+              <p className="font-bold text-lg">{'Encargado:'}</p>
+              <p className=''>{input.employee.name + ' ' + input.employee.lastName}</p>
+            </div>
+            <div className={"grid grid-cols-2 p-3 shadow-lg rounded-lg mb-4 gap-2 items-center"}>
+              <p className="font-bold text-lg">{'Comentario:'}</p>
+              <p>{input.comment}</p>
+            </div>
+            <div className={"grid grid-cols-2 p-3 shadow-lg rounded-lg mb-4 gap-2 items-center"}>
+              <p className="font-bold text-lg">{'Producto:'}</p>
+              <p>{input.product.name}</p>
+            </div>
+            <div className={"grid grid-cols-2 p-3 shadow-lg rounded-lg mb-4 gap-2 items-center"}>
+              <p className="font-bold text-lg">{'Piezas:'}</p>
+              <p>{input.pieces}</p>
+            </div>
+            <div className={"grid grid-cols-2 p-3 shadow-lg rounded-lg mb-4 gap-2 items-center"}>
+              <p className={(input.specialPrice ? 'text-red-500' : '') + " font-bold text-lg"}>{input.specialPrice ? 'Precio especial:' : 'Precio:'}</p>
+              <p>{input.price}</p>
+            </div>
+            <div className={"grid grid-cols-2 p-3 shadow-lg rounded-lg mb-4 gap-2 items-center"}>
+              <p className="font-bold text-lg">{'Peso:'}</p>
+              <p>{input.weight + ' Kg'}</p>
+            </div>
+            <div className={"grid grid-cols-2 p-3 shadow-lg rounded-lg mb-4 gap-2 items-center"}>
+              <p className="font-bold text-lg">{'Monto:'}</p>
+              <p>{input.amount.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  const ShowOutputDetails = (props) => {
+
+    const output = props.output
+
+    return (
+
+      <div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center'>
+        <div className='bg-white p-5 rounded-lg justify-center items-center h-4/6 my-auto w-11/12'>
+          <div className="mb-10 flex">
+            <p className='text-3xl font-semibold text-red-500'>Detalles de la salida</p>
+            <button className="m-auto" onClick={() => { setMovementDetailsIsOpen(!movementDetailsIsOpen) }}><MdCancel className="h-7 w-7" /></button>
+          </div>
+          <div className='h-5/6 overflow-y-scroll'>
+            <div className={"grid grid-cols-2 p-3 shadow-lg rounded-lg mb-4 gap-2 items-center"}>
+              <p className="font-bold text-lg">{'Origen:'}</p>
+              <p>{output.branch.branch ? output.branch.branch : output.branch}</p>
+            </div>
+            <div className={"grid grid-cols-2 p-3 shadow-lg rounded-lg mb-4 gap-2 items-center"}>
+              <p className="font-bold text-lg">{'Encargado:'}</p>
+              <p className=''>{output.employee.name + ' ' + output.employee.lastName}</p>
+            </div>
+            <div className={"grid grid-cols-2 p-3 shadow-lg rounded-lg mb-4 gap-2 items-center"}>
+              <p className="font-bold text-lg">{'Comentario:'}</p>
+              <p>{output.comment}</p>
+            </div>
+            <div className={"grid grid-cols-2 p-3 shadow-lg rounded-lg mb-4 gap-2 items-center"}>
+              <p className="font-bold text-lg">{'Producto:'}</p>
+              <p>{output.product.name}</p>
+            </div>
+            <div className={"grid grid-cols-2 p-3 shadow-lg rounded-lg mb-4 gap-2 items-center"}>
+              <p className="font-bold text-lg">{'Piezas:'}</p>
+              <p>{output.pieces}</p>
+            </div>
+            <div className={"grid grid-cols-2 p-3 shadow-lg rounded-lg mb-4 gap-2 items-center"}>
+              <p className={(output.specialPrice ? 'text-red-500' : '') + " font-bold text-lg"}>{output.specialPrice ? 'Precio especial:' : 'Precio:'}</p>
+              <p>{output.price}</p>
+            </div>
+            <div className={"grid grid-cols-2 p-3 shadow-lg rounded-lg mb-4 gap-2 items-center"}>
+              <p className="font-bold text-lg">{'Peso:'}</p>
+              <p>{output.weight + ' Kg'}</p>
+            </div>
+            <div className={"grid grid-cols-2 p-3 shadow-lg rounded-lg mb-4 gap-2 items-center"}>
+              <p className="font-bold text-lg">{'Monto:'}</p>
+              <p>{output.amount.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>
+            </div>
+          </div>
+        </div>
+      </div>
     )
   }
 
@@ -1426,13 +1530,15 @@ export default function ControlSupervisor() {
 
               <div key={input._id} className={(currentUser._id == input.employee || currentUser.role == managerRole._id ? '' : 'py-3 ') + (input.specialPrice ? 'border border-red-500 ' : 'border border-black ') + 'grid grid-cols-12 items-center border-opacity-70 rounded-lg shadow-sm mt-2'}>
 
-                <div id='list-element' className='flex col-span-10 items-center justify-around'>
+                <button onClick={() => { setSelectedMovement(input), setMovementDetailsIsOpen(!movementDetailsIsOpen) }}  id='list-element' className='flex col-span-10 items-center justify-around'>
                   <p className='text-center text-xs  w-3/12'>{input.branch.branch ? input.branch.branch : input.branch}</p>
                   <p className='text-center text-xs w-3/12'>{input.employee.name + ' ' + input.employee.lastName}</p>
                   <p className='text-center text-xs w-3/12'>{input.product.name ? input.product.name : input.product}</p>
                   <p className='text-center text-xs w-1/12'>{input.weight}</p>
-                </div>
-
+                </button>
+                {selectedMovement != null && selectedMovement._id == input._id && movementDetailsIsOpen ?
+                  <ShowInputDetails input={input}></ShowInputDetails>
+                  : ''}
                 {currentUser._id == input.employee._id || currentUser.role == managerRole._id ?
 
                   <div>
@@ -1506,12 +1612,16 @@ export default function ControlSupervisor() {
 
               <div key={output._id} className={(currentUser._id == output.employee || currentUser.role == managerRole._id ? '' : 'py-3 ') + (output.specialPrice ? 'border border-red-500 ' : 'border border-black ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-70 shadow-sm mt-2'}>
 
-                <div id='list-element' className='flex col-span-10 items-center justify-around'>
+                <button onClick={() => { setSelectedMovement(output), setMovementDetailsIsOpen(!movementDetailsIsOpen) }} id='list-element' className='flex col-span-10 items-center justify-around h-full'>
                   <p className='text-center text-xs  w-3/12'>{output.branch.branch ? output.branch.branch : output.branch}</p>
                   <p className='text-center text-xs w-3/12'>{output.employee.name + ' ' + output.employee.lastName}</p>
                   <p className='text-center text-xs w-3/12'>{output.product.name ? output.product.name : output.product}</p>
                   <p className='text-center text-xs w-1/12'>{output.weight}</p>
-                </div>
+                </button>
+
+                {selectedMovement != null && selectedMovement._id == output._id && movementDetailsIsOpen ?
+                  <ShowOutputDetails output={output}></ShowOutputDetails>
+                  : ''}
 
                 {currentUser._id == output.employee._id || currentUser.role == managerRole._id ?
 

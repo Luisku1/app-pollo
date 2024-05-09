@@ -1588,7 +1588,7 @@ export default function RegistroCuentaDiaria() {
             {outputs && outputs.length > 0 && outputs.map((output) => (
 
 
-              <div key={output._id} className='grid grid-cols-12 items-center my-2 py-3 border-opacity-30 rounded-lg border border-black shadow-sm gap-4'>
+              <div key={output._id} className={(output.specialPrice ? 'border border-red-500' : 'border border-black') + ' grid grid-cols-12 items-center border-opacity-70 rounded-lg shadow-sm mb-2 py-3'}>
                 <div id='list-element' className='flex col-span-12 items-center '>
                   <p className='text-center text-xs w-3/12'>{output.employee.name + ' ' + output.employee.lastName}</p>
                   <p className='text-center text-xs w-3/12'>{output.product.name}</p>
