@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { fetchBranches, fetchEmployees, fetchProducts, deleteOutputFetch, deleteExtraOutgoingFetch, deleteInputFetch, deleteIncomeFetch, fetchIncomeTypes, deleteLoanFetch } from '../helpers/FetchFunctions';
 import { FaTrash } from 'react-icons/fa';
-import { useParams, useNavigate, Link } from "react-router-dom"
+import { Link } from "react-router-dom"
 import { MdCancel, MdKeyboardArrowDown, MdKeyboardArrowRight } from 'react-icons/md';
 
 export default function ControlSupervisor() {
@@ -91,7 +91,7 @@ export default function ControlSupervisor() {
             </div>
             <div className={"grid grid-cols-2 p-3 shadow-lg rounded-lg mb-4 gap-2 items-center"}>
               <p className={(input.specialPrice ? 'text-red-500' : '') + " font-bold text-lg"}>{input.specialPrice ? 'Precio especial:' : 'Precio:'}</p>
-              <p>{input.price.toLocaleString('es-MX', {style: 'currency', currency: 'MXN'})}</p>
+              <p>{input.price.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>
             </div>
             <div className={"grid grid-cols-2 p-3 shadow-lg rounded-lg mb-4 gap-2 items-center"}>
               <p className="font-bold text-lg">{'Peso:'}</p>
@@ -142,7 +142,7 @@ export default function ControlSupervisor() {
             </div>
             <div className={"grid grid-cols-2 p-3 shadow-lg rounded-lg mb-4 gap-2 items-center"}>
               <p className={(output.specialPrice ? 'text-red-500' : '') + " font-bold text-lg"}>{output.specialPrice ? 'Precio especial:' : 'Precio:'}</p>
-              <p>{output.price.toLocaleString('es-MX', {style: 'currency', currency: 'MXN'})}</p>
+              <p>{output.price.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>
             </div>
             <div className={"grid grid-cols-2 p-3 shadow-lg rounded-lg mb-4 gap-2 items-center"}>
               <p className="font-bold text-lg">{'Peso:'}</p>
@@ -1530,7 +1530,7 @@ export default function ControlSupervisor() {
 
               <div key={input._id} className={(currentUser._id == input.employee || currentUser.role == managerRole._id ? '' : 'py-3 ') + (input.specialPrice ? 'border border-red-500 ' : 'border border-black ') + 'grid grid-cols-12 items-center border-opacity-70 rounded-lg shadow-sm mt-2'}>
 
-                <button onClick={() => { setSelectedMovement(input), setMovementDetailsIsOpen(!movementDetailsIsOpen) }}  id='list-element' className='flex col-span-10 items-center justify-around h-full'>
+                <button onClick={() => { setSelectedMovement(input), setMovementDetailsIsOpen(!movementDetailsIsOpen) }} id='list-element' className='flex col-span-10 items-center justify-around h-full'>
                   <p className='text-center text-xs  w-3/12'>{input.branch.branch ? input.branch.branch : input.branch}</p>
                   <p className='text-center text-xs w-3/12'>{input.employee.name + ' ' + input.employee.lastName}</p>
                   <p className='text-center text-xs w-3/12'>{input.product.name ? input.product.name : input.product}</p>
@@ -1672,7 +1672,7 @@ export default function ControlSupervisor() {
         </div>
         : ''}
 
-      {Object.values(netDifference) && Object.values(netDifference).length > 0 && managerRole._id == currentUser.role ?
+      {Object.values(netDifference) && Object.values(netDifference).length > 0 ?
 
         <div className='border bg-white shadow-lg p-3 mt-4'>
 
@@ -1687,39 +1687,45 @@ export default function ControlSupervisor() {
 
             {Object.values(netDifference) && Object.values(netDifference).length > 0 && Object.values(netDifference).map((employeeDifferences) => (
 
-              <div className='border border-black mt-5' key={employeeDifferences.employee._id}>
+              <div key={employeeDifferences.employee._id}>
 
-                <div>
-                  <p className='font-bold text-xl p-3'>{employeeDifferences.employee.name + ' ' + employeeDifferences.employee.lastName}</p>
-                </div>
+                {managerRole._id == currentUser.role || currentUser._id == employeeDifferences.employee._id?
 
+                  < div className='border border-black mt-5'>
 
-                {Object.values(employeeDifferences.netDifference) && Object.values(employeeDifferences.netDifference).length > 0 ?
-                  < div id='header' className='grid grid-cols-12 gap-4 items-center justify-around font-semibold mt-4'>
-                    <p className='p-3 rounded-lg col-span-6 text-center'>Producto</p>
-                    <p className='p-3 rounded-lg col-span-6 text-center'>Diferencia</p>
-                  </div>
-                  : ''}
-                {Object.values(employeeDifferences.netDifference) && Object.values(employeeDifferences.netDifference).length > 0 && Object.values(employeeDifferences.netDifference).map((productDifference) => (
+                    <div>
+                      <p className='font-bold text-xl p-3'>{employeeDifferences.employee.name + ' ' + employeeDifferences.employee.lastName}</p>
+                    </div>
 
 
-                  <div key={productDifference.name} className={'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2 p-3'}>
+                    {Object.values(employeeDifferences.netDifference) && Object.values(employeeDifferences.netDifference).length > 0 ?
+                      < div id='header' className='grid grid-cols-12 gap-4 items-center justify-around font-semibold mt-4'>
+                        <p className='p-3 rounded-lg col-span-6 text-center'>Producto</p>
+                        <p className='p-3 rounded-lg col-span-6 text-center'>Diferencia</p>
+                      </div>
+                      : ''}
+                    {Object.values(employeeDifferences.netDifference) && Object.values(employeeDifferences.netDifference).length > 0 && Object.values(employeeDifferences.netDifference).map((productDifference) => (
 
-                    <div id='list-element' className='flex col-span-12 items-center justify-around p-1'>
-                      <p className='text-center text-sm w-6/12'>{productDifference.name}</p>
-                      <p className={'text-center text-sm w-6/12 ' + (productDifference.difference < 0 ? 'text-red-500' : '')}>{Math.abs(productDifference.difference).toFixed(2)}</p>
+
+                      <div key={productDifference.name} className={'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2 p-3'}>
+
+                        <div id='list-element' className='flex col-span-12 items-center justify-around p-1'>
+                          <p className='text-center text-sm w-6/12'>{productDifference.name}</p>
+                          <p className={'text-center text-sm w-6/12 ' + (productDifference.difference < 0 ? 'text-red-500' : '')}>{Math.abs(productDifference.difference).toFixed(2)}</p>
+                        </div>
+                      </div>
+
+                    ))}
+
+                    <div className='p-3'>
+
+                      <div className='flex mt-4 border-black border border-opacity-30 shadow-lg rounded-lg p-3'>
+                        <p className='w-6/12 text-center'>Total:</p>
+                        <p className={'w-6/12 text-center ' + (employeeDifferences.totalDifference < 0 ? 'text-red-500' : '')}>{Math.abs(employeeDifferences.totalDifference)}</p>
+                      </div>
                     </div>
                   </div>
-
-                ))}
-
-                <div className='p-3'>
-
-                  <div className='flex mt-4 border-black border border-opacity-30 shadow-lg rounded-lg p-3'>
-                    <p className='w-6/12 text-center'>Total:</p>
-                    <p className={'w-6/12 text-center ' + (employeeDifferences.totalDifference < 0 ? 'text-red-500' : '')}>{Math.abs(employeeDifferences.totalDifference)}</p>
-                  </div>
-                </div>
+                  : ''}
               </div>
             ))}
 
@@ -1736,7 +1742,8 @@ export default function ControlSupervisor() {
             : ''}
 
         </div>
-        : ''}
+        : ''
+      }
 
       {
         loans && loans.length > 0 ?
@@ -1817,7 +1824,8 @@ export default function ControlSupervisor() {
               : ''}
 
           </div>
-          : ''}
+          : ''
+      }
 
       {
         employeesDailyBalances && employeesDailyBalances.length > 0 ?
