@@ -1,46 +1,51 @@
 import mongoose, { Schema } from 'mongoose'
 
-const customerSaleSchema = mongoose.Schema( {
+const customerSaleSchema = mongoose.Schema({
 
-    weight: {
-        type: Number,
-        required: true
-    },
+  weight: {
+    type: Number,
+    required: true
+  },
 
-    price: {
-        type: Number,
-        required: true
-    },
+  price: {
+    type: Number,
+    required: true
+  },
 
-    comment: {
-        type: String,
-        required: true
-    },
+  comment: {
+    type: String,
+    required: true
+  },
 
-    folio: {
-        type: String,
-        required: true,
-        unique: true
-    },
+  folio: {
+    type: String,
+    required: true,
+    unique: true
+  },
 
-    product: {
-        type: Schema.Types.ObjectId, ref: 'Product'
-    },
+  precentageIncluded: {
+    type: Boolean,
+    required: true
+  },
 
-    company: {
-        type: Schema.Types.ObjectId, ref: 'Company',
-        required: true
-    },
+  product: {
+    type: Schema.Types.ObjectId, ref: 'Product'
+  },
 
-    customer: {
-        type: Schema.Types.ObjectId, ref: 'Customer',
-        required: true
-    },
+  company: {
+    type: Schema.Types.ObjectId, ref: 'Company',
+    required: true
+  },
 
-    createdAt: {
-        type: Date,
-        required: true
-    }
+  customer: {
+    type: Schema.Types.ObjectId, ref: 'Customer',
+    required: true
+  },
+
+  createdAt: {
+    type: Date,
+    required: true
+  }
 })
 
 const CustomerSale = mongoose.model('CustomerSale', customerSaleSchema)

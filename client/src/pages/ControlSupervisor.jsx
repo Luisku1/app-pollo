@@ -630,10 +630,13 @@ export default function ControlSupervisor() {
     const branchInput = document.getElementById('inputBranch')
     const commentInput = document.getElementById('inputComment')
     const inputSpecialPrice = document.getElementById('inputSpecialPrice')
+    const inputButton = document.getElementById('input-button')
 
     e.preventDefault()
 
     setLoading(true)
+
+    console.log(inputButton.disabled)
 
     try {
 
@@ -925,6 +928,27 @@ export default function ControlSupervisor() {
     setProductsFunction()
 
   }, [company])
+
+  useEffect(() => {
+
+    const enableDisableButtons = () => {
+
+      const outgoingButton = document.getElementById('extraOutgoingButton')
+      const incomeButton = document.getElementById('incomeButton')
+      const inputButton = document.getElementById('input-button')
+      const outputButton = document.getElementById('outputButton')
+      const loanButton = document.getElementById('loanButton')
+
+      outgoingButton.disabled = loading
+      incomeButton.disabled = loading
+      inputButton.disabled = loading
+      outputButton.disabled = loading
+      loanButton.disabled = loading
+    }
+
+    enableDisableButtons()
+
+  }, [loading])
 
   useEffect(() => {
 
@@ -1689,7 +1713,7 @@ export default function ControlSupervisor() {
 
               <div key={employeeDifferences.employee._id}>
 
-                {managerRole._id == currentUser.role || currentUser._id == employeeDifferences.employee._id?
+                {managerRole._id == currentUser.role || currentUser._id == employeeDifferences.employee._id ?
 
                   < div className='border border-black mt-5'>
 

@@ -234,10 +234,11 @@ export default function RegistroCuentaDiaria() {
     const conceptInput = document.getElementById('concept')
     const amountInput = document.getElementById('amount')
     const date = new Date(stringDatePickerValue).toISOString()
+    const button = document.getElementById('outgoing-button')
 
     e.preventDefault()
 
-    setLoading(true)
+    button.disabled = true
 
     try {
 
@@ -260,7 +261,7 @@ export default function RegistroCuentaDiaria() {
       if (data.success === false) {
 
         setError(data.message)
-        setLoading(false)
+        button.disabled = false
         return
       }
 
@@ -270,12 +271,12 @@ export default function RegistroCuentaDiaria() {
 
       conceptInput.value = ''
       amountInput.value = ''
-      setLoading(false)
+      button.disabled = false
 
     } catch (error) {
 
       setError(error.message)
-      setLoading(false)
+      button.disabled = false
     }
   }
 
@@ -298,7 +299,10 @@ export default function RegistroCuentaDiaria() {
   const addStockItem = async (e) => {
 
     e.preventDefault()
-    setLoading(true)
+
+    const button = document.getElementById('stock-button')
+
+    button.disabled = true
 
     const productSelect = document.getElementById('product')
     const piecesInput = document.getElementById('pieces')
@@ -329,7 +333,7 @@ export default function RegistroCuentaDiaria() {
       if (data.success === false) {
 
         setError(data.message)
-        setLoading(false)
+        button.disabled = false
         return
       }
 
@@ -342,12 +346,12 @@ export default function RegistroCuentaDiaria() {
       weightInput.value = ''
       piecesInput.value = ''
 
-      setLoading(false)
+      button.disabled = false
 
     } catch (error) {
 
       setError(error.message)
-      setLoading(false)
+      button.disabled = false
     }
   }
 
