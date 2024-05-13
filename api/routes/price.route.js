@@ -6,7 +6,7 @@ const router = express.Router()
 router.post('/new-price', newPrice)
 router.post('/new-prices/:companyId', newPrices)
 router.post('/initialize-prices/:companyId/:branchId', initializeBranchPrices)
-router.get('/get-branch-prices/:branchId/:date', getBranchCurrentPrices)
+router.get('/get-branch-prices/:branchId/:date/:reportExists', getBranchCurrentPrices)
 router.get('/get-products-price/:companyId', getAllBranchPrices)
 
 export default router

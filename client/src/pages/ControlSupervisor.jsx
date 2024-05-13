@@ -5,9 +5,12 @@ import { fetchBranches, fetchEmployees, fetchProducts, deleteOutputFetch, delete
 import { FaTrash } from 'react-icons/fa';
 import { Link } from "react-router-dom"
 import { MdCancel, MdKeyboardArrowDown, MdKeyboardArrowRight } from 'react-icons/md';
+import { useParams, useNavigate } from 'react-router-dom';
+import Select from "react-tailwindcss-select";
 
 export default function ControlSupervisor() {
 
+  let paramsDate = useParams().date
   const { currentUser, company } = useSelector((state) => state.user)
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
@@ -24,7 +27,7 @@ export default function ControlSupervisor() {
   const [outputsTotal, setOutputsTotal] = useState(0.0)
   const [inputsTotal, setInputsTotal] = useState(0.0)
   const [extraOutgoingsTotal, setExtraOutgoingsTotal] = useState(0.0)
-  const [netDifference, setNetDifference] = useState([])
+  const [netDifference, setNetDifference] = useState({})
   const [totalNetDifference, setTotalNetDifference] = useState(0.0)
   const [incomes, setIncomes] = useState([])
   const [incomeTypes, setIncomeTypes] = useState([])
@@ -34,7 +37,6 @@ export default function ControlSupervisor() {
   const [products, setProducts] = useState([])
   const [branchName, setBranchName] = useState(null)
   const [productName, setProductName] = useState(null)
-  const [debtorName, setDebtorName] = useState(null)
   const [incomeTypeName, setIncomeTypeName] = useState(null)
   const [buttonId, setButtonId] = useState(null)
   const [isOpen, setIsOpen] = useState(false)
@@ -47,6 +49,34 @@ export default function ControlSupervisor() {
   const [movementDetailsIsOpen, setMovementDetailsIsOpen] = useState(false)
   const [differencesIsOpen, setDifferencesIsOpen] = useState(false)
   const [managerRole, setManagerRole] = useState({})
+  const [selectedEmployee, setSelectedEmployee] = useState(null)
+  const navigate = useNavigate()
+  let datePickerValue = (paramsDate ? new Date(paramsDate) : new Date())
+
+  const formatDate = (date) => {
+
+    const actualLocaleDate = date
+
+    return (actualLocaleDate.getFullYear() + '-' + (actualLocaleDate.getMonth() < 9 ? '0' + ((actualLocaleDate.getMonth()) + 1) : ((actualLocaleDate.getMonth()))) + '-' + ((actualLocaleDate.getDate() < 10 ? '0' : '') + actualLocaleDate.getDate()) + 'T06:00:00.000Z')
+
+  }
+
+
+  let stringDatePickerValue = formatDate(datePickerValue)
+
+  const changeDatePickerValue = (e) => {
+
+    datePickerValue = new Date(e.target.value)
+    stringDatePickerValue = formatDate(new Date(e.target.value + 'T06:00:00.000Z'))
+
+    navigate('/supervision-diaria/' + stringDatePickerValue)
+
+  }
+
+  const handleEmployeeSelectChange = (employee) => {
+
+    setSelectedEmployee(employee)
+  }
 
   const SectionHeader = (props) => {
 
@@ -174,12 +204,6 @@ export default function ControlSupervisor() {
 
     let index = e.target.selectedIndex
     setProductName(e.target.options[index].text)
-  }
-
-  const saveDebtorName = (e) => {
-
-    let index = e.target.selectedIndex
-    setDebtorName(e.target.options[index].text)
   }
 
   const handleExtraOutgoingInputsChange = (e) => {
@@ -431,7 +455,7 @@ export default function ControlSupervisor() {
         return
       }
 
-      data.loan.employee = debtorName
+      data.loan.employee = selectedEmployee
       data.loan.supervisor = currentUser
 
       setError(null)
@@ -541,8 +565,6 @@ export default function ControlSupervisor() {
     }
   }
 
-
-
   const addOutput = async (e) => {
 
     const productInput = document.getElementById('outputProduct')
@@ -630,13 +652,10 @@ export default function ControlSupervisor() {
     const branchInput = document.getElementById('inputBranch')
     const commentInput = document.getElementById('inputComment')
     const inputSpecialPrice = document.getElementById('inputSpecialPrice')
-    const inputButton = document.getElementById('input-button')
 
     e.preventDefault()
 
     setLoading(true)
-
-    console.log(inputButton.disabled)
 
     try {
 
@@ -817,8 +836,6 @@ export default function ControlSupervisor() {
     setIncomesTotal(total)
   }
 
-
-
   const setLoansTotalFunction = (loans) => {
 
     let total = 0
@@ -867,8 +884,20 @@ export default function ControlSupervisor() {
 
       if (error == null) {
 
+        const tempOptions = []
+
+        data.map((employee) => {
+
+          const option = {
+            value: employee._id,
+            label: employee.name + ' ' + employee.lastName
+          }
+
+          tempOptions.push(option)
+        })
+
         setError(null)
-        setEmployees(data)
+        setEmployees(tempOptions)
 
       } else {
 
@@ -927,7 +956,7 @@ export default function ControlSupervisor() {
     setBranchesFunction()
     setProductsFunction()
 
-  }, [company])
+  }, [company, currentUser._id])
 
   useEffect(() => {
 
@@ -952,9 +981,23 @@ export default function ControlSupervisor() {
 
   useEffect(() => {
 
+    setEmployeesDailyBalance([])
+    setLoans([])
+    setLoansTotal(0.0)
+    setIncomes([])
+    setIncomesTotal(0.0)
+    setOutputs([])
+    setOutputsTotal(0.0)
+    setInputs([])
+    setInputsTotal(0.0)
+    setExtraOutgoings([])
+    setExtraOutgoingsTotal(0.0)
+    setTotalNetDifference(0.0)
+    setNetDifference([])
+
     const fetchEmployeesDailyBalances = async () => {
 
-      const date = new Date().toISOString()
+      const date = new Date(stringDatePickerValue).toISOString()
 
       setLoading(true)
 
@@ -984,7 +1027,7 @@ export default function ControlSupervisor() {
 
     const fetchLoans = async () => {
 
-      const date = new Date().toISOString()
+      const date = new Date(stringDatePickerValue).toISOString()
 
       setLoading(true)
 
@@ -1014,7 +1057,7 @@ export default function ControlSupervisor() {
 
     const fetchIncomes = async () => {
 
-      const date = new Date().toISOString()
+      const date = new Date(stringDatePickerValue).toISOString()
 
       setLoading(true)
 
@@ -1049,7 +1092,7 @@ export default function ControlSupervisor() {
 
     const fetchOutputs = async () => {
 
-      const date = new Date().toISOString()
+      const date = new Date(stringDatePickerValue).toISOString()
 
       setLoading(true)
 
@@ -1086,7 +1129,7 @@ export default function ControlSupervisor() {
 
     const fetchInputs = async () => {
 
-      const date = new Date().toISOString()
+      const date = new Date(stringDatePickerValue).toISOString()
 
       setLoading(true)
 
@@ -1121,7 +1164,7 @@ export default function ControlSupervisor() {
 
     const fetchExtraOutgoings = async () => {
 
-      const date = new Date().toISOString()
+      const date = new Date(stringDatePickerValue).toISOString()
 
       setLoading(true)
 
@@ -1158,7 +1201,7 @@ export default function ControlSupervisor() {
 
     const fetchNetDifference = async () => {
 
-      const date = new Date().toISOString()
+      const date = new Date(stringDatePickerValue).toISOString()
 
       try {
 
@@ -1196,13 +1239,21 @@ export default function ControlSupervisor() {
     fetchNetDifference()
     fetchLoans()
 
-  }, [company._id])
+  }, [company._id, stringDatePickerValue])
 
 
 
   return (
 
     <main className="p-3 max-w-lg mx-auto">
+
+      {managerRole._id == currentUser.role ?
+
+        <div className="flex justify-center">
+          <input className="p-1" type="date" name="date" id="date" onChange={changeDatePickerValue} defaultValue={stringDatePickerValue.slice(0, 10)} />
+        </div>
+
+        : ''}
 
       <h1 className='text-3xl text-center font-semibold mt-7'>
         Supervisión
@@ -1247,17 +1298,44 @@ export default function ControlSupervisor() {
 
       </div>
 
+
       <div className='border p-3 mt-4 bg-white'>
 
         <SectionHeader label={'Gastos'} />
 
-        <form id='extra-outgoing-form' onSubmit={addExtraOutgoing} className="grid grid-cols-3 items-center justify-between">
+        <div className='border bg-white p-3 mt-4'>
 
-          <input type="text" name="extraOutgoingConcept" id="extraOutgoingConcept" placeholder='Concepto' className='border p-3 rounded-lg' required onInput={extraOutgoingsButtonControl} onChange={handleExtraOutgoingInputsChange} />
-          <input type="number" name="extraOutgoingAmount" id="extraOutgoingAmount" placeholder='$0.00' step={0.01} className='border p-3 rounded-lg' required onInput={extraOutgoingsButtonControl} onChange={handleExtraOutgoingInputsChange} />
-          <button type='submit' id='extraOutgoingButton' disabled className='bg-slate-500 text-white p-3 rounded-lg'>Agregar</button>
+          <SectionHeader label={'Gastos externos'} />
 
-        </form>
+          <form id='extra-outgoing-form' onSubmit={addExtraOutgoing} className="grid grid-cols-3 items-center justify-between">
+
+            <input type="text" name="extraOutgoingConcept" id="extraOutgoingConcept" placeholder='Concepto' className='border p-3 rounded-lg' required onInput={extraOutgoingsButtonControl} onChange={handleExtraOutgoingInputsChange} />
+            <input type="number" name="extraOutgoingAmount" id="extraOutgoingAmount" placeholder='$0.00' step={0.01} className='border p-3 rounded-lg' required onInput={extraOutgoingsButtonControl} onChange={handleExtraOutgoingInputsChange} />
+            <button type='submit' id='extraOutgoingButton' disabled className='bg-slate-500 text-white p-3 rounded-lg'>Agregar</button>
+
+          </form>
+        </div>
+        <div className='border bg-white p-3 mt-4'>
+          <SectionHeader label={'Préstamos'} />
+
+          <form onSubmit={addLoan} className="grid grid-cols-2 items-center justify-between">
+
+            <Select
+              value={selectedEmployee}
+              onChange={handleEmployeeSelectChange}
+              options={employees}
+              placeholder='¿A quién le prestas?'
+              isSearchable={true}
+            />
+
+            <input type="number" name="loanAmount" id="loanAmount" placeholder='$0.00' step={0.01} className='border p-3 rounded-lg' required onInput={loansButtonControl} />
+
+            <button type='submit' id='loanButton' disabled className='bg-slate-500 text-white p-3 rounded-lg col-span-4 mt-8'>Agregar</button>
+
+          </form>
+
+
+        </div>
 
       </div>
 
@@ -1336,33 +1414,6 @@ export default function ControlSupervisor() {
           <button type='submit' id='outputButton' disabled className='bg-slate-500 text-white p-3 rounded-lg col-span-12 mt-8'>Agregar</button>
 
         </form>
-
-      </div>
-
-      <div className='border bg-white p-3 mt-4'>
-        <SectionHeader label={'Préstamos'} />
-
-        <form onSubmit={addLoan} className="grid grid-cols-2 items-center justify-between">
-
-          <select name="loanEmployee" id="loanEmployee" className='border p-3 rounded-lg text-xs' onChange={(e) => { saveDebtorName(e), loansButtonControl() }}>
-
-            <option value="none" selected disabled hidden>Encargado</option>
-
-            {employees && employees.length == 0 ? <option> No hay empleados </option> : ''}
-            {employees && employees.length > 0 && employees.map((employee) => (
-
-              <option key={employee._id} value={employee._id}>{employee.name + ' ' + employee.lastName}</option>
-
-            ))}
-
-          </select>
-
-          <input type="number" name="loanAmount" id="loanAmount" placeholder='$0.00' step={0.01} className='border p-3 rounded-lg' required onInput={loansButtonControl} />
-
-          <button type='submit' id='loanButton' disabled className='bg-slate-500 text-white p-3 rounded-lg col-span-4 mt-8'>Agregar</button>
-
-        </form>
-
 
       </div>
 
@@ -1795,7 +1846,7 @@ export default function ControlSupervisor() {
                 <div key={loan._id} className={(currentUser._id == loan.supervisor || currentUser.role == managerRole._id ? '' : 'py-3 ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
 
                   <div id='list-element' className='flex col-span-10 items-center justify-around'>
-                    <p className='text-center text-sm w-3/12'>{loan.supervisor.name}</p>
+                    <p className='text-center text-sm w-3/12'>{loan.supervisor.label}</p>
                     <p className='text-center text-sm w-3/12'>{loan.employee.name ? loan.employee.name + ' ' + loan.employee.lastName : loan.employee}</p>
                     <p className='text-center text-sm w-3/12'>{loan.amount.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
                   </div>

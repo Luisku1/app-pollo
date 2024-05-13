@@ -25,6 +25,8 @@ export const getInitialStock = async (req, res, next) => {
 
   const date = new Date(req.params.date)
   const branchId = req.params.branchId
+  const reportExists = req.params.reportExists
+  let pricesDate
 
   const actualLocaleDatePlusOne = new Date(date)
   const actualLocaleDateMinusOne = new Date(date)
@@ -36,7 +38,15 @@ export const getInitialStock = async (req, res, next) => {
 
   const topDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
   const bottomDate = new Date(actualLocaleDayMinusOne + 'T00:00:00.000-06:00')
-  const pricesDate = new Date(actualLocaleDayPlusOne + 'T00:00:00.000-06:00')
+
+  if(reportExists) {
+
+    pricesDate = date
+
+  } else {
+
+    pricesDate = new Date(actualLocaleDayPlusOne + 'T00:00:00.000-06:00')
+  }
 
   try {
 
@@ -77,6 +87,8 @@ export const getInitialStock = async (req, res, next) => {
           const priceIndex = branchPrices.data.prices.findIndex((price) => (price.productId.toString() == stock.product.toString()))
 
           total += parseFloat(branchPrices.data.prices[priceIndex].latestPrice * stock.weight)
+
+          console.log(stock, branchPrices.data.prices[priceIndex].latestPrice * stock.weight)
         })
 
         res.status(200).json({ initialStock: total })

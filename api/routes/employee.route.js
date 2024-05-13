@@ -5,7 +5,7 @@ const router = express.Router()
 
 router.get('/get/:companyId', getEmployees)
 router.get('/get-employee/:employeeId', getEmployee)
-router.get('/get-employees-payroll/:companyId', getEmployeePayroll)
+router.get('/get-employees-payroll/:companyId/:date', getEmployeePayroll)
 router.get('/get-employee-day-information/:employeeId', getEmployeeDayInfo)
 router.get('/get-employee-reports/:employeeId', getEmployeeReports)
 router.get('/get-employees-daily-balances/:companyId/:date', getEmployeesDailyBalances)

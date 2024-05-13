@@ -30,9 +30,9 @@ export const newPrices = async (req, res, next) => {
 
   try {
 
-    for(let key in data) {
+    for (let key in data) {
 
-      if(data.hasOwnProperty(key)) {
+      if (data.hasOwnProperty(key)) {
 
         const createdAt = new Date().toISOString()
 
@@ -45,15 +45,15 @@ export const newPrices = async (req, res, next) => {
           createdAt: createdAt
         }
 
-        bulkOps.push({ "insertOne": {"document": document}})
+        bulkOps.push({ "insertOne": { "document": document } })
 
       }
     }
 
     Price.bulkWrite(bulkOps)
-    .then(result => {
-      res.status(200).json('Prices initialized correctly')
-    })
+      .then(result => {
+        res.status(200).json('Prices initialized correctly')
+      })
 
   } catch (error) {
 
@@ -70,9 +70,9 @@ export const initializeBranchPrices = async (req, res, next) => {
 
   try {
 
-    const products = await Product.find({company: companyId}, ['_id'])
+    const products = await Product.find({ company: companyId }, ['_id'])
 
-    if(products.length > 0) {
+    if (products.length > 0) {
 
       products.forEach((product) => {
 
@@ -87,14 +87,14 @@ export const initializeBranchPrices = async (req, res, next) => {
           createdAt: createdAt
         }
 
-        bulkOps.push({ "insertOne": {"document": document}})
+        bulkOps.push({ "insertOne": { "document": document } })
 
       })
 
       Price.bulkWrite(bulkOps)
-      .then(result => {
-        res.status(200).json('Prices initialized correctly')
-      })
+        .then(result => {
+          res.status(200).json('Prices initialized correctly')
+        })
 
     } else {
 
@@ -111,15 +111,24 @@ export const initializeBranchPrices = async (req, res, next) => {
 export const getBranchCurrentPrices = async (req, res, next) => {
 
   const branchId = req.params.branchId
-  const date = new Date(req.params.date)
+  const date = req.params.date
+  const reportExists = req.params.reportExists
+  let topDate
 
-  const actualLocaleDay = date.toISOString().slice(0, 10)
+  if (reportExists) {
 
-  const actualLocaleDatePlusOne = new Date(actualLocaleDay)
-  actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
-  const actualLocaleDayPlusOne = actualLocaleDatePlusOne.toISOString().slice(0, 10)
+    topDate = new Date(date)
 
-  const topDate = new Date(actualLocaleDayPlusOne + 'T00:00:00.000-06:00')
+  } else {
+
+    const actualLocaleDay = date.slice(0, 10)
+
+    const actualLocaleDatePlusOne = new Date(actualLocaleDay)
+    actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
+    const actualLocaleDayPlusOne = actualLocaleDatePlusOne.toISOString().slice(0, 10)
+
+    topDate = new Date(actualLocaleDayPlusOne + 'T00:00:00.000-06:00')
+  }
 
   try {
 
@@ -127,7 +136,7 @@ export const getBranchCurrentPrices = async (req, res, next) => {
 
     if (productsPrice.error == null) {
 
-      res.status(200).json({data: productsPrice.data})
+      res.status(200).json({ data: productsPrice.data })
 
     } else {
 
@@ -168,7 +177,7 @@ export const getAllBranchPrices = async (req, res, next) => {
         $match: {
           "company": new Types.ObjectId(companyId)
         }
-     },
+      },
       {
         $sort: { "prices.createdAt": -1 } // Ordenamos por fecha de creación de forma descendente para obtener el precio más reciente primero
       },
@@ -198,7 +207,7 @@ export const getAllBranchPrices = async (req, res, next) => {
       },
 
       {
-        $sort: {"product.createdAt": 1}
+        $sort: { "product.createdAt": 1 }
       },
 
       {
@@ -208,7 +217,7 @@ export const getAllBranchPrices = async (req, res, next) => {
             branchName: '$_id.branchName',
             branchPosition: '$_id.branchPosition'
           },
-          company: {$first: '$_id.company'},
+          company: { $first: '$_id.company' },
           prices: {
             $push: {
               productId: '$product._id',
@@ -221,13 +230,13 @@ export const getAllBranchPrices = async (req, res, next) => {
       },
 
       {
-        $sort: {'_id.branchPosition': 1}
+        $sort: { '_id.branchPosition': 1 }
       }
     ])
 
     if (productsPrice) {
 
-      res.status(200).json({data: productsPrice})
+      res.status(200).json({ data: productsPrice })
 
     } else {
 
@@ -272,7 +281,7 @@ export const pricesAggregate = async (branchId, topDate) => {
           foreignField: "branch",
           as: "prices",
           pipeline: [
-            {$match: {createdAt: {$lt: topDate}}}
+            { $match: { createdAt: { $lt: topDate } } }
           ]
         }
       },
@@ -285,7 +294,7 @@ export const pricesAggregate = async (branchId, topDate) => {
         $match: {
           "_id": new Types.ObjectId(branchId)
         }
-     },
+      },
       {
         $sort: { "prices.createdAt": -1 } // Ordenamos por fecha de creación de forma descendente para obtener el precio más reciente primero
       },
@@ -297,7 +306,7 @@ export const pricesAggregate = async (branchId, topDate) => {
             product: "$prices.product",
             company: '$company'
           },
-          priceId: {$first: '$prices._id'},
+          priceId: { $first: '$prices._id' },
           latestPrice: { $first: "$prices.price" }, // Obtenemos el primer precio, que será el más reciente
           date: { $first: "$prices.createdAt" } // También obtenemos la fecha del precio más reciente
         }
@@ -315,7 +324,7 @@ export const pricesAggregate = async (branchId, topDate) => {
       },
 
       {
-        $sort: {"product.createdAt": 1}
+        $sort: { "product.createdAt": 1 }
       },
 
       {
@@ -324,7 +333,7 @@ export const pricesAggregate = async (branchId, topDate) => {
             branchId: "$_id.branch",
             branchName: '$_id.branchName'
           },
-          company: {$first: '$_id.company'},
+          company: { $first: '$_id.company' },
           prices: {
             $push: {
               priceId: '$priceId',
@@ -338,18 +347,18 @@ export const pricesAggregate = async (branchId, topDate) => {
       }
     ])
 
-    if(prices) {
+    if (prices) {
 
-      return {error: null, data: prices[0]}
+      return { error: null, data: prices[0] }
 
     } else {
 
-      return {error: -1, data: null}
+      return { error: -1, data: null }
     }
 
   } catch (error) {
 
-    return {error: error, data: null}
+    return { error: error, data: null }
   }
 
 }

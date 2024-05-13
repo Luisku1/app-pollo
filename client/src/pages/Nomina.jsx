@@ -1,18 +1,81 @@
 import { useEffect, useState } from "react"
 import { useSelector } from 'react-redux'
+import { useParams, useNavigate } from 'react-router-dom';
 
 export default function Nomina() {
 
-  const { company } = useSelector((state) => state.user)
+  let paramsDate = useParams().date
+  const { company, currentUser } = useSelector((state) => state.user)
   const [employeesPayroll, setEmployeesPayroll] = useState([])
+  const [error, setError] = useState(null)
+  const [managerRole, setManagerRole] = useState({})
+  const navigate = useNavigate()
+  let datePickerValue = (paramsDate ? new Date(paramsDate) : new Date())
+
+  const formatDate = (date) => {
+
+    const actualLocaleDate = date
+
+    return (actualLocaleDate.getFullYear() + '-' + (actualLocaleDate.getMonth() < 9 ? '0' + ((actualLocaleDate.getMonth()) + 1) : ((actualLocaleDate.getMonth()))) + '-' + ((actualLocaleDate.getDate() < 10 ? '0' : '') + actualLocaleDate.getDate()) + 'T06:00:00.000Z')
+
+  }
+
+
+  let stringDatePickerValue = formatDate(datePickerValue)
+
+  const changeDatePickerValue = (e) => {
+
+    datePickerValue = new Date(e.target.value)
+    stringDatePickerValue = formatDate(new Date(e.target.value + 'T06:00:00.000Z'))
+
+    navigate('/nomina/' + stringDatePickerValue)
+
+  }
+
+
+  useEffect(() => {
+
+    const setManagerRoleFunction = async (roles) => {
+
+      const managerRole = roles.find((elemento) => elemento.name == 'Gerente')
+      setManagerRole(managerRole)
+
+    }
+
+    const fetchRoles = async () => {
+
+      try {
+
+        const res = await fetch('/api/role/get')
+        const data = await res.json()
+
+        if (data.success === false) {
+          setError(data.message)
+          return
+        }
+        await setManagerRoleFunction(data.roles)
+        setError(null)
+
+      } catch (error) {
+
+        setError(error.message)
+
+      }
+    }
+
+    fetchRoles()
+
+  }, [])
 
   useEffect(() => {
 
     const fetchEmployeesPayroll = async () => {
 
+      const date = new Date(stringDatePickerValue).toISOString()
+
       try {
 
-        const res = await fetch('/api/employee/get-employees-payroll/' + company._id)
+        const res = await fetch('/api/employee/get-employees-payroll/' + company._id + '/' + date)
         const data = await res.json()
 
         if (data.success === false) {
@@ -64,11 +127,21 @@ export default function Nomina() {
 
     fetchEmployeesPayroll()
 
-  }, [company._id])
+  }, [company._id, stringDatePickerValue])
 
   return (
 
     <main className="p-3 max-w-lg mx-auto">
+
+      {error ? <p>{error}</p> : ''}
+
+      {managerRole._id == currentUser.role ?
+
+        <div className="flex justify-center">
+          <input className="p-1" type="date" name="date" id="date" onChange={changeDatePickerValue} defaultValue={stringDatePickerValue.slice(0, 10)} />
+        </div>
+
+        : ''}
 
       <h1 className='text-3xl text-center font-semibold mt-7'>
         Nómina
@@ -89,30 +162,30 @@ export default function Nomina() {
                       <div className="col-span-7 row-span-1 mb-3">
                         <div className="flex gap-2">
                           <p>Salario: </p>
-                          <p className={(employeePayroll.salary < 0 ? 'text-red-500 ' : ' ') + 'text-xs my-auto'}>{employeePayroll.salary.toLocaleString('es-MX', {style: 'currency', currency: 'MXN'})}</p>
+                          <p className={(employeePayroll.salary < 0 ? 'text-red-500 ' : ' ') + 'text-xs my-auto'}>{employeePayroll.salary.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>
                         </div>
                         <div className="flex gap-2">
                           <p>Balance anterior: </p>
-                          <p className={(employeePayroll.balance < 0 ? 'text-red-500 ' : ' ') + 'text-xs my-auto'}>{employeePayroll.balance.toLocaleString('es-MX', {style: 'currency', currency: 'MXN'})}</p>
+                          <p className={(employeePayroll.balance < 0 ? 'text-red-500 ' : ' ') + 'text-xs my-auto'}>{employeePayroll.balance.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>
                         </div>
                         <div className="flex gap-2">
                           <p>Deuda total: </p>
-                          <p className={(employeePayroll.totalDebt < 0 ? 'text-red-500' : '') + ' text-xs my-auto'}>{employeePayroll.totalDebt.toLocaleString('es-MX', {style: 'currency', currency: 'MXN'})}</p>
+                          <p className={(employeePayroll.totalDebt < 0 ? 'text-red-500' : '') + ' text-xs my-auto'}>{employeePayroll.totalDebt.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>
                         </div>
                       </div>
 
                       <div className="grid col-span-7 grid-cols-7 row-span-1 mt-3">
                         <div className="col-span-2">
                           <p>Cuenta</p>
-                          <p className={(employeePayroll.totalAccountBalance < 0 ? 'text-red-500' : '') + ' text-xs my-auto'}>{employeePayroll.totalAccountBalance.toLocaleString('es-MX', {style: 'currency', currency: 'MXN'})}</p>
+                          <p className={(employeePayroll.totalAccountBalance < 0 ? 'text-red-500' : '') + ' text-xs my-auto'}>{employeePayroll.totalAccountBalance.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>
                         </div>
                         <div className="col-span-2">
                           <p>Préstamo</p>
-                          <p className={(employeePayroll.totalLoan < 0 ? 'text-red-500' : '') + ' text-xs my-auto'}>{employeePayroll.totalLoan.toLocaleString('es-MX', {style: 'currency', currency: 'MXN'})}</p>
+                          <p className={(employeePayroll.totalLoan < 0 ? 'text-red-500' : '') + ' text-xs my-auto'}>{employeePayroll.totalLoan.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>
                         </div>
                         <div className="col-span-1">
                           <p>R</p>
-                          <p className={(employeePayroll.totalFoodDiscount < 0 ? 'text-red-500 ' : ' ') + 'text-xs my-auto'}>{employeePayroll.totalFoodDiscount.toLocaleString('es-MX', {style: 'currency', currency: 'MXN'})}</p>
+                          <p className={(employeePayroll.totalFoodDiscount < 0 ? 'text-red-500 ' : ' ') + 'text-xs my-auto'}>{employeePayroll.totalFoodDiscount.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>
                         </div>
                         <div className="col-span-1">
                           <p>D</p>
@@ -120,7 +193,7 @@ export default function Nomina() {
                         </div>
                         <div className="col-span-1">
                           <p>F</p>
-                          <p className={(employeePayroll.totalDayDiscount < 0 ? 'text-red-500' : '') + ' text-xs my-auto'}>{employeePayroll.totalDayDiscount.toLocaleString('es-MX', {style: 'currency', currency: 'MXN'})}</p>
+                          <p className={(employeePayroll.totalDayDiscount < 0 ? 'text-red-500' : '') + ' text-xs my-auto'}>{employeePayroll.totalDayDiscount.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>
                         </div>
                       </div>
                     </div>

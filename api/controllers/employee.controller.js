@@ -224,12 +224,8 @@ export const getEmployeesDailyBalances = async (req, res, next) => {
 export const getEmployeePayroll = async (req, res, next) => {
 
 	const companyId = req.params.companyId
-	const day = (new Date()).getDay()
-
-	const actualLocaleDate = new Date(new Date().getTime() - 6 * 60 * 60000)
-  const actualLocaleDay = actualLocaleDate.toISOString().slice(0, 10)
-
-  const topDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
+	const date = new Date(req.params.date)
+	const day = (date).getDay()
 
 	try {
 
@@ -249,7 +245,7 @@ export const getEmployeePayroll = async (req, res, next) => {
 					foreignField: 'employee',
 					as: 'dailyBalances',
 					pipeline: [
-						{$match: {createdAt: {$lt: topDate}}},
+						{$match: {createdAt: {$lt: date}}},
 						{$sort: {createdAt: -1}},
 						{$limit: 7}
 					]
@@ -276,7 +272,6 @@ export const getEmployeePayroll = async (req, res, next) => {
 
 			res.status(200).json('Not data found')
 		}
-
 
 	} catch (error) {
 

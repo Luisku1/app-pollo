@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { useSelector } from "react-redux"
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import SectionHeader from "../components/SectionHeader";
 import { fetchBranches } from "../helpers/FetchFunctions";
 import { MdKeyboardArrowDown, MdKeyboardArrowRight } from "react-icons/md";
@@ -8,7 +8,9 @@ import { FaTrash } from "react-icons/fa";
 
 export default function EntradaInicial() {
 
+  let paramsDate = useParams().date
   const { company, currentUser } = useSelector((state) => state.user)
+  const [managerRole, setManagerRole] = useState({})
   const { productId, productName } = useParams()
   const [providerInputs, setProviderInputs] = useState([])
   const [branches, setBranches] = useState([])
@@ -20,6 +22,28 @@ export default function EntradaInicial() {
   const [providerInputsIsOpen, setProviderInputsIsOpen] = useState(true)
   const [buttonId, setButtonId] = useState(null)
   const [isOpen, setIsOpen] = useState(false)
+  const navigate = useNavigate()
+  let datePickerValue = (paramsDate ? new Date(paramsDate) : new Date())
+
+  const formatDate = (date) => {
+
+    const actualLocaleDate = date
+
+    return (actualLocaleDate.getFullYear() + '-' + (actualLocaleDate.getMonth() < 9 ? '0' + ((actualLocaleDate.getMonth()) + 1) : ((actualLocaleDate.getMonth()))) + '-' + ((actualLocaleDate.getDate() < 10 ? '0' : '') + actualLocaleDate.getDate()) + 'T06:00:00.000Z')
+
+  }
+
+
+  let stringDatePickerValue = formatDate(datePickerValue)
+
+  const changeDatePickerValue = (e) => {
+
+    datePickerValue = new Date(e.target.value)
+    stringDatePickerValue = formatDate(new Date(e.target.value + 'T06:00:00.000Z'))
+
+    navigate('/entrada-inicial/' + stringDatePickerValue + '/' + productId + '/' + productName)
+
+  }
 
   const saveBranchName = (e) => {
 
@@ -69,13 +93,16 @@ export default function EntradaInicial() {
 
   const submitInput = async (e) => {
 
+    const date = new Date(stringDatePickerValue).toISOString()
     const piecesInput = document.getElementById('pieces')
     const weightInput = document.getElementById('weight')
     const branchInput = document.getElementById('branch')
     const commentInput = document.getElementById('comment')
+    const inputButton = document.getElementById('input-button')
 
     e.preventDefault()
 
+    inputButton.disabled = true
     setLoading(true)
 
 
@@ -92,7 +119,8 @@ export default function EntradaInicial() {
           employee: currentUser._id,
           branch: branchInput.value,
           company: company._id,
-          comment: commentInput.value
+          comment: commentInput.value,
+          createdAt: date
         })
       })
 
@@ -102,6 +130,7 @@ export default function EntradaInicial() {
 
         setError(data.message)
         setLoading(false)
+        inputButton.disabled = false
         return
       }
 
@@ -118,11 +147,14 @@ export default function EntradaInicial() {
       branchInput.value = 'none'
 
       setLoading(false)
+      inputButton.disabled = false
+
 
     } catch (error) {
 
       setError(error.message)
       setLoading(false)
+      inputButton.disabled = false
 
     }
   }
@@ -181,9 +213,45 @@ export default function EntradaInicial() {
 
   useEffect(() => {
 
+    const setManagerRoleFunction = async (roles) => {
+
+      const managerRole = roles.find((elemento) => elemento.name == 'Gerente')
+      setManagerRole(managerRole)
+
+    }
+
+    const fetchRoles = async () => {
+
+      try {
+
+        const res = await fetch('/api/role/get')
+        const data = await res.json()
+
+        if (data.success === false) {
+          setError(data.message)
+          return
+        }
+        await setManagerRoleFunction(data.roles)
+        setError(null)
+
+      } catch (error) {
+
+        setError(error.message)
+
+      }
+    }
+
+    fetchRoles()
+
+  }, [])
+
+  useEffect(() => {
+
     const fetchProviderInputs = async () => {
 
-      const date = new Date().toISOString()
+      const date = new Date(stringDatePickerValue).toISOString()
+
+      setProviderInputs([])
       setProviderInputsTotal(0.0)
 
       try {
@@ -222,11 +290,20 @@ export default function EntradaInicial() {
       fetchProviderInputs()
     }
 
-  }, [company._id, productId])
+  }, [company._id, productId, stringDatePickerValue])
 
   return (
     <main className="p-3 max-w-lg mx-auto">
+
       {error ? <p>{error}</p> : ''}
+
+      {managerRole._id == currentUser.role ?
+
+        <div className="flex justify-center">
+          <input className="p-1" type="date" name="date" id="date" onChange={changeDatePickerValue} defaultValue={stringDatePickerValue.slice(0, 10)} />
+        </div>
+
+        : ''}
 
       <h1 className='text-3xl text-center font-semibold mt-7'>
         {productName}
@@ -294,7 +371,7 @@ export default function EntradaInicial() {
               {providerInputs && providerInputs.length > 0 && providerInputs.map((providerInput, index) => (
 
 
-                <div key={providerInput._id} className={(currentUser._id == providerInput.employee ? '' : 'py-3 ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
+                <div key={providerInput._id} className={(currentUser._id == providerInput.employee || currentUser.role == managerRole._id ? '' : 'py-3 ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
 
                   <div id='list-element' className='flex col-span-10 items-center justify-around'>
                     <p className='text-center text-xs  w-3/12'>{providerInput.branch.branch ? providerInput.branch.branch : providerInput.branch}</p>
@@ -303,7 +380,7 @@ export default function EntradaInicial() {
                     <p className='text-center text-xs w-1/12'>{providerInput.weight}</p>
                   </div>
 
-                  {providerInput.employee._id == currentUser._id ?
+                  {providerInput.employee._id == currentUser._id || managerRole._id == currentUser.role ?
 
                     <div>
                       <button id={providerInput._id} onClick={() => { setIsOpen(!isOpen), setButtonId(providerInput._id) }} disabled={loading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
@@ -332,7 +409,7 @@ export default function EntradaInicial() {
 
                     </div>
 
-                   : ''}
+                    : ''}
 
                 </div>
 

@@ -73,12 +73,15 @@ export default function RegistroCuentaDiaria() {
 
     const actualLocaleDate = date
 
-    return (actualLocaleDate.getFullYear() + '-' + (actualLocaleDate.getMonth() < 9 ? '0' + ((actualLocaleDate.getMonth()) + 1) : ((actualLocaleDate.getMonth()))) + '-' + ((actualLocaleDate.getDate() < 10 ? '0' : '') + actualLocaleDate.getDate()) + 'T06:00:00.000Z')
+    const formatedDate = (actualLocaleDate.getFullYear() + '-' + (actualLocaleDate.getMonth() < 9 ? '0' + ((actualLocaleDate.getMonth()) + 1) : ((actualLocaleDate.getMonth()))) + '-' + ((actualLocaleDate.getDate() < 10 ? '0' : '') + actualLocaleDate.getDate()) + 'T06:00:00.000Z')
+
+    return formatedDate
 
   }
 
 
   let stringDatePickerValue = formatDate(datePickerValue)
+  let today = formatDate(datePickerValue) == formatDate(new Date()) ? true : false
 
   const changeDatePickerValue = (e) => {
 
@@ -233,8 +236,8 @@ export default function RegistroCuentaDiaria() {
 
     const conceptInput = document.getElementById('concept')
     const amountInput = document.getElementById('amount')
-    const date = new Date(stringDatePickerValue).toISOString()
     const button = document.getElementById('outgoing-button')
+    const date = today ? new Date().toISOString() : new Date(stringDatePickerValue).toISOString()
 
     e.preventDefault()
 
@@ -308,7 +311,7 @@ export default function RegistroCuentaDiaria() {
     const piecesInput = document.getElementById('pieces')
     const weightInput = document.getElementById('weight')
     const amount = parseFloat(getProductPrice(productSelect.value) * stockFormData.weight)
-    const date = new Date(stringDatePickerValue).toISOString()
+    const date = today ? new Date().toISOString() : new Date(stringDatePickerValue).toISOString()
 
     try {
 
@@ -481,8 +484,6 @@ export default function RegistroCuentaDiaria() {
     setInputsTotal(total)
   }
 
-
-
   const setOutputsTotalFunction = (outputs) => {
 
     let total = 0
@@ -537,7 +538,7 @@ export default function RegistroCuentaDiaria() {
 
     setLoading(true)
 
-    const date = new Date(stringDatePickerValue).toISOString()
+    const date = today ? new Date().toISOString() : new Date(stringDatePickerValue).toISOString()
     const assistant = selectedAssistant == null ? null : selectedAssistant.value
 
     try {
@@ -601,7 +602,7 @@ export default function RegistroCuentaDiaria() {
           branchReport: branchReport,
           employee: selectedEmployee.value,
           assistant: assistant,
-          initialStock: branchReport.initialStock != 0 ? branchReport.initialStock : initialStock,
+          initialStock: branchReport.initialStock != 0 ? initialStock : initialStock,
           finalStock: stockTotal,
           inputs: inputsTotal + providerInputsTotal,
           outputs: outputsTotal,
@@ -669,26 +670,6 @@ export default function RegistroCuentaDiaria() {
 
   useEffect(() => {
 
-    const setPricesFunction = async () => {
-
-      const date = new Date(stringDatePickerValue).toISOString()
-
-      setLoading(true)
-
-      const { error, data } = await fetchPrices(branchId, date)
-
-
-      if (error == null) {
-        setPrices(data)
-        setError(null)
-
-      } else {
-
-        setError(error)
-      }
-      setLoading(false)
-    }
-
     const fetchStock = async () => {
 
       const date = new Date(stringDatePickerValue).toISOString()
@@ -752,37 +733,6 @@ export default function RegistroCuentaDiaria() {
         setError(error.message)
         setLoading(false)
       }
-    }
-
-    const fetchInitialStock = async () => {
-
-      const date = new Date(stringDatePickerValue).toISOString()
-
-      setLoading(true)
-      setInitialStock(0.0)
-
-      try {
-
-        const res = await fetch('/api/stock/initial-stock/' + branchId + '/' + date)
-        const data = await res.json()
-
-        if (data.success === false) {
-
-          setError(data.message)
-          setLoading(false)
-          return
-        }
-
-        setInitialStock(data.initialStock)
-        setError(null)
-        setLoading(false)
-
-      } catch (error) {
-
-        setError(error.message)
-        setLoading(false)
-      }
-
     }
 
     const fetchInputs = async () => {
@@ -950,8 +900,6 @@ export default function RegistroCuentaDiaria() {
 
     const fetchs = () => {
 
-      fetchInitialStock()
-      setPricesFunction()
       fetchOutgoings()
       fetchStock()
       fetchIncomes()
@@ -1117,6 +1065,70 @@ export default function RegistroCuentaDiaria() {
 
   }, [branchId, employees, stringDatePickerValue])
 
+  useEffect(() => {
+
+    const setPricesFunction = async () => {
+
+      const date = branchReport.createdAt ? branchReport.createdAt : (new Date(stringDatePickerValue).toISOString())
+
+      setLoading(true)
+
+      const { error, data } = await fetchPrices(branchId, date, branchReport ? true : false)
+
+
+      if (error == null) {
+        setPrices(data)
+        setError(null)
+
+      } else {
+
+        setError(error)
+      }
+      setLoading(false)
+    }
+
+    setPricesFunction()
+
+  }, [branchReport])
+
+  useEffect(() => {
+
+    const fetchInitialStock = async () => {
+
+      const date = branchReport.createdAt ? branchReport.createdAt : (new Date(stringDatePickerValue).toISOString())
+      const branchReportExists = branchReport.createdAt ? true : false
+
+      setLoading(true)
+      setInitialStock(0.0)
+
+      try {
+
+        const res = await fetch('/api/stock/initial-stock/' + branchId + '/' + date + '/' + branchReportExists)
+        const data = await res.json()
+
+        if (data.success === false) {
+
+          setError(data.message)
+          setLoading(false)
+          return
+        }
+
+        setInitialStock(data.initialStock)
+        setError(null)
+        setLoading(false)
+
+      } catch (error) {
+
+        setError(error.message)
+        setLoading(false)
+      }
+
+    }
+
+    fetchInitialStock()
+
+  }, [branchReport])
+
   return (
 
     <main className="p-3 max-w-lg mx-auto">
@@ -1204,7 +1216,7 @@ export default function RegistroCuentaDiaria() {
       <div className="flex items-center justify-between">
 
         <p>Sobrante inicial: </p>
-        <p className=' bg-white p-3 rounded-lg'>{(branchReport && branchReport.initialStock) ? branchReport.initialStock.toLocaleString("es-Mx", { style: 'currency', currency: 'MXN' }) : initialStock ? initialStock.toLocaleString("es-Mx", { style: 'currency', currency: 'MXN' }) : '$0.00'}</p>
+        <p className=' bg-white p-3 rounded-lg'>{(branchReport && branchReport.initialStock) ? initialStock.toLocaleString("es-Mx", { style: 'currency', currency: 'MXN' }) : initialStock ? initialStock.toLocaleString("es-Mx", { style: 'currency', currency: 'MXN' }) : '$0.00'}</p>
 
       </div>
 

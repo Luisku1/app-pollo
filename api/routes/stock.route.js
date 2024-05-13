@@ -7,6 +7,6 @@ router.post('/create', createStock)
 router.get('/get-branch-stock/:branchId/:date', getBranchDayStock)
 router.get('/get-total-stock/:companyId/:date', getTotalStock)
 router.delete('/delete/:stockId', deleteStock)
-router.get('/initial-stock/:branchId/:date', getInitialStock)
+router.get('/initial-stock/:branchId/:date/:reportExists', getInitialStock)
 
 export default router
