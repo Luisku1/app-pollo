@@ -1095,7 +1095,7 @@ export default function RegistroCuentaDiaria() {
 
     const fetchInitialStock = async () => {
 
-      const date = branchReport.createdAt ? branchReport.createdAt : (new Date(stringDatePickerValue).toISOString())
+      const date = branchReport.createdAt ? branchReport.createdAt : (new Date().toISOString())
       const branchReportExists = branchReport.createdAt ? true : false
 
       setLoading(true)
