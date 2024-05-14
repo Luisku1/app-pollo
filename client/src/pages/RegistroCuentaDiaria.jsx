@@ -1104,7 +1104,7 @@ export default function RegistroCuentaDiaria() {
 
       try {
 
-        const res = await fetch('/api/stock/initial-stock/' + branchId + '/' + date + '/' + branchReportExists + '/' + branchReport.createdAt )
+        const res = await fetch('/api/stock/initial-stock/' + branchId + '/' + date + '/' + branchReportExists + '/' + branchReport.createdAt)
         const data = await res.json()
 
         if (data.success === false) {
@@ -1126,9 +1126,12 @@ export default function RegistroCuentaDiaria() {
 
     }
 
-    fetchInitialStock()
+    if (branchReport && branchId && stringDatePickerValue) {
 
-  }, [branchReport])
+      fetchInitialStock()
+    }
+
+  }, [branchReport, branchId, stringDatePickerValue])
 
   return (
 
