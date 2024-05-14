@@ -88,7 +88,6 @@ export const getInitialStock = async (req, res, next) => {
 
           total += parseFloat(branchPrices.data.prices[priceIndex].latestPrice * stock.weight)
 
-          console.log(stock, branchPrices.data.prices[priceIndex].latestPrice * stock.weight)
         })
 
         res.status(200).json({ initialStock: total })
@@ -280,8 +279,6 @@ export const getTotalStock = async (req, res, next) => {
       stock.sort((prevStock, nextStock) => prevStock.product.createdAt - nextStock.product.createdAt)
 
       const groupedStock = groupFunction(stock)
-
-      console.log(groupedStock)
 
       Object.values(groupedStock).forEach((stockProduct) => {
 

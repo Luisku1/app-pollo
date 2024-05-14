@@ -1069,11 +1069,11 @@ export default function RegistroCuentaDiaria() {
 
     const setPricesFunction = async () => {
 
-      const date = branchReport.createdAt ? branchReport.createdAt : (new Date(stringDatePickerValue).toISOString())
+      const date = branchReport.createdAt ? branchReport.createdAt : new Date().toISOString()
 
       setLoading(true)
 
-      const { error, data } = await fetchPrices(branchId, date, branchReport ? true : false)
+      const { error, data } = await fetchPrices(branchId, date, branchReport.createdAt ? true : false)
 
 
       if (error == null) {
