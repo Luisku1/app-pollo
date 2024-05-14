@@ -30,6 +30,7 @@ export const getInitialStock = async (req, res, next) => {
 
   const actualLocaleDateMinusOne = new Date(date)
   actualLocaleDateMinusOne.setDate(actualLocaleDateMinusOne.getDate() - 1)
+
   const actualLocaleDayMinusOne = actualLocaleDateMinusOne.toISOString().slice(0, 10)
   const actualLocaleDay = date.toISOString().slice(0, 10)
 
@@ -73,8 +74,8 @@ export const getInitialStock = async (req, res, next) => {
 
     if (initialStock) {
 
+      console.log(initialStock)
       const branchPrices = await pricesAggregate(branchId, pricesDate)
-
 
       let total = 0.0
 

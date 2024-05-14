@@ -598,10 +598,12 @@ export const getProviderProductInputs = async (req, res, next) => {
 
 export const createProviderInput = async (req, res, next) => {
 
-  const { weight, product, employee, branch, company, comment, pieces } = req.body
-  const productPrice = await getProductPrice(product, branch)
+  const { weight, product, employee, branch, company, comment, pieces, createdAt } = req.body
+  const pricesDate = new Date(createdAt)
+  pricesDate.setDate(pricesDate.getDate() + 1)
+  const productPrice = await getProductPrice(product, branch, pricesDate)
   const amount = productPrice.price * weight
-  const newProviderInput = ProviderInput({ weight, product, employee, branch, company, comment, pieces, amount })
+  const newProviderInput = ProviderInput({ weight, product, employee, branch, company, comment, pieces, amount, createdAt })
 
   try {
 

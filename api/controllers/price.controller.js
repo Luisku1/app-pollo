@@ -250,16 +250,29 @@ export const getAllBranchPrices = async (req, res, next) => {
   }
 }
 
-export const getProductPrice = async (productId, branchId) => {
+export const getProductPrice = async (productId, branchId, topDate = new Date()) => {
 
   try {
 
-    const price = await Price.find({ branch: branchId, product: productId }, 'price').sort({ createdAt: -1 }).limit(1)
+    const price = await Price.find({
+      $and: [
+        {
+          createdAt: {
+            $lt: topDate
+          }
+        },
+        {
+          branch: branchId,
+        },
+        {
+          product: productId
+        }
+      ]
+    }, 'price').sort({ createdAt: -1 }).limit(1)
 
     if (price) {
 
       return price[0]
-
     }
 
   } catch (error) {
@@ -269,6 +282,7 @@ export const getProductPrice = async (productId, branchId) => {
 }
 
 export const pricesAggregate = async (branchId, topDate) => {
+
 
   try {
 

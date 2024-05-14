@@ -108,6 +108,7 @@ export default function RegistroCuentaDiaria() {
 
   const getProductPrice = (productId) => {
 
+    console.log(branchPrices.prices)
     const priceIndex = branchPrices.prices.findIndex((price) => (price.productId == productId))
     return branchPrices.prices[priceIndex].latestPrice
   }
@@ -1058,7 +1059,7 @@ export default function RegistroCuentaDiaria() {
       }
     }
 
-    if (branchId != null) {
+    if (branchId && employees && stringDatePickerValue) {
 
       fetchBranchReport()
     }
@@ -1071,9 +1072,11 @@ export default function RegistroCuentaDiaria() {
 
       const date = branchReport.createdAt ? branchReport.createdAt : new Date().toISOString()
 
+      console.log(date)
+
       setLoading(true)
 
-      const { error, data } = await fetchPrices(branchId, date, branchReport.createdAt ? true : false)
+      const { error, data } = await fetchPrices(branchId, date, branchReport.createdAt ? 1 : 0)
 
 
       if (error == null) {
@@ -1095,7 +1098,7 @@ export default function RegistroCuentaDiaria() {
 
     const fetchInitialStock = async () => {
 
-      const date = branchReport.createdAt ? branchReport.createdAt : (new Date().toISOString())
+      const date = branchReport.createdAt ? branchReport.createdAt : new Date().toISOString()
       const branchReportExists = branchReport.createdAt ? 1 : 0
 
       setLoading(true)
@@ -1216,7 +1219,7 @@ export default function RegistroCuentaDiaria() {
       <div className="flex items-center justify-between">
 
         <p>Sobrante inicial: </p>
-        <p className=' bg-white p-3 rounded-lg'>{(branchReport && branchReport.initialStock) ? initialStock.toLocaleString("es-Mx", { style: 'currency', currency: 'MXN' }) : initialStock ? initialStock.toLocaleString("es-Mx", { style: 'currency', currency: 'MXN' }) : '$0.00'}</p>
+        <p className=' bg-white p-3 rounded-lg'>{initialStock ? initialStock.toLocaleString("es-Mx", { style: 'currency', currency: 'MXN' }) : '$0.00'}</p>
 
       </div>
 
