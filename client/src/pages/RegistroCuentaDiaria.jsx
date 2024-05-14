@@ -1072,8 +1072,6 @@ export default function RegistroCuentaDiaria() {
 
       const date = branchReport.createdAt ? branchReport.createdAt : new Date().toISOString()
 
-      console.log(date)
-
       setLoading(true)
 
       const { error, data } = await fetchPrices(branchId, date, branchReport.createdAt ? 1 : 0)
@@ -1098,7 +1096,7 @@ export default function RegistroCuentaDiaria() {
 
     const fetchInitialStock = async () => {
 
-      const date = branchReport.createdAt ? branchReport.createdAt : new Date().toISOString()
+      const date = new Date(stringDatePickerValue).toISOString()
       const branchReportExists = branchReport.createdAt ? 1 : 0
 
       setLoading(true)
@@ -1106,7 +1104,7 @@ export default function RegistroCuentaDiaria() {
 
       try {
 
-        const res = await fetch('/api/stock/initial-stock/' + branchId + '/' + date + '/' + branchReportExists)
+        const res = await fetch('/api/stock/initial-stock/' + branchId + '/' + date + '/' + branchReportExists + '/' + branchReport.createdAt )
         const data = await res.json()
 
         if (data.success === false) {

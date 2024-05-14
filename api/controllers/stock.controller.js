@@ -39,7 +39,7 @@ export const getInitialStock = async (req, res, next) => {
 
   if(reportExists == 1) {
 
-    pricesDate = date
+    pricesDate = req.params.reportDate
 
   } else {
 
@@ -74,7 +74,6 @@ export const getInitialStock = async (req, res, next) => {
 
     if (initialStock) {
 
-      console.log(initialStock)
       const branchPrices = await pricesAggregate(branchId, pricesDate)
 
       let total = 0.0
