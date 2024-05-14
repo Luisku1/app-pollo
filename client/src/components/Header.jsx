@@ -129,10 +129,10 @@ export default function Header() {
 
                     <div>
 
-
                       <DropdownItem text={'Supervisión'} link={'/supervision-diaria'} onClick={() => { setOpen(!open) }} />
+                      <DropdownItem text={'Registro Empleado'} link={'/registro-empleado'} onClick={() => { setOpen(!open) }}/>
 
-                      <div>
+                        < div >
                         <div className='menu-trigger flex items-center justify-between' onClick={() => { setProviderIsOpen(!providerIsOpen) }}>
                           <DropdownItem text={'Entradas Proveedores'} link={'#'} />
 
@@ -154,70 +154,70 @@ export default function Header() {
 
                     </div>
 
-                  ) : (
+              ) : (
 
-                    <p></p>
+                <p></p>
 
-                  )}
+              )}
 
 
-                  {managerRole && (currentUser.role == managerRole._id) ? (
+              {managerRole && (currentUser.role == managerRole._id) ? (
 
-                    <div>
+                <div>
 
-                      <div>
-                        <div className='menu-trigger flex items-center justify-between' onClick={() => { setReportIsOpen(!reportIsOpen) }}>
-                          <DropdownItem text={'Reporte'} link={'#'} />
+                  <div>
+                    <div className='menu-trigger flex items-center justify-between' onClick={() => { setReportIsOpen(!reportIsOpen) }}>
+                      <DropdownItem text={'Reporte'} link={'#'} />
 
-                          {reportIsOpen ? <MdKeyboardArrowDown className='text-3xl' /> : <MdKeyboardArrowRight className='text-3xl' />}
-                        </div>
-
-                        <div className={`${reportIsOpen ? '' : 'hidden'} pl-2 text-m`}>
-                          <ul className='border-l pl-5 border-gray-400'>
-                            <DropdownItem text={"Gastos en cuentas"} link={'/gastos'} onClick={() => { setOpen(!open) }} />
-                            <DropdownItem text={"Sobrante"} link={'/sobrante'} onClick={() => { setOpen(!open) }} />
-                            <DropdownItem text={"Concentrado"} link={'/reporte'} onClick={() => { setOpen(!open) }} />
-                          </ul>
-                        </div>
-                      </div>
-
-                      <DropdownItem text={"Nomina"} link={'/nomina'} onClick={() => { setOpen(!open) }} />
-
-                      <DropdownItem text={"Cuentas"} link={'/listado-de-cuentas'} onClick={() => { setOpen(!open) }} />
-
-                      <DropdownItem text={'Empleados'} link={'/empleados'} onClick={() => { setOpen(!open) }} />
-
-                      <DropdownItem text={'Sucursales'} link={'/sucursales'} onClick={() => { setOpen(!open) }} />
-
-                      <DropdownItem text={'Productos'} link={'/productos'} onClick={() => { setOpen(!open) }} />
-
-                      <DropdownItem text={'Precios'} link={'/precios'} onClick={() => { setOpen(!open) }} />
-
-                      <DropdownItem text={'Empresa'} link={'/empresas'} onClick={() => { setOpen(!open) }} />
-
+                      {reportIsOpen ? <MdKeyboardArrowDown className='text-3xl' /> : <MdKeyboardArrowRight className='text-3xl' />}
                     </div>
 
-                  ) : (
+                    <div className={`${reportIsOpen ? '' : 'hidden'} pl-2 text-m`}>
+                      <ul className='border-l pl-5 border-gray-400'>
+                        <DropdownItem text={"Gastos en cuentas"} link={'/gastos'} onClick={() => { setOpen(!open) }} />
+                        <DropdownItem text={"Sobrante"} link={'/sobrante'} onClick={() => { setOpen(!open) }} />
+                        <DropdownItem text={"Concentrado"} link={'/reporte'} onClick={() => { setOpen(!open) }} />
+                      </ul>
+                    </div>
+                  </div>
 
-                    <p></p>
+                  <DropdownItem text={"Nomina"} link={'/nomina'} onClick={() => { setOpen(!open) }} />
 
-                  )}
+                  <DropdownItem text={"Cuentas"} link={'/listado-de-cuentas'} onClick={() => { setOpen(!open) }} />
+
+                  <DropdownItem text={'Empleados'} link={'/empleados'} onClick={() => { setOpen(!open) }} />
+
+                  <DropdownItem text={'Sucursales'} link={'/sucursales'} onClick={() => { setOpen(!open) }} />
+
+                  <DropdownItem text={'Productos'} link={'/productos'} onClick={() => { setOpen(!open) }} />
+
+                  <DropdownItem text={'Precios'} link={'/precios'} onClick={() => { setOpen(!open) }} />
+
+                  <DropdownItem text={'Empresa'} link={'/empresas'} onClick={() => { setOpen(!open) }} />
 
                 </div>
 
               ) : (
 
-                <DropdownItem text={'Inicio de Sesión'} link={'/inicio-sesion'} onClick={() => { setOpen(!open) }} />
+                <p></p>
 
               )}
 
-            </ul>
-
           </div>
-        </div>
+
+          ) : (
+
+          <DropdownItem text={'Inicio de Sesión'} link={'/inicio-sesion'} onClick={() => { setOpen(!open) }} />
+
+              )}
+
+        </ul>
 
       </div>
-    </header>
+    </div>
+
+      </div >
+    </header >
 
   )
 }

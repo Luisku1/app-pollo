@@ -150,7 +150,7 @@ export default function RegistroEmpleadoNuevo() {
 
           <div className="flex items-center justify-between">
 
-            <p>Saldo:</p>
+            <p>Saldo {'(Deuda)'}:</p>
             <input type="number" step={0.01} defaultValue={0.0} name="balance" id="balance" className='border p-3 rounded-lg' onChange={handleChange} />
 
           </div>

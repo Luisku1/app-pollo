@@ -28,23 +28,23 @@ export const getInitialStock = async (req, res, next) => {
   const reportExists = req.params.reportExists
   let pricesDate
 
-  const actualLocaleDatePlusOne = new Date(date)
   const actualLocaleDateMinusOne = new Date(date)
-  actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
   actualLocaleDateMinusOne.setDate(actualLocaleDateMinusOne.getDate() - 1)
   const actualLocaleDayMinusOne = actualLocaleDateMinusOne.toISOString().slice(0, 10)
-  const actualLocaleDayPlusOne = actualLocaleDatePlusOne.toISOString().slice(0, 10)
   const actualLocaleDay = date.toISOString().slice(0, 10)
 
   const topDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
   const bottomDate = new Date(actualLocaleDayMinusOne + 'T00:00:00.000-06:00')
 
-  if(reportExists) {
+  if(reportExists == 1) {
 
     pricesDate = date
 
   } else {
 
+    const actualLocaleDatePlusOne = new Date(date)
+    actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
+    const actualLocaleDayPlusOne = actualLocaleDatePlusOne.toISOString().slice(0, 10)
     pricesDate = new Date(actualLocaleDayPlusOne + 'T00:00:00.000-06:00')
   }
 
@@ -70,8 +70,6 @@ export const getInitialStock = async (req, res, next) => {
         branch: branchId
       }]
     })
-
-
 
     if (initialStock) {
 

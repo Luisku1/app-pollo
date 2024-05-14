@@ -115,13 +115,11 @@ export const getBranchCurrentPrices = async (req, res, next) => {
   const reportExists = req.params.reportExists
   let topDate
 
-  if (reportExists) {
+  if (reportExists == 1) {
 
     topDate = new Date(date)
 
   } else {
-
-    console.log('Entro aquí')
 
     const actualLocaleDay = date.slice(0, 10)
 
@@ -131,8 +129,6 @@ export const getBranchCurrentPrices = async (req, res, next) => {
 
     topDate = new Date(actualLocaleDayPlusOne + 'T00:00:00.000-06:00')
   }
-
-  console.log(topDate)
 
   try {
 
