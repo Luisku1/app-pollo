@@ -63,6 +63,7 @@ export default function ControlSupervisor() {
 
 
   let stringDatePickerValue = formatDate(datePickerValue)
+  let today = formatDate(datePickerValue) == formatDate(new Date()) ? true : false
 
   const changeDatePickerValue = (e) => {
 
@@ -726,6 +727,7 @@ export default function ControlSupervisor() {
     const amountInput = document.getElementById('incomeAmount')
     const typeInput = document.getElementById('incomeType')
     const branchInput = document.getElementById('incomeBranch')
+    const date = today ? new Date().toISOString() : new Date(stringDatePickerValue).toISOString()
 
     e.preventDefault()
 
@@ -744,7 +746,8 @@ export default function ControlSupervisor() {
           employee: currentUser._id,
           type: typeInput.value,
           branch: branchInput.value,
-          company: company._id
+          company: company._id,
+          createdAt: date
         })
       })
 

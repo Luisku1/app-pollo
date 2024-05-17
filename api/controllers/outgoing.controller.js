@@ -78,12 +78,11 @@ export const getOutgoings = async (req, res, next) => {
 
 export const newExtraOutgoing = async (req, res, next) => {
 
-  const { extraOutgoingAmount, extraOutgoingConcept, company, employee } = req.body
-  const date = new Date().toISOString()
+  const { extraOutgoingAmount, extraOutgoingConcept, company, employee, createdAt } = req.body
 
   try {
 
-    const extraOutgoing = new ExtraOutgoing({ amount: extraOutgoingAmount, concept: extraOutgoingConcept, company, employee, createdAt: date })
+    const extraOutgoing = new ExtraOutgoing({ amount: extraOutgoingAmount, concept: extraOutgoingConcept, company, employee, createdAt })
     extraOutgoing.save()
 
     res.status(201).json({ message: 'New extra outgoing created successfully', extraOutgoing: extraOutgoing })
@@ -248,12 +247,11 @@ export const deleteOutgoing = async (req, res, next) => {
 
 export const createLoan = async (req, res, next) => {
 
-  const { amount, company, employee, supervisor } = req.body
-  const date = new Date().toISOString()
+  const { amount, company, employee, supervisor, createdAt } = req.body
 
   try {
 
-    const newLoan = await new Loan({ amount, company, employee, supervisor, createdAt: date })
+    const newLoan = await new Loan({ amount, company, employee, supervisor, createdAt })
 
     newLoan.save()
 

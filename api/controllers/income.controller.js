@@ -4,8 +4,7 @@ import { errorHandler } from "../utils/error.js";
 
 export const newIncome = async (req, res, next) => {
 
-  const {incomeAmount, company, branch, employee, type} = req.body
-  const createdAt = new Date().toISOString()
+  const {incomeAmount, company, branch, employee, type, createdAt} = req.body
 
   try {
 

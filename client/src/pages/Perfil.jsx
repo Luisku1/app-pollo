@@ -13,10 +13,11 @@ export default function Perfil() {
   const [employeeDayInfo, setEmployeeDayInfo] = useState(null)
   const [supervisorInfo, setSupervisorInfo] = useState({})
   const [employeeReports, setEmployeeReports] = useState([])
-  // const [isOpen, setIsOpen] = useState(false)
-  // const [buttonId, setButtonId] = useState(null)
+  const [isOpen, setIsOpen] = useState(false)
+  const [buttonId, setButtonId] = useState(null)
   const [fetchError, setFetchError] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [managerRole, setManagerRole] = useState({})
   const dispatch = useDispatch()
 
   const handleSignOut = async () => {
@@ -75,6 +76,40 @@ export default function Perfil() {
       setFetchError(error)
     }
   }
+
+  useEffect(() => {
+
+    const setManagerRoleFunction = async (roles) => {
+
+      const managerRole = roles.find((elemento) => elemento.name == 'Gerente')
+      setManagerRole(managerRole)
+
+    }
+
+    const fetchRoles = async () => {
+
+      try {
+
+        const res = await fetch('/api/role/get')
+        const data = await res.json()
+
+        if (data.success === false) {
+          setError(data.message)
+          return
+        }
+        await setManagerRoleFunction(data.roles)
+        setError(null)
+
+      } catch (error) {
+
+        setError(error.message)
+
+      }
+    }
+
+    fetchRoles()
+
+  }, [])
 
   useEffect(() => {
 
@@ -328,7 +363,7 @@ export default function Perfil() {
                       </div>
                     </Link>
 
-                    {/* {index == 0 && employeeId == currentUser._id ?
+                    { managerRole._id == currentUser.role ?
 
                       <div className=' col-span-2'>
                         <button id={reportData._id} onClick={() => { setIsOpen(isOpen ? false : true), setButtonId(reportData._id) }} disabled={loading} className='bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
@@ -357,7 +392,7 @@ export default function Perfil() {
 
                       </div>
 
-                      : ''} */}
+                      : ''}
                   </div>
                 </div>
 

@@ -3,12 +3,10 @@ import Input from '../models/accounts/input.model.js'
 import { errorHandler } from '../utils/error.js'
 import { getProductPrice } from './price.controller.js'
 import ProviderInput from '../models/providers/provider.input.model.js'
-import Branch from '../models/branch.model.js'
 
 export const newInput = async (req, res, next) => {
 
-  const { inputWeight, inputComment, inputPieces, company, product, employee, branch, inputSpecialPrice } = req.body
-  const createdAt = new Date().toISOString()
+  const { inputWeight, inputComment, inputPieces, company, product, employee, branch, inputSpecialPrice, createdAt } = req.body
 
   try {
 
@@ -397,8 +395,7 @@ export const deleteInput = async (req, res, next) => {
 
 export const newOutput = async (req, res, next) => {
 
-  const { outputWeight, outputComment, pieces, company, product, employee, branch, outputSpecialPrice } = req.body
-  const createdAt = new Date().toISOString()
+  const { outputWeight, outputComment, pieces, company, product, employee, branch, outputSpecialPrice, createdAt } = req.body
 
   try {
 
