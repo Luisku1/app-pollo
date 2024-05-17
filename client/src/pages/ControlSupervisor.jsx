@@ -429,6 +429,7 @@ export default function ControlSupervisor() {
 
     const amount = document.getElementById('loanAmount')
     const employee = document.getElementById('loanEmployee')
+    const date = today ? new Date().toISOString() : new Date(stringDatePickerValue).toISOString()
 
     e.preventDefault()
 
@@ -443,7 +444,8 @@ export default function ControlSupervisor() {
           amount: amount.value,
           employee: employee.value,
           supervisor: currentUser._id,
-          company: company._id
+          company: company._id,
+          createdAt: date
         })
       })
 
@@ -494,6 +496,7 @@ export default function ControlSupervisor() {
 
     const conceptInput = document.getElementById('extraOutgoingConcept')
     const amountInput = document.getElementById('extraOutgoingAmount')
+    const date = today ? new Date().toISOString() : new Date(stringDatePickerValue).toISOString()
 
     e.preventDefault()
 
@@ -510,7 +513,8 @@ export default function ControlSupervisor() {
         body: JSON.stringify({
           ...extraOutgoingFormData,
           employee: currentUser._id,
-          company: company._id
+          company: company._id,
+          createdAt: date
         })
       })
 
@@ -574,6 +578,7 @@ export default function ControlSupervisor() {
     const branchInput = document.getElementById('outputBranch')
     const commentInput = document.getElementById('outputComment')
     const inputSpecialPrice = document.getElementById('inputSpecialPrice')
+    const date = today ? new Date().toISOString() : new Date(stringDatePickerValue).toISOString()
 
     e.preventDefault()
 
@@ -593,7 +598,8 @@ export default function ControlSupervisor() {
           employee: currentUser._id,
           branch: branchInput.value,
           outputComment: commentInput.value,
-          company: company._id
+          company: company._id,
+          createdAt: date
         })
       })
 
@@ -653,6 +659,7 @@ export default function ControlSupervisor() {
     const branchInput = document.getElementById('inputBranch')
     const commentInput = document.getElementById('inputComment')
     const inputSpecialPrice = document.getElementById('inputSpecialPrice')
+    const date = today ? new Date().toISOString() : new Date(stringDatePickerValue).toISOString()
 
     e.preventDefault()
 
@@ -671,7 +678,8 @@ export default function ControlSupervisor() {
           employee: currentUser._id,
           branch: branchInput.value,
           company: company._id,
-          inputComment: commentInput.value
+          inputComment: commentInput.value,
+          createdAt: date
         })
       })
 
