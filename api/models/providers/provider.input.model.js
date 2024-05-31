@@ -1,6 +1,5 @@
 import mongoose, { Schema } from 'mongoose'
 
-
 const providerInputSchema = mongoose.Schema({
 
   weight: {

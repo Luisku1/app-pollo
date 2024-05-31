@@ -35,7 +35,9 @@ export default function ControlSupervisor() {
   const [loans, setLoans] = useState([])
   const [loansTotal, setLoansTotal] = useState(0.0)
   const [products, setProducts] = useState([])
-  const [branchName, setBranchName] = useState(null)
+  const [inputBranchName, setInputBranchName] = useState(null)
+  const [outputBranchName, setOutputBranchName] = useState(null)
+  const [incomeBranchName, setIncomeBranchName] = useState(null)
   const [productName, setProductName] = useState(null)
   const [incomeTypeName, setIncomeTypeName] = useState(null)
   const [buttonId, setButtonId] = useState(null)
@@ -195,10 +197,22 @@ export default function ControlSupervisor() {
     setIncomeTypeName(e.target.options[index].text)
   }
 
-  const saveBranchName = (e) => {
+  const saveInputBranchName = (e) => {
 
     let index = e.target.selectedIndex
-    setBranchName(e.target.options[index].text)
+    setInputBranchName(e.target.options[index].text)
+  }
+
+  const saveOutputBranchName = (e) => {
+
+    let index = e.target.selectedIndex
+    setOutputBranchName(e.target.options[index].text)
+  }
+
+  const saveIncomeBranchName = (e) => {
+
+    let index = e.target.selectedIndex
+    setIncomeBranchName(e.target.options[index].text)
   }
 
   const saveProductName = (e) => {
@@ -612,7 +626,7 @@ export default function ControlSupervisor() {
         return
       }
 
-      data.output.branch = branchName
+      data.output.branch = outputBranchName
       data.output.product = productName
       data.output.employee = currentUser
 
@@ -692,7 +706,7 @@ export default function ControlSupervisor() {
         return
       }
 
-      data.input.branch = branchName
+      data.input.branch = inputBranchName
       data.input.product = productName
       data.input.employee = currentUser
 
@@ -769,7 +783,7 @@ export default function ControlSupervisor() {
       }
 
       data.income.employee = currentUser
-      data.income.branch = branchName
+      data.income.branch = incomeBranchName
       data.income.type = incomeTypeName
 
       setError(null)
@@ -1276,7 +1290,7 @@ export default function ControlSupervisor() {
 
         <form onSubmit={addIncome} className="grid grid-cols-3 items-center justify-between">
 
-          <select name="incomeBranch" id="incomeBranch" className='border p-3 rounded-lg text-xs overflow-y-scroll' onChange={(e) => { saveBranchName(e), incomesButtonControl() }}>
+          <select name="incomeBranch" id="incomeBranch" className='border p-3 rounded-lg text-xs overflow-y-scroll' onChange={(e) => { saveIncomeBranchName(e), incomesButtonControl() }}>
 
             <option value="none" disabled selected hidden >Sucursal</option>
 
@@ -1355,7 +1369,7 @@ export default function ControlSupervisor() {
         <SectionHeader label={'Entradas'} />
 
         <form onSubmit={addInput} className="grid grid-cols-12 items-center justify-between">
-          <select name="inputBranch" id="inputBranch" onChange={(e) => { inputButtonControl(), saveBranchName(e) }} className='border p-3 rounded-lg text-xs col-span-3'>
+          <select name="inputBranch" id="inputBranch" onChange={(e) => { inputButtonControl(), saveInputBranchName(e) }} className='border p-3 rounded-lg text-xs col-span-3'>
 
             <option value="none" disabled selected hidden >Sucursal</option>
 
@@ -1395,7 +1409,7 @@ export default function ControlSupervisor() {
         <SectionHeader label={'Salidas'} />
 
         <form onSubmit={addOutput} className="grid grid-cols-12 items-center justify-between">
-          <select name="outputBranch" id="outputBranch" className='border p-3 rounded-lg text-xs col-span-3' onChange={(e) => { outputButtonControl(), saveBranchName(e) }}>
+          <select name="outputBranch" id="outputBranch" className='border p-3 rounded-lg text-xs col-span-3' onChange={(e) => { outputButtonControl(), saveOutputBranchName(e) }}>
 
             <option value="none" disabled selected hidden >Sucursal</option>
 

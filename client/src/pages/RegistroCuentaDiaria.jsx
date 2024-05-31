@@ -66,6 +66,7 @@ export default function RegistroCuentaDiaria() {
 
     setSelectedBranch(branch)
     setBranchId(branch.value)
+    navigate('/formato/' + stringDatePickerValue + '/' + branch.value)
 
   }
 

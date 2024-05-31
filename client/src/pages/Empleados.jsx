@@ -1,22 +1,51 @@
 import { useEffect, useState } from "react"
 import { useSelector } from "react-redux"
-import { useNavigate } from "react-router-dom"
 import { fetchEmployees } from "../helpers/FetchFunctions"
 import { MdEdit } from "react-icons/md";
 import { weekDays } from "../helpers/Constants"
 import { FaTrash } from "react-icons/fa";
 import { Link } from "react-router-dom"
+import { CiSearch } from "react-icons/ci";
+import { MdClear } from "react-icons/md";
 
 export default function Empleados() {
 
   const { company } = useSelector((state) => state.user)
   const [employees, setEmployees] = useState([])
+  const [filteredEmployees, setFilteredEmployees] = useState([])
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
   const [buttonId, setButtonId] = useState(null)
-  const navigate = useNavigate()
 
+  const handleSearchBarChange = (e) => {
+
+    const searchString = e.target.value
+
+    if (searchString != '') {
+
+      const filteredList = employees.filter((employee) =>
+
+        employee.name.includes(searchString) || employee.lastName.includes(searchString)
+      )
+
+      setFilteredEmployees(filteredList)
+
+    } else {
+
+      setFilteredEmployees(employees)
+    }
+  }
+
+  const clearSearchBar = () => {
+
+    const searchBar = document.getElementById('searchBar')
+
+    searchBar.value = ''
+    searchBar.focus()
+
+    setFilteredEmployees(employees)
+  }
 
   const deleteEmployee = async (employeeId, index) => {
 
@@ -56,6 +85,7 @@ export default function Empleados() {
       if (result.error == null) {
 
         setEmployees(result.data)
+        setFilteredEmployees(result.data)
 
       } else {
 
@@ -68,27 +98,41 @@ export default function Empleados() {
 
   }, [company])
 
+  useEffect(() => {
+
+
+  }, [filteredEmployees])
+
   return (
 
     <main className="p-3 max-w-lg mx-auto">
 
       {error ? <p>{error}</p> : ''}
 
-      <div className="w-full">
+      <div className="w-full bg-white  p-3 border">
 
-        <button className='w-full bg-slate-500 text-white p-3 rounded-lg uppercase hover:opacity-95 disabled:opacity-80' onClick={() => navigate('/registro-empleado')}>Registra un nuevo empleado</button>
+        <div className="border flex items-center">
+
+          <CiSearch className=" h-8 w-8 border-r" />
+          <input autoComplete="off" className=" h-full w-full p-2 outline-none" type="text" name="searchBar" id="searchBar" onChange={handleSearchBarChange} />
+          <button className="h-8 w-8" onClick={clearSearchBar}>
+
+            <MdClear className="w-full h-full"/>
+          </button>
+
+        </div>
 
       </div>
 
       <div>
 
-        {employees && employees.length > 0 && employees.map((employee, index) => (
+        {filteredEmployees && filteredEmployees.length > 0 && filteredEmployees.map((employee, index) => (
 
           <div className="my-4 bg-white p-4 grid grid-cols-12" key={employee._id}>
 
             <div className="col-span-10">
               <Link to={'/perfil/' + employee._id}>
-              <p className="text-2xl font-bold">{employee.name + ' ' + employee.lastName}</p>
+                <p className="text-2xl font-bold">{employee.name + ' ' + employee.lastName}</p>
               </Link>
 
               <div className="p-3">

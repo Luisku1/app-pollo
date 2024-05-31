@@ -7,20 +7,14 @@ const customerSaleSchema = mongoose.Schema({
     required: true
   },
 
-  price: {
+  amount: {
     type: Number,
-    required: true
+    default: 0.0
   },
 
   comment: {
     type: String,
     required: true
-  },
-
-  folio: {
-    type: String,
-    required: true,
-    unique: true
   },
 
   precentageIncluded: {
