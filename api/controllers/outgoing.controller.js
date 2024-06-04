@@ -2,6 +2,7 @@ import ExtraOutgoing from "../models/accounts/outgoings/extra.outgoing.model.js"
 import Outgoing from "../models/accounts/outgoings/outgoing.model.js"
 import Loan from '../models/accounts/outgoings/loan.model.js'
 import { errorHandler } from "../utils/error.js"
+import { updateReportOutgoings } from "../utils/updateReport.js"
 
 export const newOutgoing = async (req, res, next) => {
 
@@ -11,6 +12,8 @@ export const newOutgoing = async (req, res, next) => {
 
     const outgoing = new Outgoing({ amount, concept, company, branch, employee, createdAt})
     await outgoing.save()
+
+    updateReportOutgoings(branch, createdAt, amount)
 
     res.status(201).json({ message: 'New outgoing created successfully', outgoing: outgoing })
 
@@ -227,10 +230,12 @@ export const deleteOutgoing = async (req, res, next) => {
 
   try {
 
+    const outgoing = await Outgoing.findById(outgoingId)
     const deleted = await Outgoing.deleteOne({ _id: outgoingId })
 
     if (!deleted.deletedCount == 0) {
 
+      updateReportOutgoings(outgoing.branch, outgoing.createdAt, -(outgoing.amount))
       res.status(200).json('Outgoing deleted successfully')
 
     } else {

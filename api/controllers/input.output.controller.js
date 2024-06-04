@@ -3,6 +3,7 @@ import Input from '../models/accounts/input.model.js'
 import { errorHandler } from '../utils/error.js'
 import { getProductPrice } from './price.controller.js'
 import ProviderInput from '../models/providers/provider.input.model.js'
+import { updateReportInputs, updateReportOutputs } from '../utils/updateReport.js'
 
 export const newInput = async (req, res, next) => {
 
@@ -29,6 +30,8 @@ export const newInput = async (req, res, next) => {
     const newInput = new Input({ weight: inputWeight, comment: inputComment, pieces: inputPieces, company, product, employee, branch, amount, price: price, createdAt, specialPrice })
 
     await newInput.save()
+
+    updateReportInputs(branch, createdAt, amount)
 
     res.status(200).json({ message: 'New input created', input: newInput })
 
@@ -376,10 +379,12 @@ export const deleteInput = async (req, res, next) => {
 
   try {
 
+    const input = await Input.findById(inputId)
     const deleted = await Input.deleteOne({ _id: inputId })
 
     if (deleted.acknowledged == 1) {
 
+      updateReportInputs(input.branch, input.createdAt, -(input.amount))
       res.status(200).json({ message: 'Input deleted correctly' })
 
     } else {
@@ -418,6 +423,7 @@ export const newOutput = async (req, res, next) => {
 
     await newOutput.save()
 
+    updateReportOutputs(branch, createdAt, amount)
     res.status(200).json({ message: 'New output created', output: newOutput })
 
   } catch (error) {
@@ -605,6 +611,9 @@ export const createProviderInput = async (req, res, next) => {
   try {
 
     await newProviderInput.save()
+
+    updateReportInputs(branch, createdAt, amount)
+
     res.status(200).json({ providerInput: newProviderInput })
 
   } catch (error) {
@@ -619,10 +628,12 @@ export const deleteProviderInput = async (req, res, next) => {
 
   try {
 
+    const providerInput = await ProviderInput.findById(providerInputId)
     const deleted = await ProviderInput.deleteOne({ _id: providerInputId })
 
     if (deleted.acknowledged == 1) {
 
+      updateReportInputs(providerInput.branch, providerInput.createdAt, -(providerInput.amount))
       res.status(200).json({ message: 'Provider input deleted correctly' })
 
     } else {
@@ -642,10 +653,12 @@ export const deleteOutput = async (req, res, next) => {
 
   try {
 
+    const output = await Output.findById(outputId)
     const deleted = await Output.deleteOne({ _id: outputId })
 
     if (deleted.acknowledged == 1) {
 
+      updateReportOutputs(output.branch, output.createdAt, -(output.amount))
       res.status(200).json({ message: 'Output deleted correctly' })
 
     } else {

@@ -1286,6 +1286,82 @@ export default function ControlSupervisor() {
 
       <div className='border bg-white p-3 mt-4'>
 
+        <SectionHeader label={'Salidas'} />
+
+        <form onSubmit={addOutput} className="grid grid-cols-12 items-center justify-between">
+          <select name="outputBranch" id="outputBranch" className='border p-3 rounded-lg text-xs col-span-3' onChange={(e) => { outputButtonControl(), saveOutputBranchName(e) }}>
+
+            <option value="none" disabled selected hidden >Sucursal</option>
+
+            {branches && branches.length == 0 ? <option> No hay sucursales registradas </option> : ''}
+            {branches && branches.length > 0 && branches.map((branch) => (
+
+              <option key={branch._id} value={branch._id}>{branch.branch}</option>
+
+            ))}
+          </select>
+
+          <select name="outputProduct" id="outputProduct" onChange={(e) => { outputButtonControl(), saveProductName(e) }} className='col-span-3 border p-3 rounded-lg text-xs'>
+            <option value="none" selected hidden >Productos</option>
+
+            {products && products.length != 0 && products.map((product) => (
+
+              <option key={product._id} value={product._id}>{product.name}</option>
+            ))}
+          </select>
+
+          <input type="number" name="outputPieces" id="outputPieces" placeholder='Piezas' step={0.1} className='border p-3 rounded-lg col-span-3' required onInput={outputButtonControl} onChange={handleOutputInputsChange} />
+          <input type="number" name="outputWeight" id="outputWeight" placeholder='0.00 kg' step={0.01} className='border p-3 rounded-lg col-span-3' required onInput={outputButtonControl} onChange={handleOutputInputsChange} />
+
+          <input className='col-span-4 p-3 border border-black shadow-md' name='outputSpecialPrice' id='outputSpecialPrice' step={0.01} placeholder='Precio especial' type="number" onChange={handleOutputInputsChange} />
+          <textarea className='col-span-8 rounded-lg p-3 shadow mt-2' name="outputComment" id="outputComment" cols="30" rows="2" defaultValue={'Todo bien'} onChange={handleOutputInputsChange}></textarea>
+
+          <button type='submit' id='outputButton' disabled className='bg-slate-500 text-white p-3 rounded-lg col-span-12 mt-8'>Agregar</button>
+
+        </form>
+
+      </div>
+
+      <div className='border bg-white p-3 mt-4'>
+
+        <SectionHeader label={'Entradas'} />
+
+        <form onSubmit={addInput} className="grid grid-cols-12 items-center justify-between">
+          <select name="inputBranch" id="inputBranch" onChange={(e) => { inputButtonControl(), saveInputBranchName(e) }} className='border p-3 rounded-lg text-xs col-span-3'>
+
+            <option value="none" disabled selected hidden >Sucursal</option>
+
+            {branches && branches.length == 0 ? <option> No hay sucursales registradas </option> : ''}
+            {branches && branches.length > 0 && branches.map((branch) => (
+
+              <option key={branch._id} value={branch._id}>{branch.branch}</option>
+
+            ))}
+          </select>
+
+          <select name="inputProduct" id="inputProduct" className='border p-3 rounded-lg text-xs col-span-3' onChange={(e) => { inputButtonControl(), saveProductName(e) }}>
+            <option value="none" selected hidden >Productos</option>
+
+            {products && products.length != 0 && products.map((product) => (
+
+              <option key={product._id} value={product._id}>{product.name}</option>
+            ))}
+          </select>
+
+          <input type="number" name="inputPieces" id="inputPieces" placeholder='Piezas' step={0.1} className='border p-3 rounded-lg col-span-3' required onInput={inputButtonControl} onChange={handleInputInputsChange} />
+          <input type="number" name="inputWeight" id="inputWeight" placeholder='0.00 kg' step={0.01} className='border p-3 rounded-lg col-span-3' required onInput={inputButtonControl} onChange={handleInputInputsChange} />
+
+          <input className='col-span-4 p-3 border border-black shadow-md' name='inputSpecialPrice' id='inputSpecialPrice' step={0.01} placeholder='Precio especial' type="number" onChange={handleInputInputsChange} />
+          <textarea className='col-span-8 rounded-lg p-3 shadow mt-2' name="inputComment" id="inputComment" cols="30" rows="2" defaultValue={'Todo bien'} onChange={handleInputInputsChange}></textarea>
+
+
+          <button type='submit' id='input-button' disabled className='bg-slate-500 text-white p-3 rounded-lg col-span-12 mt-8'>Agregar</button>
+
+        </form>
+      </div>
+
+      <div className='border bg-white p-3 mt-4'>
+
         <SectionHeader label={'Efectivos'} />
 
         <form onSubmit={addIncome} className="grid grid-cols-3 items-center justify-between">
@@ -1364,83 +1440,7 @@ export default function ControlSupervisor() {
 
       </div>
 
-      <div className='border bg-white p-3 mt-4'>
 
-        <SectionHeader label={'Entradas'} />
-
-        <form onSubmit={addInput} className="grid grid-cols-12 items-center justify-between">
-          <select name="inputBranch" id="inputBranch" onChange={(e) => { inputButtonControl(), saveInputBranchName(e) }} className='border p-3 rounded-lg text-xs col-span-3'>
-
-            <option value="none" disabled selected hidden >Sucursal</option>
-
-            {branches && branches.length == 0 ? <option> No hay sucursales registradas </option> : ''}
-            {branches && branches.length > 0 && branches.map((branch) => (
-
-              <option key={branch._id} value={branch._id}>{branch.branch}</option>
-
-            ))}
-          </select>
-
-          <select name="inputProduct" id="inputProduct" className='border p-3 rounded-lg text-xs col-span-3' onChange={(e) => { inputButtonControl(), saveProductName(e) }}>
-            <option value="none" selected hidden >Productos</option>
-
-            {products && products.length != 0 && products.map((product) => (
-
-              <option key={product._id} value={product._id}>{product.name}</option>
-            ))}
-          </select>
-
-          <input type="number" name="inputPieces" id="inputPieces" placeholder='Piezas' step={0.1} className='border p-3 rounded-lg col-span-3' required onInput={inputButtonControl} onChange={handleInputInputsChange} />
-          <input type="number" name="inputWeight" id="inputWeight" placeholder='0.00 kg' step={0.01} className='border p-3 rounded-lg col-span-3' required onInput={inputButtonControl} onChange={handleInputInputsChange} />
-
-          <input className='col-span-4 p-3 border border-black shadow-md' name='inputSpecialPrice' id='inputSpecialPrice' step={0.01} placeholder='Precio especial' type="number" onChange={handleInputInputsChange} />
-          <textarea className='col-span-8 rounded-lg p-3 shadow mt-2' name="inputComment" id="inputComment" cols="30" rows="2" defaultValue={'Todo bien'} onChange={handleInputInputsChange}></textarea>
-
-
-          <button type='submit' id='input-button' disabled className='bg-slate-500 text-white p-3 rounded-lg col-span-12 mt-8'>Agregar</button>
-
-        </form>
-
-
-      </div>
-
-      <div className='border bg-white p-3 mt-4'>
-
-        <SectionHeader label={'Salidas'} />
-
-        <form onSubmit={addOutput} className="grid grid-cols-12 items-center justify-between">
-          <select name="outputBranch" id="outputBranch" className='border p-3 rounded-lg text-xs col-span-3' onChange={(e) => { outputButtonControl(), saveOutputBranchName(e) }}>
-
-            <option value="none" disabled selected hidden >Sucursal</option>
-
-            {branches && branches.length == 0 ? <option> No hay sucursales registradas </option> : ''}
-            {branches && branches.length > 0 && branches.map((branch) => (
-
-              <option key={branch._id} value={branch._id}>{branch.branch}</option>
-
-            ))}
-          </select>
-
-          <select name="outputProduct" id="outputProduct" onChange={(e) => { outputButtonControl(), saveProductName(e) }} className='col-span-3 border p-3 rounded-lg text-xs'>
-            <option value="none" selected hidden >Productos</option>
-
-            {products && products.length != 0 && products.map((product) => (
-
-              <option key={product._id} value={product._id}>{product.name}</option>
-            ))}
-          </select>
-
-          <input type="number" name="outputPieces" id="outputPieces" placeholder='Piezas' step={0.1} className='border p-3 rounded-lg col-span-3' required onInput={outputButtonControl} onChange={handleOutputInputsChange} />
-          <input type="number" name="outputWeight" id="outputWeight" placeholder='0.00 kg' step={0.01} className='border p-3 rounded-lg col-span-3' required onInput={outputButtonControl} onChange={handleOutputInputsChange} />
-
-          <input className='col-span-4 p-3 border border-black shadow-md' name='outputSpecialPrice' id='outputSpecialPrice' step={0.01} placeholder='Precio especial' type="number" onChange={handleOutputInputsChange} />
-          <textarea className='col-span-8 rounded-lg p-3 shadow mt-2' name="outputComment" id="outputComment" cols="30" rows="2" defaultValue={'Todo bien'} onChange={handleOutputInputsChange}></textarea>
-
-          <button type='submit' id='outputButton' disabled className='bg-slate-500 text-white p-3 rounded-lg col-span-12 mt-8'>Agregar</button>
-
-        </form>
-
-      </div>
 
       {incomes && incomes.length > 0 ?
 

@@ -1,19 +1,50 @@
 import { useEffect, useState } from "react"
 import { useSelector } from "react-redux"
 import { useNavigate } from "react-router-dom"
-import { MdEdit } from "react-icons/md";
+import { MdClear, MdEdit } from "react-icons/md";
 import { FaTrash } from "react-icons/fa";
+import { CiSearch } from "react-icons/ci";
 
 export default function Sucursales() {
 
   const { company } = useSelector((state) => state.user)
   const [branches, setBranches] = useState([])
+  const [filteredBranches, setFilteredBranches] = useState([])
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
   const [buttonId, setButtonId] = useState(null)
 
   const navigate = useNavigate()
+
+  const handleSearchBarChange = (e) => {
+
+    const searchString = e.target.value
+
+    if (searchString != '') {
+
+      const filteredList = branches.filter((branch) =>
+
+        branch.branch.toLowerCase().includes(searchString.toLowerCase())
+      )
+
+      setFilteredBranches(filteredList)
+
+    } else {
+
+      setFilteredBranches(branches)
+    }
+  }
+
+  const clearSearchBar = () => {
+
+    const searchBar = document.getElementById('searchBar')
+
+    searchBar.value = ''
+    searchBar.focus()
+
+    setFilteredBranches(branches)
+  }
 
   const deleteBranch = async (branchId, index) => {
 
@@ -63,6 +94,7 @@ export default function Sucursales() {
         }
 
         setBranches(data.branches)
+        setFilteredBranches(data.branches)
         setError(null)
 
       } catch (error) {
@@ -86,9 +118,23 @@ export default function Sucursales() {
 
       </div>
 
+      <div className="w-full bg-white  p-3 border">
+
+        <div className="border flex items-center">
+
+          <CiSearch className=" h-8 w-8 border-r" />
+          <input autoComplete="off" className=" h-full w-full p-2 outline-none" type="text" name="searchBar" id="searchBar" onChange={handleSearchBarChange} />
+          <button className="h-8 w-8" onClick={clearSearchBar}>
+            <MdClear className="w-full h-full" />
+          </button>
+
+        </div>
+
+      </div>
+
       <div>
 
-        {branches && branches.length > 0 && branches.map((branch, index) => (
+        {filteredBranches && filteredBranches.length > 0 && filteredBranches.map((branch, index) => (
 
           <div className="my-4 bg-white p-4 grid grid-cols-12" key={branch._id}>
 

@@ -26,7 +26,7 @@ export default function Empleados() {
 
       const filteredList = employees.filter((employee) =>
 
-        employee.name.includes(searchString) || employee.lastName.includes(searchString)
+        employee.name.toLowerCase().includes(searchString.toLowerCase()) || employee.lastName.toLowerCase().includes(searchString.toLowerCase())
       )
 
       setFilteredEmployees(filteredList)
@@ -116,7 +116,6 @@ export default function Empleados() {
           <CiSearch className=" h-8 w-8 border-r" />
           <input autoComplete="off" className=" h-full w-full p-2 outline-none" type="text" name="searchBar" id="searchBar" onChange={handleSearchBarChange} />
           <button className="h-8 w-8" onClick={clearSearchBar}>
-
             <MdClear className="w-full h-full"/>
           </button>
 

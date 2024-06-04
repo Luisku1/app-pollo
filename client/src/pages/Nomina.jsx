@@ -156,10 +156,9 @@ export default function Nomina() {
               <div id="header" className="col-span-12 mt-1 mb-4 border-b border-black shadow-sm text-center">
                 <div className="grid grid-cols-1">
                   <div className="grid grid-cols-12 col-span-12">
-                    <Link className='w-3/12' to={employeePayroll != null ? '/perfil/' + employeePayroll._id : ''}>
-                      <p className='text-center text-sm'>{employeePayroll != null ? employeePayroll.name + ' ' + employeePayroll.lastName : 'Trabajador despedido'}</p>
+                    <Link className='text-lg col-span-5 pb-3 pl-3 pr-3 text-left font-bold my-auto' to={employeePayroll != null ? '/perfil/' + employeePayroll._id : ''}>
+                      <p className=''>{employeePayroll != null ? employeePayroll.name + ' ' + employeePayroll.lastName : 'Trabajador despedido'}</p>
                     </Link>
-                    <p className='text-lg col-span-5 pb-3 pl-3 text-left font-bold my-auto'>{employeePayroll.name + ' ' + employeePayroll.lastName}</p>
 
                     <div className="grid grid-cols-7 col-span-7 grid-rows-2">
                       <div className="col-span-7 row-span-1 mb-3">

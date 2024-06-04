@@ -1,6 +1,7 @@
 import Price from "../models/accounts/price.model.js";
 import Stock from "../models/accounts/stock.model.js";
 import { errorHandler } from "../utils/error.js";
+import { updateReportStock } from "../utils/updateReport.js";
 import { pricesAggregate } from "./price.controller.js";
 
 export const createStock = async (req, res, next) => {
@@ -12,6 +13,7 @@ export const createStock = async (req, res, next) => {
     const newStock = new Stock({ pieces, employee, weight, amount, branch, product, company, createdAt })
     await newStock.save()
 
+    updateReportStock(branch, createdAt, amount)
     res.status(201).json({ message: 'New stock created successfully', stock: newStock })
 
   } catch (error) {
@@ -37,7 +39,7 @@ export const getInitialStock = async (req, res, next) => {
   const topDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
   const bottomDate = new Date(actualLocaleDayMinusOne + 'T00:00:00.000-06:00')
 
-  if(reportExists == 1) {
+  if (reportExists == 1) {
 
     pricesDate = req.params.reportDate
 
@@ -221,10 +223,12 @@ export const deleteStock = async (req, res, next) => {
 
   try {
 
+    const stock = await Stock.findById(stockId)
     const deleted = await Stock.deleteOne({ _id: stockId })
 
     if (!deleted.deletedCount == 0) {
 
+      updateReportStock(stock.branch, stock.createdAt, -(stock.amount))
       res.status(200).json('Stock deleted successfully')
 
     } else {
@@ -238,7 +242,7 @@ export const deleteStock = async (req, res, next) => {
   }
 }
 
-export const getTotalStock = async (req, res, next) => {
+export const getTotalStockByProduct = async (req, res, next) => {
 
   const companyId = req.params.companyId
   const date = req.params.date
@@ -276,11 +280,12 @@ export const getTotalStock = async (req, res, next) => {
 
       stock.sort((prevStock, nextStock) => prevStock.product.createdAt - nextStock.product.createdAt)
 
-      const groupedStock = groupFunction(stock)
+      const groupedStock = groupStockByProductFunction(stock)
 
       Object.values(groupedStock).forEach((stockProduct) => {
 
-        stockProduct.branches.sort((a, b) => a.branch.position - b.branch.position)
+        // stockProduct.branches.sort((a, b) => a.branch.position - b.branch.position)
+        stockProduct.branches.sort((a, b) => b.weight - a.weight)
       })
 
       res.status(200).json({ stock: groupedStock })
@@ -296,7 +301,7 @@ export const getTotalStock = async (req, res, next) => {
   }
 }
 
-const groupFunction = (stock) => {
+const groupStockByProductFunction = (stock) => {
 
   const result = {}
 
@@ -331,6 +336,104 @@ const groupFunction = (stock) => {
 
       result[stock.product._id].total += stock.weight
     }
+  })
+
+  return result
+}
+
+export const getTotalStockByBranch = async (req, res, next) => {
+
+  const companyId = req.params.companyId
+  const date = req.params.date
+
+  const actualLocaleDatePlusOne = new Date(date)
+  actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
+  const actualLocaleDayPlusOne = actualLocaleDatePlusOne.toISOString()
+
+  const bottomDate = new Date(date)
+  const topDate = new Date(actualLocaleDayPlusOne)
+
+  try {
+
+    const stock = await Stock.find({
+      $and: [
+        {
+          createdAt: {
+
+            $lt: topDate
+          }
+        },
+        {
+          createdAt: {
+
+            $gte: bottomDate
+          }
+        },
+        {
+          company: companyId
+        }
+      ]
+    }).populate({ path: 'branch', select: 'branch position' }).populate({ path: 'product', select: 'name createdAt' })
+
+    if (stock.length > 0) {
+
+      stock.sort((prevStock, nextStock) => prevStock.branch.position - nextStock.branch.position)
+
+      const groupedStock = groupStockByBranchFunction(stock)
+
+      Object.values(groupedStock).forEach((stockProduct) => {
+
+        // stockProduct.branches.sort((a, b) => a.branch.position - b.branch.position)
+        stockProduct.stockItems.sort((a, b) => a.product.createdAt - b.product.createdAt)
+      })
+
+      res.status(200).json({ stock: groupedStock })
+
+    } else {
+
+      next(errorHandler(404, 'Stock not found'))
+    }
+
+  } catch (error) {
+
+    next(error)
+  }
+}
+
+const groupStockByBranchFunction = (stock) => {
+
+  const result = {}
+
+  stock.forEach(stock => {
+
+
+    if (!result[stock.branch._id]) {
+
+      result[stock.branch._id] = {
+
+        branch: stock.branch,
+        total: 0.0,
+        stockItems: []
+      }
+    }
+
+
+    const index = result[stock.branch._id].stockItems.findIndex((stockItem) => stockItem.product._id == stock.product._id)
+
+    if (index != -1) {
+
+      result[stock.branch._id].stockItems[index].weight += stock.weight
+
+    } else {
+
+      result[stock.branch._id].stockItems.push({
+
+        product: stock.product,
+        weight: stock.weight
+      })
+
+    }
+    result[stock.branch._id].total += stock.amount
   })
 
   return result

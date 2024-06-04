@@ -187,8 +187,9 @@ export default function Perfil() {
       }
     }
 
-    if ((managerRole && managerRole._id == currentUser.role) || currentUser._id == employeeId) {
+    if ((managerRole && managerRole._id == currentUser.role) || (currentUser._id == employeeId)) {
 
+      setAccess(true)
       fetchEmployee()
       fetchEmployeeDayInformation()
       fetchEmployeeReports()

@@ -1,6 +1,7 @@
 import IncomeCollected from "../models/accounts/incomes/income.collected.model.js";
 import IncomeType from "../models/accounts/incomes/income.type.model.js";
 import { errorHandler } from "../utils/error.js";
+import { updateReportIncomes } from "../utils/updateReport.js";
 
 export const newIncome = async (req, res, next) => {
 
@@ -10,6 +11,8 @@ export const newIncome = async (req, res, next) => {
 
     const newIncome = await new IncomeCollected({amount: incomeAmount, company, branch, employee, type, createdAt})
     newIncome.save()
+
+    updateReportIncomes(branch, createdAt, incomeAmount)
 
     res.status(201).json({message: 'New income created successfully', income: newIncome})
 
@@ -171,10 +174,12 @@ export const deleteIncome = async (req, res, next) => {
 
   try {
 
+    const income = await IncomeCollected.findById(incomeId)
     const deleted = await IncomeCollected.findByIdAndDelete({_id: incomeId})
 
     if(deleted._id) {
 
+      updateReportIncomes(income.branch, income.createdAt, income.amount)
       res.status(200).json('Income deleted successfully')
 
     } else {
