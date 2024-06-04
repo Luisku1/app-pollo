@@ -4,14 +4,12 @@ export const updateReportIncomes = async (branch, reportDate, amount) => {
 
   const date = new Date(reportDate)
 
-  const actualLocaleDay = date.toISOString().slice(0, 10)
+  const actualLocaleDatePlusOne = new Date(date.toLocaleDateString('en-us'))
 
-  const actualLocaleDatePlusOne = new Date(date)
   actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
-  const actualLocaleDayPlusOne = actualLocaleDatePlusOne.toISOString().slice(0, 10)
 
-  const bottomDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
-  const topDate = new Date(actualLocaleDayPlusOne + 'T00:00:00.000-06:00')
+  const bottomDate = new Date(date.toLocaleDateString('en-us'))
+  const topDate = new Date(actualLocaleDatePlusOne)
 
   const branchReport = await BranchReport.findOne({
 
@@ -38,10 +36,10 @@ export const updateReportIncomes = async (branch, reportDate, amount) => {
 
     if (Object.getOwnPropertyNames(branchReport).length != 0) {
 
-      branchReport.incomes += amount
-      branchReport.balance += amount
+      branchReport.incomes += parseFloat(amount)
+      branchReport.balance += parseFloat(amount)
 
-      branchReport.save()
+      await branchReport.save()
     }
   }
 }
@@ -50,14 +48,12 @@ export const updateReportOutgoings = async (branch, reportDate, amount) => {
 
   const date = new Date(reportDate)
 
-  const actualLocaleDay = date.toISOString().slice(0, 10)
+  const actualLocaleDatePlusOne = new Date(date.toLocaleDateString('en-us'))
 
-  const actualLocaleDatePlusOne = new Date(date)
   actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
-  const actualLocaleDayPlusOne = actualLocaleDatePlusOne.toISOString().slice(0, 10)
 
-  const bottomDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
-  const topDate = new Date(actualLocaleDayPlusOne + 'T00:00:00.000-06:00')
+  const bottomDate = new Date(date.toLocaleDateString('en-us'))
+  const topDate = new Date(actualLocaleDatePlusOne)
 
   const branchReport = await BranchReport.findOne({
 
@@ -84,8 +80,8 @@ export const updateReportOutgoings = async (branch, reportDate, amount) => {
 
     if (Object.getOwnPropertyNames(branchReport).length != 0) {
 
-      branchReport.outgoings += amount
-      branchReport.balance += amount
+      branchReport.outgoings += parseFloat(amount)
+      branchReport.balance += parseFloat(amount)
 
       branchReport.save()
     }
@@ -96,14 +92,12 @@ export const updateReportInputs = async (branch, reportDate, amount) => {
 
   const date = new Date(reportDate)
 
-  const actualLocaleDay = date.toISOString().slice(0, 10)
+  const actualLocaleDatePlusOne = new Date(date.toLocaleDateString('en-us'))
 
-  const actualLocaleDatePlusOne = new Date(date)
   actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
-  const actualLocaleDayPlusOne = actualLocaleDatePlusOne.toISOString().slice(0, 10)
 
-  const bottomDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
-  const topDate = new Date(actualLocaleDayPlusOne + 'T00:00:00.000-06:00')
+  const bottomDate = new Date(date.toLocaleDateString('en-us'))
+  const topDate = new Date(actualLocaleDatePlusOne)
 
   const branchReport = await BranchReport.findOne({
 
@@ -130,8 +124,8 @@ export const updateReportInputs = async (branch, reportDate, amount) => {
 
     if (Object.getOwnPropertyNames(branchReport).length != 0) {
 
-      branchReport.inputs += amount
-      branchReport.balance -= amount
+      branchReport.inputs += parseFloat(amount)
+      branchReport.balance -= parseFloat(amount)
 
       branchReport.save()
     }
@@ -142,14 +136,12 @@ export const updateReportOutputs = async (branch, reportDate, amount) => {
 
   const date = new Date(reportDate)
 
-  const actualLocaleDay = date.toISOString().slice(0, 10)
+  const actualLocaleDatePlusOne = new Date(date.toLocaleDateString('en-us'))
 
-  const actualLocaleDatePlusOne = new Date(date)
   actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
-  const actualLocaleDayPlusOne = actualLocaleDatePlusOne.toISOString().slice(0, 10)
 
-  const bottomDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
-  const topDate = new Date(actualLocaleDayPlusOne + 'T00:00:00.000-06:00')
+  const bottomDate = new Date(date.toLocaleDateString('en-us'))
+  const topDate = new Date(actualLocaleDatePlusOne)
 
   const branchReport = await BranchReport.findOne({
 
@@ -175,8 +167,8 @@ export const updateReportOutputs = async (branch, reportDate, amount) => {
 
     if (Object.getOwnPropertyNames(branchReport).length != 0) {
 
-      branchReport.outputs += amount
-      branchReport.balance += amount
+      branchReport.outputs += parseFloat(amount)
+      branchReport.balance += parseFloat(amount)
 
       branchReport.save()
     }
@@ -187,14 +179,12 @@ export const updateReportProviderInputs = async (branch, reportDate, amount) => 
 
   const date = new Date(reportDate)
 
-  const actualLocaleDay = date.toISOString().slice(0, 10)
+  const actualLocaleDatePlusOne = new Date(date.toLocaleDateString('en-us'))
 
-  const actualLocaleDatePlusOne = new Date(date)
   actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
-  const actualLocaleDayPlusOne = actualLocaleDatePlusOne.toISOString().slice(0, 10)
 
-  const bottomDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
-  const topDate = new Date(actualLocaleDayPlusOne + 'T00:00:00.000-06:00')
+  const bottomDate = new Date(date.toLocaleDateString('en-us'))
+  const topDate = new Date(actualLocaleDatePlusOne)
 
   const branchReport = await BranchReport.findOne({
 
@@ -221,8 +211,8 @@ export const updateReportProviderInputs = async (branch, reportDate, amount) => 
 
     if (Object.getOwnPropertyNames(branchReport).length != 0) {
 
-      branchReport.inputs += amount
-      branchReport.balance -= amount
+      branchReport.inputs += parseFloat(amount)
+      branchReport.balance -= parseFloat(amount)
 
       branchReport.save()
     }
@@ -233,14 +223,12 @@ export const updateReportStock = async (branch, reportDate, amount) => {
 
   const date = new Date(reportDate)
 
-  const actualLocaleDay = date.toISOString().slice(0, 10)
+  const actualLocaleDatePlusOne = new Date(date.toLocaleDateString('en-us'))
 
-  const actualLocaleDatePlusOne = new Date(date)
   actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
-  const actualLocaleDayPlusOne = actualLocaleDatePlusOne.toISOString().slice(0, 10)
 
-  const bottomDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
-  const topDate = new Date(actualLocaleDayPlusOne + 'T00:00:00.000-06:00')
+  const bottomDate = new Date(date.toLocaleDateString('en-us'))
+  const topDate = new Date(actualLocaleDatePlusOne)
 
   const branchReport = await BranchReport.findOne({
 
@@ -267,8 +255,8 @@ export const updateReportStock = async (branch, reportDate, amount) => {
 
     if (Object.getOwnPropertyNames(branchReport).length != 0) {
 
-      branchReport.finalStock += amount
-      branchReport.balance += amount
+      branchReport.finalStock += parseFloat(amount)
+      branchReport.balance += parseFloat(amount)
 
       await branchReport.save()
     }
@@ -302,8 +290,8 @@ export const updateReportStock = async (branch, reportDate, amount) => {
 
     if (Object.getOwnPropertyNames(nextBranchReport).length != 0) {
 
-      nextBranchReport.initialStock += amount
-      nextBranchReport.balance -= amount
+      nextBranchReport.initialStock += parseFloat(amount)
+      nextBranchReport.balance -= parseFloat(amount)
 
       await nextBranchReport.save()
     }

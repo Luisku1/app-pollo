@@ -12,7 +12,7 @@ export const newIncome = async (req, res, next) => {
     const newIncome = await new IncomeCollected({amount: incomeAmount, company, branch, employee, type, createdAt})
     newIncome.save()
 
-    updateReportIncomes(branch, createdAt, incomeAmount)
+    await updateReportIncomes(branch, createdAt, incomeAmount)
 
     res.status(201).json({message: 'New income created successfully', income: newIncome})
 
@@ -179,7 +179,7 @@ export const deleteIncome = async (req, res, next) => {
 
     if(deleted._id) {
 
-      updateReportIncomes(income.branch, income.createdAt, income.amount)
+      updateReportIncomes(income.branch, income.createdAt, -(income.amount))
       res.status(200).json('Income deleted successfully')
 
     } else {

@@ -251,6 +251,10 @@ export default function ControlSupervisor() {
     })
   }
 
+  const setPreBalance = () => {
+
+  }
+
   const handleIncomesInputsChange = (e) => {
 
     setIncomeFormData({
@@ -1366,7 +1370,7 @@ export default function ControlSupervisor() {
 
         <form onSubmit={addIncome} className="grid grid-cols-3 items-center justify-between">
 
-          <select name="incomeBranch" id="incomeBranch" className='border p-3 rounded-lg text-xs overflow-y-scroll' onChange={(e) => { saveIncomeBranchName(e), incomesButtonControl() }}>
+          <select name="incomeBranch" id="incomeBranch" className='border p-3 rounded-lg text-xs overflow-y-scroll' onChange={(e) => { saveIncomeBranchName(e), incomesButtonControl(), setPreBalance() }}>
 
             <option value="none" disabled selected hidden >Sucursal</option>
 

@@ -169,7 +169,7 @@ export default function Sobrante() {
 
       <div className="bg-white p-3 mt-4 w-full">
 
-        <div className="grid grid-cols-2 border w-full h-10 mb-4">
+        <div className="grid grid-cols-2 border w-full h-10 mb-4 border-black rounded-lg">
           <button className={"h-full rounded-lg hover:shadow-xl " + (filterByProduct ? 'bg-slate-500 text-white' : ' bg-white')} onClick={() => {resetValues(), handleProductFilterButton()}}>Producto</button>
           <button className={"h-full rounded-lg hover:shadow-xl " + (filterByBranch ? 'bg-slate-500 text-white' : 'bg-white')} onClick={ () => {resetValues(), handleBranchFilterButton()}}>Sucursal</button>
         </div>
