@@ -31,7 +31,7 @@ export const newInput = async (req, res, next) => {
 
     await newInput.save()
 
-    updateReportInputs(branch, createdAt, amount)
+    // updateReportInputs(branch, createdAt, amount)
 
     res.status(200).json({ message: 'New input created', input: newInput })
 
@@ -384,7 +384,7 @@ export const deleteInput = async (req, res, next) => {
 
     if (deleted.acknowledged == 1) {
 
-      updateReportInputs(input.branch, input.createdAt, -(input.amount))
+      // updateReportInputs(input.branch, input.createdAt, -(input.amount))
       res.status(200).json({ message: 'Input deleted correctly' })
 
     } else {
@@ -423,7 +423,7 @@ export const newOutput = async (req, res, next) => {
 
     await newOutput.save()
 
-    updateReportOutputs(branch, createdAt, amount)
+    // updateReportOutputs(branch, createdAt, amount)
     res.status(200).json({ message: 'New output created', output: newOutput })
 
   } catch (error) {
@@ -612,7 +612,7 @@ export const createProviderInput = async (req, res, next) => {
 
     await newProviderInput.save()
 
-    updateReportInputs(branch, createdAt, amount)
+    // updateReportInputs(branch, createdAt, amount)
 
     res.status(200).json({ providerInput: newProviderInput })
 
@@ -633,7 +633,7 @@ export const deleteProviderInput = async (req, res, next) => {
 
     if (deleted.acknowledged == 1) {
 
-      updateReportInputs(providerInput.branch, providerInput.createdAt, -(providerInput.amount))
+      // updateReportInputs(providerInput.branch, providerInput.createdAt, -(providerInput.amount))
       res.status(200).json({ message: 'Provider input deleted correctly' })
 
     } else {

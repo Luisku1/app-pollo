@@ -13,7 +13,7 @@ export const newOutgoing = async (req, res, next) => {
     const outgoing = new Outgoing({ amount, concept, company, branch, employee, createdAt})
     await outgoing.save()
 
-    updateReportOutgoings(branch, createdAt, amount)
+    // updateReportOutgoings(branch, createdAt, amount)
 
     res.status(201).json({ message: 'New outgoing created successfully', outgoing: outgoing })
 
@@ -235,7 +235,7 @@ export const deleteOutgoing = async (req, res, next) => {
 
     if (!deleted.deletedCount == 0) {
 
-      updateReportOutgoings(outgoing.branch, outgoing.createdAt, -(outgoing.amount))
+      // updateReportOutgoings(outgoing.branch, outgoing.createdAt, -(outgoing.amount))
       res.status(200).json('Outgoing deleted successfully')
 
     } else {

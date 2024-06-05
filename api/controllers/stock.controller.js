@@ -13,7 +13,7 @@ export const createStock = async (req, res, next) => {
     const newStock = new Stock({ pieces, employee, weight, amount, branch, product, company, createdAt })
     await newStock.save()
 
-    updateReportStock(branch, createdAt, amount)
+    // updateReportStock(branch, createdAt, amount)
     res.status(201).json({ message: 'New stock created successfully', stock: newStock })
 
   } catch (error) {
@@ -228,7 +228,7 @@ export const deleteStock = async (req, res, next) => {
 
     if (!deleted.deletedCount == 0) {
 
-      updateReportStock(stock.branch, stock.createdAt, -(stock.amount))
+      // updateReportStock(stock.branch, stock.createdAt, -(stock.amount))
       res.status(200).json('Stock deleted successfully')
 
     } else {
