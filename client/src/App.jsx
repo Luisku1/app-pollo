@@ -24,13 +24,13 @@ import Sobrante from './pages/Sobrante'
 
 export default function App() {
   return (
-  <BrowserRouter>
+    <BrowserRouter>
       <Header />
       <Routes>
         <Route path="/inicio-sesion" element={<InicioSesion />} />
         <Route path="/registro" element={<RegistroDueño />} />
 
-        <Route element={<PrivateRoute/>}>
+        <Route element={<PrivateRoute />}>
 
           <Route path="/" element={<ListadoDeCuentas />} />
           <Route path="/perfil/:employeeId" element={<Perfil />} />
@@ -44,7 +44,7 @@ export default function App() {
           <Route path="/precios" element={<Precios />} />
           <Route path="/precios/:date" element={<Precios />} />
           <Route path="/registro-empresa" element={<RegistroEmpresa />} />
-          <Route path="/registro-empleado" element={<RegistroEmpleado/>}/>
+          <Route path="/registro-empleado" element={<RegistroEmpleado />} />
           <Route path="/registro-sucursal" element={<RegistroSucursal />} />
           <Route path="/supervision-diaria" element={<ControlSupervisor />} />
           <Route path="/supervision-diaria/:date" element={<ControlSupervisor />} />

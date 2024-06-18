@@ -212,7 +212,7 @@ export default function Reporte() {
 
       {branchReports && branchReports.length > 0 ?
 
-        <table className='border bg-white mt-4 w-full'>
+        <table className='border bg-white mt-4 max-w-full'>
 
           <thead className="border border-black">
 
