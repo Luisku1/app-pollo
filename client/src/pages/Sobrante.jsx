@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react"
 import { useSelector } from "react-redux"
 import { useParams, useNavigate } from "react-router-dom"
+import FechaDePagina from "../components/FechaDePagina"
+import { formatDate } from "../helpers/DatePickerFunctions"
 
 export default function Sobrante() {
 
@@ -15,26 +17,20 @@ export default function Sobrante() {
   const [filterByProduct, setFilterByProduct] = useState(true)
   const [filterByBranch, setFilterByBranch] = useState(false)
   let paramsDate = useParams().date
-  const navigate = useNavigate()
-
   let datePickerValue = (paramsDate ? new Date(paramsDate) : new Date())
-
-  const formatDate = (date) => {
-
-    const actualLocaleDate = date
-
-    return (actualLocaleDate.getFullYear() + '-' + (actualLocaleDate.getMonth() < 9 ? '0' + ((actualLocaleDate.getMonth()) + 1) : ((actualLocaleDate.getMonth()))) + '-' + ((actualLocaleDate.getDate() < 10 ? '0' : '') + actualLocaleDate.getDate()) + 'T06:00:00.000Z')
-
-  }
-
   let stringDatePickerValue = formatDate(datePickerValue)
+  const navigate = useNavigate()
 
   const changeDatePickerValue = (e) => {
 
-    datePickerValue = new Date(e.target.value)
-    stringDatePickerValue = formatDate(new Date(e.target.value + 'T06:00:00.000Z'))
-
+    stringDatePickerValue = (e.target.value + 'T06:00:00.000Z')
     navigate('/sobrante/' + stringDatePickerValue)
+
+  }
+
+  const changeDay = (date) => {
+
+    navigate('/sobrante/' + date)
 
   }
 
@@ -93,6 +89,9 @@ export default function Sobrante() {
   }
 
   useEffect(() => {
+
+    setStockByBranch([])
+    setStockByProduct([])
 
     const fetchStockByProduct = async () => {
 
@@ -159,9 +158,8 @@ export default function Sobrante() {
 
     <main className="p-3 max-w-lg mx-auto">
 
-      <div className="flex justify-center">
-        <input className="p-1" type="date" name="date" id="date" onChange={changeDatePickerValue} defaultValue={stringDatePickerValue.slice(0, 10)} />
-      </div>
+
+      <FechaDePagina changeDay={changeDay} stringDatePickerValue={stringDatePickerValue} changeDatePickerValue={changeDatePickerValue} ></FechaDePagina>
 
       <h1 className='text-3xl text-center font-semibold mt-7'>
         Sobrante
@@ -170,8 +168,8 @@ export default function Sobrante() {
       <div className="bg-white p-3 mt-4 w-full">
 
         <div className="grid grid-cols-2 border w-full h-10 mb-4 border-black rounded-lg">
-          <button className={"h-full rounded-lg hover:shadow-xl " + (filterByProduct ? 'bg-slate-500 text-white' : ' bg-white')} onClick={() => {resetValues(), handleProductFilterButton()}}>Producto</button>
-          <button className={"h-full rounded-lg hover:shadow-xl " + (filterByBranch ? 'bg-slate-500 text-white' : 'bg-white')} onClick={ () => {resetValues(), handleBranchFilterButton()}}>Sucursal</button>
+          <button className={"h-full rounded-lg hover:shadow-xl " + (filterByProduct ? 'bg-slate-500 text-white' : ' bg-white')} onClick={() => { resetValues(), handleProductFilterButton() }}>Producto</button>
+          <button className={"h-full rounded-lg hover:shadow-xl " + (filterByBranch ? 'bg-slate-500 text-white' : 'bg-white')} onClick={() => { resetValues(), handleBranchFilterButton() }}>Sucursal</button>
         </div>
 
         {stockByProduct && Object.values(stockByProduct) && filterByProduct && Object.values(stockByProduct).length > 0 && Object.values(stockByProduct).map((stock) => (
@@ -201,7 +199,7 @@ export default function Sobrante() {
 
             <button className="text-center p-2 shadow-lg w-full hover:bg-slate-100 active:bg-gray-300 border" onClick={() => { selectedBranch(stock.branch._id) }}>
               <p className="font-bold text-red-800">{stock.branch.branch}</p>
-              <p>{stock.total.toLocaleString('es-MX', {style: 'currency', currency: 'MXN'})}</p>
+              <p>{stock.total.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>
             </button>
 
             {stock.branch._id == selectedBranchId && Object.values(stock.stockItems).length > 0 && Object.values(stock.stockItems).map((stockItem) => (
