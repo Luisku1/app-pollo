@@ -6,6 +6,8 @@ import { FaTrash } from 'react-icons/fa';
 import { useParams, useNavigate } from 'react-router-dom';
 import { MdKeyboardArrowDown, MdKeyboardArrowRight } from 'react-icons/md';
 import Select from "react-tailwindcss-select";
+import FechaDePagina from '../components/FechaDePagina';
+import { formatDate } from '../helpers/DatePickerFunctions';
 
 export default function RegistroCuentaDiaria() {
 
@@ -51,6 +53,8 @@ export default function RegistroCuentaDiaria() {
   const navigate = useNavigate()
   const reportDate = (paramsDate ? new Date(paramsDate) : new Date()).toLocaleDateString('es-mx', { weekday: 'long', year: 'numeric', month: '2-digit', day: '2-digit' })
   let datePickerValue = (paramsDate ? new Date(paramsDate) : new Date())
+  let stringDatePickerValue = formatDate(datePickerValue)
+  let today = formatDate(datePickerValue) == formatDate(new Date()) ? true : false
 
   const handleEmployeeSelectChange = (employee) => {
 
@@ -70,28 +74,21 @@ export default function RegistroCuentaDiaria() {
 
   }
 
-  const formatDate = (date) => {
-
-    const actualLocaleDate = date
-
-    const formatedDate = (actualLocaleDate.getFullYear() + '-' + (actualLocaleDate.getMonth() < 9 ? '0' + ((actualLocaleDate.getMonth()) + 1) : ((actualLocaleDate.getMonth()))) + '-' + ((actualLocaleDate.getDate() < 10 ? '0' : '') + actualLocaleDate.getDate()) + 'T06:00:00.000Z')
-
-    return formatedDate
-
-  }
-
-
-  let stringDatePickerValue = formatDate(datePickerValue)
-  let today = formatDate(datePickerValue) == formatDate(new Date()) ? true : false
-
   const changeDatePickerValue = (e) => {
 
-    datePickerValue = new Date(e.target.value)
-    stringDatePickerValue = formatDate(new Date(e.target.value + 'T06:00:00.000Z'))
+    stringDatePickerValue = (e.target.value + 'T06:00:00.000Z')
 
     navigate('/formato/' + stringDatePickerValue + '/' + branchId)
 
   }
+
+  const changeDay = (date) => {
+
+    navigate('/formato/' + date + '/' + branchId)
+
+  }
+
+
 
   const SectionHeader = (props) => {
 
@@ -1127,6 +1124,7 @@ export default function RegistroCuentaDiaria() {
 
     }
 
+
     if (branchReport && branchId && stringDatePickerValue) {
 
       fetchInitialStock()
@@ -1140,9 +1138,7 @@ export default function RegistroCuentaDiaria() {
 
       {managerRole._id == currentUser.role ?
 
-        <div className="flex justify-center">
-          <input className="p-1" type="date" name="date" id="date" onChange={changeDatePickerValue} defaultValue={stringDatePickerValue.slice(0, 10)} />
-        </div>
+        <FechaDePagina changeDay={changeDay} stringDatePickerValue={stringDatePickerValue} changeDatePickerValue={changeDatePickerValue} ></FechaDePagina>
 
         : ''}
 

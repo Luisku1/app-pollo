@@ -98,7 +98,7 @@ export default function Header() {
 
   return (
 
-    <header className='bg-slate-200 shadow-md'>
+    <header className='bg-slate-200 shadow-md sticky top-0 z-10'>
       <div className='flex justify-between items-center mx-auto p-3'>
         <Link to='/'>
           <h1 className='font-bold text-sm sm:text-xl flex flex-wrap space-x-1 items-center'>

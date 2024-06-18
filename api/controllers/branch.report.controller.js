@@ -187,7 +187,7 @@ export const updateBranchReport = async (req, res, next) => {
           $set: { incomes: (reportData.incomes + incomes - branchReport.incomes), stock: (reportData.stock + finalStock - branchReport.finalStock), outgoings: (reportData.outgoings + outgoings - branchReport.outgoings) }
         })
 
-        if(updatedReportData.acknowledged) {
+        if (updatedReportData.acknowledged) {
 
           res.status(200).json('Branch report updated successfully')
 
@@ -197,7 +197,6 @@ export const updateBranchReport = async (req, res, next) => {
         }
       }
     }
-
 
   } catch (error) {
 
@@ -210,18 +209,39 @@ export const getBranchReport = async (req, res, next) => {
   const branchId = req.params.branchId
   const date = new Date(req.params.date)
 
-  const actualLocaleDay = date.toISOString().slice(0, 10)
+  try {
 
-  const actualLocaleDatePlusOne = new Date(date)
+    const originalBranchReport = await fetchBranchReport(branchId, date)
+
+    if (originalBranchReport) {
+
+      res.status(200).json({ originalBranchReport: originalBranchReport })
+
+    } else {
+
+      next(errorHandler(404, 'No branch report found'))
+    }
+
+  } catch (error) {
+
+    next(error)
+  }
+}
+
+export const fetchBranchReport = async (branchId, reportDate) => {
+
+  const date = new Date(reportDate)
+
+  const actualLocaleDatePlusOne = new Date(date.toLocaleDateString('en-us'))
+
   actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
-  const actualLocaleDayPlusOne = actualLocaleDatePlusOne.toISOString().slice(0, 10)
 
-  const bottomDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
-  const topDate = new Date(actualLocaleDayPlusOne + 'T00:00:00.000-06:00')
+  const bottomDate = (new Date(date.toLocaleDateString('en-us'))).toISOString()
+  const topDate = (new Date(actualLocaleDatePlusOne)).toISOString()
 
   try {
 
-    const originalBranchReport = await BranchReport.findOne({
+    const branchReport = await BranchReport.findOne({
       $and: [
         {
           createdAt: {
@@ -241,18 +261,17 @@ export const getBranchReport = async (req, res, next) => {
       ]
     })
 
-    if (originalBranchReport) {
+    if (branchReport != null && branchReport != undefined) {
 
-      res.status(200).json({ originalBranchReport: originalBranchReport })
+      if (Object.keys(branchReport).length != 0) {
 
-    } else {
-
-      next(errorHandler(404, 'No branch report found'))
+        return branchReport
+      }
     }
 
   } catch (error) {
 
-    next(error)
+    console.log(error)
   }
 }
 

@@ -1,80 +1,37 @@
+import { fetchBranchReport } from "../controllers/branch.report.controller.js"
+import { updateEmployeeDailyBalancesBalance } from "../controllers/employee.controller.js"
 import BranchReport from "../models/accounts/branch.report.model.js"
 
-export const updateReportIncomes = async (branch, reportDate, amount) => {
+export const updateReportIncomes = async (branchId, reportDate, amount) => {
 
-  const date = new Date(reportDate)
+  try {
 
-  const actualLocaleDatePlusOne = new Date(date.toLocaleDateString('en-us'))
+    const branchReport = await fetchBranchReport(branchId, reportDate)
 
-  actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
+    console.log(branchReport)
 
-  const bottomDate = new Date(date.toLocaleDateString('en-us'))
-  const topDate = new Date(actualLocaleDatePlusOne)
+    if (branchReport != null || branchReport != undefined) {
 
-  const branchReport = await BranchReport.findOne({
+      if (Object.getOwnPropertyNames(branchReport).length != 0) {
 
-    $and: [
-      {
-        branch: branch
-      },
-      {
-        createdAt: {
+        branchReport.incomes += parseFloat(amount)
+        branchReport.balance += parseFloat(amount)
 
-          $lt: topDate
-        }
-      },
-      {
-        createdAt: {
+        await branchReport.save()
 
-          $gte: bottomDate
-        }
+        await updateEmployeeDailyBalancesBalance(branchReport.employee, reportDate, branchReport.balance)
       }
-    ]
-  })
-
-  if (branchReport != null || branchReport != undefined) {
-
-    if (Object.getOwnPropertyNames(branchReport).length != 0) {
-
-      branchReport.incomes += parseFloat(amount)
-      branchReport.balance += parseFloat(amount)
-
-      await branchReport.save()
     }
+
+  } catch (error) {
+
+    console.log(error)
   }
 }
 
-export const updateReportOutgoings = async (branch, reportDate, amount) => {
+export const updateReportOutgoings = async (branchId, reportDate, amount) => {
 
-  const date = new Date(reportDate)
-
-  const actualLocaleDatePlusOne = new Date(date.toLocaleDateString('en-us'))
-
-  actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
-
-  const bottomDate = new Date(date.toLocaleDateString('en-us'))
-  const topDate = new Date(actualLocaleDatePlusOne)
-
-  const branchReport = await BranchReport.findOne({
-
-    $and: [
-      {
-        branch: branch
-      },
-      {
-        createdAt: {
-
-          $lt: topDate
-        }
-      },
-      {
-        createdAt: {
-
-          $gte: bottomDate
-        }
-      }
-    ]
-  })
+  const branchReport = await fetchBranchReport(branchId, reportDate)
 
   if (branchReport != null || branchReport != undefined) {
 
@@ -88,37 +45,9 @@ export const updateReportOutgoings = async (branch, reportDate, amount) => {
   }
 }
 
-export const updateReportInputs = async (branch, reportDate, amount) => {
+export const updateReportInputs = async (branchId, reportDate, amount) => {
 
-  const date = new Date(reportDate)
-
-  const actualLocaleDatePlusOne = new Date(date.toLocaleDateString('en-us'))
-
-  actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
-
-  const bottomDate = new Date(date.toLocaleDateString('en-us'))
-  const topDate = new Date(actualLocaleDatePlusOne)
-
-  const branchReport = await BranchReport.findOne({
-
-    $and: [
-      {
-        branch: branch
-      },
-      {
-        createdAt: {
-
-          $lt: topDate
-        }
-      },
-      {
-        createdAt: {
-
-          $gte: bottomDate
-        }
-      }
-    ]
-  })
+  const branchReport = await fetchBranchReport(branchId, reportDate)
 
   if (branchReport != null || branchReport != undefined) {
 
@@ -132,37 +61,10 @@ export const updateReportInputs = async (branch, reportDate, amount) => {
   }
 }
 
-export const updateReportOutputs = async (branch, reportDate, amount) => {
+export const updateReportOutputs = async (branchId, reportDate, amount) => {
 
-  const date = new Date(reportDate)
+  const branchReport = await fetchBranchReport(branchId, reportDate)
 
-  const actualLocaleDatePlusOne = new Date(date.toLocaleDateString('en-us'))
-
-  actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
-
-  const bottomDate = new Date(date.toLocaleDateString('en-us'))
-  const topDate = new Date(actualLocaleDatePlusOne)
-
-  const branchReport = await BranchReport.findOne({
-
-    $and: [
-      {
-        branch: branch
-      },
-      {
-        createdAt: {
-
-          $lt: topDate
-        }
-      },
-      {
-        createdAt: {
-
-          $gte: bottomDate
-        }
-      }
-    ]
-  })
   if (branchReport != null || branchReport != undefined) {
 
     if (Object.getOwnPropertyNames(branchReport).length != 0) {
@@ -175,37 +77,9 @@ export const updateReportOutputs = async (branch, reportDate, amount) => {
   }
 }
 
-export const updateReportProviderInputs = async (branch, reportDate, amount) => {
+export const updateReportProviderInputs = async (branchId, reportDate, amount) => {
 
-  const date = new Date(reportDate)
-
-  const actualLocaleDatePlusOne = new Date(date.toLocaleDateString('en-us'))
-
-  actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
-
-  const bottomDate = new Date(date.toLocaleDateString('en-us'))
-  const topDate = new Date(actualLocaleDatePlusOne)
-
-  const branchReport = await BranchReport.findOne({
-
-    $and: [
-      {
-        branch: branch
-      },
-      {
-        createdAt: {
-
-          $lt: topDate
-        }
-      },
-      {
-        createdAt: {
-
-          $gte: bottomDate
-        }
-      }
-    ]
-  })
+  const branchReport = await fetchBranchReport(branchId, reportDate)
 
   if (branchReport != null || branchReport != undefined) {
 
@@ -219,37 +93,9 @@ export const updateReportProviderInputs = async (branch, reportDate, amount) => 
   }
 }
 
-export const updateReportStock = async (branch, reportDate, amount) => {
+export const updateReportStock = async (branchId, reportDate, amount) => {
 
-  const date = new Date(reportDate)
-
-  const actualLocaleDatePlusOne = new Date(date.toLocaleDateString('en-us'))
-
-  actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
-
-  const bottomDate = new Date(date.toLocaleDateString('en-us'))
-  const topDate = new Date(actualLocaleDatePlusOne)
-
-  const branchReport = await BranchReport.findOne({
-
-    $and: [
-      {
-        branch: branch
-      },
-      {
-        createdAt: {
-
-          $lt: topDate
-        }
-      },
-      {
-        createdAt: {
-
-          $gte: bottomDate
-        }
-      }
-    ]
-  })
+  const branchReport = await fetchBranchReport(branchId, reportDate)
 
   if (branchReport != null || branchReport != undefined) {
 
@@ -262,29 +108,10 @@ export const updateReportStock = async (branch, reportDate, amount) => {
     }
   }
 
-  bottomDate.setDate(bottomDate.getDate() + 1)
-  topDate.setDate(topDate.getDate() + 1)
+  const nextReportDate = new Date(reportDate)
+  nextReportDate.setDate(nextReportDate.getDate() + 1)
 
-  const nextBranchReport = await BranchReport.findOne({
-
-    $and: [
-      {
-        branch: branch
-      },
-      {
-        createdAt: {
-
-          $lt: topDate
-        }
-      },
-      {
-        createdAt: {
-
-          $gte: bottomDate
-        }
-      }
-    ]
-  })
+  const nextBranchReport = await fetchBranchReport(branchId, nextReportDate)
 
   if (nextBranchReport != null || nextBranchReport != undefined) {
 

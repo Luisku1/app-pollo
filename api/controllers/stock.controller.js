@@ -41,7 +41,7 @@ export const getInitialStock = async (req, res, next) => {
 
   if (reportExists == 1) {
 
-    pricesDate = req.params.reportDate
+    pricesDate = new Date(req.params.reportDate)
 
   } else {
 
@@ -325,12 +325,14 @@ const groupStockByProductFunction = (stock) => {
 
       result[stock.product._id].total = stock.weight + result[stock.product._id].total
       result[stock.product._id].branches[index].weight += stock.weight
+      result[stock.product._id].branches[index].pieces += stock.pieces
 
     } else {
 
       result[stock.product._id].branches.push({
 
         branch: stock.branch,
+        pieces: stock.pieces,
         weight: stock.weight
       })
 
@@ -423,12 +425,14 @@ const groupStockByBranchFunction = (stock) => {
     if (index != -1) {
 
       result[stock.branch._id].stockItems[index].weight += stock.weight
+      result[stock.branch._id].stockItems[index].pieces += stock.pieces
 
     } else {
 
       result[stock.branch._id].stockItems.push({
 
         product: stock.product,
+        pieces: stock.pieces,
         weight: stock.weight
       })
 

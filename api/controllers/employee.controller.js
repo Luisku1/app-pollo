@@ -31,7 +31,7 @@ export const getEmployee = async (req, res, next) => {
 
 		if (employee) {
 
-			res.status(200).json({employee: employee})
+			res.status(200).json({ employee: employee })
 
 		} else {
 
@@ -61,11 +61,11 @@ export const getEmployeeReports = async (req, res, next) => {
 					assistant: employeeId
 				}
 			]
-		}).sort({createdAt: -1}).limit(employeeWorkedDays).populate({path: 'branch', select: 'branch'})
+		}).sort({ createdAt: -1 }).limit(employeeWorkedDays).populate({ path: 'branch', select: 'branch' })
 
-		if(employeeReports.length > 0) {
+		if (employeeReports.length > 0) {
 
-			res.status(200).json({employeeReports: employeeReports})
+			res.status(200).json({ employeeReports: employeeReports })
 
 		} else {
 
@@ -86,13 +86,13 @@ const getEmployeeWorkedDays = async (req, res, employeeId, next) => {
 
 		const employee = await Employee.findById(employeeId).select('payDay')
 
-		if(employee.payDay - day > 0) {
+		if (employee.payDay - day > 0) {
 
 			return 8 - (employee.payDay - day)
 
 		} else {
 
-			if(employee.payDay - day < 0) {
+			if (employee.payDay - day < 0) {
 
 				return (Math.abs(employee.payDay - day) + 1)
 
@@ -112,15 +112,15 @@ export const getEmployeeDayInfo = async (req, res, next) => {
 
 	const employeeId = req.params.employeeId
 
-  const actualLocaleDate = new Date(new Date().getTime() - 6 * 60 * 60000)
-  const actualLocaleDay = actualLocaleDate.toISOString().slice(0, 10)
+	const actualLocaleDate = new Date(new Date().getTime() - 6 * 60 * 60000)
+	const actualLocaleDay = actualLocaleDate.toISOString().slice(0, 10)
 
-  const bottomDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
+	const bottomDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
 
 	try {
 
 		const employeeDayInfo = await EmployeeDailyBalance.findOne({
-			$and:[
+			$and: [
 				{
 					createdAt: {
 
@@ -131,11 +131,11 @@ export const getEmployeeDayInfo = async (req, res, next) => {
 					employee: employeeId
 				}
 			]
-		}).populate({path: 'employee', select: 'name lastName'})
+		}).populate({ path: 'employee', select: 'name lastName' })
 
-		if(employeeDayInfo) {
+		if (employeeDayInfo) {
 
-			res.status(200).json({employeeDayInfo: employeeDayInfo})
+			res.status(200).json({ employeeDayInfo: employeeDayInfo })
 		}
 
 	} catch (error) {
@@ -148,15 +148,15 @@ export const getEmployeesDailyBalances = async (req, res, next) => {
 	const date = new Date(req.params.date)
 	const companyId = req.params.companyId
 
-  const actualLocaleDate = new Date(new Date(date).getTime() - 6 * 60 * 60000)
-  const actualLocaleDay = actualLocaleDate.toISOString().slice(0, 10)
+	const actualLocaleDate = new Date(new Date(date).getTime() - 6 * 60 * 60000)
+	const actualLocaleDay = actualLocaleDate.toISOString().slice(0, 10)
 
-  const actualLocaleDatePlusOne = new Date(actualLocaleDay)
-  actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
-  const actualLocalDayPlusOne = actualLocaleDatePlusOne.toISOString().slice(0, 10)
+	const actualLocaleDatePlusOne = new Date(actualLocaleDay)
+	actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
+	const actualLocalDayPlusOne = actualLocaleDatePlusOne.toISOString().slice(0, 10)
 
-  const bottomDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
-  const topDate = new Date(actualLocalDayPlusOne + 'T00:00:00.000-06:00')
+	const bottomDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
+	const topDate = new Date(actualLocalDayPlusOne + 'T00:00:00.000-06:00')
 
 	try {
 
@@ -164,16 +164,16 @@ export const getEmployeesDailyBalances = async (req, res, next) => {
 
 			$and: [
 				{
-          createdAt: { $gte: bottomDate }
-        },
-        {
-          createdAt: { $lt: topDate }
-        },
-        {
-          company: companyId
-        }
+					createdAt: { $gte: bottomDate }
+				},
+				{
+					createdAt: { $lt: topDate }
+				},
+				{
+					company: companyId
+				}
 			]
-		}).populate({path: 'employee', select: 'name lastName'})
+		}).populate({ path: 'employee', select: 'name lastName' })
 
 		if (employeesDailyBalances.length > 0) {
 
@@ -203,15 +203,15 @@ export const getEmployeesDailyBalances = async (req, res, next) => {
 					createdAt: bottomDate
 				}
 
-				bulkOps.push({"insertOne": {'document': document}})
+				bulkOps.push({ "insertOne": { 'document': document } })
 			})
 
 			EmployeeDailyBalance.bulkWrite(bulkOps)
-			.then(result => {
+				.then(result => {
 
-				employeesDailyBalances = Employee.find({_id: {$in: result.insertedIds}})
-				res.status(200).json({employeesDailyBalances: result})
-			})
+					employeesDailyBalances = Employee.find({ _id: { $in: result.insertedIds } })
+					res.status(200).json({ employeesDailyBalances: result })
+				})
 		}
 
 	} catch (error) {
@@ -245,9 +245,9 @@ export const getEmployeePayroll = async (req, res, next) => {
 					foreignField: 'employee',
 					as: 'dailyBalances',
 					pipeline: [
-						{$match: {createdAt: {$lt: date}}},
-						{$sort: {createdAt: -1}},
-						{$limit: 7}
+						{ $match: { createdAt: { $lt: date } } },
+						{ $sort: { createdAt: -1 } },
+						{ $limit: 7 }
 					]
 				}
 			},
@@ -264,9 +264,14 @@ export const getEmployeePayroll = async (req, res, next) => {
 			}
 		])
 
-		if(employeesPayroll.length > 0) {
+		if (employeesPayroll.length > 0) {
 
-			res.status(200).json({employeesPayroll: employeesPayroll})
+			employeesPayroll.forEach(payroll => {
+
+				payroll.dailyBalances.sort((prev, next) => prev.createdAt - next.createdAt)
+			})
+
+			res.status(200).json({ employeesPayroll: employeesPayroll })
 
 		} else {
 
@@ -286,9 +291,9 @@ export const updateEmployeeDailyBalance = async (req, res, next) => {
 
 	try {
 
-		const updated = await EmployeeDailyBalance.updateOne({_id: balanceId}, body)
+		const updated = await EmployeeDailyBalance.updateOne({ _id: balanceId }, body)
 
-		if(updated.acknowledged) {
+		if (updated.acknowledged) {
 
 			res.status(200).json('Balance updated')
 
@@ -300,6 +305,61 @@ export const updateEmployeeDailyBalance = async (req, res, next) => {
 	} catch (error) {
 
 		next(error)
+	}
+}
+
+
+export const updateEmployeeDailyBalancesBalance = async (employeeId, date, balance) => {
+
+	try {
+
+		await updateDailyBalancesBalance(employeeId, date, balance)
+
+	} catch (error) {
+
+		console.log(error)
+	}
+}
+
+export const updateDailyBalancesBalance = async (employeeId, isoDate, balance) => {
+
+  const date = new Date(isoDate)
+
+  const actualLocaleDatePlusOne = new Date(date.toLocaleDateString('en-us'))
+
+  actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
+
+  const bottomDate = (new Date(date.toLocaleDateString('en-us'))).toISOString()
+  const topDate = (new Date(actualLocaleDatePlusOne)).toISOString()
+
+	try {
+
+		const updatedDailyBalance = await EmployeeDailyBalance.updateOne({
+			$and: [
+
+				{
+					createdAt: {
+
+						$gte: bottomDate
+					}
+				},
+				{
+					createdAt: {
+
+						$lt: topDate
+					}
+				},
+				{
+					employee: employeeId
+				}
+			]
+		}, {accountBalance: balance})
+
+		return updatedDailyBalance
+
+	} catch (error) {
+
+		console.log(error)
 	}
 }
 

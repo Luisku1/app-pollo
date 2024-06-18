@@ -7,6 +7,8 @@ import { Link } from "react-router-dom"
 import { MdCancel, MdKeyboardArrowDown, MdKeyboardArrowRight } from 'react-icons/md';
 import { useParams, useNavigate } from 'react-router-dom';
 import Select from "react-tailwindcss-select";
+import { formatDate } from '../helpers/DatePickerFunctions';
+import FechaDePagina from '../components/FechaDePagina';
 
 export default function ControlSupervisor() {
 
@@ -54,25 +56,20 @@ export default function ControlSupervisor() {
   const [selectedEmployee, setSelectedEmployee] = useState(null)
   const navigate = useNavigate()
   let datePickerValue = (paramsDate ? new Date(paramsDate) : new Date())
-
-  const formatDate = (date) => {
-
-    const actualLocaleDate = date
-
-    return (actualLocaleDate.getFullYear() + '-' + (actualLocaleDate.getMonth() < 9 ? '0' + ((actualLocaleDate.getMonth()) + 1) : ((actualLocaleDate.getMonth()))) + '-' + ((actualLocaleDate.getDate() < 10 ? '0' : '') + actualLocaleDate.getDate()) + 'T06:00:00.000Z')
-
-  }
-
-
   let stringDatePickerValue = formatDate(datePickerValue)
   let today = formatDate(datePickerValue) == formatDate(new Date()) ? true : false
 
   const changeDatePickerValue = (e) => {
 
-    datePickerValue = new Date(e.target.value)
-    stringDatePickerValue = formatDate(new Date(e.target.value + 'T06:00:00.000Z'))
+    stringDatePickerValue = (e.target.value + 'T06:00:00.000Z')
 
     navigate('/supervision-diaria/' + stringDatePickerValue)
+
+  }
+
+  const changeDay = (date) => {
+
+    navigate('/supervision-diaria/' + date)
 
   }
 
@@ -1278,15 +1275,52 @@ export default function ControlSupervisor() {
 
       {managerRole._id == currentUser.role ?
 
-        <div className="flex justify-center">
-          <input className="p-1" type="date" name="date" id="date" onChange={changeDatePickerValue} defaultValue={stringDatePickerValue.slice(0, 10)} />
-        </div>
+        <FechaDePagina changeDay={changeDay} stringDatePickerValue={stringDatePickerValue} changeDatePickerValue={changeDatePickerValue} ></FechaDePagina>
 
         : ''}
 
       <h1 className='text-3xl text-center font-semibold mt-7'>
         Supervisión
       </h1>
+
+      <div className='border bg-white p-3 mt-4'>
+
+        <SectionHeader label={'Efectivos'} />
+
+        <form onSubmit={addIncome} className="grid grid-cols-3 items-center justify-between">
+
+          <select name="incomeBranch" id="incomeBranch" className='border p-3 rounded-lg text-xs overflow-y-scroll' onChange={(e) => { saveIncomeBranchName(e), incomesButtonControl(), setPreBalance() }}>
+
+            <option value="none" disabled selected hidden >Sucursal</option>
+
+            {branches && branches.length == 0 ? <option> No hay sucursales registradas </option> : ''}
+            {branches && branches.length > 0 && branches.map((branch) => (
+
+              <option className='overflow-y-scroll' key={branch._id} value={branch._id}>{branch.branch}</option>
+
+            ))}
+
+          </select>
+
+          <select name="incomeType" id="incomeType" onChange={(e) => { incomesButtonControl(), saveIncomeType(e) }} className='border p-3 rounded-lg text-xs'>
+            <option value="none" selected hidden >Tipo</option>
+
+            {incomeTypes && incomeTypes.length != 0 && incomeTypes.map((incomeType) => (
+
+              <option key={incomeType._id} value={incomeType._id}>{incomeType.name}</option>
+
+            ))}
+
+          </select>
+
+          <input type="number" name="incomeAmount" id="incomeAmount" placeholder='$0.00' step={0.10} className='border p-3 rounded-lg' required onInput={incomesButtonControl} onChange={handleIncomesInputsChange} />
+
+          <button type='submit' id='incomeButton' disabled className='bg-slate-500 text-white p-3 rounded-lg col-span-4 mt-8'>Agregar</button>
+
+        </form>
+
+
+      </div>
 
       <div className='border bg-white p-3 mt-4'>
 
@@ -1364,44 +1398,7 @@ export default function ControlSupervisor() {
         </form>
       </div>
 
-      <div className='border bg-white p-3 mt-4'>
 
-        <SectionHeader label={'Efectivos'} />
-
-        <form onSubmit={addIncome} className="grid grid-cols-3 items-center justify-between">
-
-          <select name="incomeBranch" id="incomeBranch" className='border p-3 rounded-lg text-xs overflow-y-scroll' onChange={(e) => { saveIncomeBranchName(e), incomesButtonControl(), setPreBalance() }}>
-
-            <option value="none" disabled selected hidden >Sucursal</option>
-
-            {branches && branches.length == 0 ? <option> No hay sucursales registradas </option> : ''}
-            {branches && branches.length > 0 && branches.map((branch) => (
-
-              <option className='overflow-y-scroll' key={branch._id} value={branch._id}>{branch.branch}</option>
-
-            ))}
-
-          </select>
-
-          <select name="incomeType" id="incomeType" onChange={(e) => { incomesButtonControl(), saveIncomeType(e) }} className='border p-3 rounded-lg text-xs'>
-            <option value="none" selected hidden >Tipo</option>
-
-            {incomeTypes && incomeTypes.length != 0 && incomeTypes.map((incomeType) => (
-
-              <option key={incomeType._id} value={incomeType._id}>{incomeType.name}</option>
-
-            ))}
-
-          </select>
-
-          <input type="number" name="incomeAmount" id="incomeAmount" placeholder='$0.00' step={0.10} className='border p-3 rounded-lg' required onInput={incomesButtonControl} onChange={handleIncomesInputsChange} />
-
-          <button type='submit' id='incomeButton' disabled className='bg-slate-500 text-white p-3 rounded-lg col-span-4 mt-8'>Agregar</button>
-
-        </form>
-
-
-      </div>
 
 
       <div className='border p-3 mt-4 bg-white'>

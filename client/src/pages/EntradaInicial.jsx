@@ -5,6 +5,7 @@ import SectionHeader from "../components/SectionHeader";
 import { fetchBranches } from "../helpers/FetchFunctions";
 import { MdKeyboardArrowDown, MdKeyboardArrowRight } from "react-icons/md";
 import { FaTrash } from "react-icons/fa";
+import FechaDePagina from "../components/FechaDePagina";
 
 export default function EntradaInicial() {
 
@@ -38,10 +39,13 @@ export default function EntradaInicial() {
 
   const changeDatePickerValue = (e) => {
 
-    datePickerValue = new Date(e.target.value)
-    stringDatePickerValue = formatDate(new Date(e.target.value + 'T06:00:00.000Z'))
-
+    stringDatePickerValue = (e.target.value + 'T06:00:00.000Z')
     navigate('/entrada-inicial/' + stringDatePickerValue + '/' + productId + '/' + productName)
+  }
+
+  const changeDay = (date) => {
+
+    navigate('/entrada-inicial/' + date + '/' + productId + '/' + productName)
 
   }
 
@@ -299,9 +303,7 @@ export default function EntradaInicial() {
 
       {managerRole._id == currentUser.role ?
 
-        <div className="flex justify-center">
-          <input className="p-1" type="date" name="date" id="date" onChange={changeDatePickerValue} defaultValue={stringDatePickerValue.slice(0, 10)} />
-        </div>
+        <FechaDePagina changeDay={changeDay} stringDatePickerValue={stringDatePickerValue} changeDatePickerValue={changeDatePickerValue} ></FechaDePagina>
 
         : ''}
 

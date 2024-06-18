@@ -4,6 +4,7 @@ import { errorHandler } from '../utils/error.js'
 import { getProductPrice } from './price.controller.js'
 import ProviderInput from '../models/providers/provider.input.model.js'
 import { updateReportInputs, updateReportOutputs } from '../utils/updateReport.js'
+import { fetchBranchReport } from './branch.report.controller.js'
 
 export const newInput = async (req, res, next) => {
 
@@ -23,7 +24,20 @@ export const newInput = async (req, res, next) => {
 
     } else {
 
-      price = (await getProductPrice(product, branch)).price
+      const branchReport = await fetchBranchReport(branch, createdAt)
+
+      if (branchReport != null || branchReport != undefined) {
+
+        if (Object.getOwnPropertyNames(branchReport).length != 0) {
+
+          price = (await getProductPrice(product, branch, branchReport.createdAt)).price
+
+        } else {
+
+          price = (await getProductPrice(product, branch)).price
+
+        }
+      }
       amount = price * inputWeight
     }
 
@@ -416,12 +430,28 @@ export const newOutput = async (req, res, next) => {
 
     } else {
 
-      price = (await getProductPrice(product, branch)).price
+      const branchReport = await fetchBranchReport(branch, createdAt)
+
+      if (branchReport != null || branchReport != undefined) {
+
+        if (Object.getOwnPropertyNames(branchReport).length != 0) {
+
+          price = (await getProductPrice(product, branch, branchReport.createdAt)).price
+
+        } else {
+
+          price = (await getProductPrice(product, branch)).price
+
+        }
+      }
+
       amount = price * outputWeight
     }
     const newOutput = new Output({ weight: outputWeight, comment: outputComment, pieces, company, product, employee, branch, amount, price: price, createdAt: createdAt, specialPrice })
 
     await newOutput.save()
+
+
 
     // updateReportOutputs(branch, createdAt, amount)
     res.status(200).json({ message: 'New output created', output: newOutput })
@@ -538,10 +568,6 @@ export const getOutputs = async (req, res, next) => {
 
     next(error)
   }
-}
-
-export const initializeProviderInput = async (req, res, next) => {
-
 }
 
 export const getProviderProductInputs = async (req, res, next) => {

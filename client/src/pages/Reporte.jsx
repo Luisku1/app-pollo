@@ -2,6 +2,8 @@ import { useEffect, useState } from "react"
 import { FaCheck } from "react-icons/fa"
 import { useSelector } from "react-redux"
 import { useParams, useNavigate, Link } from "react-router-dom"
+import FechaDePagina from "../components/FechaDePagina"
+import { formatDate } from "../helpers/DatePickerFunctions"
 
 export default function Reporte() {
 
@@ -20,24 +22,18 @@ export default function Reporte() {
   const [balanceTotal, setBalanceTotal] = useState(0.0)
   const navigate = useNavigate()
   let datePickerValue = (paramsDate ? new Date(paramsDate) : new Date())
-
-  const formatDate = (date) => {
-
-    const actualLocaleDate = date
-
-    return (actualLocaleDate.getFullYear() + '-' + (actualLocaleDate.getMonth() < 9 ? '0' + ((actualLocaleDate.getMonth()) + 1) : ((actualLocaleDate.getMonth()))) + '-' + ((actualLocaleDate.getDate() < 10 ? '0' : '') + actualLocaleDate.getDate()) + 'T06:00:00.000Z')
-
-  }
-
-
   let stringDatePickerValue = formatDate(datePickerValue)
 
   const changeDatePickerValue = (e) => {
 
-    datePickerValue = new Date(e.target.value)
-    stringDatePickerValue = formatDate(new Date(e.target.value + 'T06:00:00.000Z'))
-
+    stringDatePickerValue = (e.target.value + 'T06:00:00.000Z')
     navigate('/reporte/' + stringDatePickerValue)
+
+  }
+
+  const changeDay = (date) => {
+
+    navigate('/reporte/' + date)
 
   }
 
@@ -208,9 +204,7 @@ export default function Reporte() {
 
     <main className="p-3 max-w-lg mx-auto">
 
-      <div className="flex justify-center">
-        <input className="p-1" type="date" name="date" id="date" onChange={changeDatePickerValue} defaultValue={stringDatePickerValue.slice(0, 10)} />
-      </div>
+      <FechaDePagina changeDay={changeDay} stringDatePickerValue={stringDatePickerValue} changeDatePickerValue={changeDatePickerValue} ></FechaDePagina>
 
       <h1 className='text-3xl text-center font-semibold mt-7'>
         Reporte

@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react"
 import { useSelector } from 'react-redux'
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import FechaDePagina from "../components/FechaDePagina";
+import { formatDate } from "../helpers/DatePickerFunctions";
+
 
 export default function Nomina() {
 
@@ -9,29 +12,23 @@ export default function Nomina() {
   const [employeesPayroll, setEmployeesPayroll] = useState([])
   const [error, setError] = useState(null)
   const [managerRole, setManagerRole] = useState({})
-  const navigate = useNavigate()
   let datePickerValue = (paramsDate ? new Date(paramsDate) : new Date())
-
-  const formatDate = (date) => {
-
-    const actualLocaleDate = date
-
-    return (actualLocaleDate.getFullYear() + '-' + (actualLocaleDate.getMonth() < 9 ? '0' + ((actualLocaleDate.getMonth()) + 1) : ((actualLocaleDate.getMonth()))) + '-' + ((actualLocaleDate.getDate() < 10 ? '0' : '') + actualLocaleDate.getDate()) + 'T06:00:00.000Z')
-
-  }
-
-
   let stringDatePickerValue = formatDate(datePickerValue)
+  const navigate = useNavigate()
 
   const changeDatePickerValue = (e) => {
 
-    datePickerValue = new Date(e.target.value)
-    stringDatePickerValue = formatDate(new Date(e.target.value + 'T06:00:00.000Z'))
+    stringDatePickerValue = (e.target.value + 'T06:00:00.000Z')
 
     navigate('/nomina/' + stringDatePickerValue)
 
   }
 
+  const changeDay = (date) => {
+
+    navigate('/nomina/' + date)
+
+  }
 
   useEffect(() => {
 
@@ -137,9 +134,7 @@ export default function Nomina() {
 
       {managerRole._id == currentUser.role ?
 
-        <div className="flex justify-center">
-          <input className="p-1" type="date" name="date" id="date" onChange={changeDatePickerValue} defaultValue={stringDatePickerValue.slice(0, 10)} />
-        </div>
+        <FechaDePagina changeDay={changeDay} stringDatePickerValue={stringDatePickerValue} changeDatePickerValue={changeDatePickerValue} ></FechaDePagina>
 
         : ''}
 

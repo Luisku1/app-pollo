@@ -185,8 +185,9 @@ export default function Sobrante() {
 
             {stock.product._id == selectedProductId && Object.values(stock.branches).length > 0 && Object.values(stock.branches).map((branchStock) => (
 
-              <div key={branchStock.branch._id} className={(productStockIsOpen ? '' : 'hidden ') + 'border-l p-3 ml-2 grid grid-cols-2'}>
+              <div key={branchStock.branch._id} className={(productStockIsOpen ? '' : 'hidden ') + 'border-l p-3 ml-2 grid grid-cols-3'}>
                 <p className="font-bold">{branchStock.branch.branch}</p>
+                <p className="text-center">{branchStock.pieces}</p>
                 <p>{branchStock.weight.toFixed(2) + ' Kg'}</p>
               </div>
             ))}
@@ -205,9 +206,10 @@ export default function Sobrante() {
 
             {stock.branch._id == selectedBranchId && Object.values(stock.stockItems).length > 0 && Object.values(stock.stockItems).map((stockItem) => (
 
-              <div key={stockItem.product._id} className={(branchStockIsOpen ? '' : 'hidden ') + 'border-l p-3 ml-2 grid grid-cols-2'}>
+              <div key={stockItem.product._id} className={(branchStockIsOpen ? '' : 'hidden ') + 'border-l p-3 ml-2 grid grid-cols-3'}>
                 <p className="font-bold">{stockItem.product.name}</p>
-                <p>{stockItem.weight.toFixed(2) + ' Kg'}</p>
+                <p className="text-center">{stockItem.pieces}</p>
+                <p className="text-center">{stockItem.weight.toFixed(2) + ' Kg'}</p>
               </div>
             ))}
 
