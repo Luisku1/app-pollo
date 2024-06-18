@@ -218,19 +218,19 @@ export default function Reporte() {
 
             <tr>
               {/* <th></th> */}
-              <th>Sucursal</th>
-              <th>
+              <th className="text-sm">Sucursal</th>
+              <th className="text-sm">
                 <Link className="flex justify-center" to={'/gastos/' + stringDatePickerValue}>
                   Gastos
                 </Link>
               </th>
-              <th>
+              <th className="text-sm">
                 <Link className="flex justify-center" to={'/sobrante/' + stringDatePickerValue}>
                   Sobrante
                 </Link>
               </th>
-              <th>Efectivo</th>
-              <th>Balance</th>
+              <th className="text-sm">Efectivo</th>
+              <th className="text-sm">Balance</th>
             </tr>
           </thead>
 
@@ -243,7 +243,7 @@ export default function Reporte() {
                 {/* <td className="text-xs">{branchReport.branch.position}</td> */}
                 <td className="group">
                   <Link className='' to={'/formato/' + branchReport.createdAt + '/' + branchReport.branch._id}>
-                    <p className="">{branchReport.branch.branch}</p>
+                    <p className=" text-sm">{branchReport.branch.branch}</p>
                     <div className="hidden group-hover:block group-hover:fixed group-hover:overflow-hidden group-hover:mt-2 ml-24 bg-slate-600 text-white shadow-2xl rounded-md p-2">
                       <p>{branchReport.employee != null ? branchReport.employee.name + ' ' + branchReport.employee.lastName : 'Empleado eliminado'}</p>
                       {branchReport.assistant != null ?
@@ -253,16 +253,16 @@ export default function Reporte() {
                     </div>
                   </Link>
                 </td>
-                <td className="text-center">{branchReport.outgoings.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</td>
-                <td className="text-center">{branchReport.finalStock.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</td>
-                <td className="text-center">{branchReport.incomes.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</td>
-                <td className={branchReport.balance < 0 ? 'text-red-500' : 'text-green-500' + ' text-center'}>{branchReport.balance.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })} </td>
+                <td className="text-center text-sm">{branchReport.outgoings.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</td>
+                <td className="text-center text-sm">{branchReport.finalStock.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</td>
+                <td className="text-center text-sm">{branchReport.incomes.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</td>
+                <td className={(branchReport.balance < 0 ? 'text-red-500' : 'text-green-500') + ' text-center text-sm'}>{branchReport.balance.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })} </td>
               </tr>
             </tbody>
           ))}
 
 
-          <tfoot className="border border-black">
+          <tfoot className="border border-black text-sm">
             <tr className="mt-2">
               <td className="text-center text-m font-bold">Totales:</td>
               <td className="text-center text-m font-bold">{extraOutgoingsTotal.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
