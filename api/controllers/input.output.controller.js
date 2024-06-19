@@ -18,6 +18,7 @@ export const newInput = async (req, res, next) => {
 
     if (inputSpecialPrice) {
 
+      console.log('Entro aquí')
       price = inputSpecialPrice
       amount = price * inputWeight
       specialPrice = !specialPrice
