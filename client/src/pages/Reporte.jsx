@@ -384,8 +384,6 @@ export default function Reporte() {
         </div>
       ))
       }
-
-
     </main >
   )
 }
