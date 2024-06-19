@@ -27,7 +27,7 @@ export const newInput = async (req, res, next) => {
 
       const branchReport = await fetchBranchReport(branch, createdAt)
 
-      console.log(branchReport)
+      console.log(branchReport, createdAt)
 
       if (branchReport != null || branchReport != undefined) {
 
@@ -37,12 +37,12 @@ export const newInput = async (req, res, next) => {
           console.log(branchReport.createdAt)
           console.log(price)
 
-        } else {
-
-          price = (await getProductPrice(product, branch)).price
-          console.log(price)
-
         }
+      } else {
+
+        price = (await getProductPrice(product, branch)).price
+        console.log(price)
+
       }
       amount = price * inputWeight
     }
