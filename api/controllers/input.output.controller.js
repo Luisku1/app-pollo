@@ -31,10 +31,13 @@ export const newInput = async (req, res, next) => {
         if (Object.getOwnPropertyNames(branchReport).length != 0) {
 
           price = (await getProductPrice(product, branch, branchReport.createdAt)).price
+          console.log(branchReport.createdAt)
+          console.log(price)
 
         } else {
 
           price = (await getProductPrice(product, branch)).price
+          console.log(price)
 
         }
       }
