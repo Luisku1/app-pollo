@@ -85,7 +85,7 @@ export const signIn = async (req, res, next) => {
 
   try {
 
-    let validUser = await Employee.findOne({ email })
+    let validUser = await Employee.findOne({ email: {$regex: email, $options: 'i'} })
 
 
     if (!validUser) {
