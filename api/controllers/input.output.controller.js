@@ -27,6 +27,8 @@ export const newInput = async (req, res, next) => {
 
       const branchReport = await fetchBranchReport(branch, createdAt)
 
+      console.log(branchReport)
+
       if (branchReport != null || branchReport != undefined) {
 
         if (Object.getOwnPropertyNames(branchReport).length != 0) {
