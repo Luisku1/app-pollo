@@ -207,11 +207,13 @@ export const updateBranchReport = async (req, res, next) => {
 export const getBranchReport = async (req, res, next) => {
 
   const branchId = req.params.branchId
-  const date = new Date(req.params.date)
+  const date = req.params.date
 
   try {
 
     const originalBranchReport = await fetchBranchReport(branchId, date)
+
+    console.log(originalBranchReport)
 
     if (originalBranchReport) {
 

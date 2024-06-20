@@ -444,20 +444,20 @@ export const newOutput = async (req, res, next) => {
 
           price = (await getProductPrice(product, branch, branchReport.createdAt)).price
 
-        } else {
-
-          price = (await getProductPrice(product, branch)).price
-
         }
+
+      } else {
+
+        price = (await getProductPrice(product, branch)).price
+
       }
 
       amount = price * outputWeight
     }
+
     const newOutput = new Output({ weight: outputWeight, comment: outputComment, pieces, company, product, employee, branch, amount, price: price, createdAt: createdAt, specialPrice })
 
     await newOutput.save()
-
-
 
     // updateReportOutputs(branch, createdAt, amount)
     res.status(200).json({ message: 'New output created', output: newOutput })
