@@ -234,12 +234,25 @@ export const fetchBranchReport = async (branchId, reportDate) => {
 
   const date = new Date(reportDate)
 
-  const actualLocaleDatePlusOne = new Date(date.toLocaleDateString('en-us'))
+  const actualLocaleDay = date.toISOString().slice(0, 10)
 
+  const actualLocaleDatePlusOne = new Date(actualLocaleDay)
   actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
+  const actualLocaleDayPlusOne = actualLocaleDatePlusOne.toISOString().slice(0, 10)
 
-  const bottomDate = (new Date(date.toLocaleDateString('en-us'))).toISOString()
-  const topDate = (new Date(actualLocaleDatePlusOne)).toISOString()
+  const bottomDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
+  const topDate = new Date(actualLocaleDayPlusOne + 'T00:00:00.000-06:00')
+
+  // const date = new Date(reportDate)
+
+  // const actualLocaleDatePlusOne = new Date(date.toLocaleDateString('en-us'))
+
+  // actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
+
+  // const bottomDate = (new Date(date.toLocaleDateString('en-us'))).toISOString()
+  // const topDate = (new Date(actualLocaleDatePlusOne)).toISOString()
+
+  console.log('-----------Fechas para fetchBranchReport: --------------------', bottomDate, topDate)
 
   try {
 
