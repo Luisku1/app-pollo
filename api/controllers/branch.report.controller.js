@@ -247,6 +247,8 @@ export const fetchBranchReport = async (branchId, reportDate) => {
 
   const actualLocaleDatePlusOnePrueba = new Date(datePrueba.toLocaleDateString('en-us'))
 
+  console.log('ACTUAL LOCALE DATE PLUS ONE PRUEBA', actualLocaleDatePlusOnePrueba.toISOString())
+
   actualLocaleDatePlusOnePrueba.setDate(actualLocaleDatePlusOnePrueba.getDate() + 1)
 
   const bottomDatePrueba = (new Date(datePrueba.toLocaleDateString('en-us')))
