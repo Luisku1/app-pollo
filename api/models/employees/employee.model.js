@@ -5,8 +5,12 @@ const employeeSchema = new mongoose.Schema({
 
   email: {
     type: String,
-    required: true,
     unique: true,
+  },
+
+  phoneNumber: {
+    type: String,
+    unique: true
   },
 
   name: {
@@ -17,11 +21,6 @@ const employeeSchema = new mongoose.Schema({
   lastName: {
     type: String,
     required: true,
-  },
-
-  phoneNumber: {
-    type: String,
-    unique: true
   },
 
   salary: {
