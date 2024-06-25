@@ -11,7 +11,7 @@ export const signUp = async (req, res, next) => {
 
   const { name, lastName, email, password, salary, payDay, company, phoneNumber, balance } = req.body
 
-  if(!password) {
+  if (!password) {
 
     next(errorHandler(404, 'The password path is required'))
     return
@@ -23,7 +23,7 @@ export const signUp = async (req, res, next) => {
 
   if (role === undefined) {
 
-    role = await Role.findOne({name: 'Gerente'}).select('_id')
+    role = await Role.findOne({ name: 'Gerente' }).select('_id')
 
   }
 
@@ -39,11 +39,11 @@ export const signUp = async (req, res, next) => {
 
   try {
 
-    const employeeDailyBalance = new EmployeeDailyBalance({employee: newEmployee._id, company: newEmployee.company, createdAt: (new Date().toISOString())})
+    const employeeDailyBalance = new EmployeeDailyBalance({ employee: newEmployee._id, company: newEmployee.company, createdAt: (new Date().toISOString()) })
     await newEmployee.save()
     await employeeDailyBalance.save()
 
-    if(employeeDailyBalance && newEmployee) {
+    if (employeeDailyBalance && newEmployee) {
 
       res.status(201).json('New employee created successfully')
 
@@ -81,11 +81,24 @@ export const ownerSignUp = async (req, res, next) => {
 
 export const signIn = async (req, res, next) => {
 
-  const { email, password } = req.body
+  const { emailNumber, password } = req.body
+
+  console.log(emailNumber, password)
 
   try {
 
-    let validUser = await Employee.findOne({ email: {$regex: email, $options: 'i'} })
+    let validUser = await Employee.findOne({
+      $or: [
+        {
+          phoneNumber: emailNumber
+        },
+        {
+          email: {
+            $regex: emailNumber, $options: 'i'
+          }
+        }
+      ]
+    })
 
 
     if (!validUser) {

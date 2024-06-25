@@ -108,7 +108,7 @@ export default function InicioSesion() {
     {
       dispatch(signInStart())
 
-      if(formData.email == undefined || formData.password == undefined)
+      if(formData.emailNumber == undefined || formData.password == undefined)
       {
         dispatch(signInFailiure('Llena todos los campos'))
         return
@@ -173,7 +173,8 @@ export default function InicioSesion() {
       </h1>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <input type="email" name="email" id="email" placeholder='ejemplo@gmail.com' className='border p-3 rounded-lg' onChange={handleChange}/>
+
+        <input type="text" name="emailNumber" id="emailNumber" placeholder='Correo electrónico o número telefónico' className='border p-3 rounded-lg' onChange={handleChange}/>
         <input type="password" name="password" id="password" placeholder='Contraseña' className='border p-3 rounded-lg' onChange={handleChange}/>
 
         <button disabled={loading} className="bg-slate-700 text-white p-3 rounded-lg uppercase hover:opacity-95 disabled:opacity-80">
