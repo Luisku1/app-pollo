@@ -210,7 +210,7 @@ export const updateBranchReport = async (req, res, next) => {
 export const getBranchReport = async (req, res, next) => {
 
   const branchId = req.params.branchId
-  const date = req.params.date
+  const date = (new Date((new Date(req.params.date)).toLocaleDateString('en-us'))).toISOString()
 
   console.log(date)
 
