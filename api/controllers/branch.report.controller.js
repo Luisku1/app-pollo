@@ -242,7 +242,9 @@ export const getBranchReport = async (req, res, next) => {
 
 export const fetchBranchReport = async (branchId, reportDate) => {
 
-  const actualLocaleDay = reportDate.toISOString().slice(0, 10)
+  const date = new Date(reportDate)
+
+  const actualLocaleDay = date.toISOString().slice(0, 10)
 
   const actualLocaleDatePlusOne = new Date(actualLocaleDay)
   actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)

@@ -84,6 +84,11 @@ export default function ListadoDeCuentas() {
 
   }, [company._id, currentUser, roles])
 
+  useEffect(() => {
+
+    document.title = 'Cuentas Diarias'
+  })
+
   return (
     <main className="p-3 max-w-lg mx-auto">
 
