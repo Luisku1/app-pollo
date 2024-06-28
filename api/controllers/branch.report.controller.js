@@ -139,15 +139,9 @@ export const updateBranchReport = async (req, res, next) => {
   const outputBalance = outgoings + outputs + incomes + finalStock
   const balance = outputBalance - inputBalance
 
-  const actualLocaleDate = new Date(new Date(branchReport.createdAt).getTime() - 6 * 60 * 60000)
-  const actualLocaleDay = actualLocaleDate.toISOString().slice(0, 10)
-
-  const actualLocaleDatePlusOne = new Date(actualLocaleDay)
-  actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
-  const actualLocalDayPlusOne = actualLocaleDatePlusOne.toISOString().slice(0, 10)
-
-  const bottomDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
-  const topDate = new Date(actualLocalDayPlusOne + 'T00:00:00.000-06:00')
+  const bottomDate = (new Date((new Date(branchReport.createdAt)).toLocaleDateString('en-us')))
+  const topDate = new Date (bottomDate)
+  topDate.setDate(bottomDate.getDate() + 1)
 
   try {
 
