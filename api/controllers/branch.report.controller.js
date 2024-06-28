@@ -140,9 +140,10 @@ export const updateBranchReport = async (req, res, next) => {
   const balance = outputBalance - inputBalance
 
   const bottomDate = (new Date((new Date(branchReport.createdAt)).toLocaleDateString('en-us')))
-  const topDate = new Date (bottomDate)
-  topDate.setDate(bottomDate.getDate() + 1)
+  const topDate = (new Date((new Date(branchReport.createdAt)).toLocaleDateString('en-us')))
+  topDate.setDate(topDate.getDate() + 1)
 
+  console.log(bottomDate, topDate)
   try {
 
     const reportData = await ReportData.findOne({ _id: branchReport.reportData })
