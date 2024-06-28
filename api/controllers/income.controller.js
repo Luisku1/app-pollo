@@ -5,18 +5,18 @@ import { updateReportIncomes } from "../utils/updateReport.js";
 
 export const newIncome = async (req, res, next) => {
 
-  const {incomeAmount, company, branch, employee, type, createdAt} = req.body
+  const { incomeAmount, company, branch, employee, type, createdAt } = req.body
 
   console.log(createdAt)
 
   try {
 
-    const newIncome = await new IncomeCollected({amount: incomeAmount, company, branch, employee, type, createdAt})
-    newIncome.save()
+    const newIncome = await new IncomeCollected({ amount: incomeAmount, company, branch, employee, type, createdAt })
+    await newIncome.save()
 
-    await updateReportIncomes(branch, createdAt, incomeAmount)
+    await updateReportIncomes(branch, (new Date(createdAt)), incomeAmount)
 
-    res.status(201).json({message: 'New income created successfully', income: newIncome})
+    res.status(201).json({ message: 'New income created successfully', income: newIncome })
 
   } catch (error) {
 
@@ -30,10 +30,10 @@ export const newIncomeType = async (req, res, next) => {
 
   try {
 
-    const newType = new IncomeType({name})
+    const newType = new IncomeType({ name })
     newType.save()
 
-    res.status(201).json({message: 'New type created successfully', type: newType})
+    res.status(201).json({ message: 'New type created successfully', type: newType })
 
   } catch (error) {
 
@@ -77,11 +77,11 @@ export const getBranchIncomes = async (req, res, next) => {
       {
         branch: branchId
       }]
-    }).populate({path: 'employee', select: 'name lastName'}).populate({path: 'branch', select: 'branch'}).populate({path: 'type', select: 'name'})
+    }).populate({ path: 'employee', select: 'name lastName' }).populate({ path: 'branch', select: 'branch' }).populate({ path: 'type', select: 'name' })
 
     if (branchIncomes.length > 0) {
 
-      res.status(200).json({branchIncomes: branchIncomes})
+      res.status(200).json({ branchIncomes: branchIncomes })
 
     } else {
 
@@ -132,11 +132,11 @@ export const getIncomes = async (req, res, next) => {
       {
         company: companyId
       }]
-    }).populate({path: 'employee', select: 'name lastName'}).populate({path: 'branch', select: 'branch position'}).populate({path: 'type', select: 'name'})
+    }).populate({ path: 'employee', select: 'name lastName' }).populate({ path: 'branch', select: 'branch position' }).populate({ path: 'type', select: 'name' })
 
     if (incomes.length > 0) {
 
-      res.status(200).json({incomes: incomes})
+      res.status(200).json({ incomes: incomes })
 
     } else {
 
@@ -157,7 +157,7 @@ export const getIncomeTypes = async (req, res, next) => {
 
     if (incomeTypes.length > 0) {
 
-      res.status(200).json({incomeTypes: incomeTypes})
+      res.status(200).json({ incomeTypes: incomeTypes })
 
     } else {
 
@@ -177,9 +177,9 @@ export const deleteIncome = async (req, res, next) => {
   try {
 
     const income = await IncomeCollected.findById(incomeId)
-    const deleted = await IncomeCollected.findByIdAndDelete({_id: incomeId})
+    const deleted = await IncomeCollected.findByIdAndDelete({ _id: incomeId })
 
-    if(deleted._id) {
+    if (deleted._id) {
 
       await updateReportIncomes(income.branch, income.createdAt, -(income.amount))
       res.status(200).json('Income deleted successfully')
