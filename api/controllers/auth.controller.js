@@ -27,13 +27,33 @@ export const signUp = async (req, res, next) => {
 
   }
 
+  console.log(email)
+
   if (balance) {
 
-    newEmployee = new Employee({ name, lastName, email, password: hashedPassword, phoneNumber, role, salary, payDay, company, balance })
+    if (email != undefined) {
+
+
+      newEmployee = new Employee({ name, lastName, email, password: hashedPassword, phoneNumber, role, salary, payDay, company, balance })
+
+    } else {
+
+      newEmployee = new Employee({ name, lastName, password: hashedPassword, phoneNumber, role, salary, payDay, company, balance })
+
+    }
+
 
   } else {
 
-    newEmployee = new Employee({ name, lastName, email, password: hashedPassword, phoneNumber, role, salary, payDay, company })
+    if (email != undefined) {
+
+      newEmployee = new Employee({ name, lastName, email, password: hashedPassword, phoneNumber, role, salary, payDay, company })
+
+    } else {
+
+      newEmployee = new Employee({ name, lastName, password: hashedPassword, phoneNumber, role, salary, payDay, company })
+    }
+
 
   }
 

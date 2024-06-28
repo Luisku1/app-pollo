@@ -93,6 +93,11 @@ export default function RegistroEmpleadoNuevo() {
 
   }
 
+  useEffect(() => {
+
+    document.title = 'Registro de Empleado'
+  })
+
   return (
 
     <main>

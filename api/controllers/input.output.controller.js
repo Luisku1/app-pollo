@@ -18,7 +18,6 @@ export const newInput = async (req, res, next) => {
 
     if (inputSpecialPrice) {
 
-      console.log('Entro aquí')
       price = inputSpecialPrice
       amount = price * inputWeight
       specialPrice = !specialPrice
@@ -27,21 +26,16 @@ export const newInput = async (req, res, next) => {
 
       const branchReport = await fetchBranchReport(branch, createdAt)
 
-      console.log(branchReport, createdAt)
-
       if (branchReport != null || branchReport != undefined) {
 
         if (Object.getOwnPropertyNames(branchReport).length != 0) {
 
           price = (await getProductPrice(product, branch, branchReport.createdAt)).price
-          console.log(branchReport.createdAt)
-          console.log(price)
 
         }
       } else {
 
         price = (await getProductPrice(product, branch)).price
-        console.log(price)
 
       }
       amount = price * inputWeight

@@ -1,3 +1,4 @@
+import { useEffect } from "react"
 import { useSelector } from "react-redux"
 import { useNavigate } from "react-router-dom"
 
@@ -5,6 +6,12 @@ export default function Empresas() {
 
   const {company} = useSelector((state) => state.user)
   const navigate = useNavigate()
+
+
+  useEffect(() => {
+
+    document.title = 'Empresas'
+  })
 
   return (
     <main className="p-3 max-w-lg mx-auto">

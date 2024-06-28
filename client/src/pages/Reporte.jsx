@@ -200,6 +200,11 @@ export default function Reporte() {
 
   }, [company, stringDatePickerValue])
 
+  useEffect(() => {
+
+    document.title = 'Reporte (' + new Date(stringDatePickerValue).toLocaleDateString() + ')'
+  })
+
   return (
 
     <main className="p-3 max-w-lg mx-auto">

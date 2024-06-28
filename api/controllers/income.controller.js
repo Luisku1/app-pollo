@@ -7,6 +7,8 @@ export const newIncome = async (req, res, next) => {
 
   const {incomeAmount, company, branch, employee, type, createdAt} = req.body
 
+  console.log(createdAt)
+
   try {
 
     const newIncome = await new IncomeCollected({amount: incomeAmount, company, branch, employee, type, createdAt})
@@ -176,8 +178,6 @@ export const deleteIncome = async (req, res, next) => {
 
     const income = await IncomeCollected.findById(incomeId)
     const deleted = await IncomeCollected.findByIdAndDelete({_id: incomeId})
-
-    console.log(income)
 
     if(deleted._id) {
 

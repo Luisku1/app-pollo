@@ -233,6 +233,14 @@ export default function Perfil() {
     }
   }, [employee, employeeId])
 
+  useEffect(() => {
+
+    if (employee) {
+
+      document.title = employee.name + ' ' + employee.lastName
+    }
+  }, [employee])
+
 
   return (
 

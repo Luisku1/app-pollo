@@ -142,6 +142,11 @@ export default function Productos() {
     fetchProducts()
   }, [company._id])
 
+  useEffect(() => {
+
+    document.title = 'Productos'
+  })
+
   return (
 
     <main className="p-3 max-w-lg mx-auto">

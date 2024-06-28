@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import { useNavigate } from "react-router-dom"
 import { addCompany } from "../redux/user/userSlice"
@@ -63,6 +63,10 @@ export default function RegistroCliente() {
     }
   }
 
+  useEffect(() => {
+
+    document.title = 'Registro Cliente'
+  })
 
   return (
     <main>

@@ -150,6 +150,10 @@ export default function RegistroSucursal() {
     }
   }
 
+  useEffect(() => {
+
+    document.title = 'Registro de Sucursal'
+  })
 
   return (
 

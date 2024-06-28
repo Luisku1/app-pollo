@@ -268,7 +268,7 @@ export default function RegistroCuentaDiaria() {
       }
 
       setError(null)
-      setOutgoings([...outgoings, data.outgoing])
+      setOutgoings([data.outgoing, ...outgoings])
       setOutgoingsTotal(outgoingsTotal + parseFloat(data.outgoing.amount))
 
       conceptInput.value = ''
@@ -342,7 +342,7 @@ export default function RegistroCuentaDiaria() {
       data.stock.product = productName
 
       setError(null)
-      setStockItems([...stockItems, data.stock])
+      setStockItems([data.stock, ...stockItems])
       setStockTotal(stockTotal + data.stock.amount)
 
       weightInput.value = ''
@@ -1132,6 +1132,16 @@ export default function RegistroCuentaDiaria() {
 
   }, [branchReport, branchId, stringDatePickerValue])
 
+  useEffect(() => {
+
+    console.log('----', selectedBranch, stringDatePickerValue)
+
+    if(selectedBranch != null && stringDatePickerValue != null) {
+
+      document.title = selectedBranch.label + ' ' + '(' + (new Date(stringDatePickerValue).toLocaleDateString()) + ')'
+    }
+  }, [selectedBranch, stringDatePickerValue])
+
   return (
 
     <main className="p-3 max-w-lg mx-auto">
@@ -1213,155 +1223,171 @@ export default function RegistroCuentaDiaria() {
         </div>
 
       </div>
+      {branchId ?
 
-      <div className="flex items-center justify-between">
+        <div>
 
-        <p>Sobrante inicial: </p>
-        <p className=' bg-white p-3 rounded-lg'>{initialStock ? initialStock.toLocaleString("es-Mx", { style: 'currency', currency: 'MXN' }) : '$0.00'}</p>
+          <div className="flex items-center justify-between">
 
-      </div>
+            <p>Sobrante inicial: </p>
+            <p className=' bg-white p-3 rounded-lg'>{initialStock ? initialStock.toLocaleString("es-Mx", { style: 'currency', currency: 'MXN' }) : '$0.00'}</p>
 
-      <div className='border p-3 mt-4 bg-white'>
-        <SectionHeader label={'Gastos'} />
-
-        <form id='outgoingForm' onSubmit={addOutgoing} className="grid grid-cols-3 items-center justify-between">
-
-          <input type="text" name="concept" id="concept" placeholder='Concepto' className='border p-3 rounded-lg' required onInput={outgoingsButtonControl} onChange={handleOutgoingInputsChange} />
-          <input type="number" name="amount" id="amount" placeholder='$0.00' step={0.01} className='border p-3 rounded-lg' required onInput={outgoingsButtonControl} onChange={handleOutgoingInputsChange} />
-          <button type='submit' id='outgoing-button' disabled className='bg-slate-500 text-white p-3 rounded-lg'>Agregar</button>
-
-        </form>
-
-
-        {outgoings && outgoings.length > 0 ?
-          <div id='header' className='grid grid-cols-12 gap-4 items-center justify-around font-semibold'>
-            <p className='p-3 rounded-lg col-span-5 text-center'>Concepto</p>
-            <p className='p-3 rounded-lg col-span-5 text-center'>Monto</p>
           </div>
-          : ''}
-        {outgoings && outgoings.length > 0 && outgoings.map((outgoing, index) => (
+
+          <div className='border p-3 mt-4 bg-white'>
+            <SectionHeader label={'Gastos'} />
+
+            <form id='outgoingForm' onSubmit={addOutgoing} className="grid grid-cols-3 items-center justify-between">
+
+              <input type="text" name="concept" id="concept" placeholder='Concepto' className='border p-3 rounded-lg' required onInput={outgoingsButtonControl} onChange={handleOutgoingInputsChange} />
+              <input type="number" name="amount" id="amount" placeholder='$0.00' step={0.01} className='border p-3 rounded-lg' required onInput={outgoingsButtonControl} onChange={handleOutgoingInputsChange} />
+              <button type='submit' id='outgoing-button' disabled className='bg-slate-500 text-white p-3 rounded-lg'>Agregar</button>
+
+            </form>
 
 
-          <div key={outgoing._id} className={(currentUser._id == outgoing.employee || currentUser.role == managerRole._id ? '' : 'py-3 ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
+            {outgoings && outgoings.length > 0 ?
+              <div id='header' className='grid grid-cols-12 gap-4 items-center justify-around font-semibold'>
+                <p className='p-3 rounded-lg col-span-5 text-center'>Concepto</p>
+                <p className='p-3 rounded-lg col-span-5 text-center'>Monto</p>
+              </div>
+              : ''}
+            {outgoings && outgoings.length > 0 && outgoings.map((outgoing, index) => (
 
-            <div id='list-element' className='flex col-span-10 items-center'>
-              <p className='text-center text-xs w-6/12'>{outgoing.concept}</p>
-              <p className='text-center text-xs w-6/12'>{outgoing.amount.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
-            </div>
 
-            {currentUser._id == outgoing.employee || currentUser.role == managerRole._id ?
+              <div key={outgoing._id} className={(currentUser._id == outgoing.employee || currentUser.role == managerRole._id ? '' : 'py-3 ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
 
-              <div>
-                <button id={outgoing._id} onClick={() => { setIsOpen(isOpen ? false : true), setButtonId(outgoing._id) }} disabled={loading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
-                  <span>
-                    <FaTrash className='text-red-700 m-auto' />
-                  </span>
-                </button>
+                <div id='list-element' className='flex col-span-10 items-center'>
+                  <p className='text-center text-xs w-6/12'>{outgoing.concept}</p>
+                  <p className='text-center text-xs w-6/12'>{outgoing.amount.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
+                </div>
 
-                {isOpen && outgoing._id == buttonId ?
-                  <div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center items-center'>
-                    <div className='bg-white p-5 rounded-lg flex flex-col justify-center items-center gap-5'>
-                      <div>
-                        <p className='text-3xl font-semibold'>¿Estás seguro de borrar este registro?</p>
-                      </div>
-                      <div className='flex gap-10'>
-                        <div>
-                          <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteOutgoing(outgoing._id, index), setIsOpen(isOpen ? false : true) }}>Si</button>
+                {currentUser._id == outgoing.employee || currentUser.role == managerRole._id ?
+
+                  <div>
+                    <button id={outgoing._id} onClick={() => { setIsOpen(isOpen ? false : true), setButtonId(outgoing._id) }} disabled={loading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
+                      <span>
+                        <FaTrash className='text-red-700 m-auto' />
+                      </span>
+                    </button>
+
+                    {isOpen && outgoing._id == buttonId ?
+                      <div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center items-center'>
+                        <div className='bg-white p-5 rounded-lg flex flex-col justify-center items-center gap-5'>
+                          <div>
+                            <p className='text-3xl font-semibold'>¿Estás seguro de borrar este registro?</p>
+                          </div>
+                          <div className='flex gap-10'>
+                            <div>
+                              <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteOutgoing(outgoing._id, index), setIsOpen(isOpen ? false : true) }}>Si</button>
+                            </div>
+                            <div>
+                              <button className='rounded-lg border shadow-lg w-20 h-10' onClick={() => { setIsOpen(isOpen ? false : true) }}>No</button>
+                            </div>
+                          </div>
                         </div>
-                        <div>
-                          <button className='rounded-lg border shadow-lg w-20 h-10' onClick={() => { setIsOpen(isOpen ? false : true) }}>No</button>
-                        </div>
                       </div>
-                    </div>
+                      : ''}
+
                   </div>
+
                   : ''}
 
               </div>
 
-              : ''}
-
-          </div>
-
-        ))}
-
-        {outgoings && outgoings.length > 0 ?
-
-          <div className='flex mt-4 border-black border rounded-lg p-3 border-opacity-30 shadow-lg'>
-            <p className='w-6/12 text-center'>Total:</p>
-            <p className='w-6/12 text-center font-bold'>{outgoingsTotal.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
-
-          </div>
-
-          : ''}
-      </div>
-
-      <div className='border bg-white p-3 mt-4'>
-        <SectionHeader label={'Sobrante'} />
-
-        <form onSubmit={addStockItem} className="grid grid-cols-4 items-center justify-between">
-
-          <select name="product" id="product" onChange={(e) => { stockButtonControl(), saveProductName(e) }} className='border p-3 rounded-lg text-xs'>
-            <option value="none" selected hidden >Productos</option>
-
-            {products && products.length != 0 && products.map((product) => (
-
-              <option key={product._id} value={product._id}>{product.name}</option>
             ))}
-          </select>
 
-          <input type="number" name="pieces" id="pieces" placeholder='Piezas' step={0.1} className='border p-3 rounded-lg' required onInput={stockButtonControl} onChange={handleStockInputsChange} />
-          <input type="number" name="weight" id="weight" placeholder='0.00 kg' step={0.01} className='border p-3 rounded-lg' required onInput={stockButtonControl} onChange={handleStockInputsChange} />
-          <button type='submit' id='stock-button' disabled className='bg-slate-500 text-white p-3 rounded-lg'>Agregar</button>
+            {outgoings && outgoings.length > 0 ?
 
-        </form>
+              <div className='flex mt-4 border-black border rounded-lg p-3 border-opacity-30 shadow-lg'>
+                <p className='w-6/12 text-center'>Total:</p>
+                <p className='w-6/12 text-center font-bold'>{outgoingsTotal.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
 
-        {stockItems && stockItems.length > 0 ?
-          <div id='header' className='grid grid-cols-12 gap-4 items-center justify-around font-semibold mt-4 mb-4'>
-            <p className='rounded-lg col-span-3 text-center'>Producto</p>
-            <p className='rounded-lg col-span-2 text-center'>Piezas</p>
-            <p className='rounded-lg col-span-2 text-center'>Kg</p>
-            <p className='rounded-lg col-span-3 text-center'>Monto</p>
+              </div>
+
+              : ''}
           </div>
-          : ''}
-        {stockItems && stockItems.length > 0 && stockItems.map((stock, index) => (
+          <div className='border bg-white p-3 mt-4'>
+            <SectionHeader label={'Sobrante'} />
+
+            <form onSubmit={addStockItem} className="grid grid-cols-4 items-center justify-between">
+
+              <select name="product" id="product" onChange={(e) => { stockButtonControl(), saveProductName(e) }} className='border p-3 rounded-lg text-xs'>
+                <option value="none" selected hidden >Productos</option>
+
+                {products && products.length != 0 && products.map((product) => (
+
+                  <option key={product._id} value={product._id}>{product.name}</option>
+                ))}
+              </select>
+
+              <input type="number" name="pieces" id="pieces" placeholder='Piezas' step={0.1} className='border p-3 rounded-lg' required onInput={stockButtonControl} onChange={handleStockInputsChange} />
+              <input type="number" name="weight" id="weight" placeholder='0.00 kg' step={0.01} className='border p-3 rounded-lg' required onInput={stockButtonControl} onChange={handleStockInputsChange} />
+              <button type='submit' id='stock-button' disabled className='bg-slate-500 text-white p-3 rounded-lg'>Agregar</button>
+
+            </form>
+
+            {stockItems && stockItems.length > 0 ?
+              <div id='header' className='grid grid-cols-12 gap-4 items-center justify-around font-semibold mt-4 mb-4'>
+                <p className='rounded-lg col-span-3 text-center'>Producto</p>
+                <p className='rounded-lg col-span-2 text-center'>Piezas</p>
+                <p className='rounded-lg col-span-2 text-center'>Kg</p>
+                <p className='rounded-lg col-span-3 text-center'>Monto</p>
+              </div>
+              : ''}
+            {stockItems && stockItems.length > 0 && stockItems.map((stock, index) => (
 
 
-          <div key={stock._id} className={(currentUser._id == stock.employee || currentUser.role == managerRole._id ? '' : 'py-3 ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
+              <div key={stock._id} className={(currentUser._id == stock.employee || currentUser.role == managerRole._id ? '' : 'py-3 ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
 
-            <div id='list-element' className='flex col-span-10 items-center '>
-              <p className='text-center w-4/12'>{stock.product.name ? stock.product.name : stock.product}</p>
-              <p className='text-center w-4/12'>{stock.pieces}</p>
-              <p className='text-center w-4/12'>{stock.weight}</p>
-              <p className='text-right w-4/12'>{stock.amount.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
-            </div>
+                <div id='list-element' className='flex col-span-10 items-center '>
+                  <p className='text-center w-4/12'>{stock.product.name ? stock.product.name : stock.product}</p>
+                  <p className='text-center w-4/12'>{stock.pieces}</p>
+                  <p className='text-center w-4/12'>{stock.weight}</p>
+                  <p className='text-right w-4/12'>{stock.amount.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
+                </div>
 
 
-            {currentUser._id == stock.employee || currentUser.role == managerRole._id ?
+                {currentUser._id == stock.employee || currentUser.role == managerRole._id ?
 
-              <div>
-                <button id={stock._id} onClick={() => { setIsOpen(!isOpen), setButtonId(stock._id) }} disabled={loading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
-                  <span>
-                    <FaTrash className='text-red-700 m-auto' />
-                  </span>
-                </button>
+                  <div>
+                    <button id={stock._id} onClick={() => { setIsOpen(!isOpen), setButtonId(stock._id) }} disabled={loading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
+                      <span>
+                        <FaTrash className='text-red-700 m-auto' />
+                      </span>
+                    </button>
 
-                {isOpen && stock._id == buttonId ?
-                  <div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center items-center'>
-                    <div className='bg-white p-5 rounded-lg flex flex-col justify-center items-center gap-5'>
-                      <div>
-                        <p className='text-3xl font-semibold'>¿Estás seguro de borrar este registro?</p>
-                      </div>
-                      <div className='flex gap-10'>
-                        <div>
-                          <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteStockItem(stock._id, index), setIsOpen(isOpen ? false : true) }}>Si</button>
+                    {isOpen && stock._id == buttonId ?
+                      <div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center items-center'>
+                        <div className='bg-white p-5 rounded-lg flex flex-col justify-center items-center gap-5'>
+                          <div>
+                            <p className='text-3xl font-semibold'>¿Estás seguro de borrar este registro?</p>
+                          </div>
+                          <div className='flex gap-10'>
+                            <div>
+                              <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteStockItem(stock._id, index), setIsOpen(isOpen ? false : true) }}>Si</button>
+                            </div>
+                            <div>
+                              <button className='rounded-lg border shadow-lg w-20 h-10' onClick={() => { setIsOpen(!isOpen) }}>No</button>
+                            </div>
+                          </div>
                         </div>
-                        <div>
-                          <button className='rounded-lg border shadow-lg w-20 h-10' onClick={() => { setIsOpen(!isOpen) }}>No</button>
-                        </div>
                       </div>
-                    </div>
+                      : ''}
+
                   </div>
+
                   : ''}
+
+              </div>
+
+            ))}
+
+            {stockItems && stockItems.length > 0 ?
+
+              <div className='flex mt-4 border-black border rounded-lg p-3 border-opacity-30 shadow-lg'>
+                <p className='w-6/12 text-center'>Total:</p>
+                <p className='w-6/12 text-center font-bold'>{stockTotal.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
 
               </div>
 
@@ -1369,20 +1395,8 @@ export default function RegistroCuentaDiaria() {
 
           </div>
 
-        ))}
-
-        {stockItems && stockItems.length > 0 ?
-
-          <div className='flex mt-4 border-black border rounded-lg p-3 border-opacity-30 shadow-lg'>
-            <p className='w-6/12 text-center'>Total:</p>
-            <p className='w-6/12 text-center font-bold'>{stockTotal.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
-
-          </div>
-
-          : ''}
-
-      </div>
-
+        </div>
+        : ''}
       {/* <div className='border p-3 mt-4 bg-white'>
         <SectionHeader label={'Mermas'} />
 
@@ -1531,7 +1545,7 @@ export default function RegistroCuentaDiaria() {
 
           <div className='flex gap-4 display-flex justify-between' onClick={() => setProviderInputsIsOpen(!providerInputsIsOpen)} >
 
-            <SectionHeader label={'Entradas de Rastro'} />
+            <SectionHeader label={'Entradas de Proveedores'} />
             {providerInputsIsOpen ? <MdKeyboardArrowDown className='text-5xl' /> : <MdKeyboardArrowRight className='text-5xl' />}
 
           </div>
@@ -1685,27 +1699,30 @@ export default function RegistroCuentaDiaria() {
         </div>
         : ''}
 
-      <div className='flex flex-col gap-4 mt-4'>
+      {branchId ?
 
-        {branchReport && branchReport._id ?
+        <div className='flex flex-col gap-4 mt-4'>
 
-          <div>
+          {branchReport && branchReport._id ?
 
-            {managerRole._id == currentUser.role ?
+            <div>
 
-              <button disabled={loading} className='bg-slate-600 text-white p-3 rounded-lg uppercase hover:opacity-95 disabled:opacity-80' onClick={() => handleUpdate()}>Actualizar formato</button>
+              {managerRole._id == currentUser.role ?
 
-              : ''}
+                <button disabled={loading} className='bg-slate-600 text-white p-3 rounded-lg uppercase hover:opacity-95 disabled:opacity-80 w-full' onClick={() => handleUpdate()}>Actualizar formato</button>
 
-          </div>
-          :
+                : ''}
 
-          <button disabled={loading} className='bg-slate-600 text-white p-3 rounded-lg uppercase hover:opacity-95 disabled:opacity-80' onClick={() => handleSubmit()}>Enviar formato</button>
-        }
+            </div>
+            :
+
+            <button disabled={loading} className='bg-slate-600 text-white p-3 rounded-lg uppercase hover:opacity-95 disabled:opacity-80' onClick={() => handleSubmit()}>Enviar formato</button>
+          }
 
 
-      </div>
+        </div>
 
+        : ''}
       <p className='text-red-700 font-semibold'>{error}</p>
     </main>
   )

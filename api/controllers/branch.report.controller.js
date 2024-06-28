@@ -213,8 +213,6 @@ export const getBranchReport = async (req, res, next) => {
 
     const originalBranchReport = await fetchBranchReport(branchId, date)
 
-    console.log(originalBranchReport)
-
     if (originalBranchReport) {
 
       res.status(200).json({ originalBranchReport: originalBranchReport })
@@ -232,30 +230,33 @@ export const getBranchReport = async (req, res, next) => {
 
 export const fetchBranchReport = async (branchId, reportDate) => {
 
-  const date = new Date(reportDate)
+  const bottomDate = (new Date((new Date(reportDate)).toLocaleDateString('en-us')))
+  const topDate = new Date (bottomDate)
+  topDate.setDate(bottomDate.getDate() + 1)
 
-  const actualLocaleDay = date.toISOString().slice(0, 10)
+  // let actualLocaleDate = (new Date((new Date(reportDate)).toLocaleDateString('en-us')))
 
-  const actualLocaleDatePlusOne = new Date(actualLocaleDay)
-  actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
-  const actualLocaleDayPlusOne = actualLocaleDatePlusOne.toISOString().slice(0, 10)
+  // let actualLocaleDatePlusOne = actualLocaleDate
+  // actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
+  // actualLocaleDatePlusOne = (new Date(actualLocaleDatePlusOne.toLocaleDateString('en-us'))).toISOString().slice(0, -1)
+  // actualLocaleDate = actualLocaleDate.toISOString().slice(0, -1)
 
-  const bottomDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
-  const topDate = new Date(actualLocaleDayPlusOne + 'T00:00:00.000-06:00')
+  // const bottomDate = new Date(actualLocaleDate)
+  // const topDate = new Date(actualLocaleDatePlusOne)
 
-  const datePrueba = new Date(reportDate)
+  // const datePrueba = new Date(reportDate)
 
-  const actualLocaleDatePlusOnePrueba = new Date(datePrueba.toLocaleDateString('en-us'))
+  // const actualLocaleDatePlusOnePrueba = new Date(datePrueba.toLocaleDateString('en-us'))
 
-  console.log('ACTUAL LOCALE DATE PLUS ONE PRUEBA', actualLocaleDatePlusOnePrueba.toISOString())
+  // console.log('ACTUAL LOCALE DATE PLUS ONE PRUEBA', actualLocaleDatePlusOnePrueba.toISOString())
 
-  actualLocaleDatePlusOnePrueba.setDate(actualLocaleDatePlusOnePrueba.getDate() + 1)
+  // actualLocaleDatePlusOnePrueba.setDate(actualLocaleDatePlusOnePrueba.getDate() + 1)
 
-  const bottomDatePrueba = (new Date(datePrueba.toLocaleDateString('en-us')))
-  const topDatePrueba = (new Date(actualLocaleDatePlusOnePrueba))
+  // const bottomDatePrueba = (new Date(datePrueba.toLocaleDateString('en-us')))
+  // const topDatePrueba = (new Date(actualLocaleDatePlusOnePrueba))
 
-  console.log('-----------Fechas para fetchBranchReport: --------------------', bottomDate, topDate)
-  console.log('-----------Fechas Prueba para fetchBranchReport: --------------------', bottomDatePrueba, topDatePrueba)
+  // console.log('-----------Fechas para fetchBranchReport: --------------------', bottomDate, topDate)
+  // console.log('-----------Fechas Prueba para fetchBranchReport: --------------------', bottomDatePrueba, topDatePrueba)
 
   try {
 

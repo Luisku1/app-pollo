@@ -103,6 +103,12 @@ export default function Empleados() {
 
   }, [filteredEmployees])
 
+
+  useEffect(() => {
+
+    document.title = 'Empleados'
+  })
+
   return (
 
     <main className="p-3 max-w-lg mx-auto">

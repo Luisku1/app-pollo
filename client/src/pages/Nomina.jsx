@@ -126,6 +126,11 @@ export default function Nomina() {
 
   }, [company._id, stringDatePickerValue])
 
+  useEffect(() => {
+
+    document.title = 'Nómina (' + new Date(stringDatePickerValue).toLocaleDateString() + ')'
+  })
+
   return (
 
     <main className="p-3 max-w-lg mx-auto">

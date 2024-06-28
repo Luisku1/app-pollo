@@ -1,21 +1,41 @@
 import { useEffect, useState } from "react"
-import { useParams } from "react-router-dom"
+import { useParams, useNavigate } from "react-router-dom"
 import { useSelector } from 'react-redux'
 import { FaCheck } from "react-icons/fa"
 import { fetchEmployees } from "../helpers/FetchFunctions"
 import { MdCancel } from "react-icons/md";
+import { formatDate } from "../helpers/DatePickerFunctions"
+import FechaDePagina from "../components/FechaDePagina"
 
 export default function Gastos() {
 
-  const { company } = useSelector((state) => state.user)
+  let paramsDate = useParams().date
+  let datePickerValue = (paramsDate ? new Date(paramsDate) : new Date())
+  let stringDatePickerValue = formatDate(datePickerValue)
+  const { company, currentUser } = useSelector((state) => state.user)
   const [outgoings, setOutgoings] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [isOpen, setIsOpen] = useState(false)
   const [buttonId, setButtonId] = useState(null)
   const [employees, setEmployees] = useState([])
-  const paramsDate = useParams().date
   const [outgoingsTotal, setOutgoingsTotal] = useState(0.0)
+  const [managerRole, setManagerRole] = useState({})
+  const navigate = useNavigate()
+
+  const changeDatePickerValue = (e) => {
+
+    stringDatePickerValue = (e.target.value + 'T06:00:00.000Z')
+
+    navigate('/supervision-diaria/' + stringDatePickerValue)
+
+  }
+
+  const changeDay = (date) => {
+
+    navigate('/supervision-diaria/' + date)
+
+  }
 
   const setOutgoingsTotalFunction = (outgoings) => {
 
@@ -63,6 +83,39 @@ export default function Gastos() {
       setError(error.message)
     }
   }
+
+  useEffect(() => {
+
+    const setManagerRoleFunction = async (roles) => {
+
+      const managerRole = roles.find((elemento) => elemento.name == 'Gerente')
+      setManagerRole(managerRole)
+
+    }
+
+    const fetchRoles = async () => {
+
+      try {
+
+        const res = await fetch('/api/role/get')
+        const data = await res.json()
+
+        if (data.success === false) {
+          setError(data.message)
+          return
+        }
+        await setManagerRoleFunction(data.roles)
+        setError(null)
+
+      } catch (error) {
+
+        setError(error.message)
+
+      }
+    }
+
+    fetchRoles()
+  })
 
   useEffect(() => {
 
@@ -124,6 +177,12 @@ export default function Gastos() {
 
   }, [paramsDate, company])
 
+  useEffect(() => {
+
+    document.title = 'Gastos (' + new Date(stringDatePickerValue).toLocaleDateString() + ')'
+  })
+
+
   return (
 
     <main className="p-3 max-w-lg mx-auto">
@@ -132,7 +191,11 @@ export default function Gastos() {
         <br />
       </h1>
 
+      {managerRole._id == currentUser.role ?
 
+        <FechaDePagina changeDay={changeDay} stringDatePickerValue={stringDatePickerValue} changeDatePickerValue={changeDatePickerValue} ></FechaDePagina>
+
+        : ''}
       {error ? <p>{error}</p> : ''}
 
       {outgoings && outgoings.length > 0 ?
@@ -178,7 +241,7 @@ export default function Gastos() {
                         </div>
 
                         {employees && employees.length > 0 && employees.map((employee) => (
-                          <div key={employee._id} onClick={() => {rejectOutgoing(employee._id, outgoing._id, index)}}>
+                          <div key={employee._id} onClick={() => { rejectOutgoing(employee._id, outgoing._id, index) }}>
                             {employee._id != outgoing.employee._id ?
                               <div className=" p-3 shadow-lg rounded-lg">
                                 <p className="font-bold text-lg">{employee.name + ' ' + employee.lastName}</p>

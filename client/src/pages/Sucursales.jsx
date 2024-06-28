@@ -107,6 +107,11 @@ export default function Sucursales() {
     fetchBranches()
   }, [company._id])
 
+  useEffect(() => {
+
+    document.title = 'Sucursales'
+  })
+
   return (
     <main className="p-3 max-w-lg mx-auto">
 

@@ -62,6 +62,10 @@ export default function RegistroProveedor() {
     }
   }
 
+  useEffect(() => {
+
+    document.title = 'Registro de Proveedor'
+  })
 
   return (
     <main>

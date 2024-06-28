@@ -154,6 +154,11 @@ export default function Sobrante() {
 
   }, [company._id, paramsDate])
 
+  useEffect(() => {
+
+    document.title = 'Sobrante (' + new Date(stringDatePickerValue).toLocaleDateString() + ')'
+  })
+
   return (
 
     <main className="p-3 max-w-lg mx-auto">

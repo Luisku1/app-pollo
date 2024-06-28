@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
 export default function RegistroDueño() {
@@ -56,6 +56,11 @@ export default function RegistroDueño() {
     }
 
   }
+
+  useEffect(() => {
+
+    document.title = 'Registro de Dueños'
+  })
 
   return (
 

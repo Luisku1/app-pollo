@@ -1,14 +1,11 @@
 import { fetchBranchReport } from "../controllers/branch.report.controller.js"
 import { updateEmployeeDailyBalancesBalance } from "../controllers/employee.controller.js"
-import BranchReport from "../models/accounts/branch.report.model.js"
 
 export const updateReportIncomes = async (branchId, reportDate, amount) => {
 
   try {
 
     const branchReport = await fetchBranchReport(branchId, reportDate)
-
-    console.log(branchReport)
 
     if (branchReport != null || branchReport != undefined) {
 

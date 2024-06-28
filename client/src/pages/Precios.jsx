@@ -106,6 +106,11 @@ export default function Precios() {
 
   }, [company._id])
 
+  useEffect(() => {
+
+    document.title = 'Precios'
+  })
+
   return (
     <main className="p-3 max-w-lg mx-auto">
 

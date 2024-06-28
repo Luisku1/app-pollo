@@ -143,7 +143,7 @@ export default function EntradaInicial() {
       data.providerInput.employee = currentUser
 
       setError(null)
-      setProviderInputs([...providerInputs, data.providerInput])
+      setProviderInputs([data.providerInput, ...providerInputs])
       setProviderInputsTotal((prev) => prev + data.providerInput.weight)
 
       piecesInput.value = ''
@@ -295,6 +295,11 @@ export default function EntradaInicial() {
     }
 
   }, [company._id, productId, stringDatePickerValue])
+
+  useEffect(() => {
+
+    document.title = 'Entrada Proveedor (' + new Date(stringDatePickerValue).toLocaleDateString() + ')'
+  })
 
   return (
     <main className="p-3 max-w-lg mx-auto">

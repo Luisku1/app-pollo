@@ -305,7 +305,7 @@ export default function ControlSupervisor() {
 
     const amountInput = document.getElementById('loanAmount')
     const button = document.getElementById('loanButton')
-    const branchSelect = document.getElementById('loanEmployee')
+    const employee = selectedEmployee != null
 
     let filledInputs = true
 
@@ -315,7 +315,7 @@ export default function ControlSupervisor() {
 
     }
 
-    if (filledInputs && branchSelect.value != 'none' && !loading) {
+    if (filledInputs && employee && !loading) {
 
       button.disabled = false
 
@@ -443,7 +443,7 @@ export default function ControlSupervisor() {
   const addLoan = async (e) => {
 
     const amount = document.getElementById('loanAmount')
-    const employee = document.getElementById('loanEmployee')
+    const employee = selectedEmployee
     const date = today ? new Date().toISOString() : new Date(stringDatePickerValue).toISOString()
 
     e.preventDefault()
@@ -477,7 +477,7 @@ export default function ControlSupervisor() {
       data.loan.supervisor = currentUser
 
       setError(null)
-      setLoans([...loans, data.loan])
+      setLoans([data.loan, ...loans])
       setLoansTotal(loansTotal + parseFloat(data.loan.amount))
 
       employee.value = 'none'
@@ -486,6 +486,7 @@ export default function ControlSupervisor() {
 
     } catch (error) {
 
+      console.log(error)
       setError(error.message)
       setLoading(false)
 
@@ -545,7 +546,7 @@ export default function ControlSupervisor() {
       data.extraOutgoing.employee = currentUser
 
       setError(null)
-      setExtraOutgoings([...extraOutgoings, data.extraOutgoing])
+      setExtraOutgoings([data.extraOutgoing, ...extraOutgoings])
       setExtraOutgoingsTotal(extraOutgoingsTotal + parseFloat(data.extraOutgoing.amount))
 
       conceptInput.value = ''
@@ -632,7 +633,7 @@ export default function ControlSupervisor() {
       data.output.employee = currentUser
 
       setError(null)
-      setOutputs([...outputs, data.output])
+      setOutputs([data.output, ...outputs])
       setOutputsTotal(outputsTotal + parseFloat(data.output.weight))
 
       piecesInput.value = ''
@@ -712,7 +713,7 @@ export default function ControlSupervisor() {
       data.input.employee = currentUser
 
       setError(null)
-      setInputs([...inputs, data.input])
+      setInputs([data.input, ...inputs])
       setInputsTotal(inputsTotal + parseFloat(data.input.weight))
 
       piecesInput.value = ''
@@ -752,6 +753,8 @@ export default function ControlSupervisor() {
     const branchInput = document.getElementById('incomeBranch')
     const date = today ? new Date().toISOString() : new Date(stringDatePickerValue).toISOString()
 
+    console.log(date)
+
     e.preventDefault()
 
     setLoading(true)
@@ -788,7 +791,7 @@ export default function ControlSupervisor() {
       data.income.type = incomeTypeName
 
       setError(null)
-      setIncomes([...incomes, data.income])
+      setIncomes([data.income, ...incomes])
       setIncomesTotal(incomesTotal + parseFloat(data.income.amount))
 
       amountInput.value = ''
@@ -1205,7 +1208,6 @@ export default function ControlSupervisor() {
           setLoading(false)
           return
         }
-        console.log(data.extraOutgoings)
 
         data.extraOutgoings.sort((extraOutgoing, nextExtraOutgoing) => {
 
@@ -1268,6 +1270,10 @@ export default function ControlSupervisor() {
   }, [company._id, stringDatePickerValue])
 
 
+  useEffect(() => {
+
+    document.title = 'Supervisión (' + new Date(stringDatePickerValue).toLocaleDateString() + ')'
+  })
 
   return (
 
@@ -1872,8 +1878,8 @@ export default function ControlSupervisor() {
                 <div key={loan._id} className={(currentUser._id == loan.supervisor || currentUser.role == managerRole._id ? '' : 'py-3 ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
 
                   <div id='list-element' className='flex col-span-10 items-center justify-around'>
-                    <p className='text-center text-sm w-3/12'>{loan.supervisor.label}</p>
-                    <p className='text-center text-sm w-3/12'>{loan.employee.name ? loan.employee.name + ' ' + loan.employee.lastName : loan.employee}</p>
+                    <p className='text-center text-sm w-3/12'>{loan.supervisor.label ? loan.supervisor.label : loan.supervisor.name}</p>
+                    <p className='text-center text-sm w-3/12'>{loan.employee.label ? loan.employee.label : loan.employee.name}</p>
                     <p className='text-center text-sm w-3/12'>{loan.amount.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
                   </div>
 
