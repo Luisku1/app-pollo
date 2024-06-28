@@ -141,15 +141,14 @@ export const updateBranchReport = async (req, res, next) => {
 
   const date = new Date(branchReport.createdAt)
 
-  const actualLocaleDate = new Date(new Date(date).getTime() - 6 * 60 * 60000)
-  const actualLocaleDay = actualLocaleDate.toISOString().slice(0, 10)
+  const actualLocaleDay = date.toISOString().slice(0, 10)
 
   const actualLocaleDatePlusOne = new Date(actualLocaleDay)
   actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
-  const actualLocalDayPlusOne = actualLocaleDatePlusOne.toISOString().slice(0, 10)
+  const actualLocaleDayPlusOne = actualLocaleDatePlusOne.toISOString().slice(0, 10)
 
   const bottomDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
-  const topDate = new Date(actualLocalDayPlusOne + 'T00:00:00.000-06:00')
+  const topDate = new Date(actualLocaleDayPlusOne + 'T00:00:00.000-06:00')
 
   console.log(bottomDate, topDate)
   try {
@@ -212,15 +211,14 @@ export const getBranchReport = async (req, res, next) => {
   const branchId = req.params.branchId
   const date = new Date(req.params.date)
 
-  const actualLocaleDate = new Date(new Date(date).getTime() - 6 * 60 * 60000)
-  const actualLocaleDay = actualLocaleDate.toISOString().slice(0, 10)
+  const actualLocaleDay = date.toISOString().slice(0, 10)
 
   const actualLocaleDatePlusOne = new Date(actualLocaleDay)
   actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
-  const actualLocalDayPlusOne = actualLocaleDatePlusOne.toISOString().slice(0, 10)
+  const actualLocaleDayPlusOne = actualLocaleDatePlusOne.toISOString().slice(0, 10)
 
   const bottomDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
-  const topDate = new Date(actualLocalDayPlusOne + 'T00:00:00.000-06:00')
+  const topDate = new Date(actualLocaleDayPlusOne + 'T00:00:00.000-06:00')
   console.log(date)
 
   try {
@@ -244,9 +242,18 @@ export const getBranchReport = async (req, res, next) => {
 
 export const fetchBranchReport = async (branchId, reportDate) => {
 
-  const bottomDate = (new Date((new Date(reportDate)).toLocaleDateString('en-us')))
-  const topDate = new Date (bottomDate)
-  topDate.setDate(bottomDate.getDate() + 1)
+  const actualLocaleDay = reportDate.toISOString().slice(0, 10)
+
+  const actualLocaleDatePlusOne = new Date(actualLocaleDay)
+  actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
+  const actualLocaleDayPlusOne = actualLocaleDatePlusOne.toISOString().slice(0, 10)
+
+  const bottomDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
+  const topDate = new Date(actualLocaleDayPlusOne + 'T00:00:00.000-06:00')
+
+  // const bottomDate = (new Date((new Date(reportDate)).toLocaleDateString('en-us')))
+  // const topDate = new Date (bottomDate)
+  // topDate.setDate(bottomDate.getDate() + 1)
 
   // let actualLocaleDate = (new Date((new Date(reportDate)).toLocaleDateString('en-us')))
 
