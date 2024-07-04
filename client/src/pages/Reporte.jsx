@@ -4,10 +4,11 @@ import { useSelector } from "react-redux"
 import { useParams, useNavigate, Link } from "react-router-dom"
 import FechaDePagina from "../components/FechaDePagina"
 import { formatDate } from "../helpers/DatePickerFunctions"
+import TarjetaCuenta from "../components/TarjetaCuenta"
 
 export default function Reporte() {
 
-  const { company } = useSelector((state) => state.user)
+  const { company, currentUser } = useSelector((state) => state.user)
   let paramsDate = useParams().date
   const [branchReports, setBranchReports] = useState([])
   const [supervisorsInfo, setSupervisorsInfo] = useState([])
@@ -20,6 +21,7 @@ export default function Reporte() {
   const [loading, setLoading] = useState(false)
   const [selectedSupervisor, setSelectedSupervisor] = useState(null)
   const [balanceTotal, setBalanceTotal] = useState(0.0)
+  const [managerRole, setManagerRole] = useState({})
   const navigate = useNavigate()
   let datePickerValue = (paramsDate ? new Date(paramsDate) : new Date())
   let stringDatePickerValue = formatDate(datePickerValue)
@@ -202,6 +204,41 @@ export default function Reporte() {
 
   useEffect(() => {
 
+    const setManagerRoleFunction = (roles) => {
+
+      const managerRole = roles.find((elemento) => elemento.name == 'Gerente')
+      setManagerRole(managerRole)
+
+    }
+
+    const fetchRoles = async () => {
+
+      try {
+
+        const res = await fetch('/api/role/get')
+        const data = await res.json()
+
+        if (data.success === false) {
+          setError(data.message)
+          return
+        }
+        await setManagerRoleFunction(data.roles)
+        setError(null)
+
+      } catch (error) {
+
+        setError(error.message)
+
+
+      }
+    }
+
+    fetchRoles()
+
+  }, [])
+
+  useEffect(() => {
+
     document.title = 'Reporte (' + new Date(stringDatePickerValue).toLocaleDateString() + ')'
   })
 
@@ -217,67 +254,73 @@ export default function Reporte() {
 
       {branchReports && branchReports.length > 0 ?
 
-        <table className='border bg-white mt-4 w-full'>
-
-          <thead className="border border-black">
-
-            <tr>
-              {/* <th></th> */}
-              <th className="text-sm">Sucursal</th>
-              <th className="text-sm">
-                <Link className="flex justify-center" to={'/gastos/' + stringDatePickerValue}>
-                  Gastos
-                </Link>
-              </th>
-              <th className="text-sm">
-                <Link className="flex justify-center" to={'/sobrante/' + stringDatePickerValue}>
-                  Sobrante
-                </Link>
-              </th>
-              <th className="text-sm">Efectivo</th>
-              <th className="text-sm">Balance</th>
-            </tr>
-          </thead>
-
-          {branchReports.map((branchReport, index) => (
-
-            <tbody key={branchReport._id} className="">
+        <div>
 
 
-              <tr className={'border-x ' + (index + 1 != branchReports.length ? "border-b " : '') + 'border-black border-opacity-40'}>
-                {/* <td className="text-xs">{branchReport.branch.position}</td> */}
-                <td className="group">
-                  <Link className='' to={'/formato/' + branchReport.createdAt + '/' + branchReport.branch._id}>
-                    <p className=" text-sm">{branchReport.branch.branch}</p>
-                    <div className="hidden group-hover:block group-hover:fixed group-hover:overflow-hidden group-hover:mt-2 ml-24 bg-slate-600 text-white shadow-2xl rounded-md p-2">
-                      <p>{branchReport.employee != null ? branchReport.employee.name + ' ' + branchReport.employee.lastName : 'Empleado eliminado'}</p>
-                      {branchReport.assistant != null ?
+          <table className='border bg-white mt-4 w-full'>
 
-                        <p>{branchReport.assistant.name + ' ' + branchReport.assistant.lastName}</p>
-                        : ''}
-                    </div>
+            <thead className="border border-black">
+
+              <tr>
+                {/* <th></th> */}
+                <th className="text-sm">Sucursal</th>
+                <th className="text-sm">
+                  <Link className="flex justify-center" to={'/gastos/' + stringDatePickerValue}>
+                    Gastos
                   </Link>
-                </td>
-                <td className="text-center text-sm">{branchReport.outgoings.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</td>
-                <td className="text-center text-sm">{branchReport.finalStock.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</td>
-                <td className="text-center text-sm">{branchReport.incomes.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</td>
-                <td className={(branchReport.balance < 0 ? 'text-red-500' : 'text-green-500') + ' text-center text-sm'}>{branchReport.balance.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })} </td>
+                </th>
+                <th className="text-sm">
+                  <Link className="flex justify-center" to={'/sobrante/' + stringDatePickerValue}>
+                    Sobrante
+                  </Link>
+                </th>
+                <th className="text-sm">Efectivo</th>
+                <th className="text-sm">Balance</th>
               </tr>
-            </tbody>
-          ))}
+            </thead>
+
+            {branchReports.map((branchReport, index) => (
+
+              <tbody key={branchReport._id} className="">
 
 
-          <tfoot className="border border-black text-sm">
-            <tr className="mt-2">
-              <td className="text-center text-m font-bold">Totales:</td>
-              <td className="text-center text-m font-bold">{extraOutgoingsTotal.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
-              <td className="text-center text-m font-bold">{stockTotal.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
-              <td className="text-center text-m font-bold">{incomesTotal.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
-              <td className={(balanceTotal < 0 ? 'text-red-500' : 'text-green-500') + ' text-center text-m font-bold'}>{balanceTotal.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
-            </tr>
-          </tfoot>
+                <tr className={'border-x ' + (index + 1 != branchReports.length ? "border-b " : '') + 'border-black border-opacity-40'}>
+                  {/* <td className="text-xs">{branchReport.branch.position}</td> */}
+                  <td className="group">
+                    <Link className='' to={'/formato/' + branchReport.createdAt + '/' + branchReport.branch._id}>
+                      <p className=" text-sm">{branchReport.branch.branch}</p>
+                      <div className="hidden group-hover:block group-hover:fixed group-hover:overflow-hidden group-hover:mt-2 ml-24 bg-slate-600 text-white shadow-2xl rounded-md p-2">
+                        <p>{branchReport.employee != null ? branchReport.employee.name + ' ' + branchReport.employee.lastName : 'Empleado eliminado'}</p>
+                        {branchReport.assistant != null ?
 
-        </table>
+                          <p>{branchReport.assistant.name + ' ' + branchReport.assistant.lastName}</p>
+                          : ''}
+                      </div>
+                    </Link>
+                  </td>
+                  <td className="text-center text-sm">{branchReport.outgoings.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</td>
+                  <td className="text-center text-sm">{branchReport.finalStock.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</td>
+                  <td className="text-center text-sm">{branchReport.incomes.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</td>
+                  <td className={(branchReport.balance < 0 ? 'text-red-500' : 'text-green-500') + ' text-center text-sm'}>{branchReport.balance.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })} </td>
+                </tr>
+              </tbody>
+            ))}
+
+
+            <tfoot className="border border-black text-sm">
+              <tr className="mt-2">
+                <td className="text-center text-m font-bold">Totales:</td>
+                <td className="text-center text-m font-bold">{extraOutgoingsTotal.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
+                <td className="text-center text-m font-bold">{stockTotal.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
+                <td className="text-center text-m font-bold">{incomesTotal.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
+                <td className={(balanceTotal < 0 ? 'text-red-500' : 'text-green-500') + ' text-center text-m font-bold'}>{balanceTotal.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
+              </tr>
+            </tfoot>
+
+          </table>
+
+          <TarjetaCuenta reportArray={branchReports} managerRole={managerRole} currentUser={currentUser}></TarjetaCuenta>
+        </div>
 
         : ''}
 
@@ -389,6 +432,8 @@ export default function Reporte() {
         </div>
       ))
       }
+
+
     </main >
   )
 }

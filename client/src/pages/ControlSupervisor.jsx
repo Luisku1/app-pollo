@@ -100,6 +100,10 @@ export default function ControlSupervisor() {
           </div>
           <div className='h-5/6 overflow-y-scroll'>
             <div className={"grid grid-cols-2 p-3 shadow-lg rounded-lg mb-4 gap-2 items-center"}>
+              <p className="font-bold text-lg">{'Hora:'}</p>
+              <p>{(new Date(input.createdAt)).toLocaleTimeString('es-Mx')}</p>
+            </div>
+            <div className={"grid grid-cols-2 p-3 shadow-lg rounded-lg mb-4 gap-2 items-center"}>
               <p className="font-bold text-lg">{'Destino:'}</p>
               <p>{input.branch.branch ? input.branch.branch : input.branch}</p>
             </div>
@@ -150,6 +154,10 @@ export default function ControlSupervisor() {
             <button className="absolute right-0" onClick={() => { setMovementDetailsIsOpen(!movementDetailsIsOpen) }}><MdCancel className="h-7 w-7" /></button>
           </div>
           <div className='h-5/6 overflow-y-scroll'>
+          <div className={"grid grid-cols-2 p-3 shadow-lg rounded-lg mb-4 gap-2 items-center"}>
+              <p className="font-bold text-lg">{'Hora:'}</p>
+              <p>{(new Date(output.createdAt)).toLocaleTimeString('es-Mx')}</p>
+            </div>
             <div className={"grid grid-cols-2 p-3 shadow-lg rounded-lg mb-4 gap-2 items-center"}>
               <p className="font-bold text-lg">{'Origen:'}</p>
               <p>{output.branch.branch ? output.branch.branch : output.branch}</p>

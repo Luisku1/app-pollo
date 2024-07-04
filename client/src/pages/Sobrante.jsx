@@ -14,8 +14,8 @@ export default function Sobrante() {
   const [branchStockIsOpen, setBranchStockIsOpen] = useState(false)
   const [selectedProductId, setSelectedProductId] = useState(null)
   const [selectedBranchId, setSelectedBranchId] = useState(null)
-  const [filterByProduct, setFilterByProduct] = useState(true)
-  const [filterByBranch, setFilterByBranch] = useState(false)
+  const [filterByProduct, setFilterByProduct] = useState(false)
+  const [filterByBranch, setFilterByBranch] = useState(true)
   let paramsDate = useParams().date
   let datePickerValue = (paramsDate ? new Date(paramsDate) : new Date())
   let stringDatePickerValue = formatDate(datePickerValue)
@@ -173,8 +173,8 @@ export default function Sobrante() {
       <div className="bg-white p-3 mt-4 w-full">
 
         <div className="grid grid-cols-2 border w-full h-10 mb-4 border-black rounded-lg">
-          <button className={"h-full rounded-lg hover:shadow-xl " + (filterByProduct ? 'bg-slate-500 text-white' : ' bg-white')} onClick={() => { resetValues(), handleProductFilterButton() }}>Producto</button>
           <button className={"h-full rounded-lg hover:shadow-xl " + (filterByBranch ? 'bg-slate-500 text-white' : 'bg-white')} onClick={() => { resetValues(), handleBranchFilterButton() }}>Sucursal</button>
+          <button className={"h-full rounded-lg hover:shadow-xl " + (filterByProduct ? 'bg-slate-500 text-white' : ' bg-white')} onClick={() => { resetValues(), handleProductFilterButton() }}>Producto</button>
         </div>
 
         {stockByProduct && Object.values(stockByProduct) && filterByProduct && Object.values(stockByProduct).length > 0 && Object.values(stockByProduct).map((stock) => (

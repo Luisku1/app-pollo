@@ -90,6 +90,7 @@ export default function Header() {
   }, [currentUser, company])
 
 
+
   if (roles && error == null) {
     supervisorRole = roles.find((role) => (role.name == "Supervisor"))
     managerRole = roles.find((role) => (role.name == "Gerente"))
