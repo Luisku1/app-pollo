@@ -9,6 +9,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import Select from "react-tailwindcss-select";
 import { formatDate } from '../helpers/DatePickerFunctions';
 import FechaDePagina from '../components/FechaDePagina';
+import EntradaInicial from './EntradaInicial';
 
 export default function ControlSupervisor() {
 
@@ -456,6 +457,8 @@ export default function ControlSupervisor() {
 
     e.preventDefault()
 
+    setLoading(true)
+
     try {
 
       const res = await fetch('/api/outgoing/loan/create', {
@@ -503,7 +506,7 @@ export default function ControlSupervisor() {
 
   const deleteLoan = async (loanId, index) => {
 
-    setLoading(false)
+    setLoading(true)
 
     const { error } = await deleteLoanFetch(loanId)
 
@@ -898,18 +901,23 @@ export default function ControlSupervisor() {
 
       try {
 
+        setLoading(true)
+
         const res = await fetch('/api/role/get')
         const data = await res.json()
 
         if (data.success === false) {
           setError(data.message)
+          setLoading(false)
           return
         }
         await setManagerRoleFunction(data.roles)
         setError(null)
+        setLoading(false)
 
       } catch (error) {
 
+        setLoading(false)
         setError(error.message)
 
       }
@@ -1239,6 +1247,8 @@ export default function ControlSupervisor() {
 
       const date = new Date(stringDatePickerValue).toISOString()
 
+      setLoading(true)
+
       try {
 
         const res = await fetch('/api/input/get-net-difference/' + company._id + '/' + date)
@@ -1264,6 +1274,7 @@ export default function ControlSupervisor() {
       } catch (error) {
 
         console.log(error)
+        setLoading(false)
       }
     }
 
@@ -1413,7 +1424,7 @@ export default function ControlSupervisor() {
       </div>
 
 
-
+      <EntradaInicial products={products} managerRole={managerRole}></EntradaInicial>
 
       <div className='border p-3 mt-4 bg-white'>
 

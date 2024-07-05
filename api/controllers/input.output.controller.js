@@ -627,12 +627,12 @@ export const getProviderProductInputs = async (req, res, next) => {
 
 export const createProviderInput = async (req, res, next) => {
 
-  const { weight, product, employee, branch, company, comment, pieces, createdAt } = req.body
+  const { providerInputWeight, product, employee, branch, company, comment, providerInputPieces, createdAt } = req.body
   const pricesDate = new Date(createdAt)
   pricesDate.setDate(pricesDate.getDate() + 1)
   const productPrice = await getProductPrice(product, branch, pricesDate)
-  const amount = productPrice.price * weight
-  const newProviderInput = ProviderInput({ weight, product, employee, branch, company, comment, pieces, amount, createdAt })
+  const amount = productPrice.price * providerInputWeight
+  const newProviderInput = ProviderInput({ weight: providerInputWeight, product, employee, branch, company, comment, pieces: providerInputPieces, amount, createdAt })
 
   try {
 
@@ -643,7 +643,7 @@ export const createProviderInput = async (req, res, next) => {
     res.status(200).json({ providerInput: newProviderInput })
 
   } catch (error) {
-
+    console.log(error)
     next(error)
   }
 }
