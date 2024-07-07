@@ -255,7 +255,12 @@ export default function Reporte() {
       {branchReports && branchReports.length > 0 ?
 
         <div>
+          {/* <div className="grid grid-cols-2 border w-full h-10 mb-4 border-black rounded-lg">
+            <button className={"h-full rounded-lg hover:shadow-xl " + (Table ? 'bg-slate-500 text-white' : 'bg-white')} onClick={() => { resetValues(), handleTableFilterButton() }}>Tabla</button>
+            <button className={"h-full rounded-lg hover:shadow-xl " + (cards ? 'bg-slate-500 text-white' : ' bg-white')} onClick={() => { resetValues(), handleCardsFilterButton() }}>Tarjetas</button>
+          </div> */}
 
+          <p>{'Formatos: ' + branchReports.length + '/20'}</p>
 
           <table className='border bg-white mt-4 w-full'>
 

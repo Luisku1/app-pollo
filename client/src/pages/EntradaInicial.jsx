@@ -4,17 +4,17 @@ import { useSelector } from "react-redux"
 import { useParams } from 'react-router-dom';
 import SectionHeader from "../components/SectionHeader";
 import { fetchBranches } from "../helpers/FetchFunctions";
-import { MdCancel, MdKeyboardArrowDown, MdKeyboardArrowRight } from "react-icons/md";
-import { FaTrash } from "react-icons/fa";
-import { FaRegListAlt } from "react-icons/fa";
-
+import { MdCancel } from "react-icons/md";
+import { FaListAlt, FaTrash } from "react-icons/fa";
+import React, { Component } from "react";
 
 export default function EntradaInicial({ products, managerRole }) {
 
   let paramsDate = useParams().date
+  const productsArray = products
   const { company, currentUser } = useSelector((state) => state.user)
   const [providerInputs, setProviderInputs] = useState([])
-  const [productName, setProductName] = useState('Producto')
+  const [productName, setProductName] = useState('Pollo Entero')
   const [productId, setProductId] = useState(null)
   const [branches, setBranches] = useState([])
   const [error, setError] = useState(null)
@@ -231,10 +231,15 @@ export default function EntradaInicial({ products, managerRole }) {
 
       setProviderInputs([])
       setProviderInputsTotal(0.0)
+      hideProviderInputs()
+
+      const product = productId == null ? products[0]._id : productId
+
+      console.log(product)
 
       try {
 
-        const res = await fetch('/api/input/get-provider-inputs/' + company._id + '/' + productId + '/' + date)
+        const res = await fetch('/api/input/get-provider-inputs/' + company._id + '/' + product + '/' + date)
         const data = await res.json()
 
         if (data.success === false) {
@@ -268,7 +273,7 @@ export default function EntradaInicial({ products, managerRole }) {
       fetchProviderInputs()
     }
 
-  }, [company._id, productId, stringDatePickerValue])
+  }, [company._id, productId, stringDatePickerValue, products])
 
   return (
 
@@ -279,24 +284,21 @@ export default function EntradaInicial({ products, managerRole }) {
       <div className='border bg-white p-3 mt-4'>
         {/* <SectionHeader label={productName + ' de proveedor'} /> */}
 
-        <div className="flex items-center justify-between pr-4">
-          <h2 className='flex text-2xl text-center font-semibold mb-4 text-red-800 flex-wrap'>
-            <div className="flex gap-2 items-center">
-              <select name="providerInputProduct" id="providerInputProduct" className='border p-3 rounded-lg text-lg col-span-3' onChange={(e) => { providerInputButtonControl(), saveProductName(e) }}>
-                <option value="none" selected hidden >Producto</option>
+        <div className="grid grid-cols-9 items-center justify-between pr-4">
+          <h2 className='col-span-6 flex text-2xl text-center font-semibold mb-4 text-red-800 flex-wrap'>
+            <div className="items-center">
+              <select name="providerInputProduct" id="providerInputProduct" className=' border p-3 rounded-lg text-lg col-span-3' onChange={(e) => { providerInputButtonControl(), saveProductName(e) }}>
 
                 {products && products.length != 0 && products.map((product) => (
 
                   <option key={product._id} value={product._id}>{product.name}</option>
                 ))}
               </select>
-
-              <p>de proveedor</p>
             </div>
           </h2>
-          <div className=" h-10 w-10 shadow-lg ">
+          <div className=" h-11 w-11 shadow-lg ">
 
-            <button className="w-full h-full" onClick={showProviderInputsFunction}><FaRegListAlt className="h-full w-full bg-red-500 text-white" />
+            <button className="w-full h-full" onClick={showProviderInputsFunction}><FaListAlt className="h-full w-full text-gray-500" />
             </button>
           </div>
         </div>
@@ -339,7 +341,7 @@ export default function EntradaInicial({ products, managerRole }) {
 
           <div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center max-w-lg max my-auto mx-auto z-10'>
             <div className=' bg-white p-5 rounded-lg justify-center items-center h-5/6 my-auto w-11/12'>
-                <button className="" onClick={hideProviderInputs}><MdCancel className="h-7 w-7" /></button>
+              <button className="" onClick={hideProviderInputs}><MdCancel className="h-7 w-7" /></button>
               < div className='border bg-white shadow-lg  mt-4 mb-4 h-full overflow-y-scroll'>
 
 
