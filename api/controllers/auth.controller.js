@@ -120,7 +120,6 @@ export const signIn = async (req, res, next) => {
       ]
     })
 
-
     if (!validUser) {
 
       return next(errorHandler(404, 'Wrong credentials'))

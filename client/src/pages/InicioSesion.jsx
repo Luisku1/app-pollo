@@ -162,6 +162,11 @@ export default function InicioSesion() {
     }
   }
 
+  useEffect(() => {
+
+    document.title = 'Inicia Sesión'
+  })
+
   return (
 
     <main className="p-3 max-w-lg mx-auto">

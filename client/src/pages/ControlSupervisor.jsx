@@ -1247,6 +1247,7 @@ export default function ControlSupervisor() {
 
       const date = new Date(stringDatePickerValue).toISOString()
 
+      setTotalNetDifference(0.0)
       setLoading(true)
 
       try {
@@ -1424,7 +1425,7 @@ export default function ControlSupervisor() {
       </div>
 
 
-      <EntradaInicial products={products} managerRole={managerRole}></EntradaInicial>
+      <EntradaInicial products={products} managerRole={managerRole} defaultProduct={products[0]}></EntradaInicial>
 
       <div className='border p-3 mt-4 bg-white'>
 

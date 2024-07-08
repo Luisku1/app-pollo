@@ -6,15 +6,13 @@ import SectionHeader from "../components/SectionHeader";
 import { fetchBranches } from "../helpers/FetchFunctions";
 import { MdCancel } from "react-icons/md";
 import { FaListAlt, FaTrash } from "react-icons/fa";
-import React, { Component } from "react";
 
-export default function EntradaInicial({ products, managerRole }) {
+export default function EntradaInicial({ products, defaultProduct, managerRole }) {
 
   let paramsDate = useParams().date
-  const productsArray = products
   const { company, currentUser } = useSelector((state) => state.user)
   const [providerInputs, setProviderInputs] = useState([])
-  const [productName, setProductName] = useState('Pollo Entero')
+  const [productName, setProductName] = useState('Elige un producto')
   const [productId, setProductId] = useState(null)
   const [branches, setBranches] = useState([])
   const [error, setError] = useState(null)
@@ -275,6 +273,15 @@ export default function EntradaInicial({ products, managerRole }) {
 
   }, [company._id, productId, stringDatePickerValue, products])
 
+  useEffect(() => {
+
+    if (defaultProduct) {
+
+      setProductId(defaultProduct._id)
+      setProductName(defaultProduct.name)
+    }
+  }, [defaultProduct])
+
   return (
 
     <main className="max-w-lg mx-auto">
@@ -288,6 +295,8 @@ export default function EntradaInicial({ products, managerRole }) {
           <h2 className='col-span-6 flex text-2xl text-center font-semibold mb-4 text-red-800 flex-wrap'>
             <div className="items-center">
               <select name="providerInputProduct" id="providerInputProduct" className=' border p-3 rounded-lg text-lg col-span-3' onChange={(e) => { providerInputButtonControl(), saveProductName(e) }}>
+
+                <option value={defaultProduct ? defaultProduct._id : 'none'}>{defaultProduct ? defaultProduct.name : productName}</option>
 
                 {products && products.length != 0 && products.map((product) => (
 

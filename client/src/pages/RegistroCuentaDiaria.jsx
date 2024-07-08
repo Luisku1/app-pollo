@@ -722,8 +722,11 @@ export default function RegistroCuentaDiaria() {
           return
         }
 
-        setOutgoings(data.outgoings)
-        setOutgoingsTotalFunction(data.outgoings)
+        if (data.outgoings[0].employee == currentUser._id || currentUser.role == managerRole._id) {
+
+          setOutgoings(data.outgoings)
+          setOutgoingsTotalFunction(data.outgoings)
+        }
         setError(null)
         setLoading(false)
 
@@ -1009,6 +1012,26 @@ export default function RegistroCuentaDiaria() {
 
   useEffect(() => {
 
+    const setPricesFunction = async () => {
+
+      const date = branchReport.createdAt ? branchReport.createdAt : new Date().toISOString()
+
+      setLoading(true)
+
+      const { error, data } = await fetchPrices(branchId, date, branchReport.createdAt ? 1 : 0)
+
+
+      if (error == null) {
+        setPrices(data)
+        setError(null)
+
+      } else {
+
+        setError(error)
+      }
+      setLoading(false)
+    }
+
     const fetchBranchReport = async () => {
 
       const date = new Date(stringDatePickerValue).toISOString()
@@ -1028,11 +1051,11 @@ export default function RegistroCuentaDiaria() {
           return
         }
 
-
         const employeeTempOption = employees.find((employee) =>
 
           employee.value == data.originalBranchReport.employee
         )
+
         const assistantTempOption = employees.find((assistant) => assistant.value == data.originalBranchReport.assistant)
 
         if (employeeTempOption) {
@@ -1055,6 +1078,8 @@ export default function RegistroCuentaDiaria() {
         setError(error.message)
         setLoading(false)
       }
+
+      await setPricesFunction()
     }
 
     if (branchId && employees && stringDatePickerValue) {
@@ -1063,32 +1088,6 @@ export default function RegistroCuentaDiaria() {
     }
 
   }, [branchId, employees, stringDatePickerValue])
-
-  useEffect(() => {
-
-    const setPricesFunction = async () => {
-
-      const date = branchReport.createdAt ? branchReport.createdAt : new Date().toISOString()
-
-      setLoading(true)
-
-      const { error, data } = await fetchPrices(branchId, date, branchReport.createdAt ? 1 : 0)
-
-
-      if (error == null) {
-        setPrices(data)
-        setError(null)
-
-      } else {
-
-        setError(error)
-      }
-      setLoading(false)
-    }
-
-    setPricesFunction()
-
-  }, [branchReport])
 
   useEffect(() => {
 
@@ -1134,9 +1133,7 @@ export default function RegistroCuentaDiaria() {
 
   useEffect(() => {
 
-    console.log('----', selectedBranch, stringDatePickerValue)
-
-    if(selectedBranch != null && stringDatePickerValue != null) {
+    if (selectedBranch != null && stringDatePickerValue != null) {
 
       document.title = selectedBranch.label + ' ' + '(' + (new Date(stringDatePickerValue).toLocaleDateString()) + ')'
     }
@@ -1196,6 +1193,7 @@ export default function RegistroCuentaDiaria() {
         <div className='col-span-8'>
 
           <Select
+            id='branchSelect'
             value={selectedBranch}
             onChange={handleBranchSelectChange}
             options={branches}
@@ -1254,50 +1252,54 @@ export default function RegistroCuentaDiaria() {
               : ''}
             {outgoings && outgoings.length > 0 && outgoings.map((outgoing, index) => (
 
-
-              <div key={outgoing._id} className={(currentUser._id == outgoing.employee || currentUser.role == managerRole._id ? '' : 'py-3 ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
-
-                <div id='list-element' className='flex col-span-10 items-center'>
-                  <p className='text-center text-xs w-6/12'>{outgoing.concept}</p>
-                  <p className='text-center text-xs w-6/12'>{outgoing.amount.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
-                </div>
+              <div key={outgoing._id}>
 
                 {currentUser._id == outgoing.employee || currentUser.role == managerRole._id ?
 
-                  <div>
-                    <button id={outgoing._id} onClick={() => { setIsOpen(isOpen ? false : true), setButtonId(outgoing._id) }} disabled={loading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
-                      <span>
-                        <FaTrash className='text-red-700 m-auto' />
-                      </span>
-                    </button>
+                  <div className={(currentUser._id == outgoing.employee || currentUser.role == managerRole._id ? '' : 'py-3 ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
 
-                    {isOpen && outgoing._id == buttonId ?
-                      <div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center items-center'>
-                        <div className='bg-white p-5 rounded-lg flex flex-col justify-center items-center gap-5'>
-                          <div>
-                            <p className='text-3xl font-semibold'>¿Estás seguro de borrar este registro?</p>
-                          </div>
-                          <div className='flex gap-10'>
+                    <div id='list-element' className='flex col-span-10 items-center'>
+                      <p className='text-center text-xs w-6/12'>{outgoing.concept}</p>
+                      <p className='text-center text-xs w-6/12'>{outgoing.amount.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
+                    </div>
+
+
+                    <div>
+                      <button id={outgoing._id} onClick={() => { setIsOpen(isOpen ? false : true), setButtonId(outgoing._id) }} disabled={loading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
+                        <span>
+                          <FaTrash className='text-red-700 m-auto' />
+                        </span>
+                      </button>
+
+                      {isOpen && outgoing._id == buttonId ?
+                        <div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center items-center'>
+                          <div className='bg-white p-5 rounded-lg flex flex-col justify-center items-center gap-5'>
                             <div>
-                              <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteOutgoing(outgoing._id, index), setIsOpen(isOpen ? false : true) }}>Si</button>
+                              <p className='text-3xl font-semibold'>¿Estás seguro de borrar este registro?</p>
                             </div>
-                            <div>
-                              <button className='rounded-lg border shadow-lg w-20 h-10' onClick={() => { setIsOpen(isOpen ? false : true) }}>No</button>
+                            <div className='flex gap-10'>
+                              <div>
+                                <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteOutgoing(outgoing._id, index), setIsOpen(isOpen ? false : true) }}>Si</button>
+                              </div>
+                              <div>
+                                <button className='rounded-lg border shadow-lg w-20 h-10' onClick={() => { setIsOpen(isOpen ? false : true) }}>No</button>
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                      : ''}
+                        : ''}
+
+                    </div>
+
 
                   </div>
 
                   : ''}
-
               </div>
-
             ))}
 
-            {outgoings && outgoings.length > 0 ?
+            {outgoings && outgoings.length > 0 && currentUser._id == (selectedEmployee ? selectedEmployee.value : 'none') || currentUser.role == managerRole._id ?
+
 
               <div className='flex mt-4 border-black border rounded-lg p-3 border-opacity-30 shadow-lg'>
                 <p className='w-6/12 text-center'>Total:</p>
