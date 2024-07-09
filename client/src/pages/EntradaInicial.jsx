@@ -307,7 +307,7 @@ export default function EntradaInicial({ products, defaultProduct, managerRole }
           </h2>
           <div className=" h-11 w-11 shadow-lg ">
 
-            <button className="w-full h-full" onClick={showProviderInputsFunction}><FaListAlt className="h-full w-full text-gray-500" />
+            <button className="w-full h-full" onClick={showProviderInputsFunction}><FaListAlt className="h-full w-full text-red-600" />
             </button>
           </div>
         </div>

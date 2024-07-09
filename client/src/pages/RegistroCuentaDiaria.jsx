@@ -1047,6 +1047,7 @@ export default function RegistroCuentaDiaria() {
         if (data.success === false) {
 
           setLoading(false)
+          await setPricesFunction()
           setError(data.message)
           return
         }
