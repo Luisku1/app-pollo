@@ -296,7 +296,7 @@ export default function EntradaInicial({ products, defaultProduct, managerRole }
             <div className="items-center">
               <select name="providerInputProduct" id="providerInputProduct" className=' border p-3 rounded-lg text-lg col-span-3' onChange={(e) => { providerInputButtonControl(), saveProductName(e) }}>
 
-                <option value={defaultProduct ? defaultProduct._id : 'none'}>{defaultProduct ? defaultProduct.name : productName}</option>
+                <option hidden value={defaultProduct ? defaultProduct._id : 'none'}>{defaultProduct ? defaultProduct.name : productName}</option>
 
                 {products && products.length != 0 && products.map((product) => (
 
