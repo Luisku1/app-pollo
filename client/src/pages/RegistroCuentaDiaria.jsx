@@ -724,9 +724,9 @@ export default function RegistroCuentaDiaria() {
 
         if (data.outgoings[0].employee == currentUser._id || currentUser.role == managerRole._id) {
 
-          setOutgoings(data.outgoings)
           setOutgoingsTotalFunction(data.outgoings)
         }
+        setOutgoings(data.outgoings)
         setError(null)
         setLoading(false)
 
