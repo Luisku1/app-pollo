@@ -154,7 +154,6 @@ export default function EntradaInicial({ products, defaultProduct, managerRole }
 
       piecesInput.value = ''
       weightInput.value = ''
-      branchInput.value = 'none'
 
       setLoading(false)
       inputButton.disabled = false

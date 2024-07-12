@@ -16,3 +16,5 @@ const employeePaymentSchema = new Mongoose.Schema({
 }, { timestamps: true })
 
 const EmployeePayment = mongoose.model('EmployeePayment', employeePaymentSchema)
+
+export default EmployeePayment

@@ -224,6 +224,11 @@ export default function ControlSupervisor() {
   const saveProductName = (e) => {
 
     let index = e.target.selectedIndex
+    const inputProductSelect = document.getElementById('inputProduct')
+    const outputProductSelect = document.getElementById('outputProduct')
+
+    inputProductSelect.value = e.target.value
+    outputProductSelect.value = e.target.value
     setProductName(e.target.options[index].text)
   }
 
