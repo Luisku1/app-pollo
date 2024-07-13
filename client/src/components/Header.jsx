@@ -15,7 +15,6 @@ export default function Header() {
   const [products, setProducts] = useState([])
   const { currentUser, company } = useSelector((state) => state.user)
   const [open, setOpen] = useState(false);
-  const [providerIsOpen, setProviderIsOpen] = useState(false)
   const [reportIsOpen, setReportIsOpen] = useState(false)
   let menuRef = useRef();
   let supervisorRole
@@ -110,7 +109,7 @@ export default function Header() {
 
         <div className='menu-container z-10' ref={menuRef}>
 
-          <div className="menu-trigger" onClick={() => { setProviderIsOpen(false), setReportIsOpen(false), setOpen(!open) }}>
+          <div className="menu-trigger" onClick={() => { setReportIsOpen(false), setOpen(!open) }}>
             <MdOutlineMenu className='w-5 h-5 mdoutline' />
           </div>
 
@@ -133,7 +132,7 @@ export default function Header() {
                       <DropdownItem text={'Supervisión'} link={'/supervision-diaria'} onClick={() => { setOpen(!open) }} />
                       <DropdownItem text={'Registro Empleado'} link={'/registro-empleado'} onClick={() => { setOpen(!open) }} />
 
-                      < div >
+                      {/* < div >
                         <div className='menu-trigger flex items-center justify-between' onClick={() => { setProviderIsOpen(!providerIsOpen) }}>
                           <DropdownItem text={'Entradas Proveedores'} link={'#'} />
 
@@ -151,7 +150,7 @@ export default function Header() {
                             ))}
                           </ul>
                         </div>
-                      </div>
+                      </div> */}
 
                     </div>
 

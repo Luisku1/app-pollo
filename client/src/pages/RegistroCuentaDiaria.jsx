@@ -273,6 +273,7 @@ export default function RegistroCuentaDiaria() {
 
       conceptInput.value = ''
       amountInput.value = ''
+      conceptInput.focus()
       button.disabled = false
 
     } catch (error) {
@@ -347,6 +348,8 @@ export default function RegistroCuentaDiaria() {
 
       weightInput.value = ''
       piecesInput.value = ''
+
+      productSelect.focus()
 
       button.disabled = false
 

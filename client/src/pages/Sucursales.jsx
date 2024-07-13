@@ -110,6 +110,10 @@ export default function Sucursales() {
   useEffect(() => {
 
     document.title = 'Sucursales'
+    const searchBar = document.getElementById('searchBar')
+
+    searchBar.focus()
+
   })
 
   return (

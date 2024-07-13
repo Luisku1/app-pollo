@@ -656,6 +656,7 @@ export default function ControlSupervisor() {
       weightInput.value = ''
       inputSpecialPrice.value = ''
       productInput.value = 'none'
+      branchInput.focus()
 
       setLoading(false)
 
@@ -727,6 +728,7 @@ export default function ControlSupervisor() {
       data.input.branch = inputBranchName
       data.input.product = productName
       data.input.employee = currentUser
+      branchInput.focus()
 
       setError(null)
       setInputs([data.input, ...inputs])
