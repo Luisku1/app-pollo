@@ -290,12 +290,12 @@ export default function EntradaInicial({ products, defaultProduct, managerRole }
       <div className='border bg-white p-3 mt-4'>
         {/* <SectionHeader label={productName + ' de proveedor'} /> */}
 
-        <div className="grid grid-cols-9 items-center justify-between pr-4">
-          <h2 className='col-span-6 flex text-2xl text-center font-semibold mb-4 text-red-800 flex-wrap'>
-            <div className="items-center">
-              <select name="providerInputProduct" id="providerInputProduct" className=' border p-3 rounded-lg text-lg col-span-3' onChange={(e) => { providerInputButtonControl(), saveProductName(e) }}>
+        <div className="flex gap-2 pr-4">
+          <h2 className='text-2xl text-center font-semibold mb-4 text-red-800'>
+            <div className="truncate">
+              <select name="providerInputProduct" id="providerInputProduct" className=' border p-3 rounded-lg text-lg' onChange={(e) => { providerInputButtonControl(), saveProductName(e) }}>
 
-                <option hidden value={defaultProduct ? defaultProduct._id : 'none'}>{defaultProduct ? defaultProduct.name : productName}</option>
+                <option className="" selected disabled hidden value={defaultProduct ? defaultProduct._id : 'none'}>{(defaultProduct ? defaultProduct.name : productName) + ' de proveedor'}</option>
 
                 {products && products.length != 0 && products.map((product) => (
 
@@ -304,7 +304,7 @@ export default function EntradaInicial({ products, defaultProduct, managerRole }
               </select>
             </div>
           </h2>
-          <div className=" h-11 w-11 shadow-lg ">
+          <div className="h-10 w-10 shadow-lg ">
 
             <button className="w-full h-full" onClick={showProviderInputsFunction}><FaListAlt className="h-full w-full text-red-600" />
             </button>
