@@ -113,6 +113,29 @@ export const getBranchCurrentPrices = async (req, res, next) => {
   const branchId = req.params.branchId
   const date = req.params.date
   const reportExists = req.params.reportExists
+
+  try {
+
+    const currentPrices = await getPrices(branchId, date, reportExists, next)
+
+    if (Object.getOwnPropertyNames(currentPrices).length > 0) {
+
+      res.status(200).json({ data: currentPrices })
+
+    } else {
+
+      next(errorHandler(404, 'Error Ocurred'))
+    }
+
+  } catch (error) {
+
+    next(error)
+  }
+
+}
+
+const getPrices = async (branchId, date, reportExists, next) => {
+
   let topDate
 
   if (reportExists == 1) {
@@ -136,11 +159,8 @@ export const getBranchCurrentPrices = async (req, res, next) => {
 
     if (productsPrice.error == null) {
 
-      res.status(200).json({ data: productsPrice.data })
+      return productsPrice.data
 
-    } else {
-
-      next(errorHandler(404, 'Error ocurred'))
     }
 
 
@@ -148,8 +168,9 @@ export const getBranchCurrentPrices = async (req, res, next) => {
 
     next(error)
   }
-
 }
+
+
 
 export const getAllBranchPrices = async (req, res, next) => {
 

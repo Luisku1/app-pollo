@@ -28,6 +28,29 @@ export const getInitialStock = async (req, res, next) => {
   const date = new Date(req.params.date)
   const branchId = req.params.branchId
   const reportExists = req.params.reportExists
+  const reportDate = req.params.reportDate
+
+  try {
+
+    const initialStock = await getStockValue(date, branchId, reportExists, reportDate, next)
+
+    if (initialStock) {
+
+      res.status(200).json({ initialStock: initialStock })
+
+    } else {
+
+      errorHandler(404, 'Error Ocurred')
+    }
+
+  } catch (error) {
+
+    next(error)
+  }
+}
+
+const getStockValue = async (date, branchId, reportExists, reportDate, next) => {
+
   let pricesDate
 
   const actualLocaleDateMinusOne = new Date(date)
@@ -41,7 +64,7 @@ export const getInitialStock = async (req, res, next) => {
 
   if (reportExists == 1) {
 
-    pricesDate = new Date(req.params.reportDate)
+    pricesDate = new Date(reportDate)
 
   } else {
 
@@ -90,17 +113,12 @@ export const getInitialStock = async (req, res, next) => {
 
         })
 
-        res.status(200).json({ initialStock: total })
+        return total
 
-      } else {
-
-        next(errorHandler(404, 'An error ocurred'))
       }
-
-
     } else {
 
-      res.status(200).json({ initialStock: 0.0 })
+      return 0.0
     }
 
   } catch (error) {
@@ -441,4 +459,23 @@ const groupStockByBranchFunction = (stock) => {
   })
 
   return result
+}
+
+export const createAfternoonStock = async (req, res, next) => {
+
+  const { pieces, weight, amount, branch, product, company, employee, createdAt } = req.body
+
+  try {
+
+    const newStock = new Stock({ pieces, employee, weight, amount, branch, product, company, createdAt })
+    await af.save()
+
+    // updateReportStock(branch, createdAt, amount)
+    res.status(201).json({ message: 'New Afternoon Stock is created successfully', stock: newStock })
+
+  } catch (error) {
+
+    next(error)
+
+  }
 }

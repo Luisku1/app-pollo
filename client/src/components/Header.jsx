@@ -75,7 +75,6 @@ export default function Header() {
     let handler = (e) => {
       if (!menuRef.current.contains(e.target)) {
         setOpen(false);
-        setProviderIsOpen(false)
       }
     };
 

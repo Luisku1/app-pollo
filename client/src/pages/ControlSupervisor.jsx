@@ -10,6 +10,8 @@ import Select from "react-tailwindcss-select";
 import { formatDate } from '../helpers/DatePickerFunctions';
 import FechaDePagina from '../components/FechaDePagina';
 import EntradaInicial from './EntradaInicial';
+import { Bounce, Slide, ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export default function ControlSupervisor() {
 
@@ -58,11 +60,27 @@ export default function ControlSupervisor() {
   const navigate = useNavigate()
   let datePickerValue = (paramsDate ? new Date(paramsDate) : new Date())
   let stringDatePickerValue = formatDate(datePickerValue)
-  let today = formatDate(datePickerValue) == formatDate(new Date()) ? true : false
+  let today = formatDate(datePickerValue) == formatDate((new Date())) ? true : false
+
+  console.log(today)
+
+  const notify = (message) => {
+
+    toast.success(message, {
+      position: 'top-center',
+      transition: Slide,
+      autoClose: 2000,
+      draggable: true,
+      closeOnClick: true,
+      theme: 'dark',
+      pauseOnHover: false
+
+    })
+  }
 
   const changeDatePickerValue = (e) => {
 
-    stringDatePickerValue = (e.target.value + 'T06:00:00.000Z')
+    stringDatePickerValue = (e.target.value)
 
     navigate('/supervision-diaria/' + stringDatePickerValue)
 
@@ -155,7 +173,7 @@ export default function ControlSupervisor() {
             <button className="absolute right-0" onClick={() => { setMovementDetailsIsOpen(!movementDetailsIsOpen) }}><MdCancel className="h-7 w-7" /></button>
           </div>
           <div className='h-5/6 overflow-y-scroll'>
-          <div className={"grid grid-cols-2 p-3 shadow-lg rounded-lg mb-4 gap-2 items-center"}>
+            <div className={"grid grid-cols-2 p-3 shadow-lg rounded-lg mb-4 gap-2 items-center"}>
               <p className="font-bold text-lg">{'Hora:'}</p>
               <p>{(new Date(output.createdAt)).toLocaleTimeString('es-Mx')}</p>
             </div>
@@ -489,6 +507,7 @@ export default function ControlSupervisor() {
         return
       }
 
+      notify('Nuevo préstamo registrado')
       data.loan.employee = selectedEmployee
       data.loan.supervisor = currentUser
 
@@ -559,6 +578,7 @@ export default function ControlSupervisor() {
         return
       }
 
+      notify('Nuevo gasto registrado')
       data.extraOutgoing.employee = currentUser
 
       setError(null)
@@ -644,6 +664,8 @@ export default function ControlSupervisor() {
         return
       }
 
+      notify('Salida registrada')
+
       data.output.branch = outputBranchName
       data.output.product = productName
       data.output.employee = currentUser
@@ -725,6 +747,8 @@ export default function ControlSupervisor() {
         return
       }
 
+      notify('Entrada registrada')
+
       data.input.branch = inputBranchName
       data.input.product = productName
       data.input.employee = currentUser
@@ -803,6 +827,8 @@ export default function ControlSupervisor() {
         setLoading(false)
         return
       }
+
+      notify('Efectivo registrado')
 
       data.income.employee = currentUser
       data.income.branch = incomeBranchName
@@ -1302,9 +1328,12 @@ export default function ControlSupervisor() {
     document.title = 'Supervisión (' + new Date(stringDatePickerValue).toLocaleDateString() + ')'
   })
 
+
   return (
 
     <main className="p-3 max-w-lg mx-auto">
+
+      <ToastContainer />
 
       {managerRole._id == currentUser.role ?
 

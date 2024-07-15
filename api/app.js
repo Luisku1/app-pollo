@@ -19,6 +19,7 @@ import inputRouter from './routes/input.route.js'
 import incomeRouter from './routes/income.route.js'
 import reportRouter from './routes/report.route.js'
 import path from 'path'
+import { pruebaFecha } from './controllers/date.controller.js'
 
 const app = express()
 
@@ -69,6 +70,9 @@ app.get('*', (req, res) => {
 
     res.sendFile(path.join(__dirname, 'client', 'dist', 'index.html'))
 })
+
+
+pruebaFecha()
 
 app.use((err, req, res, next) => {
 
