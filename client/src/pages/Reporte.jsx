@@ -278,7 +278,7 @@ export default function Reporte() {
 
           <div>
 
-          <p>{'Formatos: ' + branchReports.length + '/20'}</p>
+          <p className="font-bold">{'Formatos: ' + branchReports.length + '/20'}</p>
             <div className="grid grid-cols-2 border w-full h-10 mb-4 border-black rounded-lg">
               <button className={"h-full rounded-lg hover:shadow-xl " + (showTable ? 'bg-slate-500 text-white' : 'bg-white')} onClick={() => { handleShowTableButton() }}>Tabla</button>
               <button className={"h-full rounded-lg hover:shadow-xl " + (showCards ? 'bg-slate-500 text-white' : ' bg-white')} onClick={() => { handleShowCardsButton() }}>Tarjetas</button>
