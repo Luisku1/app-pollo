@@ -108,7 +108,7 @@ export default function InicioSesion() {
     {
       dispatch(signInStart())
 
-      if(formData.emailNumber == undefined || formData.password == undefined)
+      if(formData.phoneNumber == undefined || formData.password == undefined)
       {
         dispatch(signInFailiure('Llena todos los campos'))
         return
