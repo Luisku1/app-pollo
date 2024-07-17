@@ -130,6 +130,7 @@ export default function Header() {
 
                       <DropdownItem text={'Supervisión'} link={'/supervision-diaria'} onClick={() => { setOpen(!open) }} />
                       <DropdownItem text={'Registro Empleado'} link={'/registro-empleado'} onClick={() => { setOpen(!open) }} />
+                      <DropdownItem text={'Sucursales'} link={'/sucursales'} onClick={() => { setOpen(!open) }} />
 
                       {/* < div >
                         <div className='menu-trigger flex items-center justify-between' onClick={() => { setProviderIsOpen(!providerIsOpen) }}>
@@ -185,7 +186,6 @@ export default function Header() {
 
                       <DropdownItem text={'Empleados'} link={'/empleados'} onClick={() => { setOpen(!open) }} />
 
-                      <DropdownItem text={'Sucursales'} link={'/sucursales'} onClick={() => { setOpen(!open) }} />
 
                       <DropdownItem text={'Productos'} link={'/productos'} onClick={() => { setOpen(!open) }} />
 
