@@ -6,6 +6,7 @@ import SectionHeader from "../components/SectionHeader";
 import { fetchBranches } from "../helpers/FetchFunctions";
 import { MdCancel } from "react-icons/md";
 import { FaListAlt, FaTrash } from "react-icons/fa";
+import { Slide, ToastContainer, toast } from "react-toastify";
 
 export default function EntradaInicial({ products, defaultProduct, managerRole }) {
 
@@ -20,11 +21,23 @@ export default function EntradaInicial({ products, defaultProduct, managerRole }
   const [providerInputFormData, setProviderInputFormData] = useState({})
   const [providerInputsTotal, setProviderInputsTotal] = useState(0.0)
   const [branchName, setBranchName] = useState(null)
-  const [providerInputsIsOpen, setProviderInputsIsOpen] = useState(false)
   const [showProviderInputs, setShowProviderInputs] = useState(false)
   const [buttonId, setButtonId] = useState(null)
   const [isOpen, setIsOpen] = useState(false)
   let datePickerValue = (paramsDate ? new Date(paramsDate) : new Date())
+
+  const notify = (message) => {
+
+    toast.success(message, {
+      position: 'top-center',
+      transition: Slide,
+      autoClose: 2000,
+      draggable: true,
+      closeOnClick: true,
+      theme: 'dark',
+      pauseOnHover: false
+    })
+  }
 
   const saveProductName = (e) => {
 
@@ -143,6 +156,8 @@ export default function EntradaInicial({ products, defaultProduct, managerRole }
         inputButton.disabled = false
         return
       }
+
+      notify('Entrada de proveedor registrada')
 
       data.providerInput.branch = branchName
       data.providerInput.product = productName
@@ -284,6 +299,8 @@ export default function EntradaInicial({ products, defaultProduct, managerRole }
   return (
 
     <main className="max-w-lg mx-auto">
+
+      <ToastContainer />
 
       {error ? <p>{error}</p> : ''}
 

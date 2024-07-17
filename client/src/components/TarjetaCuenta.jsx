@@ -71,7 +71,7 @@ export default function TarjetaCuenta({ reportArray, managerRole, currentUser })
                   {index != 0 || (new Date()).toISOString().slice(0, 10) >= new Date(reportData.createdAt).toISOString().slice(0, 10) ?
                     <div className="flex gap-2">
                       <p className="text-lg">Faltante: </p>
-                      <p className={reportData.balance < 0 ? 'text-red-700 font-bold' : '' + 'text-lg font-bold'}>{reportData.balance > 0 ? '$0.00' : parseFloat(reportData.balance).toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
+                      <p className={reportData.balance < 0 ? 'text-red-700 font-bold' : '' + 'text-lg font-bold'}>{reportData.balance > 0  ?  managerRole._id == currentUser.role ? parseFloat(reportData.balance).toLocaleString("es-MX", { style: 'currency', currency: 'MXN' }) : '$0.00' : parseFloat(reportData.balance).toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
                     </div>
                     : ''}
                   <p>Efectivo: {reportData.incomes.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>

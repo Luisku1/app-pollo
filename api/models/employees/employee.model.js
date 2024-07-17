@@ -3,13 +3,6 @@ const { Schema } = mongoose
 
 const employeeSchema = new mongoose.Schema({
 
-  email: {
-    type: String,
-    sparse: true,
-    index: true,
-    unique: true,
-  },
-
   phoneNumber: {
     type: String,
     unique: true

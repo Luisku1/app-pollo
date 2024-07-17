@@ -10,7 +10,7 @@ import Select from "react-tailwindcss-select";
 import { formatDate } from '../helpers/DatePickerFunctions';
 import FechaDePagina from '../components/FechaDePagina';
 import EntradaInicial from './EntradaInicial';
-import { Bounce, Slide, ToastContainer, toast } from 'react-toastify';
+import { Slide, ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 export default function ControlSupervisor() {
@@ -74,13 +74,12 @@ export default function ControlSupervisor() {
       closeOnClick: true,
       theme: 'dark',
       pauseOnHover: false
-
     })
   }
 
   const changeDatePickerValue = (e) => {
 
-    stringDatePickerValue = (e.target.value)
+    stringDatePickerValue = (e.target.value + 'T06:00:00.000Z')
 
     navigate('/supervision-diaria/' + stringDatePickerValue)
 

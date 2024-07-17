@@ -9,7 +9,7 @@ export const signUp = async (req, res, next) => {
 
   let role = req.body.role
 
-  const { name, lastName, email, password, salary, payDay, company, phoneNumber, balance } = req.body
+  const { name, lastName, password, salary, payDay, company, phoneNumber, balance } = req.body
 
   if (!password) {
 
@@ -27,34 +27,13 @@ export const signUp = async (req, res, next) => {
 
   }
 
-  console.log(email)
-
   if (balance) {
 
-    if (email != undefined) {
-
-
-      newEmployee = new Employee({ name, lastName, email, password: hashedPassword, phoneNumber, role, salary, payDay, company, balance })
-
-    } else {
-
-      newEmployee = new Employee({ name, lastName, password: hashedPassword, phoneNumber, role, salary, payDay, company, balance })
-
-    }
-
+    newEmployee = new Employee({ name, lastName, password: hashedPassword, phoneNumber, role, salary, payDay, company, balance })
 
   } else {
 
-    if (email != undefined) {
-
-      newEmployee = new Employee({ name, lastName, email, password: hashedPassword, phoneNumber, role, salary, payDay, company })
-
-    } else {
-
-      newEmployee = new Employee({ name, lastName, password: hashedPassword, phoneNumber, role, salary, payDay, company })
-    }
-
-
+    newEmployee = new Employee({ name, lastName, password: hashedPassword, phoneNumber, role, salary, payDay, company })
   }
 
   try {
@@ -87,7 +66,7 @@ export const ownerSignUp = async (req, res, next) => {
   try {
 
     const ownerRole = await Role.findOne({ name: 'Dueño' })
-    const newOwner = new Owner({ name, lastName, email, password: hashedPassword, phoneNumber, role: ownerRole._id })
+    const newOwner = new Owner({ name, lastName, password: hashedPassword, phoneNumber, role: ownerRole._id })
 
 
     await newOwner.save()
@@ -101,29 +80,17 @@ export const ownerSignUp = async (req, res, next) => {
 
 export const signIn = async (req, res, next) => {
 
-  const { emailNumber, password } = req.body
+  const { phoneNumber, password } = req.body
 
-  console.log(emailNumber, password)
+  console.log(phoneNumber, password)
 
   try {
 
-    let validUser = await Employee.findOne({
-      $or: [
-        {
-          phoneNumber: emailNumber
-        },
-        {
-          email: {
-            $regex: emailNumber, $options: 'i'
-          }
-        }
-      ]
-    })
+    let validUser = await Employee.findOne({phoneNumber})
 
     if (!validUser) {
 
       return next(errorHandler(404, 'Wrong credentials'))
-
     }
 
     const validPassword = bcryptjs.compareSync(password, validUser.password)

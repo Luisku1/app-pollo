@@ -22,6 +22,8 @@ export default function Reporte() {
   const [selectedSupervisor, setSelectedSupervisor] = useState(null)
   const [balanceTotal, setBalanceTotal] = useState(0.0)
   const [managerRole, setManagerRole] = useState({})
+  const [showTable, setShowTable] = useState(true)
+  const [showCards, setShowCards] = useState(false)
   const navigate = useNavigate()
   let datePickerValue = (paramsDate ? new Date(paramsDate) : new Date())
   let stringDatePickerValue = formatDate(datePickerValue)
@@ -37,6 +39,19 @@ export default function Reporte() {
 
     navigate('/reporte/' + date)
 
+  }
+
+  const handleShowCardsButton = () => {
+
+    setShowTable(false)
+    setShowCards(true)
+
+  }
+
+  const handleShowTableButton = () => {
+
+    setShowCards(false)
+    setShowTable(true)
   }
 
   const extraOutgoingsIsOpenFunctionControl = (arrayLength, selectedSupervisorId) => {
@@ -260,76 +275,86 @@ export default function Reporte() {
             <button className={"h-full rounded-lg hover:shadow-xl " + (cards ? 'bg-slate-500 text-white' : ' bg-white')} onClick={() => { resetValues(), handleCardsFilterButton() }}>Tarjetas</button>
           </div> */}
 
+
+          <div>
+
           <p>{'Formatos: ' + branchReports.length + '/20'}</p>
+            <div className="grid grid-cols-2 border w-full h-10 mb-4 border-black rounded-lg">
+              <button className={"h-full rounded-lg hover:shadow-xl " + (showTable ? 'bg-slate-500 text-white' : 'bg-white')} onClick={() => { handleShowTableButton() }}>Tabla</button>
+              <button className={"h-full rounded-lg hover:shadow-xl " + (showCards ? 'bg-slate-500 text-white' : ' bg-white')} onClick={() => { handleShowCardsButton() }}>Tarjetas</button>
+            </div>
 
-          <table className='border bg-white mt-4 w-full'>
+            <table className={'border bg-white mt-4 w-full ' + (!showTable ? 'hidden' : '')}>
 
-            <thead className="border border-black">
+              <thead className="border border-black">
 
-              <tr>
-                {/* <th></th> */}
-                <th className="text-sm">Sucursal</th>
-                <th className="text-sm">
-                  <Link className="flex justify-center" to={'/gastos/' + stringDatePickerValue}>
-                    Gastos
-                  </Link>
-                </th>
-                <th className="text-sm">
-                  <Link className="flex justify-center" to={'/sobrante/' + stringDatePickerValue}>
-                    Sobrante
-                  </Link>
-                </th>
-                <th className="text-sm">Efectivo</th>
-                <th className="text-sm">Balance</th>
-              </tr>
-            </thead>
-
-            {branchReports.map((branchReport, index) => (
-
-              <tbody key={branchReport._id} className="">
-
-
-                <tr className={'border-x ' + (index + 1 != branchReports.length ? "border-b " : '') + 'border-black border-opacity-40'}>
-                  {/* <td className="text-xs">{branchReport.branch.position}</td> */}
-                  <td className="group">
-                    <Link className='' to={'/formato/' + branchReport.createdAt + '/' + branchReport.branch._id}>
-                      <p className=" text-sm">{branchReport.branch.branch}</p>
-                      <div className="hidden group-hover:block group-hover:fixed group-hover:overflow-hidden group-hover:mt-2 ml-24 bg-slate-600 text-white shadow-2xl rounded-md p-2">
-                        <p>{branchReport.employee != null ? branchReport.employee.name + ' ' + branchReport.employee.lastName : 'Empleado eliminado'}</p>
-                        {branchReport.assistant != null ?
-
-                          <p>{branchReport.assistant.name + ' ' + branchReport.assistant.lastName}</p>
-                          : ''}
-                      </div>
+                <tr>
+                  {/* <th></th> */}
+                  <th className="text-sm">Sucursal</th>
+                  <th className="text-sm">
+                    <Link className="flex justify-center" to={'/gastos/' + stringDatePickerValue}>
+                      Gastos
                     </Link>
-                  </td>
-                  <td className="text-center text-sm">{branchReport.outgoings.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</td>
-                  <td className="text-center text-sm">{branchReport.finalStock.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</td>
-                  <td className="text-center text-sm">{branchReport.incomes.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</td>
-                  <td className={(branchReport.balance < 0 ? 'text-red-500' : 'text-green-500') + ' text-center text-sm'}>{branchReport.balance.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })} </td>
+                  </th>
+                  <th className="text-sm">
+                    <Link className="flex justify-center" to={'/sobrante/' + stringDatePickerValue}>
+                      Sobrante
+                    </Link>
+                  </th>
+                  <th className="text-sm">Efectivo</th>
+                  <th className="text-sm">Balance</th>
                 </tr>
-              </tbody>
-            ))}
+              </thead>
+
+              {branchReports.map((branchReport, index) => (
+
+                <tbody key={branchReport._id} className="">
 
 
-            <tfoot className="border border-black text-sm">
-              <tr className="mt-2">
-                <td className="text-center text-m font-bold">Totales:</td>
-                <td className="text-center text-m font-bold">{extraOutgoingsTotal.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
-                <td className="text-center text-m font-bold">{stockTotal.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
-                <td className="text-center text-m font-bold">{incomesTotal.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
-                <td className={(balanceTotal < 0 ? 'text-red-500' : 'text-green-500') + ' text-center text-m font-bold'}>{balanceTotal.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
-              </tr>
-            </tfoot>
+                  <tr className={'border-x ' + (index + 1 != branchReports.length ? "border-b " : '') + 'border-black border-opacity-40'}>
+                    {/* <td className="text-xs">{branchReport.branch.position}</td> */}
+                    <td className="group">
+                      <Link className='' to={'/formato/' + branchReport.createdAt + '/' + branchReport.branch._id}>
+                        <p className=" text-sm">{branchReport.branch.branch}</p>
+                        <div className="hidden group-hover:block group-hover:fixed group-hover:overflow-hidden group-hover:mt-2 ml-24 bg-slate-600 text-white shadow-2xl rounded-md p-2">
+                          <p>{branchReport.employee != null ? branchReport.employee.name + ' ' + branchReport.employee.lastName : 'Empleado eliminado'}</p>
+                          {branchReport.assistant != null ?
 
-          </table>
+                            <p>{branchReport.assistant.name + ' ' + branchReport.assistant.lastName}</p>
+                            : ''}
+                        </div>
+                      </Link>
+                    </td>
+                    <td className="text-center text-sm">{branchReport.outgoings.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</td>
+                    <td className="text-center text-sm">{branchReport.finalStock.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</td>
+                    <td className="text-center text-sm">{branchReport.incomes.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</td>
+                    <td className={(branchReport.balance < 0 ? 'text-red-500' : 'text-green-500') + ' text-center text-sm'}>{branchReport.balance.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })} </td>
+                  </tr>
+                </tbody>
+              ))}
 
-          <TarjetaCuenta reportArray={branchReports} managerRole={managerRole} currentUser={currentUser}></TarjetaCuenta>
+
+              <tfoot className="border border-black text-sm">
+                <tr className="mt-2">
+                  <td className="text-center text-m font-bold">Totales:</td>
+                  <td className="text-center text-m font-bold">{extraOutgoingsTotal.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
+                  <td className="text-center text-m font-bold">{stockTotal.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
+                  <td className="text-center text-m font-bold">{incomesTotal.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
+                  <td className={(balanceTotal < 0 ? 'text-red-500' : 'text-green-500') + ' text-center text-m font-bold'}>{balanceTotal.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
+                </tr>
+              </tfoot>
+
+            </table>
+
+            <div className={!showCards ? 'hidden' : ''} >
+              <TarjetaCuenta reportArray={branchReports} managerRole={managerRole} currentUser={currentUser}></TarjetaCuenta>
+            </div>
+          </div>
         </div>
 
         : ''}
 
-      {supervisorsInfo && supervisorsInfo.length > 0 && supervisorsInfo.map((info) => (
+      {supervisorsInfo && showTable && supervisorsInfo.length > 0 && supervisorsInfo.map((info) => (
 
         <div key={info.supervisor._id} className='border bg-white p-3 mt-4'>
 
