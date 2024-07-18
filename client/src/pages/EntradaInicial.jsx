@@ -6,7 +6,7 @@ import SectionHeader from "../components/SectionHeader";
 import { fetchBranches } from "../helpers/FetchFunctions";
 import { MdCancel } from "react-icons/md";
 import { FaListAlt, FaTrash } from "react-icons/fa";
-import { Slide, ToastContainer, toast } from "react-toastify";
+import { Slide, toast } from "react-toastify";
 
 export default function EntradaInicial({ products, defaultProduct, managerRole }) {
 
@@ -299,8 +299,6 @@ export default function EntradaInicial({ products, defaultProduct, managerRole }
   return (
 
     <main className="max-w-lg mx-auto">
-
-      <ToastContainer />
 
       {error ? <p>{error}</p> : ''}
 
