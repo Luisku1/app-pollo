@@ -5,7 +5,7 @@ import { useParams, useNavigate, Link } from "react-router-dom"
 import FechaDePagina from "../components/FechaDePagina"
 import { formatDate } from "../helpers/DatePickerFunctions"
 import TarjetaCuenta from "../components/TarjetaCuenta"
-import Sobrante from "../pages/sobrante"
+import Sobrante from "../pages/Sobrante"
 
 export default function Reporte() {
 
