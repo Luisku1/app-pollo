@@ -66,6 +66,7 @@ export default function Precios() {
       }
 
       setSuccessMessage('Precios actualizados')
+      setPricesFormData({})
       setError(null)
       setLoading(false)
 
