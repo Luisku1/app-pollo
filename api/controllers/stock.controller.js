@@ -263,7 +263,7 @@ export const deleteStock = async (req, res, next) => {
 export const getTotalStockByProduct = async (req, res, next) => {
 
   const companyId = req.params.companyId
-  const date = req.params.date
+  const date = new Date(req.params.date)
 
   const actualLocaleDatePlusOne = new Date(date)
   actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
@@ -364,7 +364,7 @@ const groupStockByProductFunction = (stock) => {
 export const getTotalStockByBranch = async (req, res, next) => {
 
   const companyId = req.params.companyId
-  const date = req.params.date
+  const date = new Date(req.params.date)
 
   const actualLocaleDatePlusOne = new Date(date)
   actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)

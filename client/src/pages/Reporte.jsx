@@ -5,6 +5,7 @@ import { useParams, useNavigate, Link } from "react-router-dom"
 import FechaDePagina from "../components/FechaDePagina"
 import { formatDate } from "../helpers/DatePickerFunctions"
 import TarjetaCuenta from "../components/TarjetaCuenta"
+import Sobrante from "../pages/sobrante"
 
 export default function Reporte() {
 
@@ -24,6 +25,9 @@ export default function Reporte() {
   const [managerRole, setManagerRole] = useState({})
   const [showTable, setShowTable] = useState(true)
   const [showCards, setShowCards] = useState(false)
+  const [showStock, setShowStock] = useState(false)
+  const [showOutgoings, setShowOutgoings] = useState(false)
+  const [showEarnings, setShowEarnings] = useState(false)
   const navigate = useNavigate()
   let datePickerValue = (paramsDate ? new Date(paramsDate) : new Date())
   let stringDatePickerValue = formatDate(datePickerValue)
@@ -43,15 +47,48 @@ export default function Reporte() {
 
   const handleShowCardsButton = () => {
 
-    setShowTable(false)
     setShowCards(true)
+    setShowTable(false)
+    setShowStock(false)
+    setShowOutgoings(false)
+    setShowEarnings(false)
 
   }
 
   const handleShowTableButton = () => {
 
-    setShowCards(false)
     setShowTable(true)
+    setShowCards(false)
+    setShowStock(false)
+    setShowOutgoings(false)
+    setShowEarnings(false)
+  }
+
+  const handleShowStockButton = () => {
+
+    setShowStock(true)
+    setShowTable(false)
+    setShowCards(false)
+    setShowOutgoings(false)
+    setShowEarnings(false)
+  }
+
+  const handleShowOutgoingButton = () => {
+
+    setShowOutgoings(true)
+    setShowTable(false)
+    setShowCards(false)
+    setShowStock(false)
+    setShowEarnings(false)
+  }
+
+  const handleShowEarningsButton = () => {
+
+    setShowTable(false)
+    setShowCards(false)
+    setShowStock(false)
+    setShowOutgoings(false)
+    setShowEarnings(true)
   }
 
   const extraOutgoingsIsOpenFunctionControl = (arrayLength, selectedSupervisorId) => {
@@ -270,18 +307,16 @@ export default function Reporte() {
       {branchReports && branchReports.length > 0 ?
 
         <div>
-          {/* <div className="grid grid-cols-2 border w-full h-10 mb-4 border-black rounded-lg">
-            <button className={"h-full rounded-lg hover:shadow-xl " + (Table ? 'bg-slate-500 text-white' : 'bg-white')} onClick={() => { resetValues(), handleTableFilterButton() }}>Tabla</button>
-            <button className={"h-full rounded-lg hover:shadow-xl " + (cards ? 'bg-slate-500 text-white' : ' bg-white')} onClick={() => { resetValues(), handleCardsFilterButton() }}>Tarjetas</button>
-          </div> */}
-
 
           <div>
 
-          <p className="font-bold">{'Formatos: ' + branchReports.length + '/20'}</p>
-            <div className="grid grid-cols-2 border w-full h-10 mb-4 border-black rounded-lg">
-              <button className={"h-full rounded-lg hover:shadow-xl " + (showTable ? 'bg-slate-500 text-white' : 'bg-white')} onClick={() => { handleShowTableButton() }}>Tabla</button>
-              <button className={"h-full rounded-lg hover:shadow-xl " + (showCards ? 'bg-slate-500 text-white' : ' bg-white')} onClick={() => { handleShowCardsButton() }}>Tarjetas</button>
+            <p className="font-bold">{'Formatos: ' + branchReports.length + '/20'}</p>
+            <div className="grid grid-cols-5 border bg-white border-black mx-auto my-auto w-full rounded-lg font-bold">
+              <button className={"h-full p-1 rounded-lg hover:shadow-xl hover:bg-slate-700 hover:text-white " + (showTable ? 'bg-slate-500 text-white' : 'bg-white')} onClick={() => { handleShowTableButton() }}>Tabla</button>
+              <button className={"h-full p-1 rounded-lg hover:shadow-xl hover:bg-slate-700 hover:text-white " + (showStock ? 'bg-slate-500 text-white' : ' bg-white')} onClick={() => { handleShowStockButton() }}>Sobrante</button>
+              <button className={"h-full p-1 rounded-lg hover:shadow-xl hover:bg-slate-700 hover:text-white " + (showEarnings ? 'bg-slate-500 text-white' : ' bg-white')} onClick={() => { handleShowEarningsButton() }}>Efectivos</button>
+              <button className={"h-full p-1 rounded-lg hover:shadow-xl hover:bg-slate-700 hover:text-white " + (showOutgoings ? 'bg-slate-500 text-white' : ' bg-white')} onClick={() => { handleShowOutgoingButton() }}>Gastos</button>
+              <button className={"h-full p-1 rounded-lg hover:shadow-xl hover:bg-slate-700 hover:text-white " + (showCards ? 'bg-slate-500 text-white' : ' bg-white')} onClick={() => { handleShowCardsButton() }}>Tarjetas</button>
             </div>
 
             <table className={'border bg-white mt-4 w-full ' + (!showTable ? 'hidden' : '')}>
@@ -345,6 +380,10 @@ export default function Reporte() {
               </tfoot>
 
             </table>
+
+            <div className={!showStock ? 'hidden' : ''}>
+              <Sobrante date={stringDatePickerValue}></Sobrante>
+            </div>
 
             <div className={!showCards ? 'hidden' : ''} >
               <TarjetaCuenta reportArray={branchReports} managerRole={managerRole} currentUser={currentUser}></TarjetaCuenta>
