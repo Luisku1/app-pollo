@@ -165,20 +165,7 @@ export default function Header() {
 
                     <div>
 
-                      <div>
-                        <div className='menu-trigger flex items-center justify-between' onClick={() => { setReportIsOpen(!reportIsOpen) }}>
-                          <DropdownItem text={'Reporte'} link={'#'} />
-                          {reportIsOpen ? <MdKeyboardArrowDown className='text-3xl' /> : <MdKeyboardArrowRight className='text-3xl' />}
-                        </div>
-
-                        <div className={`${reportIsOpen ? '' : 'hidden'} pl-2 text-m`}>
-                          <ul className='border-l pl-5 border-gray-400'>
-                            <DropdownItem text={"Gastos en cuentas"} link={'/gastos'} onClick={() => { setOpen(!open) }} />
-                            <DropdownItem text={"Sobrante"} link={'/sobrante'} onClick={() => { setOpen(!open) }} />
-                            <DropdownItem text={"Concentrado"} link={'/reporte'} onClick={() => { setOpen(!open) }} />
-                          </ul>
-                        </div>
-                      </div>
+                      <DropdownItem text={"Reporte"} link={'/reporte'} onClick={() => { setOpen(!open) }} />
 
                       <DropdownItem text={"Nomina"} link={'/nomina'} onClick={() => { setOpen(!open) }} />
 
