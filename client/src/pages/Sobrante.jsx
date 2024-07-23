@@ -172,7 +172,7 @@ export default function Sobrante({ date }) {
             ))
             }
 
-            <div className='grid grid-span-1 grid-cols-2 max-w-lg mx-auto text-center w-full border border-opacity-30 shadow-lg border-black bg-white fixed bottom-0  rounded-lg p-2 left-0'>
+            <div className='grid grid-span-1 grid-cols-2 max-w-lg mx-auto text-center w-full border border-opacity-30 shadow-lg border-black fixed bottom-0 left-0 rounded-lg p-2 bg-slate-500 text-white text-m'>
               <p className=' text-center'>Total:</p>
               <p className=' text-center'>{totalInMoney.toLocaleString('es-Mx', {style: 'currency', currency: 'MXN'})}</p>
 
@@ -206,9 +206,9 @@ export default function Sobrante({ date }) {
               </div>
             ))}
 
-            <div className='flex mt-4 border max-w-lg w-full border-opacity-30 shadow-lg border-black rounded-lg p-2 fixed items-center bottom-0 left-0 bg-white'>
-              <p className='w-6/12 text-center'>Total:</p>
-              <p className='w-6/12 text-center'>{totalInMoney.toLocaleString('es-Mx', {style: 'currency', currency: 'MXN'})}</p>
+            <div className='grid grid-span-1 grid-cols-2 max-w-lg mx-auto text-center w-full border border-opacity-30 shadow-lg border-black fixed bottom-0 left-0 rounded-lg p-2 bg-slate-500 text-white text-m'>
+              <p className='text-center'>Total:</p>
+              <p className='text-center'>{totalInMoney.toLocaleString('es-Mx', {style: 'currency', currency: 'MXN'})}</p>
 
             </div>
           </div>

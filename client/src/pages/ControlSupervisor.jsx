@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { fetchBranches, fetchEmployees, fetchProducts, deleteOutputFetch, deleteExtraOutgoingFetch, deleteInputFetch, deleteIncomeFetch, fetchIncomeTypes, deleteLoanFetch } from '../helpers/FetchFunctions';
-import { FaTrash } from 'react-icons/fa';
+import { FaListAlt, FaTrash } from 'react-icons/fa';
 import { Link } from "react-router-dom"
 import { MdCancel, MdKeyboardArrowDown, MdKeyboardArrowRight } from 'react-icons/md';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -1071,6 +1071,11 @@ export default function ControlSupervisor() {
     setExtraOutgoingsTotal(0.0)
     setTotalNetDifference(0.0)
     setNetDifference([])
+    setIncomesIsOpen(false)
+    setOutgoingsIsOpen(false)
+    setOutputsIsOpen(false)
+    setInputsIsOpen(false)
+    setLoansIsOpen(false)
 
     const fetchEmployeesDailyBalances = async () => {
 
@@ -1330,7 +1335,7 @@ export default function ControlSupervisor() {
 
   return (
 
-    <main className="p-3 max-w-lg mx-auto">
+    <main className={"p-3 max-w-lg mx-auto"} >
 
       <ToastContainer />
 
@@ -1346,7 +1351,17 @@ export default function ControlSupervisor() {
 
       <div className='border bg-white p-3 mt-4'>
 
-        <SectionHeader label={'Efectivos'} />
+        <div className='grid grid-cols-3'>
+          <SectionHeader label={'Efectivos'} />
+          <div className="h-10 w-10 shadow-lg ">
+            <button className="w-full h-full" onClick={() => { setIncomesIsOpen(true) }}><FaListAlt className="h-full w-full text-red-600" />
+            </button>
+          </div>
+          {currentUser.role == managerRole._id ?
+            <p className='font-bold text-lg text-red-700 text-center'>{incomesTotal.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
+            : ''}
+        </div>
+
 
         <form onSubmit={addIncome} className="grid grid-cols-3 items-center justify-between">
 
@@ -1385,7 +1400,18 @@ export default function ControlSupervisor() {
 
       <div className='border bg-white p-3 mt-4'>
 
-        <SectionHeader label={'Salidas'} />
+        <div className='grid grid-cols-3'>
+          <SectionHeader label={'Salidas'} />
+          <div className="h-10 w-10 shadow-lg ">
+            <button className="w-full h-full" onClick={() => { setOutputsIsOpen(true) }}><FaListAlt className="h-full w-full text-red-600" />
+            </button>
+          </div>
+
+          <p className='font-bold text-lg text-red-700 text-center'>{outputsTotal.toFixed(2) + ' Kg'}</p>
+
+
+
+        </div>
 
         <form onSubmit={addOutput} className="grid grid-cols-12 items-center justify-between">
           <select name="outputBranch" id="outputBranch" className='border p-3 rounded-lg text-xs col-span-3' onChange={(e) => { outputButtonControl(), saveOutputBranchName(e) }}>
@@ -1423,7 +1449,14 @@ export default function ControlSupervisor() {
 
       <div className='border bg-white p-3 mt-4'>
 
-        <SectionHeader label={'Entradas'} />
+        <div className='grid grid-cols-3'>
+          <SectionHeader label={'Entradas'} />
+          <div className="h-10 w-10 shadow-lg ">
+            <button className="w-full h-full" onClick={() => { setInputsIsOpen(true) }}><FaListAlt className="h-full w-full text-red-600" />
+            </button>
+          </div>
+          <p className='font-bold text-lg text-red-700 text-center'>{inputsTotal.toFixed(2) + ' Kg'}</p>
+        </div>
 
         <form onSubmit={addInput} className="grid grid-cols-12 items-center justify-between">
           <select name="inputBranch" id="inputBranch" onChange={(e) => { inputButtonControl(), saveInputBranchName(e) }} className='border p-3 rounded-lg text-xs col-span-3'>
@@ -1468,7 +1501,18 @@ export default function ControlSupervisor() {
 
         <div className='border bg-white p-3 mt-4'>
 
-          <SectionHeader label={'Gastos externos'} />
+          <div className='grid grid-cols-3'>
+            <SectionHeader label={'Gastos externos'} />
+            <div className="h-10 w-10 shadow-lg ">
+              <button className="w-full h-full" onClick={() => { setOutgoingsIsOpen(true) }}><FaListAlt className="h-full w-full text-red-600" />
+              </button>
+            </div>
+            {currentUser.role == managerRole._id ?
+
+              <p className='font-bold text-lg text-red-700 text-center'>{extraOutgoingsTotal.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
+
+              : ''}
+          </div>
 
           <form id='extra-outgoing-form' onSubmit={addExtraOutgoing} className="grid grid-cols-3 items-center justify-between">
 
@@ -1479,7 +1523,19 @@ export default function ControlSupervisor() {
           </form>
         </div>
         <div className='border bg-white p-3 mt-4'>
-          <SectionHeader label={'Préstamos'} />
+          <div className='grid grid-cols-3'>
+            <SectionHeader label={'Pagos a empleados'} />
+            <div className="h-10 w-10 shadow-lg ">
+              <button className="w-full h-full" onClick={() => { setLoansIsOpen(true) }}><FaListAlt className="h-full w-full text-red-600" />
+              </button>
+            </div>
+            {currentUser.role == managerRole._id ?
+
+              <p className='font-bold text-lg text-red-700 text-center'>{loansTotal.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
+
+
+              : ''}
+          </div>
 
           <form onSubmit={addLoan} className="grid grid-cols-2 items-center justify-between">
 
@@ -1504,450 +1560,43 @@ export default function ControlSupervisor() {
 
 
 
-      {incomes && incomes.length > 0 ?
+      {incomesIsOpen && incomes && incomes.length > 0 ?
 
-        <div className='border bg-white shadow-lg p-3 mt-4 mb-4'>
+        <div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center max-w-lg my-auto mx-auto z-10'>
+          <div className=' bg-white p-5 rounded-lg justify-center items-center h-5/6 my-auto mx-auto w-11/12 overflow-y-scroll'>
+            <button className="" onClick={() => { setIncomesIsOpen(false) }}><MdCancel className="h-7 w-7" /></button>
+            < div className='bg-white mt-4 mb-4 h-full'>
 
-          <div className='flex gap-4 display-flex justify-between' onClick={() => setIncomesIsOpen(!incomesIsOpen)} >
+              <SectionHeader label={'Efectivos'} />
 
-            <SectionHeader label={'Efectivos'} />
-            {incomesIsOpen ? <MdKeyboardArrowDown className='text-5xl' /> : <MdKeyboardArrowRight className='text-5xl' />}
-
-          </div>
-
-          <div className={incomesIsOpen ? '' : 'hidden'} >
-
-
-            <div id='header' className='grid grid-cols-12 items-center justify-around font-semibold mt-4'>
-              <p className='col-span-3 text-center'>Sucursal</p>
-              <p className='col-span-2 text-center'>Encargado</p>
-              <p className='col-span-3 text-center'>Tipo</p>
-              <p className='col-span-1 text-center'>Monto</p>
-            </div>
-
-            {incomes.map((income, index) => (
-
-              <div key={income._id} className='grid grid-cols-12 items-center border border-black border-opacity-30 mt-2 shadow-m rounded-lg'>
-
-                <div id='list-element' className=' flex col-span-10 items-center justify-around pt-3 pb-3'>
-                  <p className='text-center text-xs w-3/12'>{income.branch.branch ? income.branch.branch : income.branch}</p>
-                  <p className='text-center text-xs w-3/12'>{income.employee.name + ' ' + income.employee.lastName}</p>
-                  <p className='text-center text-xs w-2/12'>{income.type.name ? income.type.name : income.type}</p>
-                  <p className='text-center text-xs w-3/12'>{income.amount.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
-                </div>
-
-                {currentUser._id == income.employee._id || currentUser.role == managerRole._id ?
-
-                  <div>
-                    <button id={income._id} onClick={() => { setIsOpen(!isOpen), setButtonId(income._id) }} disabled={loading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
-                      <span>
-                        <FaTrash className='text-red-700 m-auto' />
-                      </span>
-                    </button>
-
-                    {isOpen && income._id == buttonId ?
-                      <div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center items-center'>
-                        <div className='bg-white p-5 rounded-lg flex flex-col justify-center items-center gap-5'>
-                          <div>
-                            <p className='text-3xl font-semibold'>¿Estás seguro de borrar este registro?</p>
-                          </div>
-                          <div className='flex gap-10'>
-                            <div>
-                              <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteIncome(income._id, index), setIsOpen(!isOpen) }}>Si</button>
-                            </div>
-                            <div>
-                              <button className='rounded-lg border shadow-lg w-20 h-10' onClick={() => { setIsOpen(!isOpen) }}>No</button>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      : ''}
-
-                  </div>
-
-                  : ''}
-
-              </div>
-
-            ))}
-
-
-          </div>
-          {currentUser.role == managerRole._id ?
-
-            <div className='flex mt-4 border-opacity-30 shadow-lg border-black border rounded-lg p-3'>
-              <p className='w-6/12 text-center'>Total:</p>
-              <p className='w-6/12 text-center'>{incomesTotal.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
-
-            </div>
-            : ''}
-        </div>
-        : ''}
-
-
-      {extraOutgoings && extraOutgoings.length > 0 ?
-        <div className='border bg-white shadow-lg p-3 mt-4'>
-
-          <div className='flex gap-4 display-flex justify-between' onClick={() => setOutgoingsIsOpen(!outgoingsIsOpen)} >
-
-            <SectionHeader label={'Gastos'} />
-            {outgoingsIsOpen ? <MdKeyboardArrowDown className='text-5xl' /> : <MdKeyboardArrowRight className='text-5xl' />}
-
-          </div>
-
-          <div className={outgoingsIsOpen ? '' : 'hidden'} >
-
-            {extraOutgoings && extraOutgoings.length > 0 ?
-              <div id='header' className='grid grid-cols-11 items-center justify-around font-semibold mt-4'>
-                <p className='p-3 rounded-lg col-span-3 text-center bg-white'>Supervisor</p>
-                <p className='p-3 rounded-lg col-span-3 text-center bg-white'>Concepto</p>
-                <p className='p-3 rounded-lg col-span-3 text-center bg-white'>Monto</p>
-              </div>
-              : ''}
-
-            {extraOutgoings && extraOutgoings.length > 0 && extraOutgoings.map((extraOutgoing, index) => (
-
-
-              <div key={extraOutgoing._id} className={(currentUser._id == extraOutgoing.employee || currentUser.role == managerRole._id ? '' : 'py-3 ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
-
-                <div id='list-element' className='flex col-span-10 items-center justify-around'>
-                  <p className='text-center text-sm w-3/12'>{extraOutgoing.employee.name ? extraOutgoing.employee.name : extraOutgoing.employee}</p>
-                  <p className='text-center text-sm w-3/12'>{extraOutgoing.concept}</p>
-                  <p className='text-center text-sm w-3/12'>{extraOutgoing.amount.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
-                </div>
-
-                {currentUser._id == extraOutgoing.employee._id || currentUser.role == managerRole._id ?
-
-                  <div>
-                    <button id={extraOutgoing._id} onClick={() => { setIsOpen(!isOpen), setButtonId(extraOutgoing._id) }} disabled={loading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
-                      <span>
-                        <FaTrash className='text-red-700 m-auto' />
-                      </span>
-                    </button>
-
-                    {isOpen && extraOutgoing._id == buttonId ?
-                      <div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center items-center'>
-                        <div className='bg-white p-5 rounded-lg flex flex-col justify-center items-center gap-5'>
-                          <div>
-                            <p className='text-3xl font-semibold'>¿Estás seguro de borrar este registro?</p>
-                          </div>
-                          <div className='flex gap-10'>
-                            <div>
-                              <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteExtraOutgoing(extraOutgoing._id, index), setIsOpen(!isOpen) }}>Si</button>
-                            </div>
-                            <div>
-                              <button className='rounded-lg border shadow-lg w-20 h-10' onClick={() => { setIsOpen(!isOpen) }}>No</button>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      : ''}
-
-                  </div>
-
-
-                  : ''}
-
-              </div>
-
-            ))}
-
-          </div>
-
-          {currentUser.role == managerRole._id ?
-
-            <div className='flex mt-4 border-black border border-opacity-30 shadow-lg rounded-lg p-3'>
-              <p className='w-6/12 text-center'>Total:</p>
-              <p className='w-6/12 text-center'>{extraOutgoingsTotal.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
-
-            </div>
-
-            : ''}
-        </div>
-
-        : ''}
-
-      {inputs && inputs.length > 0 ?
-        < div className='border bg-white shadow-lg p-3 mt-4'>
-
-          <div className='flex gap-4 display-flex justify-between' onClick={() => setInputsIsOpen(!inputsIsOpen)} >
-
-            <SectionHeader label={'Entradas'} />
-            {inputsIsOpen ? <MdKeyboardArrowDown className='text-5xl' /> : <MdKeyboardArrowRight className='text-5xl' />}
-
-          </div>
-
-          <div className={inputsIsOpen ? '' : 'hidden'} >
-
-            {inputs && inputs.length > 0 ?
               <div id='header' className='grid grid-cols-12 items-center justify-around font-semibold mt-4'>
                 <p className='col-span-3 text-center'>Sucursal</p>
-                <p className='col-span-3 text-center'>Encargado</p>
-                <p className='col-span-3 text-center'>Producto</p>
-                <p className='col-span-1 text-center'>Kg</p>
+                <p className='col-span-2 text-center'>Encargado</p>
+                <p className='col-span-3 text-center'>Tipo</p>
+                <p className='col-span-1 text-center'>Monto</p>
               </div>
-              : ''}
-            {inputs && inputs.length > 0 && inputs.map((input, index) => (
 
+              {incomes.map((income, index) => (
 
-              <div key={input._id} className={(currentUser._id == input.employee || currentUser.role == managerRole._id ? '' : 'py-3 ') + (input.specialPrice ? 'border border-red-500 ' : 'border border-black ') + 'grid grid-cols-12 items-center border-opacity-70 rounded-lg shadow-sm mt-2'}>
+                <div key={income._id} className='grid grid-cols-12 items-center border border-black border-opacity-30 mt-2 shadow-m rounded-lg'>
 
-                <button onClick={() => { setSelectedMovement(input), setMovementDetailsIsOpen(!movementDetailsIsOpen) }} id='list-element' className='flex col-span-10 items-center justify-around h-full'>
-                  <p className='text-center text-xs  w-3/12'>{input.branch.branch ? input.branch.branch : input.branch}</p>
-                  <p className='text-center text-xs w-3/12'>{input.employee.name + ' ' + input.employee.lastName}</p>
-                  <p className='text-center text-xs w-3/12'>{input.product.name ? input.product.name : input.product}</p>
-                  <p className='text-center text-xs w-1/12'>{input.weight}</p>
-                </button>
-                {selectedMovement != null && selectedMovement._id == input._id && movementDetailsIsOpen ?
-                  <ShowInputDetails input={input}></ShowInputDetails>
-                  : ''}
-                {currentUser._id == input.employee._id || currentUser.role == managerRole._id ?
-
-                  <div>
-                    <button id={input._id} onClick={() => { setIsOpen(!isOpen), setButtonId(input._id) }} disabled={loading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
-                      <span>
-                        <FaTrash className='text-red-700 m-auto' />
-                      </span>
-                    </button>
-
-                    {isOpen && input._id == buttonId ?
-                      <div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center items-center'>
-                        <div className='bg-white p-5 rounded-lg flex flex-col justify-center items-center gap-5'>
-                          <div>
-                            <p className='text-3xl font-semibold'>¿Estás seguro de borrar este registro?</p>
-                          </div>
-                          <div className='flex gap-10'>
-                            <div>
-                              <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteInput(input._id, index), setIsOpen(!isOpen) }}>Si</button>
-                            </div>
-                            <div>
-                              <button className='rounded-lg border shadow-lg w-20 h-10' onClick={() => { setIsOpen(!isOpen) }}>No</button>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      : ''}
-
+                  <div id='list-element' className=' flex col-span-10 items-center justify-around pt-3 pb-3'>
+                    <p className='text-center text-xs w-3/12'>{income.branch.branch ? income.branch.branch : income.branch}</p>
+                    <p className='text-center text-xs w-3/12'>{income.employee.name + ' ' + income.employee.lastName}</p>
+                    <p className='text-center text-xs w-2/12'>{income.type.name ? income.type.name : income.type}</p>
+                    <p className='text-center text-xs w-3/12'>{income.amount.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
                   </div>
 
-                  : ''}
-
-              </div>
-
-            ))}
-          </div>
-
-          {inputs && inputs.length > 0 ?
-
-            <div className='flex mt-4 border border-opacity-30 shadow-lg border-black rounded-lg p-3'>
-              <p className='w-6/12 text-center'>Total {'(Kg)'}:</p>
-              <p className='w-6/12 text-center'>{inputsTotal}</p>
-
-            </div>
-
-            : ''}
-        </div>
-        : ''}
-
-      {outputs && outputs.length > 0 ?
-        <div className='border bg-white shadow-lg p-3 mt-4'>
-
-          <div className='flex gap-4 display-flex justify-between' onClick={() => setOutputsIsOpen(!outputsIsOpen)} >
-
-            <SectionHeader label={'Salidas'} />
-            {outputsIsOpen ? <MdKeyboardArrowDown className='text-5xl' /> : <MdKeyboardArrowRight className='text-5xl' />}
-
-          </div>
-
-          <div className={outputsIsOpen ? '' : 'hidden'} >
-
-            {outputs && outputs.length > 0 ?
-              <div id='header' className='grid grid-cols-12 items-center justify-around font-semibold mt-4'>
-                <p className='col-span-3 text-center'>Sucursal</p>
-                <p className='col-span-3 text-center'>Encargado</p>
-                <p className='col-span-3 text-center'>Producto</p>
-                <p className='col-span-1 text-center'>Kg</p>
-              </div>
-              : ''}
-            {outputs && outputs.length > 0 && outputs.map((output, index) => (
-
-
-              <div key={output._id} className={(currentUser._id == output.employee || currentUser.role == managerRole._id ? '' : 'py-3 ') + (output.specialPrice ? 'border border-red-500 ' : 'border border-black ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-70 shadow-sm mt-2'}>
-
-                <button onClick={() => { setSelectedMovement(output), setMovementDetailsIsOpen(!movementDetailsIsOpen) }} id='list-element' className='flex col-span-10 items-center justify-around h-full'>
-                  <p className='text-center text-xs  w-3/12'>{output.branch.branch ? output.branch.branch : output.branch}</p>
-                  <p className='text-center text-xs w-3/12'>{output.employee.name + ' ' + output.employee.lastName}</p>
-                  <p className='text-center text-xs w-3/12'>{output.product.name ? output.product.name : output.product}</p>
-                  <p className='text-center text-xs w-1/12'>{output.weight}</p>
-                </button>
-
-                {selectedMovement != null && selectedMovement._id == output._id && movementDetailsIsOpen ?
-                  <ShowOutputDetails output={output}></ShowOutputDetails>
-                  : ''}
-
-                {currentUser._id == output.employee._id || currentUser.role == managerRole._id ?
-
-                  <div>
-                    <button id={output._id} onClick={() => { setIsOpen(!isOpen), setButtonId(output._id) }} disabled={loading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
-                      <span>
-                        <FaTrash className='text-red-700 m-auto' />
-                      </span>
-                    </button>
-
-                    {isOpen && output._id == buttonId ?
-                      <div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center items-center'>
-                        <div className='bg-white p-5 rounded-lg flex flex-col justify-center items-center gap-5'>
-                          <div>
-                            <p className='text-3xl font-semibold'>¿Estás seguro de borrar este registro?</p>
-                          </div>
-                          <div className='flex gap-10'>
-                            <div>
-                              <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteOutput(output._id, index), setIsOpen(!isOpen) }}>Si</button>
-                            </div>
-                            <div>
-                              <button className='rounded-lg border shadow-lg w-20 h-10' onClick={() => { setIsOpen(!isOpen) }}>No</button>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      : ''}
-
-                  </div>
-
-                  : ''}
-
-              </div>
-
-            ))}
-
-          </div>
-
-          {outputs && outputs.length > 0 ?
-
-            <div className='flex mt-4 border-black border border-opacity-30 shadow-lg rounded-lg p-3'>
-              <p className='w-6/12 text-center'>Total {'(Kg)'}:</p>
-              <p className='w-6/12 text-center'>{outputsTotal}</p>
-            </div>
-
-            : ''}
-
-        </div>
-        : ''}
-
-      {Object.values(netDifference) && Object.values(netDifference).length > 0 ?
-
-        <div className='border bg-white shadow-lg p-3 mt-4'>
-
-          <div className='flex gap-4 display-flex justify-between' onClick={() => setDifferencesIsOpen(!differencesIsOpen)} >
-
-            <SectionHeader label={'Diferencia neta'} />
-            {differencesIsOpen ? <MdKeyboardArrowDown className='text-5xl' /> : <MdKeyboardArrowRight className='text-5xl' />}
-
-          </div>
-
-          <div className={differencesIsOpen ? '' : 'hidden'} >
-
-            {Object.values(netDifference) && Object.values(netDifference).length > 0 && Object.values(netDifference).map((employeeDifferences) => (
-
-              <div key={employeeDifferences.employee._id}>
-
-                {managerRole._id == currentUser.role || currentUser._id == employeeDifferences.employee._id ?
-
-                  < div className='border border-black mt-5'>
+                  {currentUser._id == income.employee._id || currentUser.role == managerRole._id ?
 
                     <div>
-                      <p className='font-bold text-xl p-3'>{employeeDifferences.employee.name + ' ' + employeeDifferences.employee.lastName}</p>
-                    </div>
-
-
-                    {Object.values(employeeDifferences.netDifference) && Object.values(employeeDifferences.netDifference).length > 0 ?
-                      < div id='header' className='grid grid-cols-12 gap-4 items-center justify-around font-semibold mt-4'>
-                        <p className='p-3 rounded-lg col-span-6 text-center'>Producto</p>
-                        <p className='p-3 rounded-lg col-span-6 text-center'>Diferencia</p>
-                      </div>
-                      : ''}
-                    {Object.values(employeeDifferences.netDifference) && Object.values(employeeDifferences.netDifference).length > 0 && Object.values(employeeDifferences.netDifference).map((productDifference) => (
-
-
-                      <div key={productDifference.name} className={'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2 p-3'}>
-
-                        <div id='list-element' className='flex col-span-12 items-center justify-around p-1'>
-                          <p className='text-center text-sm w-6/12'>{productDifference.name}</p>
-                          <p className={'text-center text-sm w-6/12 ' + (productDifference.difference < 0 ? 'text-red-500' : '')}>{Math.abs(productDifference.difference).toFixed(2)}</p>
-                        </div>
-                      </div>
-
-                    ))}
-
-                    <div className='p-3'>
-
-                      <div className='flex mt-4 border-black border border-opacity-30 shadow-lg rounded-lg p-3'>
-                        <p className='w-6/12 text-center'>Total:</p>
-                        <p className={'w-6/12 text-center ' + (employeeDifferences.totalDifference < 0 ? 'text-red-500' : '')}>{Math.abs(employeeDifferences.totalDifference)}</p>
-                      </div>
-                    </div>
-                  </div>
-                  : ''}
-              </div>
-            ))}
-
-          </div>
-
-          {currentUser.role == managerRole._id ?
-
-            <div className='flex mt-4 border-black border border-opacity-30 shadow-lg rounded-lg p-3'>
-              <p className='w-6/12 text-center'>Total:</p>
-              <p className={'w-6/12 text-center ' + (totalNetDifference < 0 ? 'text-red-500' : '')}>{Math.abs(totalNetDifference)}</p>
-
-            </div>
-
-            : ''}
-
-        </div>
-        : ''
-      }
-
-      {
-        loans && loans.length > 0 ?
-          <div className='border bg-white shadow-lg p-3 mt-4'>
-
-            <div className='flex gap-4 display-flex justify-between' onClick={() => setLoansIsOpen(!loansIsOpen)} >
-
-              <SectionHeader label={'Préstamos'} />
-              {loansIsOpen ? <MdKeyboardArrowDown className='text-5xl' /> : <MdKeyboardArrowRight className='text-5xl' />}
-
-            </div>
-
-            <div className={loansIsOpen ? '' : 'hidden'} >
-
-              {loans && loans.length > 0 ?
-                <div id='header' className='grid grid-cols-11 gap-4 items-center justify-around font-semibold mt-4'>
-                  <p className='p-3 rounded-lg col-span-3 text-center'>Supervisor</p>
-                  <p className='p-3 rounded-lg col-span-3 text-center'>Deudor</p>
-                  <p className='p-3 rounded-lg col-span-3 text-center'>Monto</p>
-                </div>
-                : ''}
-              {loans && loans.length > 0 && loans.map((loan, index) => (
-
-
-                <div key={loan._id} className={(currentUser._id == loan.supervisor || currentUser.role == managerRole._id ? '' : 'py-3 ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
-
-                  <div id='list-element' className='flex col-span-10 items-center justify-around'>
-                    <p className='text-center text-sm w-3/12'>{loan.supervisor.label ? loan.supervisor.label : loan.supervisor.name}</p>
-                    <p className='text-center text-sm w-3/12'>{loan.employee.label ? loan.employee.label : loan.employee.name}</p>
-                    <p className='text-center text-sm w-3/12'>{loan.amount.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
-                  </div>
-
-                  {currentUser._id == loan.supervisor._id || currentUser.role == managerRole._id ?
-
-                    <div>
-                      <button id={loan._id} onClick={() => { setIsOpen(!isOpen), setButtonId(loan._id) }} disabled={loading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
+                      <button id={income._id} onClick={() => { setIsOpen(!isOpen), setButtonId(income._id) }} disabled={loading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
                         <span>
                           <FaTrash className='text-red-700 m-auto' />
                         </span>
                       </button>
 
-                      {isOpen && loan._id == buttonId ?
+                      {isOpen && income._id == buttonId ?
                         <div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center items-center'>
                           <div className='bg-white p-5 rounded-lg flex flex-col justify-center items-center gap-5'>
                             <div>
@@ -1955,7 +1604,7 @@ export default function ControlSupervisor() {
                             </div>
                             <div className='flex gap-10'>
                               <div>
-                                <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteLoan(loan._id, index), setIsOpen(!isOpen) }}>Si</button>
+                                <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteIncome(income._id, index), setIsOpen(!isOpen) }}>Si</button>
                               </div>
                               <div>
                                 <button className='rounded-lg border shadow-lg w-20 h-10' onClick={() => { setIsOpen(!isOpen) }}>No</button>
@@ -1974,12 +1623,367 @@ export default function ControlSupervisor() {
               ))}
 
             </div>
+          </div>
+        </div>
+        : ''
+      }
+
+
+      {outgoingsIsOpen && extraOutgoings && extraOutgoings.length > 0 ?
+        <div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center max-w-lg my-auto mx-auto z-10'>
+          <div className=' bg-white p-5 rounded-lg justify-center items-center h-5/6 my-auto mx-auto w-11/12 overflow-y-scroll'>
+            <button className="" onClick={() => { setOutgoingsIsOpen(false) }}><MdCancel className="h-7 w-7" /></button>
+            < div className='bg-white mt-4 mb-4 h-full'>
+              <SectionHeader label={'Gastos'} />
+
+              <div >
+
+                {extraOutgoings.length > 0 ?
+                  <div id='header' className='grid grid-cols-11 items-center justify-around font-semibold mt-4'>
+                    <p className='p-3 rounded-lg col-span-3 text-center bg-white'>Supervisor</p>
+                    <p className='p-3 rounded-lg col-span-3 text-center bg-white'>Concepto</p>
+                    <p className='p-3 rounded-lg col-span-3 text-center bg-white'>Monto</p>
+                  </div>
+                  : ''}
+
+                {extraOutgoings.length > 0 && extraOutgoings.map((extraOutgoing, index) => (
+
+
+                  <div key={extraOutgoing._id} className={(currentUser._id == extraOutgoing.employee || currentUser.role == managerRole._id ? '' : 'py-3 ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
+
+                    <div id='list-element' className='flex col-span-10 items-center justify-around'>
+                      <p className='text-center text-sm w-3/12'>{extraOutgoing.employee.name ? extraOutgoing.employee.name : extraOutgoing.employee}</p>
+                      <p className='text-center text-sm w-3/12'>{extraOutgoing.concept}</p>
+                      <p className='text-center text-sm w-3/12'>{extraOutgoing.amount.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
+                    </div>
+
+                    {currentUser._id == extraOutgoing.employee._id || currentUser.role == managerRole._id ?
+
+                      <div>
+                        <button id={extraOutgoing._id} onClick={() => { setIsOpen(!isOpen), setButtonId(extraOutgoing._id) }} disabled={loading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
+                          <span>
+                            <FaTrash className='text-red-700 m-auto' />
+                          </span>
+                        </button>
+
+                        {isOpen && extraOutgoing._id == buttonId ?
+                          <div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center items-center'>
+                            <div className='bg-white p-5 rounded-lg flex flex-col justify-center items-center gap-5'>
+                              <div>
+                                <p className='text-3xl font-semibold'>¿Estás seguro de borrar este registro?</p>
+                              </div>
+                              <div className='flex gap-10'>
+                                <div>
+                                  <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteExtraOutgoing(extraOutgoing._id, index), setIsOpen(!isOpen) }}>Si</button>
+                                </div>
+                                <div>
+                                  <button className='rounded-lg border shadow-lg w-20 h-10' onClick={() => { setIsOpen(!isOpen) }}>No</button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          : ''}
+
+                      </div>
+
+
+                      : ''}
+
+                  </div>
+
+                ))}
+
+              </div>
+            </div>
+          </div>
+        </div>
+        : ''
+      }
+
+      {inputsIsOpen && inputs && inputs.length > 0 ?
+        <div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center max-w-lg my-auto mx-auto z-10'>
+          <div className=' bg-white p-5 rounded-lg justify-center items-center h-5/6 my-auto mx-auto w-11/12 overflow-y-scroll'>
+            <button className="" onClick={() => { setInputsIsOpen(false) }}><MdCancel className="h-7 w-7" /></button>
+            < div className='bg-white mt-4 mb-4 h-full'>
+
+              <SectionHeader label={'Entradas'} />
+
+              <div>
+
+                {inputs && inputs.length > 0 ?
+                  <div id='header' className='grid grid-cols-12 items-center justify-around font-semibold mt-4'>
+                    <p className='col-span-3 text-center'>Sucursal</p>
+                    <p className='col-span-3 text-center'>Encargado</p>
+                    <p className='col-span-3 text-center'>Producto</p>
+                    <p className='col-span-1 text-center'>Kg</p>
+                  </div>
+                  : ''}
+                {inputs && inputs.length > 0 && inputs.map((input, index) => (
+
+
+                  <div key={input._id} className={(currentUser._id == input.employee || currentUser.role == managerRole._id ? '' : 'py-3 ') + (input.specialPrice ? 'border border-red-500 ' : 'border border-black ') + 'grid grid-cols-12 items-center border-opacity-70 rounded-lg shadow-sm mt-2'}>
+
+                    <button onClick={() => { setSelectedMovement(input), setMovementDetailsIsOpen(!movementDetailsIsOpen) }} id='list-element' className='flex col-span-10 items-center justify-around h-full'>
+                      <p className='text-center text-xs  w-3/12'>{input.branch.branch ? input.branch.branch : input.branch}</p>
+                      <p className='text-center text-xs w-3/12'>{input.employee.name + ' ' + input.employee.lastName}</p>
+                      <p className='text-center text-xs w-3/12'>{input.product.name ? input.product.name : input.product}</p>
+                      <p className='text-center text-xs w-1/12'>{input.weight}</p>
+                    </button>
+                    {selectedMovement != null && selectedMovement._id == input._id && movementDetailsIsOpen ?
+                      <ShowInputDetails input={input}></ShowInputDetails>
+                      : ''}
+                    {currentUser._id == input.employee._id || currentUser.role == managerRole._id ?
+
+                      <div>
+                        <button id={input._id} onClick={() => { setIsOpen(!isOpen), setButtonId(input._id) }} disabled={loading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
+                          <span>
+                            <FaTrash className='text-red-700 m-auto' />
+                          </span>
+                        </button>
+
+                        {isOpen && input._id == buttonId ?
+                          <div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center items-center'>
+                            <div className='bg-white p-5 rounded-lg flex flex-col justify-center items-center gap-5'>
+                              <div>
+                                <p className='text-3xl font-semibold'>¿Estás seguro de borrar este registro?</p>
+                              </div>
+                              <div className='flex gap-10'>
+                                <div>
+                                  <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteInput(input._id, index), setIsOpen(!isOpen) }}>Si</button>
+                                </div>
+                                <div>
+                                  <button className='rounded-lg border shadow-lg w-20 h-10' onClick={() => { setIsOpen(!isOpen) }}>No</button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          : ''}
+
+                      </div>
+
+                      : ''}
+
+                  </div>
+
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+        : ''
+      }
+
+      {outputsIsOpen && outputs && outputs.length > 0 ?
+        <div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center max-w-lg my-auto mx-auto z-10'>
+          <div className=' bg-white p-5 rounded-lg justify-center items-center h-5/6 my-auto mx-auto w-11/12 overflow-y-scroll'>
+            <button className="" onClick={() => { setOutputsIsOpen(false) }}><MdCancel className="h-7 w-7" /></button>
+            < div className='bg-white mt-4 mb-4 h-full'>
+
+              <SectionHeader label={'Salidas'} />
+
+              <div>
+
+                {outputs && outputs.length > 0 ?
+                  <div id='header' className='grid grid-cols-12 items-center justify-around font-semibold mt-4'>
+                    <p className='col-span-3 text-center'>Sucursal</p>
+                    <p className='col-span-3 text-center'>Encargado</p>
+                    <p className='col-span-3 text-center'>Producto</p>
+                    <p className='col-span-1 text-center'>Kg</p>
+                  </div>
+                  : ''}
+                {outputs && outputs.length > 0 && outputs.map((output, index) => (
+
+
+                  <div key={output._id} className={(currentUser._id == output.employee || currentUser.role == managerRole._id ? '' : 'py-3 ') + (output.specialPrice ? 'border border-red-500 ' : 'border border-black ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-70 shadow-sm mt-2'}>
+
+                    <button onClick={() => { setSelectedMovement(output), setMovementDetailsIsOpen(!movementDetailsIsOpen) }} id='list-element' className='flex col-span-10 items-center justify-around h-full'>
+                      <p className='text-center text-xs  w-3/12'>{output.branch.branch ? output.branch.branch : output.branch}</p>
+                      <p className='text-center text-xs w-3/12'>{output.employee.name + ' ' + output.employee.lastName}</p>
+                      <p className='text-center text-xs w-3/12'>{output.product.name ? output.product.name : output.product}</p>
+                      <p className='text-center text-xs w-1/12'>{output.weight}</p>
+                    </button>
+
+                    {selectedMovement != null && selectedMovement._id == output._id && movementDetailsIsOpen ?
+                      <ShowOutputDetails output={output}></ShowOutputDetails>
+                      : ''}
+
+                    {currentUser._id == output.employee._id || currentUser.role == managerRole._id ?
+
+                      <div>
+                        <button id={output._id} onClick={() => { setIsOpen(!isOpen), setButtonId(output._id) }} disabled={loading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
+                          <span>
+                            <FaTrash className='text-red-700 m-auto' />
+                          </span>
+                        </button>
+
+                        {isOpen && output._id == buttonId ?
+                          <div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center items-center'>
+                            <div className='bg-white p-5 rounded-lg flex flex-col justify-center items-center gap-5'>
+                              <div>
+                                <p className='text-3xl font-semibold'>¿Estás seguro de borrar este registro?</p>
+                              </div>
+                              <div className='flex gap-10'>
+                                <div>
+                                  <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteOutput(output._id, index), setIsOpen(!isOpen) }}>Si</button>
+                                </div>
+                                <div>
+                                  <button className='rounded-lg border shadow-lg w-20 h-10' onClick={() => { setIsOpen(!isOpen) }}>No</button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          : ''}
+
+                      </div>
+
+                      : ''}
+
+                  </div>
+
+                ))}
+
+              </div>
+            </div>
+          </div>
+        </div>
+        : ''
+      }
+
+      {loansIsOpen && loans && loans.length > 0 ?
+        <div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center max-w-lg my-auto mx-auto z-10'>
+          <div className=' bg-white p-5 rounded-lg justify-center items-center h-5/6 my-auto mx-auto w-11/12 overflow-y-scroll'>
+            <button className="" onClick={() => { setLoansIsOpen(false) }}><MdCancel className="h-7 w-7" /></button>
+            < div className='bg-white mt-4 mb-4 h-full'>
+
+              <SectionHeader label={'Pagos a empleados'} />
+
+              <div>
+
+                {loans && loans.length > 0 ?
+                  <div id='header' className='grid grid-cols-11 gap-4 items-center justify-around font-semibold mt-4'>
+                    <p className='p-3 rounded-lg col-span-3 text-center'>Supervisor</p>
+                    <p className='p-3 rounded-lg col-span-3 text-center'>Deudor</p>
+                    <p className='p-3 rounded-lg col-span-3 text-center'>Monto</p>
+                  </div>
+                  : ''}
+                {loans && loans.length > 0 && loans.map((loan, index) => (
+
+
+                  <div key={loan._id} className={(currentUser._id == loan.supervisor || currentUser.role == managerRole._id ? '' : 'py-3 ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
+
+                    <div id='list-element' className='flex col-span-10 items-center justify-around'>
+                      <p className='text-center text-sm w-3/12'>{loan.supervisor.label ? loan.supervisor.label : loan.supervisor.name}</p>
+                      <p className='text-center text-sm w-3/12'>{loan.employee.label ? loan.employee.label : loan.employee.name}</p>
+                      <p className='text-center text-sm w-3/12'>{loan.amount.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
+                    </div>
+
+                    {currentUser._id == loan.supervisor._id || currentUser.role == managerRole._id ?
+
+                      <div>
+                        <button id={loan._id} onClick={() => { setIsOpen(!isOpen), setButtonId(loan._id) }} disabled={loading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
+                          <span>
+                            <FaTrash className='text-red-700 m-auto' />
+                          </span>
+                        </button>
+
+                        {isOpen && loan._id == buttonId ?
+                          <div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center items-center'>
+                            <div className='bg-white p-5 rounded-lg flex flex-col justify-center items-center gap-5'>
+                              <div>
+                                <p className='text-3xl font-semibold'>¿Estás seguro de borrar este registro?</p>
+                              </div>
+                              <div className='flex gap-10'>
+                                <div>
+                                  <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteLoan(loan._id, index), setIsOpen(!isOpen) }}>Si</button>
+                                </div>
+                                <div>
+                                  <button className='rounded-lg border shadow-lg w-20 h-10' onClick={() => { setIsOpen(!isOpen) }}>No</button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          : ''}
+
+                      </div>
+
+                      : ''}
+
+                  </div>
+
+                ))}
+
+              </div>
+            </div>
+          </div>
+        </div>
+        : ''
+      }
+
+      {
+        Object.values(netDifference) && Object.values(netDifference).length > 0 ?
+
+          <div className='border bg-white shadow-lg p-3 mt-4'>
+
+            <div className='flex gap-4 display-flex justify-between' onClick={() => setDifferencesIsOpen(!differencesIsOpen)} >
+
+              <SectionHeader label={'Diferencia neta'} />
+              {differencesIsOpen ? <MdKeyboardArrowDown className='text-5xl' /> : <MdKeyboardArrowRight className='text-5xl' />}
+
+            </div>
+
+            <div className={differencesIsOpen ? '' : 'hidden'} >
+
+              {Object.values(netDifference) && Object.values(netDifference).length > 0 && Object.values(netDifference).map((employeeDifferences) => (
+
+                <div key={employeeDifferences.employee._id}>
+
+                  {managerRole._id == currentUser.role || currentUser._id == employeeDifferences.employee._id ?
+
+                    < div className='border border-black mt-5'>
+
+                      <div>
+                        <p className='font-bold text-xl p-3'>{employeeDifferences.employee.name + ' ' + employeeDifferences.employee.lastName}</p>
+                      </div>
+
+
+                      {Object.values(employeeDifferences.netDifference) && Object.values(employeeDifferences.netDifference).length > 0 ?
+                        < div id='header' className='grid grid-cols-12 gap-4 items-center justify-around font-semibold mt-4'>
+                          <p className='p-3 rounded-lg col-span-6 text-center'>Producto</p>
+                          <p className='p-3 rounded-lg col-span-6 text-center'>Diferencia</p>
+                        </div>
+                        : ''}
+                      {Object.values(employeeDifferences.netDifference) && Object.values(employeeDifferences.netDifference).length > 0 && Object.values(employeeDifferences.netDifference).map((productDifference) => (
+
+
+                        <div key={productDifference.name} className={'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2 p-3'}>
+
+                          <div id='list-element' className='flex col-span-12 items-center justify-around p-1'>
+                            <p className='text-center text-sm w-6/12'>{productDifference.name}</p>
+                            <p className={'text-center text-sm w-6/12 ' + (productDifference.difference < 0 ? 'text-red-500' : '')}>{Math.abs(productDifference.difference).toFixed(2)}</p>
+                          </div>
+                        </div>
+
+                      ))}
+
+                      <div className='p-3'>
+
+                        <div className='flex mt-4 border-black border border-opacity-30 shadow-lg rounded-lg p-3'>
+                          <p className='w-6/12 text-center'>Total:</p>
+                          <p className={'w-6/12 text-center ' + (employeeDifferences.totalDifference < 0 ? 'text-red-500' : '')}>{Math.abs(employeeDifferences.totalDifference)}</p>
+                        </div>
+                      </div>
+                    </div>
+                    : ''}
+                </div>
+              ))}
+
+            </div>
 
             {currentUser.role == managerRole._id ?
 
               <div className='flex mt-4 border-black border border-opacity-30 shadow-lg rounded-lg p-3'>
                 <p className='w-6/12 text-center'>Total:</p>
-                <p className='w-6/12 text-center'>{loansTotal.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
+                <p className={'w-6/12 text-center ' + (totalNetDifference < 0 ? 'text-red-500' : '')}>{Math.abs(totalNetDifference)}</p>
 
               </div>
 
@@ -1988,6 +1992,8 @@ export default function ControlSupervisor() {
           </div>
           : ''
       }
+
+
 
       {
         employeesDailyBalances && employeesDailyBalances.length > 0 ?
@@ -2030,7 +2036,6 @@ export default function ControlSupervisor() {
       }
 
       {error && <p className='text-red-500 mt-05'>{error}</p>}
-
     </main >
   )
 }

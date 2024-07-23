@@ -1,9 +1,8 @@
 import { useDispatch, useSelector } from 'react-redux'
 import { signOutFailiure, signOutStart, signOutSuccess } from '../redux/user/userSlice'
-import { Link, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { weekDays } from '../helpers/Constants'
-import { FaTrash } from 'react-icons/fa'
 import TarjetaCuenta from '../components/TarjetaCuenta'
 
 export default function Perfil() {
@@ -209,6 +208,7 @@ export default function Perfil() {
   }, [employee])
 
 
+
   return (
 
     <main className="p-3 max-w-lg mx-auto">
@@ -327,15 +327,12 @@ export default function Perfil() {
             : ''}
         </div>
         :
-
         <div className="bg-white p-5 my-4 rounded-3xl shadow-lg text-lg font-semibold text-center">
 
           <p>No tienes acceso a esta información</p>
 
         </div>
       }
-
     </main >
-
   )
 }

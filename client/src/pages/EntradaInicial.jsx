@@ -305,10 +305,10 @@ export default function EntradaInicial({ products, defaultProduct, managerRole }
       <div className='border bg-white p-3 mt-4'>
         {/* <SectionHeader label={productName + ' de proveedor'} /> */}
 
-        <div className="flex gap-2 pr-4">
-          <h2 className='text-2xl text-center font-semibold mb-4 text-red-800'>
-            <div className="truncate">
-              <select name="providerInputProduct" id="providerInputProduct" className=' border p-3 rounded-lg text-lg' onChange={(e) => { providerInputButtonControl(), saveProductName(e) }}>
+        <div className="grid grid-rows-2">
+          <h2 className='row-span-1 text-2xl text-center font-semibold mb-4 text-red-800'>
+            <div className="">
+              <select name="providerInputProduct" id="providerInputProduct" className='truncate border p-3 rounded-lg text-lg' onChange={(e) => { providerInputButtonControl(), saveProductName(e) }}>
 
                 <option className="" selected disabled hidden value={defaultProduct ? defaultProduct._id : 'none'}>{(defaultProduct ? defaultProduct.name : productName) + ' de proveedor'}</option>
 
@@ -319,10 +319,18 @@ export default function EntradaInicial({ products, defaultProduct, managerRole }
               </select>
             </div>
           </h2>
-          <div className="h-10 w-10 shadow-lg ">
+          <div className="grid grid-cols-2">
 
-            <button className="w-full h-full" onClick={showProviderInputsFunction}><FaListAlt className="h-full w-full text-red-600" />
-            </button>
+            <div className="flex gap-3">
+
+              <button className="w-10 h-10" onClick={showProviderInputsFunction}><FaListAlt className="h-full w-full text-red-600" />
+              </button>
+              <button className="w-10 h-10" onClick={showProviderInputsFunction}><FaListAlt className="h-full w-full text-red-600" />
+              </button>
+            </div>
+            {currentUser.role == managerRole._id ?
+              <p className='font-bold text-lg text-red-700 text-center'>{providerInputsTotal.toFixed(2) + ' Kg'}</p>
+              : ''}
           </div>
         </div>
         <form onSubmit={submitProviderInput} className="grid grid-cols-4 items-center justify-between">
@@ -358,24 +366,24 @@ export default function EntradaInicial({ products, defaultProduct, managerRole }
 
       </div>
 
-      <div className="grid my-4 grid-cols-1 rounded-lg" id="list-element">
+      <div className="grid my-4 grid-cols-1 rounded-lg">
 
         {providerInputs && providerInputs.length > 0 && showProviderInputs ?
 
-          <div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center max-w-lg max my-auto mx-auto z-10'>
-            <div className=' bg-white p-5 rounded-lg justify-center items-center h-5/6 my-auto w-11/12'>
+          <div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center max-w-lg my-auto mx-auto z-10'>
+            <div className=' bg-white p-5 rounded-lg justify-center items-center h-5/6 my-auto mx-auto w-11/12 overflow-y-scroll'>
               <button className="" onClick={hideProviderInputs}><MdCancel className="h-7 w-7" /></button>
-              < div className='border bg-white shadow-lg  mt-4 mb-4 h-full overflow-y-scroll'>
+              < div className='bg-white mt-4 mb-4 h-full'>
 
 
 
-                <SectionHeader label={'Entradas'} />
+                <SectionHeader label={'Entradas de proveedor'} />
 
 
                 <div>
 
                   {providerInputs && providerInputs.length > 0 ?
-                    <div id='header' className='grid grid-cols-12 items-center justify-around font-semibold mt-0 sticky top-0 bg-white'>
+                    <div id='header' className='grid grid-cols-12 items-center justify-around font-semibold sticky top-0 bg-white'>
                       <p className='col-span-3 text-center'>Sucursal</p>
                       <p className='col-span-3 text-center'>Encargado</p>
                       <p className='col-span-3 text-center'>Piezas</p>
@@ -433,16 +441,6 @@ export default function EntradaInicial({ products, defaultProduct, managerRole }
                   ))}
 
                 </div>
-
-                {providerInputs && providerInputs.length > 0 ?
-
-                  <div className='flex my-4 border border-opacity-30 shadow-lg border-black rounded-lg p-3'>
-                    <p className='w-6/12 text-center'>Total {'(Kg)'}:</p>
-                    <p className='w-6/12 text-center'>{providerInputsTotal}</p>
-
-                  </div>
-
-                  : ''}
               </div>
             </div>
           </div>
