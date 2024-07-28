@@ -7,6 +7,7 @@ import { fetchBranches } from "../helpers/FetchFunctions";
 import { MdCancel } from "react-icons/md";
 import { FaListAlt, FaTrash } from "react-icons/fa";
 import { Slide, toast } from "react-toastify";
+import { BsInfoSquare } from "react-icons/bs";
 
 export default function EntradaInicial({ products, defaultProduct, managerRole }) {
 
@@ -20,8 +21,10 @@ export default function EntradaInicial({ products, defaultProduct, managerRole }
   const [loading, setLoading] = useState(false)
   const [providerInputFormData, setProviderInputFormData] = useState({})
   const [providerInputsTotal, setProviderInputsTotal] = useState(0.0)
+  const [providerInputsPieces, setProviderInputsPieces] = useState(0)
   const [branchName, setBranchName] = useState(null)
   const [showProviderInputs, setShowProviderInputs] = useState(false)
+  const [showProviderInputsStats, setShowProviderInputsStats] = useState(false)
   const [buttonId, setButtonId] = useState(null)
   const [isOpen, setIsOpen] = useState(false)
   let datePickerValue = (paramsDate ? new Date(paramsDate) : new Date())
@@ -243,11 +246,10 @@ export default function EntradaInicial({ products, defaultProduct, managerRole }
 
       setProviderInputs([])
       setProviderInputsTotal(0.0)
+      setProviderInputsPieces(0)
       hideProviderInputs()
 
       const product = productId == null ? products[0]._id : productId
-
-      console.log(product)
 
       try {
 
@@ -268,7 +270,10 @@ export default function EntradaInicial({ products, defaultProduct, managerRole }
         data.providerInputs.forEach((providerInput) => {
 
           setProviderInputsTotal((prev) => prev + providerInput.weight)
+          setProviderInputsPieces((prev) => prev + providerInput.pieces)
         })
+
+        console.log(data.providerInputs)
 
         setProviderInputs(data.providerInputs)
         setError(null)
@@ -306,7 +311,21 @@ export default function EntradaInicial({ products, defaultProduct, managerRole }
         {/* <SectionHeader label={productName + ' de proveedor'} /> */}
 
         <div className="grid grid-rows-2">
-          <h2 className='row-span-1 text-2xl text-center font-semibold mb-4 text-red-800'>
+          <div className="grid grid-cols-2">
+
+            <div className="flex gap-3">
+
+              <button className="w-10 h-10" onClick={showProviderInputsFunction}><FaListAlt className="h-full w-full text-red-600" />
+              </button>
+              <button className="w-10 h-10 rounded-lg shadow-lg" onClick={() => setShowProviderInputsStats(true)}><BsInfoSquare className="h-full w-full text-red-600" />
+
+              </button>
+            </div>
+            {currentUser.role == managerRole._id ?
+              <p className='font-bold text-lg text-red-700 text-center'>{providerInputsTotal.toFixed(2) + ' Kg'}</p>
+              : ''}
+          </div>
+          <h2 className='text-2xl font-semibold mb-4 text-red-800'>
             <div className="">
               <select name="providerInputProduct" id="providerInputProduct" className='truncate border p-3 rounded-lg text-lg' onChange={(e) => { providerInputButtonControl(), saveProductName(e) }}>
 
@@ -319,19 +338,7 @@ export default function EntradaInicial({ products, defaultProduct, managerRole }
               </select>
             </div>
           </h2>
-          <div className="grid grid-cols-2">
 
-            <div className="flex gap-3">
-
-              <button className="w-10 h-10" onClick={showProviderInputsFunction}><FaListAlt className="h-full w-full text-red-600" />
-              </button>
-              <button className="w-10 h-10" onClick={showProviderInputsFunction}><FaListAlt className="h-full w-full text-red-600" />
-              </button>
-            </div>
-            {currentUser.role == managerRole._id ?
-              <p className='font-bold text-lg text-red-700 text-center'>{providerInputsTotal.toFixed(2) + ' Kg'}</p>
-              : ''}
-          </div>
         </div>
         <form onSubmit={submitProviderInput} className="grid grid-cols-4 items-center justify-between">
           <select name="provider" id="provider" className='border p-3 rounded-lg text-xs'>
@@ -373,7 +380,7 @@ export default function EntradaInicial({ products, defaultProduct, managerRole }
           <div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center max-w-lg my-auto mx-auto z-10'>
             <div className=' bg-white p-5 rounded-lg justify-center items-center h-5/6 my-auto mx-auto w-11/12 overflow-y-scroll'>
               <button className="" onClick={hideProviderInputs}><MdCancel className="h-7 w-7" /></button>
-              < div className='bg-white mt-4 mb-4 h-full'>
+              < div className='bg-white mt-4 mb-4'>
 
 
 
@@ -444,6 +451,36 @@ export default function EntradaInicial({ products, defaultProduct, managerRole }
               </div>
             </div>
           </div>
+          : ''}
+
+        {showProviderInputsStats && providerInputs && providerInputs.length > 0 ?
+
+          < div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center max-w-lg my-auto mx-auto z-10'>
+            <div className=' bg-white p-5 rounded-lg justify-center items-center h-5/6 my-auto mx-auto w-11/12 overflow-y-scroll'>
+              <button className="" onClick={() => setShowProviderInputsStats(false)}><MdCancel className="h-7 w-7" /></button>
+              < div className='bg-white mt-4 mb-4'>
+
+                <SectionHeader label={'Datos de entradas de proveedores'}></SectionHeader>
+
+                <div >
+                  <div className="grid grid-cols-2 p-3 shadow-lg rounded-lg mb-4 gap-2 items-center">
+                    <p className="font-bold text-lg">Kilos: </p>
+                    <p>{providerInputsTotal.toFixed(2) + ' Kg'}</p>
+                  </div>
+                  <div className="grid grid-cols-2 p-3 shadow-lg rounded-lg mb-4 gap-2 items-center">
+                    <p className="font-bold text-lg">Piezas: </p>
+                    <p>{providerInputsPieces.toFixed(2) + ' u'}</p>
+                  </div>
+                  <div className="grid grid-cols-2 p-3 shadow-lg rounded-lg mb-4 gap-2 items-center">
+                    <p className="font-bold text-lg">Promedio: </p>
+                    <p>{(providerInputsTotal / providerInputsPieces).toFixed(2) + ' Kg/u'}</p>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
           : ''}
       </div>
 
