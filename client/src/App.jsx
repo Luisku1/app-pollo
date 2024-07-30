@@ -20,6 +20,7 @@ import EntradaInicial from './pages/EntradaInicial'
 import Gastos from './pages/Gastos'
 import Nomina from './pages/Nomina'
 import Sobrante from './pages/Sobrante'
+import Graficos from './pages/Graficos'
 
 
 export default function App() {
@@ -60,6 +61,7 @@ export default function App() {
           <Route path="/sobrante/:date" element={<Sobrante />} />
           <Route path="/reporte" element={<Reporte />} />
           <Route path="/reporte/:date" element={<Reporte />} />
+          <Route path="/graficos" element={<Graficos />} />
 
         </Route>
 

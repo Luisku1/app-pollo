@@ -1035,6 +1035,8 @@ export default function ControlSupervisor() {
 
   useEffect(() => {
 
+    console.log(Intl.DateTimeFormat().resolvedOptions().timeZone)
+
     const enableDisableButtons = () => {
 
       const outgoingButton = document.getElementById('extraOutgoingButton')
