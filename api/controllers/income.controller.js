@@ -7,14 +7,12 @@ export const newIncome = async (req, res, next) => {
 
   const { incomeAmount, company, branch, employee, type, createdAt } = req.body
 
-  console.log(createdAt)
-
   try {
 
     const newIncome = await new IncomeCollected({ amount: incomeAmount, company, branch, employee, type, createdAt })
     await newIncome.save()
 
-    await updateReportIncomes(branch, (new Date(createdAt)), incomeAmount)
+    await updateReportIncomes(branch, createdAt, incomeAmount)
 
     res.status(201).json({ message: 'New income created successfully', income: newIncome })
 

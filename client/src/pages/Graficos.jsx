@@ -21,7 +21,10 @@ export default function Graficos() {
       { time: '2019-04-18', value: 76.64 },
       { time: '2019-04-19', value: 81.89 },
       { time: '2019-04-20', value: 74.43 },
+
     ]);
+
+
 
   }, [])
 

@@ -2,6 +2,7 @@ import BranchReport from '../models/accounts/branch.report.model.js'
 import ReportData from '../models/accounts/report.data.model.js'
 import EmployeeDailyBalance from '../models/employees/employee.daily.balance.js'
 import { errorHandler } from '../utils/error.js'
+import { convertTZ, localTimeZone } from '../utils/formatDate.js'
 
 export const createBranchReport = async (req, res, next) => {
 
@@ -242,16 +243,13 @@ export const getBranchReport = async (req, res, next) => {
 
 export const fetchBranchReport = async (branchId, reportDate) => {
 
-  const date = new Date(reportDate)
+  const date = convertTZ(reportDate, localTimeZone())
 
-  const actualLocaleDay = date.toISOString().slice(0, 10)
+  date.setHours(0,0,0)
 
-  const actualLocaleDatePlusOne = new Date(actualLocaleDay)
-  actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
-  const actualLocaleDayPlusOne = actualLocaleDatePlusOne.toISOString().slice(0, 10)
+  const datePlusOne = new Date(date)
+  datePlusOne.setDate(datePlusOne.getDate() + 1)
 
-  const bottomDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
-  const topDate = new Date(actualLocaleDayPlusOne + 'T00:00:00.000-06:00')
 
   // const bottomDate = (new Date((new Date(reportDate)).toLocaleDateString('en-us')))
   // const topDate = new Date (bottomDate)
@@ -288,13 +286,13 @@ export const fetchBranchReport = async (branchId, reportDate) => {
         {
           createdAt: {
 
-            $lt: topDate
+            $lt: datePlusOne
           }
         },
         {
           createdAt: {
 
-            $gte: bottomDate
+            $gte: date
           }
         },
         {
