@@ -244,11 +244,12 @@ export const fetchBranchReport = async (branchId, reportDate) => {
   const date = convertTZ(reportDate)
   const datePlusOne = new Date(date)
   datePlusOne.setDate(datePlusOne.getDate() + 1)
+  console.log(date)
+  console.log(new Date())
 
   date.setHours(6,0,0)
   datePlusOne.setHours(6,0,0)
 
-  console.log(new Date())
 
 
   try {
