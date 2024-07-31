@@ -243,6 +243,8 @@ export const fetchBranchReport = async (branchId, reportDate) => {
 
   const date = convertTZ(reportDate, localTimeZone())
 
+  console.log(localTimeZone())
+
   date.setHours(0,0,0)
 
   const datePlusOne = new Date(date)
