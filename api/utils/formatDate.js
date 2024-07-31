@@ -5,14 +5,15 @@ export const formatDate = (date) => {
   return (actualLocaleDate.getFullYear() + '-' + (actualLocaleDate.getMonth() < 9 ? '0' + ((actualLocaleDate.getMonth()) + 1) : ((actualLocaleDate.getMonth()))) + '-' + ((actualLocaleDate.getDate() < 10 ? '0' : '') + actualLocaleDate.getDate()) + 'T06:00:00.000Z')
 }
 
-export const convertTZ = (date, tzString) => {
+export const convertTZ = (date) => {
 
-  return new Date((typeof date === "string" ? new Date(date) : date).toLocaleString("en-US", { timeZone: tzString }));
+  return new Date((typeof date === "string" ? new Date(date) : date).toLocaleString("en-US", { timeZone: 'America/Mexico_City' }));
 }
 
 export const localTimeZone = () => {
 
   return Intl.DateTimeFormat().resolvedOptions().timeZone
+
 }
 
 export const getDayRange = (date) => {
