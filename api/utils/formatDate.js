@@ -19,6 +19,8 @@ export const getDayRange = (date) => {
 
   const principalDate = convertTZ(date, localTimeZone())
 
+  console.log(localTimeZone())
+
   principalDate.setHours(0, 0, 0)
 
   const datePlusOne = new Date(principalDate)

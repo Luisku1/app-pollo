@@ -332,8 +332,6 @@ export const updateDailyBalancesBalance = async (employeeId, isoDate, balance) =
   const bottomDate = (new Date(date.toLocaleDateString('en-us'))).toISOString()
   const topDate = (new Date(actualLocaleDatePlusOne)).toISOString()
 
-	console.log('update daily balances date: ', bottomDate, topDate)
-
 	try {
 
 		const updatedDailyBalance = await EmployeeDailyBalance.updateOne({

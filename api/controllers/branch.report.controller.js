@@ -151,7 +151,6 @@ export const updateBranchReport = async (req, res, next) => {
   const bottomDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
   const topDate = new Date(actualLocaleDayPlusOne + 'T00:00:00.000-06:00')
 
-  console.log(bottomDate, topDate)
   try {
 
     const reportData = await ReportData.findOne({ _id: branchReport.reportData })
@@ -220,7 +219,6 @@ export const getBranchReport = async (req, res, next) => {
 
   const bottomDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
   const topDate = new Date(actualLocaleDayPlusOne + 'T00:00:00.000-06:00')
-  console.log(date)
 
   try {
 
@@ -251,6 +249,7 @@ export const fetchBranchReport = async (branchId, reportDate) => {
   datePlusOne.setDate(datePlusOne.getDate() + 1)
 
   console.log('----Dates----: ', date, datePlusOne)
+  console.log('----ISO Dates----:', date.toISOString(), datePlusOne.toISOString())
 
 
   try {

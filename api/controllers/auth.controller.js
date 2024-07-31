@@ -82,8 +82,6 @@ export const signIn = async (req, res, next) => {
 
   const { phoneNumber, password } = req.body
 
-  console.log(phoneNumber, password)
-
   try {
 
     let validUser = await Employee.findOne({phoneNumber})
