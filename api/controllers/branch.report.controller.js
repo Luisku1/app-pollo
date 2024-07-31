@@ -250,34 +250,8 @@ export const fetchBranchReport = async (branchId, reportDate) => {
   const datePlusOne = new Date(date)
   datePlusOne.setDate(datePlusOne.getDate() + 1)
 
+  console.log('----Dates----: ', date, datePlusOne)
 
-  // const bottomDate = (new Date((new Date(reportDate)).toLocaleDateString('en-us')))
-  // const topDate = new Date (bottomDate)
-  // topDate.setDate(bottomDate.getDate() + 1)
-
-  // let actualLocaleDate = (new Date((new Date(reportDate)).toLocaleDateString('en-us')))
-
-  // let actualLocaleDatePlusOne = actualLocaleDate
-  // actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
-  // actualLocaleDatePlusOne = (new Date(actualLocaleDatePlusOne.toLocaleDateString('en-us'))).toISOString().slice(0, -1)
-  // actualLocaleDate = actualLocaleDate.toISOString().slice(0, -1)
-
-  // const bottomDate = new Date(actualLocaleDate)
-  // const topDate = new Date(actualLocaleDatePlusOne)
-
-  // const datePrueba = new Date(reportDate)
-
-  // const actualLocaleDatePlusOnePrueba = new Date(datePrueba.toLocaleDateString('en-us'))
-
-  // console.log('ACTUAL LOCALE DATE PLUS ONE PRUEBA', actualLocaleDatePlusOnePrueba.toISOString())
-
-  // actualLocaleDatePlusOnePrueba.setDate(actualLocaleDatePlusOnePrueba.getDate() + 1)
-
-  // const bottomDatePrueba = (new Date(datePrueba.toLocaleDateString('en-us')))
-  // const topDatePrueba = (new Date(actualLocaleDatePlusOnePrueba))
-
-  // console.log('-----------Fechas para fetchBranchReport: --------------------', bottomDate, topDate)
-  // console.log('-----------Fechas Prueba para fetchBranchReport: --------------------', bottomDatePrueba, topDatePrueba)
 
   try {
 
@@ -286,13 +260,13 @@ export const fetchBranchReport = async (branchId, reportDate) => {
         {
           createdAt: {
 
-            $lt: datePlusOne
+            $lt: datePlusOne.toISOString()
           }
         },
         {
           createdAt: {
 
-            $gte: date
+            $gte: date.toISOString()
           }
         },
         {

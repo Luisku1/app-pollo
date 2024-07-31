@@ -14,3 +14,15 @@ export const localTimeZone = () => {
 
   return Intl.DateTimeFormat().resolvedOptions().timeZone
 }
+
+export const getDayRange = (date) => {
+
+  const principalDate = convertTZ(date, localTimeZone())
+
+  principalDate.setHours(0, 0, 0)
+
+  const datePlusOne = new Date(principalDate)
+  datePlusOne.setDate(datePlusOne.getDate() + 1)
+
+  return {bottomDate: principalDate, topDate: datePlusOne}
+}
