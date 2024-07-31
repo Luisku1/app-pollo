@@ -241,8 +241,11 @@ export const getBranchReport = async (req, res, next) => {
 
 export const fetchBranchReport = async (branchId, reportDate) => {
 
+  console.log(reportDate)
+
   const date = new Date(reportDate)
 
+  console.log(date)
 
   const datePlusOne = new Date(date)
   datePlusOne.setDate(datePlusOne.getDate() + 1)
