@@ -241,13 +241,14 @@ export const getBranchReport = async (req, res, next) => {
 
 export const fetchBranchReport = async (branchId, reportDate) => {
 
-  const date = convertTZ(reportDate, 'America/Mexico_City')
+  const date = new Date(reportDate)
 
-  date.setHours(0,0,0)
 
   const datePlusOne = new Date(date)
   datePlusOne.setDate(datePlusOne.getDate() + 1)
 
+  date.setHours(6,0,0)
+  datePlusOne.setHours(6,0,0)
   console.log('----Dates----: ', date, datePlusOne)
   console.log('----ISO Dates----:', date.toISOString(), datePlusOne.toISOString())
 
