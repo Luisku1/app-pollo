@@ -241,9 +241,7 @@ export const getBranchReport = async (req, res, next) => {
 
 export const fetchBranchReport = async (branchId, reportDate) => {
 
-  const date = convertTZ(reportDate, localTimeZone())
-
-  console.log(localTimeZone())
+  const date = convertTZ(reportDate, 'America/Mexico_City')
 
   date.setHours(0,0,0)
 
