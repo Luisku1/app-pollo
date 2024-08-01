@@ -102,10 +102,10 @@ export const getMonthBranchesIncomes = async (date, companyId) => {
 			{
 				$lookup: {
 
-					from: 'incomecollecteds',
+					from: 'branchreports',
 					localField: '_id',
 					foreignField: 'branch',
-					as: 'incomes',
+					as: 'branchReports',
 					pipeline: [
 						// {$match: {createdAt: {$gte: bottomDate}}}
 						{ $sort: { createdAt: 1 } }
@@ -132,7 +132,7 @@ export const getMonthBranchesIncomes = async (date, companyId) => {
 				$project: {
 					_id: 1,
 					branch: 1,
-					incomes: 1
+					branchReports: 1
 				}
 			}
 

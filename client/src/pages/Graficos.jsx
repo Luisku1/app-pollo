@@ -6,7 +6,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { formatDate } from '../helpers/DatePickerFunctions';
 import FechaDePagina from '../components/FechaDePagina';
 
-export const ChartComponent = ({ branchName, incomes }) => {
+export const ChartComponent = ({ branchName, branchReports }) => {
 
   const chartContainerRef = useRef()
 
@@ -16,15 +16,11 @@ export const ChartComponent = ({ branchName, incomes }) => {
     const lineSeries = chart.addLineSeries();
     const data = []
 
-    incomes.forEach(income => {
+    branchReports.forEach(branchReport => {
 
-      if(data.length > 0 && (income.createdAt.slice(0, 10) == data[data.length - 1].time)) {
+      if(!(data.length > 0 && (branchReport.createdAt.slice(0, 10) == data[data.length - 1].time))) {
 
-        data[data.length - 1].value += income.amount
-
-      } else {
-
-        data.push({time: income.createdAt.slice(0, 10), value: income.amount})
+        data.push({time: branchReport.createdAt.slice(0, 10), value: branchReport.incomes})
       }
     });
 
@@ -32,13 +28,13 @@ export const ChartComponent = ({ branchName, incomes }) => {
 
     return () => chart.remove()
 
-  }, [incomes])
+  }, [branchReports])
 
 
 
   return (
 
-    < div >
+    < div className='p-3'>
       <h2 className='font-bold text-lg text-center mb-4'>{branchName}</h2>
 
       <div id='chartContainer' ref={chartContainerRef} className='flex justify-center' />
@@ -107,7 +103,7 @@ export default function Graficos() {
         {branchesIncomes.length > 0 && branchesIncomes.map((branch) => (
 
           <div key={branch._id} className='mb-4'>
-            <ChartComponent branchName={branch.branch} incomes={branch.incomes}></ChartComponent>
+            <ChartComponent branchName={branch.branch} branchReports={branch.branchReports}></ChartComponent>
           </div>
         ))}
 
