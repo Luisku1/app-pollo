@@ -2,7 +2,7 @@ import BranchReport from '../models/accounts/branch.report.model.js'
 import ReportData from '../models/accounts/report.data.model.js'
 import EmployeeDailyBalance from '../models/employees/employee.daily.balance.js'
 import { errorHandler } from '../utils/error.js'
-import { convertTZ, localTimeZone } from '../utils/formatDate.js'
+import { convertTZ, getDayRange, localTimeZone } from '../utils/formatDate.js'
 
 export const createBranchReport = async (req, res, next) => {
 
@@ -13,15 +13,7 @@ export const createBranchReport = async (req, res, next) => {
   const balance = outputBalance - inputBalance
   const createdAt = new Date(date).toISOString()
 
-  const actualLocaleDate = new Date(new Date(date).getTime() - 6 * 60 * 60000)
-  const actualLocaleDay = actualLocaleDate.toISOString().slice(0, 10)
-
-  const actualLocaleDatePlusOne = new Date(actualLocaleDay)
-  actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
-  const actualLocalDayPlusOne = actualLocaleDatePlusOne.toISOString().slice(0, 10)
-
-  const bottomDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
-  const topDate = new Date(actualLocalDayPlusOne + 'T00:00:00.000-06:00')
+  const {bottomDate, topDate} = getDayRange(date)
 
   try {
 
@@ -140,16 +132,7 @@ export const updateBranchReport = async (req, res, next) => {
   const outputBalance = outgoings + outputs + incomes + finalStock
   const balance = outputBalance - inputBalance
 
-  const date = new Date(branchReport.createdAt)
-
-  const actualLocaleDay = date.toISOString().slice(0, 10)
-
-  const actualLocaleDatePlusOne = new Date(actualLocaleDay)
-  actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
-  const actualLocaleDayPlusOne = actualLocaleDatePlusOne.toISOString().slice(0, 10)
-
-  const bottomDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
-  const topDate = new Date(actualLocaleDayPlusOne + 'T00:00:00.000-06:00')
+  const {bottomDate, topDate} = getDayRange(createdAt)
 
   try {
 
@@ -209,20 +192,11 @@ export const updateBranchReport = async (req, res, next) => {
 export const getBranchReport = async (req, res, next) => {
 
   const branchId = req.params.branchId
-  const date = new Date(req.params.date)
-
-  const actualLocaleDay = date.toISOString().slice(0, 10)
-
-  const actualLocaleDatePlusOne = new Date(actualLocaleDay)
-  actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
-  const actualLocaleDayPlusOne = actualLocaleDatePlusOne.toISOString().slice(0, 10)
-
-  const bottomDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
-  const topDate = new Date(actualLocaleDayPlusOne + 'T00:00:00.000-06:00')
+  const date = req.params.date
 
   try {
 
-    const originalBranchReport = await fetchBranchReport(branchId, bottomDate)
+    const originalBranchReport = await fetchBranchReport(branchId, date)
 
     if (originalBranchReport) {
 
@@ -241,16 +215,7 @@ export const getBranchReport = async (req, res, next) => {
 
 export const fetchBranchReport = async (branchId, reportDate) => {
 
-  const date = convertTZ(reportDate)
-  const datePlusOne = new Date(date)
-  datePlusOne.setDate(datePlusOne.getDate() + 1)
-  console.log(date)
-  console.log(new Date())
-
-  date.setHours(6,0,0)
-  datePlusOne.setHours(6,0,0)
-
-
+  const {bottomDate, topDate} = getDayRange(reportDate)
 
   try {
 
@@ -259,13 +224,13 @@ export const fetchBranchReport = async (branchId, reportDate) => {
         {
           createdAt: {
 
-            $lt: datePlusOne.toISOString()
+            $lt: topDate
           }
         },
         {
           createdAt: {
 
-            $gte: date.toISOString()
+            $gte: bottomDate
           }
         },
         {

@@ -3,6 +3,7 @@ import Outgoing from "../models/accounts/outgoings/outgoing.model.js"
 import Loan from '../models/accounts/outgoings/loan.model.js'
 import { errorHandler } from "../utils/error.js"
 import { updateReportOutgoings } from "../utils/updateReport.js"
+import { getDayRange } from "../utils/formatDate.js"
 
 export const newOutgoing = async (req, res, next) => {
 
@@ -13,7 +14,7 @@ export const newOutgoing = async (req, res, next) => {
     const outgoing = new Outgoing({ amount, concept, company, branch, employee, createdAt})
     await outgoing.save()
 
-    // updateReportOutgoings(branch, createdAt, amount)
+    await updateReportOutgoings(branch, createdAt, amount)
 
     res.status(201).json({ message: 'New outgoing created successfully', outgoing: outgoing })
 
@@ -28,15 +29,10 @@ export const newOutgoing = async (req, res, next) => {
 export const getOutgoings = async (req, res, next) => {
 
   const companyId = req.params.companyId
-  const date = req.params.date
+  const date = new Date(req.params.date)
 
+  const {bottomDate, topDate} = getDayRange(date)
 
-  const actualLocaleDatePlusOne = new Date(date)
-  actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
-  const actualLocalDayPlusOne = actualLocaleDatePlusOne.toISOString()
-
-  const bottomDate = new Date(date)
-  const topDate = new Date(actualLocalDayPlusOne)
 
   try {
 
@@ -100,14 +96,7 @@ export const getBranchOutgoings = async (req, res, next) => {
   const date = new Date(req.params.date)
   const branchId = req.params.branchId
 
-  const actualLocaleDay = date.toISOString().slice(0, 10)
-
-  const actualLocaleDatePlusOne = new Date(actualLocaleDay)
-  actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
-  const actualLocalDayPlusOne = actualLocaleDatePlusOne.toISOString().slice(0, 10)
-
-  const bottomDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
-  const topDate = new Date(actualLocalDayPlusOne + 'T00:00:00.000-06:00')
+  const {bottomDate, topDate} = getDayRange(date)
 
 
   try {
@@ -154,15 +143,7 @@ export const getExtraOutgoings = async (req, res, next) => {
   const date = new Date(req.params.date)
   const companyId = req.params.companyId
 
-  const actualLocaleDate = new Date(new Date(date).getTime() - 6 * 60 * 60000)
-  const actualLocaleDay = actualLocaleDate.toISOString().slice(0, 10)
-
-  const actualLocaleDatePlusOne = new Date(actualLocaleDay)
-  actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
-  const actualLocalDayPlusOne = actualLocaleDatePlusOne.toISOString().slice(0, 10)
-
-  const bottomDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
-  const topDate = new Date(actualLocalDayPlusOne + 'T00:00:00.000-06:00')
+  const {bottomDate, topDate} = getDayRange(date)
 
   try {
 
@@ -235,7 +216,7 @@ export const deleteOutgoing = async (req, res, next) => {
 
     if (!deleted.deletedCount == 0) {
 
-      // updateReportOutgoings(outgoing.branch, outgoing.createdAt, -(outgoing.amount))
+      await updateReportOutgoings(outgoing.branch, outgoing.createdAt, -(outgoing.amount))
       res.status(200).json('Outgoing deleted successfully')
 
     } else {
@@ -274,17 +255,7 @@ export const getLoans = async (req, res, next) => {
   const date = new Date(req.params.date)
   const companyId = req.params.companyId
 
-  const actualLocaleDate = new Date(new Date(date).getTime() - 6 * 60 * 60000)
-  const actualLocaleDay = actualLocaleDate.toISOString().slice(0, 10)
-
-  const actualLocaleDatePlusOne = new Date(actualLocaleDay)
-  actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
-  const actualLocalDayPlusOne = actualLocaleDatePlusOne.toISOString().slice(0, 10)
-
-  const bottomDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
-  const topDate = new Date(actualLocalDayPlusOne + 'T00:00:00.000-06:00')
-
-
+  const {bottomDate, topDate} = getDayRange(date)
 
   try {
 

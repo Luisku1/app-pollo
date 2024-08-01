@@ -1,5 +1,6 @@
 import ProductLoss from "../models/accounts/outgoings/product.loss.model.js";
 import { errorHandler } from "../utils/error.js";
+import { getDayRange } from "../utils/formatDate.js";
 
 export const create = async (req, res, next) => {
 
@@ -24,14 +25,7 @@ export const getProductLosses = async (req, res, next) => {
   const branchId = req.params.branchId
   const date = new Date(req.params.date)
 
-  const actualLocaleDay = date.toISOString().slice(0, 10)
-
-  const actualLocaleDatePlusOne = new Date(date)
-  actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
-  const actualLocaleDayPlusOne = actualLocaleDatePlusOne.toISOString().slice(0, 10)
-
-  const bottomDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
-  const topDate = new Date(actualLocaleDayPlusOne + 'T00:00:00.000-06:00')
+  const {bottomDate, topDate} = getDayRange(date)
 
   try {
 

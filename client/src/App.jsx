@@ -61,7 +61,8 @@ export default function App() {
           <Route path="/sobrante/:date" element={<Sobrante />} />
           <Route path="/reporte" element={<Reporte />} />
           <Route path="/reporte/:date" element={<Reporte />} />
-          <Route path="/graficos" element={<Graficos />} />
+          <Route path="/graficos/" element={<Graficos />} />
+          <Route path="/graficos/:date" element={<Graficos />} />
 
         </Route>
 

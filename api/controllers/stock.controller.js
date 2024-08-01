@@ -1,6 +1,7 @@
 import Price from "../models/accounts/price.model.js";
 import Stock from "../models/accounts/stock.model.js";
 import { errorHandler } from "../utils/error.js";
+import { getDayRange } from "../utils/formatDate.js";
 import { updateReportStock } from "../utils/updateReport.js";
 import { pricesAggregate } from "./price.controller.js";
 
@@ -13,7 +14,7 @@ export const createStock = async (req, res, next) => {
     const newStock = new Stock({ pieces, employee, weight, amount, branch, product, company, createdAt })
     await newStock.save()
 
-    // updateReportStock(branch, createdAt, amount)
+    await updateReportStock(branch, createdAt, amount)
     res.status(201).json({ message: 'New stock created successfully', stock: newStock })
 
   } catch (error) {
@@ -132,14 +133,7 @@ export const getBranchDayStock = async (req, res, next) => {
   const date = new Date(req.params.date)
   const branchId = req.params.branchId
 
-  const actualLocaleDay = date.toISOString().slice(0, 10)
-
-  const actualLocaleDatePlusOne = new Date(actualLocaleDay)
-  actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
-  const actualLocaleDayPlusOne = actualLocaleDatePlusOne.toISOString().slice(0, 10)
-
-  const bottomDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
-  const topDate = new Date(actualLocaleDayPlusOne + 'T00:00:00.000-06:00')
+  const {bottomDate, topDate} = getDayRange(date)
 
 
   try {
@@ -185,15 +179,7 @@ export const getCompanyDayStock = async (req, res, next) => {
   const companyId = req.params.companyId
   const date = new Date(req.params.date)
 
-  const actualLocaleDate = new Date(new Date(date).getTime() - 6 * 60 * 60000)
-  const actualLocaleDay = actualLocaleDate.toISOString().slice(0, 10)
-
-  const actualLocaleDatePlusOne = new Date(actualLocaleDay)
-  actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
-  const actualLocaleDayPlusOne = actualLocaleDatePlusOne.toISOString().slice(0, 10)
-
-  const bottomDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
-  const topDate = new Date(actualLocaleDayPlusOne + 'T00:00:00.000-06:00')
+  const {bottomDate, topDate} = getDayRange(date)
 
 
   try {
@@ -246,7 +232,7 @@ export const deleteStock = async (req, res, next) => {
 
     if (!deleted.deletedCount == 0) {
 
-      // updateReportStock(stock.branch, stock.createdAt, -(stock.amount))
+      await updateReportStock(stock.branch, stock.createdAt, -(stock.amount))
       res.status(200).json('Stock deleted successfully')
 
     } else {
@@ -265,12 +251,7 @@ export const getTotalStockByProduct = async (req, res, next) => {
   const companyId = req.params.companyId
   const date = new Date(req.params.date)
 
-  const actualLocaleDatePlusOne = new Date(date)
-  actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
-  const actualLocaleDayPlusOne = actualLocaleDatePlusOne.toISOString()
-
-  const bottomDate = new Date(date)
-  const topDate = new Date(actualLocaleDayPlusOne)
+  const {bottomDate, topDate} = getDayRange(date)
 
   try {
 
@@ -366,12 +347,7 @@ export const getTotalStockByBranch = async (req, res, next) => {
   const companyId = req.params.companyId
   const date = new Date(req.params.date)
 
-  const actualLocaleDatePlusOne = new Date(date)
-  actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
-  const actualLocaleDayPlusOne = actualLocaleDatePlusOne.toISOString()
-
-  const bottomDate = new Date(date)
-  const topDate = new Date(actualLocaleDayPlusOne)
+  const {bottomDate, topDate} = getDayRange(date)
 
   try {
 
@@ -470,7 +446,7 @@ export const createAfternoonStock = async (req, res, next) => {
     const newStock = new Stock({ pieces, employee, weight, amount, branch, product, company, createdAt })
     await af.save()
 
-    // updateReportStock(branch, createdAt, amount)
+    await updateReportStock(branch, createdAt, amount)
     res.status(201).json({ message: 'New Afternoon Stock is created successfully', stock: newStock })
 
   } catch (error) {

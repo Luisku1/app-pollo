@@ -5,6 +5,7 @@ import { getProductPrice } from './price.controller.js'
 import ProviderInput from '../models/providers/provider.input.model.js'
 import { updateReportInputs, updateReportOutputs } from '../utils/updateReport.js'
 import { fetchBranchReport } from './branch.report.controller.js'
+import { getDayRange } from '../utils/formatDate.js'
 
 export const newInput = async (req, res, next) => {
 
@@ -45,7 +46,7 @@ export const newInput = async (req, res, next) => {
 
     await newInput.save()
 
-    // updateReportInputs(branch, createdAt, amount)
+    await updateReportInputs(branch, createdAt, amount)
 
     res.status(200).json({ message: 'New input created', input: newInput })
 
@@ -60,15 +61,7 @@ export const getNetDifference = async (req, res, next) => {
   const date = new Date(req.params.date)
   const companyId = req.params.companyId
 
-  const actualLocaleDate = new Date(new Date(date).getTime() - 6 * 60 * 60000)
-  const actualLocaleDay = actualLocaleDate.toISOString().slice(0, 10)
-
-  const actualLocaleDatePlusOne = new Date(actualLocaleDay)
-  actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
-  const actualLocalDayPlusOne = actualLocaleDatePlusOne.toISOString().slice(0, 10)
-
-  const bottomDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
-  const topDate = new Date(actualLocalDayPlusOne + 'T00:00:00.000-06:00')
+  const {bottomDate, topDate} = getDayRange(date)
 
   try {
 
@@ -233,14 +226,7 @@ export const getBranchInputs = async (req, res, next) => {
   const date = new Date(req.params.date)
   const branchId = req.params.branchId
 
-  const actualLocaleDay = date.toISOString().slice(0, 10)
-
-  const actualLocaleDatePlusOne = new Date(date)
-  actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
-  const actualLocaleDayPlusOne = actualLocaleDatePlusOne.toISOString().slice(0, 10)
-
-  const bottomDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
-  const topDate = new Date(actualLocaleDayPlusOne + 'T00:00:00.000-06:00')
+  const {bottomDate, topDate} = getDayRange(date)
 
 
   try {
@@ -288,14 +274,7 @@ export const getBranchProviderInputs = async (req, res, next) => {
   const branchId = req.params.branchId
   const date = new Date(req.params.date)
 
-  const actualLocaleDay = date.toISOString().slice(0, 10)
-
-  const actualLocaleDatePlusOne = new Date(date)
-  actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
-  const actualLocaleDayPlusOne = actualLocaleDatePlusOne.toISOString().slice(0, 10)
-
-  const bottomDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
-  const topDate = new Date(actualLocaleDayPlusOne + 'T00:00:00.000-06:00')
+  const {bottomDate, topDate} = getDayRange(date)
 
   try {
     const providerInputs = await ProviderInput.find({
@@ -336,15 +315,7 @@ export const getInputs = async (req, res, next) => {
   const date = new Date(req.params.date)
   const companyId = req.params.companyId
 
-  const actualLocaleDate = new Date(new Date(date).getTime() - 6 * 60 * 60000)
-  const actualLocaleDay = actualLocaleDate.toISOString().slice(0, 10)
-
-  const actualLocaleDatePlusOne = new Date(actualLocaleDay)
-  actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
-  const actualLocalDayPlusOne = actualLocaleDatePlusOne.toISOString().slice(0, 10)
-
-  const bottomDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
-  const topDate = new Date(actualLocalDayPlusOne + 'T00:00:00.000-06:00')
+  const {bottomDate, topDate} = getDayRange(date)
 
 
   try {
@@ -398,7 +369,7 @@ export const deleteInput = async (req, res, next) => {
 
     if (deleted.acknowledged == 1) {
 
-      // updateReportInputs(input.branch, input.createdAt, -(input.amount))
+      await updateReportInputs(input.branch, input.createdAt, -(input.amount))
       res.status(200).json({ message: 'Input deleted correctly' })
 
     } else {
@@ -453,7 +424,7 @@ export const newOutput = async (req, res, next) => {
 
     await newOutput.save()
 
-    // updateReportOutputs(branch, createdAt, amount)
+    await updateReportOutputs(branch, createdAt, amount)
     res.status(200).json({ message: 'New output created', output: newOutput })
 
   } catch (error) {
@@ -467,14 +438,7 @@ export const getBranchOutputs = async (req, res, next) => {
   const date = new Date(req.params.date)
   const branchId = req.params.branchId
 
-  const actualLocaleDay = date.toISOString().slice(0, 10)
-
-  const actualLocaleDatePlusOne = new Date(date)
-  actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
-  const actualLocaleDayPlusOne = actualLocaleDatePlusOne.toISOString().slice(0, 10)
-
-  const bottomDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
-  const topDate = new Date(actualLocaleDayPlusOne + 'T00:00:00.000-06:00')
+  const {bottomDate, topDate} = getDayRange(date)
 
   try {
 
@@ -520,15 +484,7 @@ export const getOutputs = async (req, res, next) => {
   const date = new Date(req.params.date)
   const companyId = req.params.companyId
 
-  const actualLocaleDate = new Date(new Date(date).getTime() - 6 * 60 * 60000)
-  const actualLocaleDay = actualLocaleDate.toISOString().slice(0, 10)
-
-  const actualLocaleDatePlusOne = new Date(actualLocaleDay)
-  actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
-  const actualLocalDayPlusOne = actualLocaleDatePlusOne.toISOString().slice(0, 10)
-
-  const bottomDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
-  const topDate = new Date(actualLocalDayPlusOne + 'T00:00:00.000-06:00')
+  const {bottomDate, topDate} = getDayRange(date)
 
 
   try {
@@ -574,15 +530,7 @@ export const getProviderProductInputs = async (req, res, next) => {
 
   const { companyId, productId, date } = req.params
 
-  const actualLocaleDate = new Date(new Date(date).getTime() - 6 * 60 * 60000)
-  const actualLocaleDay = actualLocaleDate.toISOString().slice(0, 10)
-
-  const actualLocaleDatePlusOne = new Date(actualLocaleDay)
-  actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
-  const actualLocalDayPlusOne = actualLocaleDatePlusOne.toISOString().slice(0, 10)
-
-  const bottomDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
-  const topDate = new Date(actualLocalDayPlusOne + 'T00:00:00.000-06:00')
+  const {bottomDate, topDate} = getDayRange(date)
 
   try {
 
@@ -638,7 +586,7 @@ export const createProviderInput = async (req, res, next) => {
 
     await newProviderInput.save()
 
-    // updateReportInputs(branch, createdAt, amount)
+    await updateReportInputs(branch, createdAt, amount)
 
     res.status(200).json({ providerInput: newProviderInput })
 
@@ -659,7 +607,7 @@ export const deleteProviderInput = async (req, res, next) => {
 
     if (deleted.acknowledged == 1) {
 
-      // updateReportInputs(providerInput.branch, providerInput.createdAt, -(providerInput.amount))
+      await updateReportInputs(providerInput.branch, providerInput.createdAt, -(providerInput.amount))
       res.status(200).json({ message: 'Provider input deleted correctly' })
 
     } else {

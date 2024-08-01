@@ -1,11 +1,12 @@
 import express from 'express'
-import { getBranches, newBranch, deleteBranch, getBranchesLastPosition } from '../controllers/branch.controller.js'
+import { getBranches, newBranch, deleteBranch, getBranchesLastPosition, getMonthBranchesIncomesQuery } from '../controllers/branch.controller.js'
 
 const router = express()
 
 router.post('/new-branch/', newBranch)
 router.get('/get-branches/:companyId', getBranches)
 router.get('/get-branches-last-position/:companyId', getBranchesLastPosition)
+router.get('/get-month-branches-incomes/:companyId/:date', getMonthBranchesIncomesQuery)
 router.delete('/delete/:branchId', deleteBranch)
 
 export default router

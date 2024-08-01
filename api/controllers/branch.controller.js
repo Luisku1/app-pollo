@@ -1,6 +1,8 @@
+import { Types } from 'mongoose';
 import Price from '../models/accounts/price.model.js';
 import Branch from '../models/branch.model.js'
 import { errorHandler } from '../utils/error.js'
+import { getMonthRange } from '../utils/formatDate.js';
 
 export const newBranch = async (req, res, next) => {
 
@@ -58,6 +60,92 @@ export const getBranchesLastPosition = async (req, res, next) => {
 		next(error)
 
 	}
+}
+
+export const getMonthBranchesIncomesQuery = async (req, res, next) => {
+
+	const date = new Date(req.params.date)
+	const companyId = req.params.companyId
+
+	try {
+
+		const branchesIncomes = await getMonthBranchesIncomes(date, companyId)
+
+		res.status(200).json(branchesIncomes)
+
+	} catch (error) {
+
+		next(error)
+	}
+}
+
+export const getMonthBranchesIncomes = async (date, companyId) => {
+
+	const { bottomDate, topDate } = getMonthRange(date)
+
+	try {
+
+		const branchesIncomes = await Branch.aggregate([
+
+			{
+				$match: {
+					"company": new Types.ObjectId(companyId)
+				}
+			},
+
+			{
+				$sort: {
+					'position': 1
+				}
+			},
+
+			{
+				$lookup: {
+
+					from: 'incomecollecteds',
+					localField: '_id',
+					foreignField: 'branch',
+					as: 'incomes',
+					pipeline: [
+						// {$match: {createdAt: {$gte: bottomDate}}}
+						{ $sort: { createdAt: 1 } }
+					]
+				}
+			},
+
+			// {
+			// 	$unwind: {
+
+			// 		path: '$incomes'
+			// 	}
+			// },
+
+			// {
+			// 	$group: {
+			// 		_id: {
+			// 			branchId: '$_id'
+			// 		}
+			// 	}
+			// }
+
+			{
+				$project: {
+					_id: 1,
+					branch: 1,
+					incomes: 1
+				}
+			}
+
+
+		])
+
+		return branchesIncomes
+
+	} catch (error) {
+
+		throw error
+	}
+
 }
 
 export const deleteBranch = async (req, res, next) => {

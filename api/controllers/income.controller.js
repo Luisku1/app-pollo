@@ -1,6 +1,7 @@
 import IncomeCollected from "../models/accounts/incomes/income.collected.model.js";
 import IncomeType from "../models/accounts/incomes/income.type.model.js";
 import { errorHandler } from "../utils/error.js";
+import { getDayRange } from "../utils/formatDate.js";
 import { updateReportIncomes } from "../utils/updateReport.js";
 
 export const newIncome = async (req, res, next) => {
@@ -44,14 +45,7 @@ export const getBranchIncomes = async (req, res, next) => {
   const date = new Date(req.params.date)
   const branchId = req.params.branchId
 
-  const actualLocaleDay = date.toISOString().slice(0, 10)
-
-  const actualLocaleDatePlusOne = new Date(date)
-  actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
-  const actualLocaleDayPlusOne = actualLocaleDatePlusOne.toISOString().slice(0, 10)
-
-  const bottomDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
-  const topDate = new Date(actualLocaleDayPlusOne + 'T00:00:00.000-06:00')
+  const {bottomDate, topDate} = getDayRange(date)
 
   try {
 
@@ -98,15 +92,7 @@ export const getIncomes = async (req, res, next) => {
   const date = new Date(req.params.date)
   const companyId = req.params.companyId
 
-  const actualLocaleDate = new Date(new Date(date).getTime() - 6 * 60 * 60000)
-  const actualLocaleDay = actualLocaleDate.toISOString().slice(0, 10)
-
-  const actualLocaleDatePlusOne = new Date(actualLocaleDay)
-  actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
-  const actualLocalDayPlusOne = actualLocaleDatePlusOne.toISOString().slice(0, 10)
-
-  const bottomDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
-  const topDate = new Date(actualLocalDayPlusOne + 'T00:00:00.000-06:00')
+  const {bottomDate, topDate} = getDayRange(date)
 
   try {
 

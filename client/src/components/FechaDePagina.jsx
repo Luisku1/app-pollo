@@ -35,7 +35,7 @@ export default function FechaDePagina({ changeDatePickerValue, stringDatePickerV
     <div className="gap-2">
 
       <p className="font-bold text-center text-lg">{
-        (new Date(stringDatePickerValue)).toLocaleDateString('es-mx', { weekday: 'long' })
+        (new Date(stringDatePickerValue)).toLocaleDateString('es-mx', { month: 'long' }) + ', ' + (new Date(stringDatePickerValue)).toLocaleDateString('es-mx', { weekday: 'long' })
       }</p>
 
       <div className="flex justify-center gap-1">

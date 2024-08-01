@@ -3,6 +3,7 @@ import BranchReport from "../models/accounts/branch.report.model.js"
 import EmployeeDailyBalance from "../models/employees/employee.daily.balance.js"
 import Employee from "../models/employees/employee.model.js"
 import { errorHandler } from "../utils/error.js"
+import { getDayRange } from "../utils/formatDate.js"
 
 export const getEmployees = async (req, res, next) => {
 
@@ -112,10 +113,7 @@ export const getEmployeeDayInfo = async (req, res, next) => {
 
 	const employeeId = req.params.employeeId
 
-	const actualLocaleDate = new Date(new Date().getTime() - 6 * 60 * 60000)
-	const actualLocaleDay = actualLocaleDate.toISOString().slice(0, 10)
-
-	const bottomDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
+	const {bottomDate} = getDayRange(new Date())
 
 	try {
 
@@ -148,15 +146,7 @@ export const getEmployeesDailyBalances = async (req, res, next) => {
 	const date = new Date(req.params.date)
 	const companyId = req.params.companyId
 
-	const actualLocaleDate = new Date(new Date(date).getTime() - 6 * 60 * 60000)
-	const actualLocaleDay = actualLocaleDate.toISOString().slice(0, 10)
-
-	const actualLocaleDatePlusOne = new Date(actualLocaleDay)
-	actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
-	const actualLocalDayPlusOne = actualLocaleDatePlusOne.toISOString().slice(0, 10)
-
-	const bottomDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
-	const topDate = new Date(actualLocalDayPlusOne + 'T00:00:00.000-06:00')
+	const {bottomDate, topDate} = getDayRange(date)
 
 	try {
 
@@ -325,12 +315,7 @@ export const updateDailyBalancesBalance = async (employeeId, isoDate, balance) =
 
   const date = new Date(isoDate)
 
-  const actualLocaleDatePlusOne = new Date(date.toLocaleDateString('en-us'))
-
-  actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
-
-  const bottomDate = (new Date(date.toLocaleDateString('en-us'))).toISOString()
-  const topDate = (new Date(actualLocaleDatePlusOne)).toISOString()
+	const {bottomDate, topDate} = getDayRange(date)
 
 	try {
 

@@ -6,20 +6,14 @@ import IncomeCollected from "../models/accounts/incomes/income.collected.model.j
 import BranchReport from "../models/accounts/branch.report.model.js"
 import { errorHandler } from "../utils/error.js"
 import ReportData from "../models/accounts/report.data.model.js"
+import { getDayRange } from "../utils/formatDate.js"
 
 export const getBranchReports = async (req, res, next) => {
 
   const date = new Date(req.params.date)
   const companyId = req.params.companyId
 
-  const actualLocaleDay = date.toISOString().slice(0, 10)
-
-  const actualLocaleDatePlusOne = new Date(actualLocaleDay)
-  actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
-  const actualLocaleDayPlusOne = actualLocaleDatePlusOne.toISOString().slice(0, 10)
-
-  const bottomDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
-  const topDate = new Date(actualLocaleDayPlusOne + 'T00:00:00.000-06:00')
+  const {bottomDate, topDate} = getDayRange(date)
 
   try {
 
@@ -58,15 +52,7 @@ export const getSupervisorsInfo = async (req, res, next) => {
   const date = new Date(req.params.date)
   const companyId = req.params.companyId
 
-  const actualLocaleDate = new Date(new Date(date))
-  const actualLocaleDay = actualLocaleDate.toISOString().slice(0, 10)
-
-  const actualLocaleDatePlusOne = new Date(actualLocaleDay)
-  actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
-  const actualLocalDayPlusOne = actualLocaleDatePlusOne.toISOString().slice(0, 10)
-
-  const bottomDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
-  const topDate = new Date(actualLocalDayPlusOne + 'T00:00:00.000-06:00')
+  const {bottomDate, topDate} = getDayRange(date)
 
   try {
 
@@ -92,15 +78,8 @@ export const getSupervisorInfo = async (req, res, next) => {
 
   const employeeId = req.params.employeeId
 
-  const actualLocaleDate = new Date(new Date().getTime() - 6 * 60 * 60000)
-  const actualLocaleDay = actualLocaleDate.toISOString().slice(0, 10)
+  const {bottomDate, topDate} = getDayRange(new Date())
 
-  const actualLocaleDatePlusOne = new Date(actualLocaleDay)
-  actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
-  const actualLocalDayPlusOne = actualLocaleDatePlusOne.toISOString().slice(0, 10)
-
-  const bottomDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
-  const topDate = new Date(actualLocalDayPlusOne + 'T00:00:00.000-06:00')
   const supervisorInfo = {
     incomes: 0.0,
     outgoings: 0.0
