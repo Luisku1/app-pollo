@@ -214,8 +214,8 @@ export const getEmployeesDailyBalances = async (req, res, next) => {
 export const getEmployeePayroll = async (req, res, next) => {
 
 	const companyId = req.params.companyId
-	const {bottomDate} = getDayRange(req.params.date)
-	const day = (new Date(bottomDate)).getDay()
+	const {topDate} = getDayRange(req.params.date)
+	const day = (new Date(topDate)).getDay()
 
 	try {
 
@@ -235,7 +235,7 @@ export const getEmployeePayroll = async (req, res, next) => {
 					foreignField: 'employee',
 					as: 'dailyBalances',
 					pipeline: [
-						{ $match: { createdAt: { $lt: bottomDate } } },
+						{ $match: { createdAt: { $lt: topDate } } },
 						{ $sort: { createdAt: -1 } },
 						{ $limit: 7 }
 					]
