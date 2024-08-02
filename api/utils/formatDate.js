@@ -18,7 +18,7 @@ export const localTimeZone = () => {
 
 export const getDayRange = (date) => {
 
-  const principalDate = convertTZ(date)
+  const principalDate = convertTZ(date ? date : new Date())
   const datePlusOne = new Date(principalDate)
   datePlusOne.setDate(datePlusOne.getDate() + 1)
 
@@ -30,11 +30,9 @@ export const getDayRange = (date) => {
 
 export const getMonthRange = (date) => {
 
-  const principalDate = convertTZ(date)
+  const principalDate = convertTZ(date ? date : new Date())
   const bottomDate = new Date(principalDate.getFullYear(), principalDate.getMonth(), 1)
   const topDate = new Date(principalDate.getFullYear(), principalDate.getMonth() + 1, 1)
-
-  console.log(bottomDate, topDate)
 
   return {bottomDate: bottomDate.toISOString(), topDate: topDate.toISOString()}
 }

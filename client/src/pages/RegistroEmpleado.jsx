@@ -160,7 +160,6 @@ export default function RegistroEmpleadoNuevo() {
 
           </div>
 
-          <input type="email" name="email" id="email" placeholder='ejemplo@gmail.com' className='border p-3 rounded-lg' onChange={handleChange} />
           <input type="password" name="password" id="password" placeholder='Contraseña' className='border p-3 rounded-lg' onChange={handleChange} />
 
           <button disabled={loading} className="bg-slate-700 text-white p-3 rounded-lg uppercase hover:opacity-95 disabled:opacity-80">
