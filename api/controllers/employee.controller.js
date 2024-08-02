@@ -215,7 +215,7 @@ export const getEmployeePayroll = async (req, res, next) => {
 
 	const companyId = req.params.companyId
 	const {bottomDate} = getDayRange(req.params.date)
-	const day = (date).getDay()
+	const day = (new Date(bottomDate)).getDay()
 
 	try {
 
