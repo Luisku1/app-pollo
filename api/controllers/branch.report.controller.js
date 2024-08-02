@@ -132,7 +132,7 @@ export const updateBranchReport = async (req, res, next) => {
   const outputBalance = outgoings + outputs + incomes + finalStock
   const balance = outputBalance - inputBalance
 
-  const {bottomDate, topDate} = getDayRange(createdAt)
+  const {bottomDate, topDate} = getDayRange(branchReport.createdAt)
 
   try {
 
