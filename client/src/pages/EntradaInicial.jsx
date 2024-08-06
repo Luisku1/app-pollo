@@ -321,9 +321,7 @@ export default function EntradaInicial({ products, defaultProduct, managerRole }
 
               </button>
             </div>
-            {currentUser.role == managerRole._id ?
-              <p className='font-bold text-lg text-red-700 text-center'>{providerInputsTotal.toFixed(2) + ' Kg'}</p>
-              : ''}
+            <p className='font-bold text-lg text-red-700 text-center'>{providerInputsTotal.toFixed(2) + ' Kg'}</p>
           </div>
           <h2 className='text-2xl font-semibold mb-4 text-red-800'>
             <div className="">

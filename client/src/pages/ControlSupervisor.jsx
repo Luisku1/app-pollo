@@ -1409,8 +1409,6 @@ export default function ControlSupervisor() {
 
           <p className='font-bold text-lg text-red-700 text-center'>{outputsTotal.toFixed(2) + ' Kg'}</p>
 
-
-
         </div>
 
         <form onSubmit={addOutput} className="grid grid-cols-12 items-center justify-between">
