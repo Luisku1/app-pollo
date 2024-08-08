@@ -51,6 +51,8 @@ const employeeSchema = new mongoose.Schema({
   }
 })
 
+employeeSchema.index({phoneNumber: 1}, {unique: true})
+
 const Employee = mongoose.model('Employee', employeeSchema)
 
 export default Employee

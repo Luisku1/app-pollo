@@ -113,7 +113,7 @@ export const getEmployeeDayInfo = async (req, res, next) => {
 
 	const employeeId = req.params.employeeId
 
-	const {bottomDate} = getDayRange(new Date())
+	const { bottomDate } = getDayRange(new Date())
 
 	try {
 
@@ -141,12 +141,27 @@ export const getEmployeeDayInfo = async (req, res, next) => {
 	}
 }
 
+export const deleteDuplicatedEmployeeDailyBalances = async (req, res, next) => {
+
+	try {
+
+	const inserted = await new EmployeeDailyBalance({employee: '65f4faba45c96ebe9ffb081c', company: '65f50041e995d4e5cb7e1d01', createdAt: '2024-04-16T06:00:00.000+00:00'})
+
+
+
+		res.status(200).json(inserted)
+	} catch (error) {
+
+		next(error)
+	}
+}
+
 export const getEmployeesDailyBalances = async (req, res, next) => {
 
 	const date = new Date(req.params.date)
 	const companyId = req.params.companyId
 
-	const {bottomDate, topDate} = getDayRange(date)
+	const { bottomDate, topDate } = getDayRange(date)
 
 	try {
 
@@ -214,8 +229,10 @@ export const getEmployeesDailyBalances = async (req, res, next) => {
 export const getEmployeePayroll = async (req, res, next) => {
 
 	const companyId = req.params.companyId
-	const {topDate} = getDayRange(req.params.date)
-	const day = (new Date(topDate)).getDay()
+	const { bottomDate } = getDayRange(req.params.date)
+	const day = (new Date(bottomDate)).getDay()
+	console.log(new Date(bottomDate))
+	console.log(day)
 
 	try {
 
@@ -235,7 +252,7 @@ export const getEmployeePayroll = async (req, res, next) => {
 					foreignField: 'employee',
 					as: 'dailyBalances',
 					pipeline: [
-						{ $match: { createdAt: { $lt: new Date(topDate) } } },
+						{ $match: { createdAt: { $gte: bottomDate } } },
 						{ $sort: { createdAt: -1 } },
 						{ $limit: 7 }
 					]
@@ -313,9 +330,9 @@ export const updateEmployeeDailyBalancesBalance = async (employeeId, date, balan
 
 export const updateDailyBalancesBalance = async (employeeId, isoDate, balance) => {
 
-  const date = new Date(isoDate)
+	const date = new Date(isoDate)
 
-	const {bottomDate, topDate} = getDayRange(date)
+	const { bottomDate, topDate } = getDayRange(date)
 
 	try {
 
@@ -338,7 +355,7 @@ export const updateDailyBalancesBalance = async (employeeId, isoDate, balance) =
 					employee: employeeId
 				}
 			]
-		}, {accountBalance: balance})
+		}, { accountBalance: balance })
 
 		return updatedDailyBalance
 

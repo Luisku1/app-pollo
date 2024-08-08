@@ -2,7 +2,7 @@ import BranchReport from '../models/accounts/branch.report.model.js'
 import ReportData from '../models/accounts/report.data.model.js'
 import EmployeeDailyBalance from '../models/employees/employee.daily.balance.js'
 import { errorHandler } from '../utils/error.js'
-import { convertTZ, getDayRange, localTimeZone } from '../utils/formatDate.js'
+import { getDayRange } from '../utils/formatDate.js'
 
 export const createBranchReport = async (req, res, next) => {
 
@@ -78,7 +78,6 @@ export const createBranchReport = async (req, res, next) => {
         ]
       })
 
-
       if (reportData) {
 
         const newBranchReport = new BranchReport({ initialStock, finalStock, inputs, outputs, outgoings, incomes, company, branch, employee, assistant, balance, createdAt, reportData: reportData._id })
@@ -92,13 +91,11 @@ export const createBranchReport = async (req, res, next) => {
           await newBranchReport.save()
           res.status(201).json({ branchReport: newBranchReport, message: 'Report data updated' })
 
-
         } else {
 
           await newBranchReport.save()
           res.status(201).json({ branchReport: newBranchReport })
         }
-
 
       } else {
 

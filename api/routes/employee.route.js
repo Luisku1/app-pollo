@@ -1,11 +1,12 @@
 import express from 'express'
-import { getEmployees, deleteEmployee, getEmployeesDailyBalances, updateEmployeeDailyBalance, getEmployee, getEmployeeReports, getEmployeeDayInfo, getEmployeePayroll } from '../controllers/employee.controller.js'
+import { getEmployees, deleteEmployee, getEmployeesDailyBalances, updateEmployeeDailyBalance, getEmployee, getEmployeeReports, getEmployeeDayInfo, getEmployeePayroll, deleteDuplicatedEmployeeDailyBalances } from '../controllers/employee.controller.js'
 
 const router = express.Router()
 
 router.get('/get/:companyId', getEmployees)
 router.get('/get-employee/:employeeId', getEmployee)
 router.get('/get-employees-payroll/:companyId/:date', getEmployeePayroll)
+router.put('/get-duplicated-employee-balances', deleteDuplicatedEmployeeDailyBalances)
 router.get('/get-employee-day-information/:employeeId', getEmployeeDayInfo)
 router.get('/get-employee-reports/:employeeId', getEmployeeReports)
 router.get('/get-employees-daily-balances/:companyId/:date', getEmployeesDailyBalances)

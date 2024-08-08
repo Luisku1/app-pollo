@@ -486,7 +486,6 @@ export const getOutputs = async (req, res, next) => {
 
   const {bottomDate, topDate} = getDayRange(date)
 
-
   try {
 
     const outputs = await Output.find({
@@ -528,7 +527,8 @@ export const getOutputs = async (req, res, next) => {
 
 export const getProviderProductInputs = async (req, res, next) => {
 
-  const { companyId, productId, date } = req.params
+  const { companyId, productId } = req.params
+  const date = new Date(req.params.date)
 
   const {bottomDate, topDate} = getDayRange(date)
 
