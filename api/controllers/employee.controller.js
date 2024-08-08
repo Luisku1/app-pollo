@@ -212,9 +212,9 @@ export const getEmployeesDailyBalances = async (req, res, next) => {
 			})
 
 			EmployeeDailyBalance.bulkWrite(bulkOps)
-				.then(result => {
+				.then(async (result) => {
 
-					employeesDailyBalances = Employee.find({ _id: { $in: result.insertedIds } })
+					employeesDailyBalances = await EmployeeDailyBalance.find({ _id: { $in: result.insertedIds } })
 					res.status(200).json({ employeesDailyBalances: result })
 				})
 		}
