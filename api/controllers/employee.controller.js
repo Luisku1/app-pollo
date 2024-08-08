@@ -221,7 +221,7 @@ export const getEmployeesDailyBalances = async (req, res, next) => {
 					employeesDailyBalances = await EmployeeDailyBalance.find({ _id: { $in: castedInsertedIds } })
 
 					console.log(employeesDailyBalances)
-					res.status(200).json({ employeesDailyBalances: result })
+					res.status(200).json({ employeesDailyBalances: employeesDailyBalances })
 				})
 		}
 
