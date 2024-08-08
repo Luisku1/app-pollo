@@ -216,7 +216,7 @@ export const getEmployeesDailyBalances = async (req, res, next) => {
 
 					const castedInsertedIds = Object.values(result.insertedIds).map((id) => new Types.ObjectId(id))
 
-					employeesDailyBalances = await EmployeeDailyBalance.find({ _id: { $in: castedInsertedIds } })
+					employeesDailyBalances = await EmployeeDailyBalance.find({ _id: { $in: castedInsertedIds } }).populate({path: 'employee', select: 'name lastName'})
 
 					res.status(200).json(employeesDailyBalances)
 				})
