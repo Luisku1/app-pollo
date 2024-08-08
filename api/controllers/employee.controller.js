@@ -214,11 +214,13 @@ export const getEmployeesDailyBalances = async (req, res, next) => {
 			EmployeeDailyBalance.bulkWrite(bulkOps)
 				.then(async (result) => {
 
-					const castedInsertedIds = result.insertedIds.map((id) => new Types.ObjectId(id))
+					console.log(Object.values(result.insertedIds))
 
-					console.log(castedInsertedIds)
+					const castedInsertedIds = Object.values(result.insertedIds).map((id) => new Types.ObjectId(id))
 
 					employeesDailyBalances = await EmployeeDailyBalance.find({ _id: { $in: castedInsertedIds } })
+
+					console.log(employeesDailyBalances)
 					res.status(200).json({ employeesDailyBalances: result })
 				})
 		}
