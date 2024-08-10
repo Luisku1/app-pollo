@@ -84,7 +84,7 @@ export default function Nomina() {
 
           employeePayroll.totalDebt = 0.0
           employeePayroll.totalAccountBalance = 0.0
-          employeePayroll.totalLoan = 0.0
+          employeePayroll.totalSupervisorBalance = 0.0
           employeePayroll.totalFoodDiscount = 0.0
           employeePayroll.totalDayDiscount = 0.0
           employeePayroll.didEmployeeRest = 'No'
@@ -92,7 +92,7 @@ export default function Nomina() {
           employeePayroll.dailyBalances.forEach((dailyBalance) => {
 
             employeePayroll.totalAccountBalance += dailyBalance.accountBalance
-            employeePayroll.totalLoan += dailyBalance.loan
+            employeePayroll.totalSupervisorBalance += dailyBalance.supervisorBalance
 
             if (dailyBalance.dayDiscount) {
 
@@ -111,7 +111,7 @@ export default function Nomina() {
 
           })
 
-          employeePayroll.totalDebt = employeePayroll.totalAccountBalance + employeePayroll.totalLoan + employeePayroll.totalFoodDiscount + employeePayroll.totalDayDiscount
+          employeePayroll.totalDebt = employeePayroll.totalAccountBalance + employeePayroll.totalPayments + employeePayroll.totalFoodDiscount + employeePayroll.totalDayDiscount
         })
 
         setEmployeesPayroll(data.employeesPayroll)
@@ -174,27 +174,33 @@ export default function Nomina() {
                           <p>Deuda total: </p>
                           <p className={(employeePayroll.totalDebt < 0 ? 'text-red-500' : '') + ' text-xs my-auto'}>{employeePayroll.totalDebt.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>
                         </div>
+                        <div className="flex gap-2">
+                          <p>Pagos recibidos: </p>
+                          <p className={(employeePayroll.employeePayments < 0 ? 'text-red-500' : '') + ' text-xs my-auto'}>{employeePayroll.totalDebt.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>
+                        </div>
                       </div>
 
                       <div className="grid col-span-7 grid-cols-7 row-span-1 mt-3">
                         <div className="col-span-2">
-                          <p>Cuenta</p>
+                          <p className="text-xs">Cuenta</p>
                           <p className={(employeePayroll.totalAccountBalance < 0 ? 'text-red-500' : '') + ' text-xs my-auto'}>{employeePayroll.totalAccountBalance.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>
                         </div>
-                        <div className="col-span-2">
-                          <p>Préstamo</p>
-                          <p className={(employeePayroll.totalLoan < 0 ? 'text-red-500' : '') + ' text-xs my-auto'}>{employeePayroll.totalLoan.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>
+                        <div className="col-span-2 text-center">
+                          <p className="text-xs  text-center">Cuenta</p>
+                          <p className="text-xs truncate text-center">Supervisor</p>
+
+                          <p className={(employeePayroll.totalSupervisorBalance < 0 ? 'text-red-500' : '') + ' text-xs my-auto'}>{employeePayroll.totalSupervisorBalance.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>
                         </div>
                         <div className="col-span-1">
-                          <p>R</p>
+                          <p className="text-xs">R</p>
                           <p className={(employeePayroll.totalFoodDiscount < 0 ? 'text-red-500 ' : ' ') + 'text-xs my-auto'}>{employeePayroll.totalFoodDiscount.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>
                         </div>
                         <div className="col-span-1">
-                          <p>D</p>
+                          <p className="text-xs">D</p>
                           <p className="text-xs">{employeePayroll.didEmployeeRest}</p>
                         </div>
                         <div className="col-span-1">
-                          <p>F</p>
+                          <p className="text-xs">F</p>
                           <p className={(employeePayroll.totalDayDiscount < 0 ? 'text-red-500' : '') + ' text-xs my-auto'}>{employeePayroll.totalDayDiscount.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>
                         </div>
                       </div>
@@ -210,7 +216,7 @@ export default function Nomina() {
                   <p className="text-sm col-span-5 truncate">{(new Date(dailyBalance.createdAt)).toLocaleDateString('es-mx', { weekday: 'long', month: '2-digit', day: '2-digit' })}</p>
 
                   <input className="border border-black text-center col-span-2" type="number" name="" id="" defaultValue={dailyBalance.accountBalance} />
-                  <input className="col-span-2 border border-black text-center" type="number" name="" id="" defaultValue={dailyBalance.loan} />
+                  <input className="col-span-2 border border-black text-center" type="number" name="" id="" defaultValue={dailyBalance.supervisorBalance} />
                   <input className='col-span-1' type="checkbox" name="foodDiscount" id="foodDiscount" defaultChecked={dailyBalance.foodDiscount} />
                   <input className='col-span-1' type="checkbox" name="restDay" id="restDay" defaultChecked={dailyBalance.restDay} />
                   <input className='col-span-1' type="checkbox" name="dayDiscount" id="dayDiscount" defaultChecked={dailyBalance.dayDiscount} />
