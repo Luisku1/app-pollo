@@ -7,7 +7,7 @@ const employeeDailyBalanceSchema = mongoose.Schema({
     default: 0.0
   },
 
-  loan: {
+  supervisorBalance: {
     type: Number,
     default: 0.0
   },
