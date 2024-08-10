@@ -311,11 +311,11 @@ export const deleteIncomeFetch = async (incomeId) => {
   }
 }
 
-export const deleteLoanFetch = async (loanId) => {
+export const deleteEmployeePaymentFetch = async (paymentId, incomeId, extraOutgoingId) => {
 
   try {
 
-    const res = await fetch('/api/outgoing/loan/delete/' + loanId, {
+    const res = await fetch('/api/employee/delete-employee-payment/' + paymentId + '/' + incomeId + '/' + extraOutgoingId , {
 
       method: 'DELETE'
     })
@@ -327,7 +327,7 @@ export const deleteLoanFetch = async (loanId) => {
       return { error: data.message, data: null }
     }
 
-    return { error: null, data: null }
+    return { error: null, data: data }
 
   } catch (error) {
 

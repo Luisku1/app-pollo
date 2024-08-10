@@ -11,7 +11,7 @@ export const newOutgoing = async (req, res, next) => {
 
   try {
 
-    const outgoing = new Outgoing({ amount, concept, company, branch, employee, createdAt})
+    const outgoing = new Outgoing({ amount, concept, company, branch, employee, createdAt })
     await outgoing.save()
 
     await updateReportOutgoings(branch, createdAt, amount)
@@ -31,7 +31,7 @@ export const getOutgoings = async (req, res, next) => {
   const companyId = req.params.companyId
   const date = new Date(req.params.date)
 
-  const {bottomDate, topDate} = getDayRange(date)
+  const { bottomDate, topDate } = getDayRange(date)
 
 
   try {
@@ -75,14 +75,13 @@ export const getOutgoings = async (req, res, next) => {
   }
 }
 
-export const newExtraOutgoing = async (req, res, next) => {
+export const newExtraOutgoingQuery = async (req, res, next) => {
 
   const { extraOutgoingAmount, extraOutgoingConcept, company, employee, createdAt } = req.body
 
   try {
 
-    const extraOutgoing = new ExtraOutgoing({ amount: extraOutgoingAmount, concept: extraOutgoingConcept, company, employee, createdAt })
-    extraOutgoing.save()
+    const extraOutgoing = await newExtraOutgoingFunction({ amount: extraOutgoingAmount, concept: extraOutgoingConcept, company, employee, createdAt })
 
     res.status(201).json({ message: 'New extra outgoing created successfully', extraOutgoing: extraOutgoing })
 
@@ -91,12 +90,20 @@ export const newExtraOutgoing = async (req, res, next) => {
   }
 }
 
+export const newExtraOutgoingFunction = async ({ amount, concept, company, employee, createdAt, partOfAPayment = false }) => {
+
+  const extraOutgoing = new ExtraOutgoing({ amount, concept, company, employee, createdAt, partOfAPayment })
+  await extraOutgoing.save()
+
+  return extraOutgoing
+}
+
 export const getBranchOutgoings = async (req, res, next) => {
 
   const date = new Date(req.params.date)
   const branchId = req.params.branchId
 
-  const {bottomDate, topDate} = getDayRange(date)
+  const { bottomDate, topDate } = getDayRange(date)
 
 
   try {
@@ -143,7 +150,7 @@ export const getExtraOutgoings = async (req, res, next) => {
   const date = new Date(req.params.date)
   const companyId = req.params.companyId
 
-  const {bottomDate, topDate} = getDayRange(date)
+  const { bottomDate, topDate } = getDayRange(date)
 
   try {
 
@@ -255,7 +262,7 @@ export const getLoans = async (req, res, next) => {
   const date = new Date(req.params.date)
   const companyId = req.params.companyId
 
-  const {bottomDate, topDate} = getDayRange(date)
+  const { bottomDate, topDate } = getDayRange(date)
 
   try {
 

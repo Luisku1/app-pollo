@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
-import { fetchBranches, fetchEmployees, fetchProducts, deleteOutputFetch, deleteExtraOutgoingFetch, deleteInputFetch, deleteIncomeFetch, fetchIncomeTypes, deleteLoanFetch } from '../helpers/FetchFunctions';
+import { fetchBranches, fetchEmployees, fetchProducts, deleteOutputFetch, deleteExtraOutgoingFetch, deleteInputFetch, deleteIncomeFetch, fetchIncomeTypes, deleteEmployeePaymentFetch } from '../helpers/FetchFunctions';
 import { FaListAlt, FaTrash } from 'react-icons/fa';
 import { Link } from "react-router-dom"
 import { MdCancel, MdKeyboardArrowDown, MdKeyboardArrowRight } from 'react-icons/md';
@@ -29,6 +29,8 @@ export default function ControlSupervisor() {
   const [outputs, setOutputs] = useState([])
   const [inputs, setInputs] = useState([])
   const [extraOutgoings, setExtraOutgoings] = useState([])
+  const [employeePayments, setEmployeePayments] = useState(null)
+  const [employeePaymentsTotal, setEmployeePaymentsTotal] = useState(0.0)
   const [outputsTotal, setOutputsTotal] = useState(0.0)
   const [inputsTotal, setInputsTotal] = useState(0.0)
   const [extraOutgoingsTotal, setExtraOutgoingsTotal] = useState(0.0)
@@ -37,8 +39,6 @@ export default function ControlSupervisor() {
   const [incomes, setIncomes] = useState([])
   const [incomeTypes, setIncomeTypes] = useState([])
   const [incomesTotal, setIncomesTotal] = useState(0.0)
-  const [loans, setLoans] = useState([])
-  const [loansTotal, setLoansTotal] = useState(0.0)
   const [products, setProducts] = useState([])
   const [inputBranchName, setInputBranchName] = useState(null)
   const [outputBranchName, setOutputBranchName] = useState(null)
@@ -49,18 +49,25 @@ export default function ControlSupervisor() {
   const [isOpen, setIsOpen] = useState(false)
   const [incomesIsOpen, setIncomesIsOpen] = useState(false)
   const [outgoingsIsOpen, setOutgoingsIsOpen] = useState(false)
-  const [loansIsOpen, setLoansIsOpen] = useState(false)
+  const [employeePaymentsIsOpen, setEmployeePaymentsIsOpen] = useState(false)
   const [inputsIsOpen, setInputsIsOpen] = useState(false)
   const [outputsIsOpen, setOutputsIsOpen] = useState(false)
   const [selectedMovement, setSelectedMovement] = useState(null)
   const [movementDetailsIsOpen, setMovementDetailsIsOpen] = useState(false)
   const [differencesIsOpen, setDifferencesIsOpen] = useState(false)
   const [managerRole, setManagerRole] = useState({})
+  const [selectedBranch, setSelectedBranch] = useState(null)
   const [selectedEmployee, setSelectedEmployee] = useState(null)
   const navigate = useNavigate()
   let datePickerValue = (paramsDate ? new Date(paramsDate) : new Date())
   let stringDatePickerValue = formatDate(datePickerValue)
   let today = formatDate(datePickerValue) == formatDate((new Date())) ? true : false
+
+  const handleBranchSelectChange = (branch) => {
+
+    setSelectedBranch(branch)
+  }
+
 
   const notify = (message) => {
 
@@ -330,11 +337,14 @@ export default function ControlSupervisor() {
     }
   }
 
-  const loansButtonControl = () => {
+  const paymentsButtonControl = () => {
 
-    const amountInput = document.getElementById('loanAmount')
-    const button = document.getElementById('loanButton')
+    const amountInput = document.getElementById('paymentAmount')
+    const button = document.getElementById('paymentButton')
     const employee = selectedEmployee != null
+    const branch = selectedBranch != null
+
+    console.log(selectedBranch, selectedEmployee)
 
     let filledInputs = true
 
@@ -344,7 +354,7 @@ export default function ControlSupervisor() {
 
     }
 
-    if (filledInputs && employee && !loading) {
+    if (filledInputs && employee && branch && !loading) {
 
       button.disabled = false
 
@@ -469,10 +479,10 @@ export default function ControlSupervisor() {
     }
   }
 
-  const addLoan = async (e) => {
+  const addEmployeePayment = async (e) => {
 
-    const amount = document.getElementById('loanAmount')
-    const employee = selectedEmployee
+    const amount = document.getElementById('paymentAmount')
+    const detail = document.getElementById('paymentDetail')
     const date = today ? new Date().toISOString() : new Date(stringDatePickerValue).toISOString()
 
     e.preventDefault()
@@ -481,16 +491,18 @@ export default function ControlSupervisor() {
 
     try {
 
-      const res = await fetch('/api/outgoing/loan/create', {
+      const res = await fetch('/api/employee/employee-payment/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           amount: amount.value,
-          employee: employee.value,
-          supervisor: currentUser._id,
+          detail: detail.value,
           company: company._id,
+          branch: selectedBranch.value,
+          employee: selectedEmployee.value,
+          supervisor: currentUser._id,
           createdAt: date
         })
       })
@@ -504,16 +516,29 @@ export default function ControlSupervisor() {
         return
       }
 
-      notify('Nuevo préstamo registrado')
-      data.loan.employee = selectedEmployee
-      data.loan.supervisor = currentUser
+      console.log(data)
+      notify('Nuevo pago a empleado registrado')
 
-      setError(null)
-      setLoans([data.loan, ...loans])
-      setLoansTotal(loansTotal + parseFloat(data.loan.amount))
+      data.extraOutgoing.employee = currentUser
+      data.income.employee = currentUser
+      data.income.branch = {branch: selectedBranch.label}
+      data.income.type = 'Efectivo'
+      console.log(data.income)
+      data.employeePayment.supervisor = currentUser
+      data.employeePayment.employee = {name: selectedEmployee.label}
 
-      employee.value = 'none'
+      setEmployeePayments([data.employeePayment, ...employeePayments])
+      setEmployeePaymentsTotal(employeePaymentsTotal + parseFloat(data.employeePayment.amount))
+      setExtraOutgoings([data.extraOutgoing, ...extraOutgoings])
+      setExtraOutgoingsTotal(extraOutgoingsTotal + parseFloat(data.extraOutgoing.amount))
+      setIncomes([data.income, ...incomes])
+      setIncomesTotal(incomesTotal + parseFloat(data.income.amount))
+
+      setSelectedEmployee(null)
+      setSelectedBranch(null)
       amount.value = ''
+      detail.value = ''
+      setError(null)
       setLoading(false)
 
     } catch (error) {
@@ -525,18 +550,31 @@ export default function ControlSupervisor() {
     }
   }
 
-  const deleteLoan = async (loanId, index) => {
+  const deleteEmployeePayment = async (paymentId, incomeId, extraOutgoingId, index) => {
 
     setLoading(true)
 
-    const { error } = await deleteLoanFetch(loanId)
+    const { error, data } = await deleteEmployeePaymentFetch(paymentId, incomeId, extraOutgoingId)
 
     setLoading(false)
 
     if (error == null) {
 
-      setLoansTotal(loansTotal - parseFloat(loans[index].amount))
-      loans.splice(index, 1)
+      notify(data)
+      const incomeIndex = incomes.findIndex((income) => income._id == incomeId)
+      const extraOutgoingIndex = extraOutgoings.findIndex((extraOutgoing) => extraOutgoing._id == extraOutgoingId)
+
+      setEmployeePaymentsTotal(employeePaymentsTotal - parseFloat(employeePayments[index].amount))
+      setIncomesTotal(incomesTotal - parseFloat(incomes[incomeIndex].amount))
+      setExtraOutgoingsTotal(extraOutgoingsTotal -  parseFloat(extraOutgoings[extraOutgoingIndex].amount))
+
+      employeePayments.splice(index, 1)
+      incomes.splice(incomeIndex, 1)
+      extraOutgoings.splice(extraOutgoingIndex, 1)
+
+    } else {
+
+      notify(error)
     }
   }
 
@@ -906,17 +944,23 @@ export default function ControlSupervisor() {
     setIncomesTotal(total)
   }
 
-  const setLoansTotalFunction = (loans) => {
+  const setEmployeePaymentsTotalFunction = (employeePayments) => {
 
     let total = 0
 
-    loans.forEach((loan) => {
+    employeePayments.forEach((employeePayment) => {
 
-      total += parseFloat(loan.amount)
+      total += parseFloat(employeePayment.amount)
     })
 
-    setLoansTotal(total)
+    setEmployeePaymentsTotal(total)
   }
+
+  useEffect(() => {
+
+    paymentsButtonControl()
+
+  }, [selectedBranch, selectedEmployee])
 
   useEffect(() => {
 
@@ -986,8 +1030,21 @@ export default function ControlSupervisor() {
 
       if (error == null) {
 
+        const tempOptions = []
+
+        data.map((branch) => {
+
+          const option = {
+
+            value: branch._id,
+            label: branch.branch
+          }
+
+          tempOptions.push(option)
+        })
+
         setError(null)
-        setBranches(data)
+        setBranches(tempOptions)
 
       } else {
 
@@ -1043,13 +1100,13 @@ export default function ControlSupervisor() {
       const incomeButton = document.getElementById('incomeButton')
       const inputButton = document.getElementById('input-button')
       const outputButton = document.getElementById('outputButton')
-      const loanButton = document.getElementById('loanButton')
+      const paymentButton = document.getElementById('paymentButton')
 
       outgoingButton.disabled = loading
       incomeButton.disabled = loading
       inputButton.disabled = loading
       outputButton.disabled = loading
-      loanButton.disabled = loading
+      paymentButton.disabled = loading
     }
 
     enableDisableButtons()
@@ -1059,8 +1116,8 @@ export default function ControlSupervisor() {
   useEffect(() => {
 
     setEmployeesDailyBalance([])
-    setLoans([])
-    setLoansTotal(0.0)
+    setEmployeePayments([])
+    setEmployeePaymentsTotal(0.0)
     setIncomes([])
     setIncomesTotal(0.0)
     setOutputs([])
@@ -1075,7 +1132,7 @@ export default function ControlSupervisor() {
     setOutgoingsIsOpen(false)
     setOutputsIsOpen(false)
     setInputsIsOpen(false)
-    setLoansIsOpen(false)
+    setEmployeePaymentsIsOpen(false)
 
     const fetchEmployeesDailyBalances = async () => {
 
@@ -1115,7 +1172,7 @@ export default function ControlSupervisor() {
 
       try {
 
-        const res = await fetch('/api/outgoing/loan/get-loans/' + company._id + '/' + date)
+        const res = await fetch('/api/employee/get-employees-payments/' + company._id + '/' + date)
         const data = await res.json()
 
         if (data.success === false) {
@@ -1125,8 +1182,8 @@ export default function ControlSupervisor() {
           return
         }
 
-        setLoans(data.loans)
-        setLoansTotalFunction(data.loans)
+        setEmployeePayments(data.employeePayments)
+        setEmployeePaymentsTotalFunction(data.employeePayments)
         setError(null)
         setLoading(false)
 
@@ -1372,7 +1429,7 @@ export default function ControlSupervisor() {
             {branches && branches.length == 0 ? <option> No hay sucursales registradas </option> : ''}
             {branches && branches.length > 0 && branches.map((branch) => (
 
-              <option className='overflow-y-scroll' key={branch._id} value={branch._id}>{branch.branch}</option>
+              <option className='overflow-y-scroll' key={branch.value} value={branch.value}>{branch.label}</option>
 
             ))}
 
@@ -1419,7 +1476,7 @@ export default function ControlSupervisor() {
             {branches && branches.length == 0 ? <option> No hay sucursales registradas </option> : ''}
             {branches && branches.length > 0 && branches.map((branch) => (
 
-              <option key={branch._id} value={branch._id}>{branch.branch}</option>
+              <option key={branch.value} value={branch.value}>{branch.label}</option>
 
             ))}
           </select>
@@ -1464,7 +1521,7 @@ export default function ControlSupervisor() {
             {branches && branches.length == 0 ? <option> No hay sucursales registradas </option> : ''}
             {branches && branches.length > 0 && branches.map((branch) => (
 
-              <option key={branch._id} value={branch._id}>{branch.branch}</option>
+              <option key={branch.value} value={branch.value}>{branch.label}</option>
 
             ))}
           </select>
@@ -1521,33 +1578,48 @@ export default function ControlSupervisor() {
           </form>
         </div>
         <div className='border bg-white p-3 mt-4'>
-          <div className='grid grid-cols-3'>
-            <SectionHeader label={'Pagos a empleados'} />
+          <div className='grid grid-cols-3 items-center'>
+            <SectionHeader label={'Pago a Empleados'} />
             <div className="h-10 w-10 shadow-lg">
-              <button className="w-full h-full" onClick={() => { setLoansIsOpen(true) }}><FaListAlt className="h-full w-full text-red-600" />
+              <button className="w-full h-full" onClick={() => { setEmployeePaymentsIsOpen(true) }}><FaListAlt className="h-full w-full text-red-600" />
               </button>
             </div>
             {currentUser.role == managerRole._id ?
 
-              <p className='font-bold text-lg text-red-700 text-center'>{loansTotal.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
+              <p className='font-bold text-lg text-red-700 text-center'>{employeePaymentsTotal.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
 
 
               : ''}
           </div>
 
-          <form onSubmit={addLoan} className="grid grid-cols-2 items-center justify-between">
+          <form onSubmit={addEmployeePayment} className="grid grid-cols-1 items-center justify-between gap-3">
 
             <Select
               value={selectedEmployee}
               onChange={handleEmployeeSelectChange}
               options={employees}
-              placeholder='¿A quién le prestas?'
+              isClearable={true}
+              placeholder='¿A quién le pagas?'
               isSearchable={true}
             />
 
-            <input type="number" name="loanAmount" id="loanAmount" placeholder='$0.00' step={0.01} className='border p-3 rounded-lg' required onInput={loansButtonControl} />
+            <Select
+              id='branchSelect'
+              value={selectedBranch}
+              onChange={handleBranchSelectChange}
+              options={branches}
+              isClearable={true}
+              placeholder='¿En qué sucursal estuvo?'
+              isSearchable={true}
+            />
 
-            <button type='submit' id='loanButton' disabled className='bg-slate-500 text-white p-3 rounded-lg col-span-4 mt-8'>Agregar</button>
+            <input type="number" name="paymentAmount" id="paymentAmount" placeholder='$0.00' step={0.01} className='col-span-1 border p-3 rounded-lg border-black' required onInput={paymentsButtonControl} />
+            <div className='col-span-1 grid grid-cols-1'>
+              <p className='text-xs text-red-700'>Especifíca el motivo del pago</p>
+              <input type="text" name="paymentDetail" id="paymentDetail" placeholder='Pago de Nómina, Préstamo, Pollo, etc...' className='col-span-1 p-3 border border-black rounded-lg' required onInput={paymentsButtonControl} />
+            </div>
+
+            <button type='submit' id='paymentButton' disabled className='bg-slate-500 text-white p-3 rounded-lg col-span-1 mt-4'>Agregar</button>
 
           </form>
 
@@ -1585,7 +1657,7 @@ export default function ControlSupervisor() {
                     <p className='text-center text-xs w-3/12'>{income.amount.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
                   </div>
 
-                  {currentUser._id == income.employee._id || currentUser.role == managerRole._id ?
+                  {((currentUser._id == income.employee._id || currentUser.role == managerRole._id) && !income.partOfAPayment) ?
 
                     <div>
                       <button id={income._id} onClick={() => { setIsOpen(!isOpen), setButtonId(income._id) }} disabled={loading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
@@ -1655,7 +1727,7 @@ export default function ControlSupervisor() {
                       <p className='text-center text-sm w-3/12'>{extraOutgoing.amount.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
                     </div>
 
-                    {currentUser._id == extraOutgoing.employee._id || currentUser.role == managerRole._id ?
+                    {((currentUser._id == extraOutgoing.employee._id || currentUser.role == managerRole._id) && !extraOutgoing.partOfAPayment ) ?
 
                       <div>
                         <button id={extraOutgoing._id} onClick={() => { setIsOpen(!isOpen), setButtonId(extraOutgoing._id) }} disabled={loading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
@@ -1847,44 +1919,44 @@ export default function ControlSupervisor() {
         : ''
       }
 
-      {loansIsOpen && loans && loans.length > 0 ?
+      {employeePaymentsIsOpen && employeePayments && employeePayments.length > 0 ?
         <div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center max-w-lg my-auto mx-auto z-10'>
           <div className=' bg-white p-5 rounded-lg justify-center items-center h-5/6 my-auto mx-auto w-11/12 overflow-y-scroll'>
-            <button className="" onClick={() => { setLoansIsOpen(false) }}><MdCancel className="h-7 w-7" /></button>
+            <button className="" onClick={() => { setEmployeePaymentsIsOpen(false) }}><MdCancel className="h-7 w-7" /></button>
             < div className='bg-white mt-4 mb-4'>
 
               <SectionHeader label={'Pagos a empleados'} />
 
               <div>
 
-                {loans && loans.length > 0 ?
+                {employeePayments && employeePayments.length > 0 ?
                   <div id='header' className='grid grid-cols-11 gap-4 items-center justify-around font-semibold mt-4'>
                     <p className='p-3 rounded-lg col-span-3 text-center'>Supervisor</p>
-                    <p className='p-3 rounded-lg col-span-3 text-center'>Deudor</p>
+                    <p className='p-3 rounded-lg col-span-3 text-center'>Trabajador</p>
                     <p className='p-3 rounded-lg col-span-3 text-center'>Monto</p>
                   </div>
                   : ''}
-                {loans && loans.length > 0 && loans.map((loan, index) => (
+                {employeePayments && employeePayments.length > 0 && employeePayments.map((employeePayment, index) => (
 
 
-                  <div key={loan._id} className={(currentUser._id == loan.supervisor || currentUser.role == managerRole._id ? '' : 'py-3 ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
+                  <div key={employeePayment._id} className={(currentUser._id == employeePayment.supervisor || currentUser.role == managerRole._id ? '' : 'py-3 ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
 
                     <div id='list-element' className='flex col-span-10 items-center justify-around'>
-                      <p className='text-center text-sm w-3/12'>{loan.supervisor.label ? loan.supervisor.label : loan.supervisor.name}</p>
-                      <p className='text-center text-sm w-3/12'>{loan.employee.label ? loan.employee.label : loan.employee.name}</p>
-                      <p className='text-center text-sm w-3/12'>{loan.amount.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
+                      <p className='text-center text-sm w-3/12'>{employeePayment.supervisor.label ? employeePayment.supervisor.name : employeePayment.supervisor.name}</p>
+                      <p className='text-center text-sm w-3/12'>{employeePayment.employee.label ? employeePayment.employee.label : employeePayment.employee.name}</p>
+                      <p className='text-center text-sm w-3/12'>{employeePayment.amount.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
                     </div>
 
-                    {currentUser._id == loan.supervisor._id || currentUser.role == managerRole._id ?
+                    {currentUser._id == employeePayment.supervisor._id || currentUser.role == managerRole._id ?
 
                       <div>
-                        <button id={loan._id} onClick={() => { setIsOpen(!isOpen), setButtonId(loan._id) }} disabled={loading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
+                        <button id={employeePayment._id} onClick={() => { setIsOpen(!isOpen), setButtonId(employeePayment._id) }} disabled={loading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
                           <span>
                             <FaTrash className='text-red-700 m-auto' />
                           </span>
                         </button>
 
-                        {isOpen && loan._id == buttonId ?
+                        {isOpen && employeePayment._id == buttonId ?
                           <div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center items-center'>
                             <div className='bg-white p-5 rounded-lg flex flex-col justify-center items-center gap-5'>
                               <div>
@@ -1892,7 +1964,7 @@ export default function ControlSupervisor() {
                               </div>
                               <div className='flex gap-10'>
                                 <div>
-                                  <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteLoan(loan._id, index), setIsOpen(!isOpen) }}>Si</button>
+                                  <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteEmployeePayment(employeePayment._id, employeePayment.income, employeePayment.extraOutgoing, index), setIsOpen(!isOpen) }}>Si</button>
                                 </div>
                                 <div>
                                   <button className='rounded-lg border shadow-lg w-20 h-10' onClick={() => { setIsOpen(!isOpen) }}>No</button>

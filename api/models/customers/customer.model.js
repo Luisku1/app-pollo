@@ -7,6 +7,11 @@ const customerSchema = mongoose.Schema({
     required: true
   },
 
+  lastName: {
+    type: String,
+    required: true
+  },
+
   phoneNumber: {
     type: String,
     required: true
@@ -15,6 +20,11 @@ const customerSchema = mongoose.Schema({
   balance: {
     type: Number,
     default: 0.0
+  },
+
+  location: {
+    type: String,
+    required: true
   },
 
   company: {

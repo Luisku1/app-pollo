@@ -4,14 +4,14 @@ import { errorHandler } from "../utils/error.js";
 import { getDayRange } from "../utils/formatDate.js";
 import { updateReportIncomes } from "../utils/updateReport.js";
 
-export const newIncome = async (req, res, next) => {
+export const newIncomeQuery = async (req, res, next) => {
 
   const { incomeAmount, company, branch, employee, type, createdAt } = req.body
 
   try {
 
-    const newIncome = await new IncomeCollected({ amount: incomeAmount, company, branch, employee, type, createdAt })
-    await newIncome.save()
+    const newIncome = await newIncomeFunction({ amount: incomeAmount, company, branch, employee, type, createdAt })
+
 
     await updateReportIncomes(branch, createdAt, incomeAmount)
 
@@ -21,6 +21,15 @@ export const newIncome = async (req, res, next) => {
 
     next(error)
   }
+}
+
+export const newIncomeFunction = async ({ amount, company, branch, employee, type, createdAt, partOfAPayment = false }) => {
+
+  const newIncome =  new IncomeCollected({ amount, company, branch, employee, type, createdAt, partOfAPayment })
+  await newIncome.save()
+
+  return newIncome
+
 }
 
 export const newIncomeType = async (req, res, next) => {
@@ -40,12 +49,17 @@ export const newIncomeType = async (req, res, next) => {
   }
 }
 
+export const getIncomeTypeId = async ({name}) => {
+
+  return await IncomeType.findOne({name}, '_id')
+}
+
 export const getBranchIncomes = async (req, res, next) => {
 
   const date = new Date(req.params.date)
   const branchId = req.params.branchId
 
-  const {bottomDate, topDate} = getDayRange(date)
+  const { bottomDate, topDate } = getDayRange(date)
 
   try {
 
@@ -92,7 +106,7 @@ export const getIncomes = async (req, res, next) => {
   const date = new Date(req.params.date)
   const companyId = req.params.companyId
 
-  const {bottomDate, topDate} = getDayRange(date)
+  const { bottomDate, topDate } = getDayRange(date)
 
   try {
 

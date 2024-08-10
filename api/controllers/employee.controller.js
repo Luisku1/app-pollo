@@ -4,6 +4,11 @@ import EmployeeDailyBalance from "../models/employees/employee.daily.balance.js"
 import Employee from "../models/employees/employee.model.js"
 import { errorHandler } from "../utils/error.js"
 import { getDayRange } from "../utils/formatDate.js"
+import { newExtraOutgoingFunction } from "./outgoing.controller.js"
+import { getIncomeTypeId, newIncomeFunction } from "./income.controller.js"
+import EmployeePayment from "../models/employees/employee.payment.model.js"
+import ExtraOutgoing from "../models/accounts/outgoings/extra.outgoing.model.js"
+import IncomeCollected from "../models/accounts/incomes/income.collected.model.js"
 
 export const getEmployees = async (req, res, next) => {
 
@@ -145,7 +150,7 @@ export const deleteDuplicatedEmployeeDailyBalances = async (req, res, next) => {
 
 	try {
 
-	const inserted = await new EmployeeDailyBalance({employee: '65f4faba45c96ebe9ffb081c', company: '65f50041e995d4e5cb7e1d01', createdAt: '2024-04-16T06:00:00.000+00:00'})
+		const inserted = await new EmployeeDailyBalance({ employee: '65f4faba45c96ebe9ffb081c', company: '65f50041e995d4e5cb7e1d01', createdAt: '2024-04-16T06:00:00.000+00:00' })
 
 
 
@@ -216,7 +221,7 @@ export const getEmployeesDailyBalances = async (req, res, next) => {
 
 					const castedInsertedIds = Object.values(result.insertedIds).map((id) => new Types.ObjectId(id))
 
-					employeesDailyBalances = await EmployeeDailyBalance.find({ _id: { $in: castedInsertedIds } }).populate({path: 'employee', select: 'name lastName'})
+					employeesDailyBalances = await EmployeeDailyBalance.find({ _id: { $in: castedInsertedIds } }).populate({ path: 'employee', select: 'name lastName' })
 
 					res.status(200).json(employeesDailyBalances)
 				})
@@ -226,6 +231,98 @@ export const getEmployeesDailyBalances = async (req, res, next) => {
 
 		next(error)
 
+	}
+}
+
+export const newEmployeePaymentQuery = async (req, res, next) => {
+
+	const { amount, detail, company, branch, employee, supervisor, createdAt } = req.body
+
+	try {
+
+		const incomeType = await getIncomeTypeId({ name: 'Efectivo' })
+		console.log(incomeType._id)
+
+		const extraOutgoing = await newExtraOutgoingFunction({ amount, concept: detail, company, employee: supervisor, createdAt, partOfAPayment: true })
+		console.log(extraOutgoing)
+		const income = await newIncomeFunction({ amount: amount, company, branch, employee: supervisor, type: String(incomeType._id), createdAt, partOfAPayment: true })
+
+		const employeePayment = await newEmployeePaymentFunction({ amount, detail, employee, supervisor, company, extraOutgoing: extraOutgoing._id, income: income._id, createdAt })
+
+		console.log(employeePayment)
+
+
+		res.status(200).json({ extraOutgoing, income, employeePayment })
+
+	} catch (error) {
+
+		next(error)
+	}
+}
+
+export const newEmployeePaymentFunction = async ({ amount, detail, employee, supervisor, company, extraOutgoing, income, createdAt }) => {
+
+	const newEmployeePayment = new EmployeePayment({ amount, detail, employee, supervisor, company, extraOutgoing, income, createdAt })
+
+	await newEmployeePayment.save()
+
+	return newEmployeePayment
+}
+
+export const getEmployeesPaymentsQuery = async (req, res, next) => {
+
+	const { bottomDate, topDate } = getDayRange(new Date(req.params.date))
+	const companyId = req.params.companyId
+
+	try {
+
+		const employeePayments = await EmployeePayment.find({
+
+			$and: [
+
+				{
+					createdAt: { $lt: topDate }
+				},
+
+				{
+					createdAt: { $gte: bottomDate }
+				},
+
+				{ company: companyId }
+			]
+		}).populate('supervisor', 'name lastName').populate('employee', 'name lastName')
+
+		res.status(200).json({employeePayments})
+
+	} catch (error) {
+
+		next(error)
+	}
+}
+
+export const deleteEmployeePaymentQuery = async (req, res, next) => {
+
+	const {paymentId, incomeId, extraOutgoingId} = req.params
+
+
+	try {
+
+		const deletedExtraOutgoing = await ExtraOutgoing.deleteOne({_id: extraOutgoingId})
+		const deletedIncome = await IncomeCollected.deleteOne({_id: incomeId})
+		const deletedPayment = await EmployeePayment.deleteOne({_id: paymentId})
+		console.log(deletedPayment, deletedIncome, deletedExtraOutgoing)
+
+		if(!(deletedExtraOutgoing.deletedCount == 0 && deletedIncome.deletedCount == 0 && deletedPayment.deletedCount == 0)) {
+
+			res.status(200).json('Pago eliminado, verifique que el gasto y el efectivo del pago se hayan eliminado correctamente.')
+		} else {
+
+			next(errorHandler(404, 'Algo ha salido mal'))
+		}
+
+	} catch (error) {
+
+		next(error)
 	}
 }
 
@@ -255,7 +352,7 @@ export const getEmployeePayroll = async (req, res, next) => {
 					foreignField: 'employee',
 					as: 'dailyBalances',
 					pipeline: [
-						{ $match: { createdAt: { $gte: bottomDate } } },
+						{ $match: { createdAt: { $lt: bottomDate } } },
 						{ $sort: { createdAt: -1 } },
 						{ $limit: 7 }
 					]

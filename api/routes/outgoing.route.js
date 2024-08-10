@@ -1,11 +1,11 @@
 import express from 'express'
-import { deleteOutgoing, getBranchOutgoings, newOutgoing, getExtraOutgoings, deleteExtraOutgoing, newExtraOutgoing, createLoan, getLoans, deleteLoan, getOutgoings } from '../controllers/outgoing.controller.js'
+import { deleteOutgoing, getBranchOutgoings, newOutgoing, getExtraOutgoings, deleteExtraOutgoing, createLoan, getLoans, deleteLoan, getOutgoings, newExtraOutgoingQuery } from '../controllers/outgoing.controller.js'
 
 const router = express.Router()
 
 router.post('/create', newOutgoing)
 router.put('/reject-outgoing/:outgoingId/:employeeId/:date')
-router.post('/extra-outgoing/create', newExtraOutgoing)
+router.post('/extra-outgoing/create', newExtraOutgoingQuery)
 router.put('/extra-outgoing/reject-extra-outgoing/:extraOutgoingId/:employeeId/:date')
 router.post('/loan/create', createLoan)
 router.put('/loan/reject-loan/:loanId/:employeeId/:date')

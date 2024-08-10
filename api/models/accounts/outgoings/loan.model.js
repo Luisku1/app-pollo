@@ -1,6 +1,6 @@
-import mongoose, {Schema} from 'mongoose'
+import mongoose, { Schema } from 'mongoose'
 
-const loanSchema = mongoose.Schema( {
+const loanSchema = mongoose.Schema({
 
     amount: {
         type: Number,
@@ -26,7 +26,7 @@ const loanSchema = mongoose.Schema( {
         type: Date,
         required: true
     }
-})
+}, {timestamps: true}, {createdAt: false, updatedAt: true})
 
 const Loan = mongoose.model('Loan', loanSchema)
 
