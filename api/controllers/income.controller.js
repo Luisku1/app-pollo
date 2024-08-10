@@ -12,9 +12,6 @@ export const newIncomeQuery = async (req, res, next) => {
 
     const newIncome = await newIncomeFunction({ amount: incomeAmount, company, branch, employee, type, createdAt })
 
-
-    await updateReportIncomes(branch, createdAt, incomeAmount)
-
     res.status(201).json({ message: 'New income created successfully', income: newIncome })
 
   } catch (error) {
@@ -25,9 +22,9 @@ export const newIncomeQuery = async (req, res, next) => {
 
 export const newIncomeFunction = async ({ amount, company, branch, employee, type, createdAt, partOfAPayment = false }) => {
 
-  const newIncome =  new IncomeCollected({ amount, company, branch, employee, type, createdAt, partOfAPayment })
+  const newIncome = new IncomeCollected({ amount, company, branch, employee, type, createdAt, partOfAPayment })
   await newIncome.save()
-
+  await updateReportIncomes(branch, createdAt, incomeAmount)
   return newIncome
 
 }
@@ -49,9 +46,9 @@ export const newIncomeType = async (req, res, next) => {
   }
 }
 
-export const getIncomeTypeId = async ({name}) => {
+export const getIncomeTypeId = async ({ name }) => {
 
-  return await IncomeType.findOne({name}, '_id')
+  return await IncomeType.findOne({ name }, '_id')
 }
 
 export const getBranchIncomes = async (req, res, next) => {
