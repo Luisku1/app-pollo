@@ -342,9 +342,6 @@ export default function ControlSupervisor() {
     const amountInput = document.getElementById('paymentAmount')
     const button = document.getElementById('paymentButton')
     const employee = selectedEmployee != null
-    const branch = selectedBranch != null
-
-    console.log(selectedBranch, selectedEmployee)
 
     let filledInputs = true
 
@@ -354,7 +351,7 @@ export default function ControlSupervisor() {
 
     }
 
-    if (filledInputs && employee && branch && !loading) {
+    if (filledInputs && employee && !loading) {
 
       button.disabled = false
 
@@ -500,7 +497,7 @@ export default function ControlSupervisor() {
           amount: amount.value,
           detail: detail.value,
           company: company._id,
-          branch: selectedBranch.value,
+          branch: selectedBranch != null ? selectedBranch.value : null,
           employee: selectedEmployee.value,
           supervisor: currentUser._id,
           createdAt: date
@@ -516,23 +513,26 @@ export default function ControlSupervisor() {
         return
       }
 
-      console.log(data)
       notify('Nuevo pago a empleado registrado')
 
+      if (data.income) {
+
+        data.income.employee = currentUser
+        data.income.branch = { branch: selectedBranch.label }
+        data.income.type = 'Efectivo'
+        setIncomes([data.income, ...incomes])
+        setIncomesTotal(incomesTotal + parseFloat(data.income.amount))
+      }
+
       data.extraOutgoing.employee = currentUser
-      data.income.employee = currentUser
-      data.income.branch = {branch: selectedBranch.label}
-      data.income.type = 'Efectivo'
-      console.log(data.income)
       data.employeePayment.supervisor = currentUser
-      data.employeePayment.employee = {name: selectedEmployee.label}
+      data.employeePayment.employee = { name: selectedEmployee.label }
 
       setEmployeePayments([data.employeePayment, ...employeePayments])
       setEmployeePaymentsTotal(employeePaymentsTotal + parseFloat(data.employeePayment.amount))
+
       setExtraOutgoings([data.extraOutgoing, ...extraOutgoings])
       setExtraOutgoingsTotal(extraOutgoingsTotal + parseFloat(data.extraOutgoing.amount))
-      setIncomes([data.income, ...incomes])
-      setIncomesTotal(incomesTotal + parseFloat(data.income.amount))
 
       setSelectedEmployee(null)
       setSelectedBranch(null)
@@ -561,15 +561,20 @@ export default function ControlSupervisor() {
     if (error == null) {
 
       notify(data)
-      const incomeIndex = incomes.findIndex((income) => income._id == incomeId)
+
+      if (incomeId) {
+
+        const incomeIndex = incomes.findIndex((income) => income._id == incomeId)
+        setIncomesTotal(incomesTotal - parseFloat(incomes[incomeIndex].amount))
+        incomes.splice(incomeIndex, 1)
+      }
+
       const extraOutgoingIndex = extraOutgoings.findIndex((extraOutgoing) => extraOutgoing._id == extraOutgoingId)
 
       setEmployeePaymentsTotal(employeePaymentsTotal - parseFloat(employeePayments[index].amount))
-      setIncomesTotal(incomesTotal - parseFloat(incomes[incomeIndex].amount))
-      setExtraOutgoingsTotal(extraOutgoingsTotal -  parseFloat(extraOutgoings[extraOutgoingIndex].amount))
+      setExtraOutgoingsTotal(extraOutgoingsTotal - parseFloat(extraOutgoings[extraOutgoingIndex].amount))
 
       employeePayments.splice(index, 1)
-      incomes.splice(incomeIndex, 1)
       extraOutgoings.splice(extraOutgoingIndex, 1)
 
     } else {
@@ -1603,15 +1608,18 @@ export default function ControlSupervisor() {
               isSearchable={true}
             />
 
-            <Select
-              id='branchSelect'
-              value={selectedBranch}
-              onChange={handleBranchSelectChange}
-              options={branches}
-              isClearable={true}
-              placeholder='¿En qué sucursal estuvo?'
-              isSearchable={true}
-            />
+            <div>
+              <p className='text-xs text-red-700'>Si ya tenías el dinero deja vacío el campo de sucursal</p>
+              <Select
+                id='branchSelect'
+                value={selectedBranch}
+                onChange={handleBranchSelectChange}
+                options={branches}
+                isClearable={true}
+                placeholder='¿De qué sucursal salió el dinero?'
+                isSearchable={true}
+              />
+            </div>
 
             <input type="number" name="paymentAmount" id="paymentAmount" placeholder='$0.00' step={0.01} className='col-span-1 border p-3 rounded-lg border-black' required onInput={paymentsButtonControl} />
             <div className='col-span-1 grid grid-cols-1'>
@@ -1727,7 +1735,7 @@ export default function ControlSupervisor() {
                       <p className='text-center text-sm w-3/12'>{extraOutgoing.amount.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
                     </div>
 
-                    {((currentUser._id == extraOutgoing.employee._id || currentUser.role == managerRole._id) && !extraOutgoing.partOfAPayment ) ?
+                    {((currentUser._id == extraOutgoing.employee._id || currentUser.role == managerRole._id) && !extraOutgoing.partOfAPayment) ?
 
                       <div>
                         <button id={extraOutgoing._id} onClick={() => { setIsOpen(!isOpen), setButtonId(extraOutgoing._id) }} disabled={loading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>

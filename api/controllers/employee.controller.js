@@ -238,21 +238,31 @@ export const newEmployeePaymentQuery = async (req, res, next) => {
 
 	const { amount, detail, company, branch, employee, supervisor, createdAt } = req.body
 
+	let income = {}
+	let employeePayment = {}
+
+	const employeeData = await Employee.findById(employee, 'name lastName')
+
 	try {
 
-		const incomeType = await getIncomeTypeId({ name: 'Efectivo' })
-		console.log(incomeType._id)
+		const extraOutgoing = await newExtraOutgoingFunction({ amount, concept: (detail + ' [' + employeeData.name + ' ' + employeeData.lastName + ']'), company, employee: supervisor, createdAt, partOfAPayment: true })
 
-		const extraOutgoing = await newExtraOutgoingFunction({ amount, concept: detail, company, employee: supervisor, createdAt, partOfAPayment: true })
-		console.log(extraOutgoing)
-		const income = await newIncomeFunction({ amount: amount, company, branch, employee: supervisor, type: String(incomeType._id), createdAt, partOfAPayment: true })
+		if (branch != null) {
 
-		const employeePayment = await newEmployeePaymentFunction({ amount, detail, employee, supervisor, company, extraOutgoing: extraOutgoing._id, income: income._id, createdAt })
+			const incomeType = await getIncomeTypeId({ name: 'Efectivo' })
+			console.log(incomeType._id)
+			income = await newIncomeFunction({ amount: amount, company, branch, employee: supervisor, type: String(incomeType._id), createdAt, partOfAPayment: true })
 
-		console.log(employeePayment)
+			employeePayment = await newEmployeePaymentFunction({ amount, detail, employee, supervisor, company, extraOutgoing: extraOutgoing._id, income: income._id, createdAt })
 
+			res.status(200).json({ extraOutgoing, income, employeePayment })
 
-		res.status(200).json({ extraOutgoing, income, employeePayment })
+		} else {
+
+			employeePayment = await newEmployeePaymentFunction({ amount, detail, employee, supervisor, company, extraOutgoing: extraOutgoing._id, createdAt })
+
+			res.status(200).json({ extraOutgoing, employeePayment })
+		}
 
 	} catch (error) {
 
@@ -292,7 +302,7 @@ export const getEmployeesPaymentsQuery = async (req, res, next) => {
 			]
 		}).populate('supervisor', 'name lastName').populate('employee', 'name lastName')
 
-		res.status(200).json({employeePayments})
+		res.status(200).json({ employeePayments })
 
 	} catch (error) {
 
@@ -302,17 +312,22 @@ export const getEmployeesPaymentsQuery = async (req, res, next) => {
 
 export const deleteEmployeePaymentQuery = async (req, res, next) => {
 
-	const {paymentId, incomeId, extraOutgoingId} = req.params
-
+	const { paymentId, incomeId, extraOutgoingId } = req.params
+	console.log(incomeId == 'undefined')
+	console.log(typeof incomeId)
+	let deletedIncome = incomeId == 'undefined' ? {deletedCount: 1} : {}
 
 	try {
 
-		const deletedExtraOutgoing = await ExtraOutgoing.deleteOne({_id: extraOutgoingId})
-		const deletedIncome = await IncomeCollected.deleteOne({_id: incomeId})
-		const deletedPayment = await EmployeePayment.deleteOne({_id: paymentId})
+		const deletedExtraOutgoing = await ExtraOutgoing.deleteOne({ _id: extraOutgoingId })
+		if(incomeId != 'undefined') {
+
+			deletedIncome = await IncomeCollected.deleteOne({ _id: incomeId })
+		}
+		const deletedPayment = await EmployeePayment.deleteOne({ _id: paymentId })
 		console.log(deletedPayment, deletedIncome, deletedExtraOutgoing)
 
-		if(!(deletedExtraOutgoing.deletedCount == 0 && deletedIncome.deletedCount == 0 && deletedPayment.deletedCount == 0)) {
+		if (!(deletedExtraOutgoing.deletedCount == 0 && deletedIncome.deletedCount == 0 && deletedPayment.deletedCount == 0)) {
 
 			res.status(200).json('Pago eliminado, verifique que el gasto y el efectivo del pago se hayan eliminado correctamente.')
 		} else {

@@ -34,9 +34,7 @@ const employeePaymentSchema = new mongoose.Schema({
   },
 
   income: {
-    type: Schema.Types.ObjectId, ref: 'IncomeCollected',
-    required: true
-
+    type: Schema.Types.ObjectId, ref: 'IncomeCollected'
   },
 
   createdAt: {
