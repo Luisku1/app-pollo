@@ -352,7 +352,7 @@ export const getEmployeePayroll = async (req, res, next) => {
 					foreignField: 'employee',
 					as: 'dailyBalances',
 					pipeline: [
-						{ $match: { createdAt: { $lt: bottomDate } } },
+						{ $match: { createdAt: { $lt: new Date(bottomDate) } } },
 						{ $sort: { createdAt: -1 } },
 						{ $limit: 7 }
 					]
