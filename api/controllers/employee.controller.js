@@ -251,7 +251,7 @@ export const newEmployeePaymentQuery = async (req, res, next) => {
 
 			const incomeType = await getIncomeTypeId({ name: 'Efectivo' })
 			console.log(incomeType._id)
-			income = await newIncomeFunction({ amount: amount, company, branch, employee: supervisor, type: String(incomeType._id), createdAt, partOfAPayment: true })
+			income = await newIncomeFunction({ amount, company, branch, employee: supervisor, type: String(incomeType._id), createdAt, partOfAPayment: true })
 
 			employeePayment = await newEmployeePaymentFunction({ amount, detail, employee, supervisor, company, extraOutgoing: extraOutgoing._id, income: income._id, createdAt })
 

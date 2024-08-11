@@ -24,7 +24,7 @@ export const newIncomeFunction = async ({ amount, company, branch, employee, typ
 
   const newIncome = new IncomeCollected({ amount, company, branch, employee, type, createdAt, partOfAPayment })
   await newIncome.save()
-  await updateReportIncomes(branch, createdAt, incomeAmount)
+  await updateReportIncomes(branch, createdAt, amount)
   return newIncome
 
 }
