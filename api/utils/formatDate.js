@@ -7,7 +7,9 @@ export const formatDate = (date) => {
 
 export const convertTZ = (date) => {
 
-  return new Date((typeof date === "string" ? new Date(date) : date).toLocaleString("en-US", { timeZone: 'America/Mexico_City' }));
+  const tZDate = new Date((typeof date === "string" ? new Date(date) : date).toLocaleString("en-US", { timeZone: 'America/Mexico_City' }));
+
+  return tZDate.toISOString()
 }
 
 export const localTimeZone = () => {
@@ -22,10 +24,10 @@ export const getDayRange = (date) => {
   const datePlusOne = new Date(principalDate)
   datePlusOne.setDate(datePlusOne.getDate() + 1)
 
-  principalDate.setHours(6,0,0)
-  datePlusOne.setHours(6,0,0)
 
-  return {bottomDate: principalDate.toISOString(), topDate: datePlusOne.toISOString()}
+  console.log(principalDate, datePlusOne.toISOString())
+
+  return {bottomDate: principalDate, topDate: datePlusOne.toISOString()}
 }
 
 export const getMonthRange = (date) => {
