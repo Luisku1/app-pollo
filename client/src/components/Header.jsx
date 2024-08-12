@@ -106,7 +106,7 @@ export default function Header() {
           </h1>
         </Link>
 
-        <div className='menu-container z-10' ref={menuRef}>
+        <div className='menu-container z-30' ref={menuRef}>
 
           <div className="menu-trigger" onClick={() => { setReportIsOpen(false), setOpen(!open) }}>
             <MdOutlineMenu className='w-5 h-5 mdoutline' />

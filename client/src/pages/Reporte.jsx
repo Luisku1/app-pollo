@@ -61,13 +61,13 @@ export default function Reporte() {
 
   const supervisorFilter = (e) => {
 
-    const checkbox = document.getElementById('all')
+    const allCheckbox = document.getElementById('all')
 
     if (!e.target.checked) {
 
       if (filteredIds.length == 1) {
 
-        checkbox.checked = !checkbox.checked
+        allCheckbox.checked = !allCheckbox.checked
         setAll(prev => !prev)
         setFilteredIds([])
 
@@ -86,13 +86,13 @@ export default function Reporte() {
       }
     } else {
 
-      filteredIds.forEach((supervisorId) => {
+      // filteredIds.forEach((supervisorId) => {
 
-        const checkbox = document.getElementById(supervisorId)
-        checkbox.checked = !checkbox.checked
-      })
+      //   const checkbox = document.getElementById(supervisorId)
+      //   checkbox.checked = !checkbox.checked
+      // })
       setFilteredIds([e.target.value, ...filteredIds])
-      checkbox.checked = false
+      allCheckbox.checked = false
       setAll(false)
     }
   }
@@ -474,10 +474,10 @@ export default function Reporte() {
         : ''}
 
       {supervisorsInfo && showTable && supervisorsInfo.length > 0 ?
-        <div className="bg-white mt-3 absolute mx-auto">
+        <div className="bg-white mt-3 absolute max-w-lg mx-auto">
 
-          <div className="my-1 border border-slate-500 border-spacing-4 p-2 m-auto sticky top-0 bg-white z-10">
-            <div id="filterBySupervisor" className="flex flex-wrap justify-evenly">
+          <div className="my-1 border border-slate-500 border-spacing-4 p-2 m-auto sticky top-0 bg-white z-5">
+            <div id="filterBySupervisor" className="flex flex-wrap gap-1 justify-evenly">
               <div className="grid grid-cols-1 ">
                 <p className="font-bold text-red-500">{'Todos'}</p>
                 <input type="checkbox" name={'all'} id={'all'} value={'all'} defaultChecked={true} onChange={selectAllSupervisorsCheckbox} />
