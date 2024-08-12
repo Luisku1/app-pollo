@@ -20,7 +20,7 @@ export const newIncomeQuery = async (req, res, next) => {
   }
 }
 
-export const newIncomeFunction = async ({ amount, company, branch, employee, type, createdAt, partOfAPayment = false }) => {
+export const newIncomeFunction = async ({ amount, company, branch, employee, type, createdAt, partOfAPayment = false  }) => {
 
   const newIncome = new IncomeCollected({ amount, company, branch, employee, type, createdAt, partOfAPayment })
   await newIncome.save()

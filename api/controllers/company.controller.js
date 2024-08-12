@@ -5,18 +5,24 @@ import { errorHandler } from '../utils/error.js'
 export const newCompany = async (req, res, next) => {
 
   const { name, userRef } = req.body
-  const newCompany = new Company({ name, owner: userRef })
 
   try {
 
-    await newCompany.save()
-    await Employee.updateOne({_id: userRef}, {$set: {"company": newCompany._id}})
+    const newCompany = await newCompanyFunction({ name, ownerId: userRef })
     res.status(201).json(newCompany)
 
   } catch (error) {
 
     next(error)
   }
+}
+
+export const newCompanyFunction = async ({ name, ownerId }) => {
+
+  const newCompany = new Company({ name, owner: ownerId })
+  await newCompany.save()
+
+  return newCompany
 }
 
 export const getCompanyById = async (req, res, next) => {
@@ -55,7 +61,7 @@ export const getCompanyByOwnerId = async (req, res, next) => {
 
     })
 
-    if(!company) {
+    if (!company) {
 
       return next(errorHandler(404, 'Company not found'))
     }

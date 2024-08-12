@@ -44,15 +44,15 @@ export const getBranchesLastPosition = async (req, res, next) => {
 
 	try {
 
-		const branchLastPosition = await Branch.find({ company: companyId }).sort({ position: -1 }).limit(1).select('position')
+		const branchLastPosition = await Branch.findOne({ company: companyId }).sort({ position: -1 }).select('position')
 
 		if (branchLastPosition) {
 
-			res.status(200).json({ branchLastPosition: branchLastPosition[0] })
+			res.status(200).json({ branchPosition: branchLastPosition.position + 1 })
 
 		} else {
 
-			next(errorHandler(404, 'Error'))
+			res.status(200).json({branchPosition: 1})
 		}
 
 	} catch (error) {

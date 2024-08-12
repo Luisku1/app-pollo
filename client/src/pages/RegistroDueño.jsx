@@ -26,7 +26,7 @@ export default function RegistroDueño() {
     {
       setLoading(true)
 
-      const res = await fetch('/api/auth/sign-up',
+      const res = await fetch('/api/auth/owner-sign-up',
       {
         method: 'POST',
         headers: {
@@ -75,8 +75,8 @@ export default function RegistroDueño() {
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <input type="text" name="name" id="name" placeholder="Nombres" className='border p-3 rounded-lg'onChange={handleChange}/>
         <input type="text" name="lastName" id="lastName" placeholder='Apellidos' className='border p-3 rounded-lg'onChange={handleChange}/>
+        <input type="text" name="company" id="company" placeholder='Nombre de tu compañía' className='border p-3 rounded-lg'onChange={handleChange}/>
         <input type="tel" name="phoneNumber" id="phoneNumber" placeholder='Número de Teléfono' className='border p-3 rounded-lg'onChange={handleChange}/>
-        <input type="email" name="email" id="email" placeholder='ejemplo@gmail.com' className='border p-3 rounded-lg'onChange={handleChange}/>
         <input type="password" name="password" id="password" placeholder='Contraseña' className='border p-3 rounded-lg'onChange={handleChange}/>
 
         <button disabled={loading} className="bg-slate-700 text-white p-3 rounded-lg uppercase hover:opacity-95 disabled:opacity-80">

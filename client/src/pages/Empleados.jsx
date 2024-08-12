@@ -107,6 +107,9 @@ export default function Empleados() {
   useEffect(() => {
 
     document.title = 'Empleados'
+
+    const searchBar = document.getElementById('searchBar')
+    searchBar.focus()
   })
 
   return (

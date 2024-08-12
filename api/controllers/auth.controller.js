@@ -4,6 +4,7 @@ import Employee from '../models/employees/employee.model.js'
 import Role from '../models/role.model.js'
 import { errorHandler } from '../utils/error.js'
 import EmployeeDailyBalance from '../models/employees/employee.daily.balance.js'
+import { newCompanyFunction } from './company.controller.js'
 
 export const signUp = async (req, res, next) => {
 
@@ -21,22 +22,16 @@ export const signUp = async (req, res, next) => {
 
   let newEmployee
 
-  if (role === undefined) {
-
-    role = await Role.findOne({ name: 'Gerente' }).select('_id')
-
-  }
-
-  if (balance) {
-
-    newEmployee = new Employee({ name, lastName, password: hashedPassword, phoneNumber, role, salary, payDay, company, balance })
-
-  } else {
-
-    newEmployee = new Employee({ name, lastName, password: hashedPassword, phoneNumber, role, salary, payDay, company })
-  }
-
   try {
+
+    if (balance) {
+
+      newEmployee = new Employee({ name, lastName, password: hashedPassword, phoneNumber, role, salary, payDay, company, balance })
+
+    } else {
+
+      newEmployee = new Employee({ name, lastName, password: hashedPassword, phoneNumber, role, salary, payDay, company })
+    }
 
     const employeeDailyBalance = new EmployeeDailyBalance({ employee: newEmployee._id, company: newEmployee.company, createdAt: (new Date().toISOString()) })
     await newEmployee.save()
@@ -48,7 +43,7 @@ export const signUp = async (req, res, next) => {
 
     } else {
 
-      res.status(404).json('New employee created, but an error ocurred in the daily balance')
+      res.status(404).json('An error ocurred')
     }
 
 
@@ -60,17 +55,33 @@ export const signUp = async (req, res, next) => {
 
 export const ownerSignUp = async (req, res, next) => {
 
-  const { name, lastName, email, password, phoneNumber } = req.body
-  const hashedPassword = bcryptjs.hashSync(password, 10)
+  const { name, lastName, phoneNumber, company, password } = req.body
 
   try {
+    if (!password) {
 
-    const ownerRole = await Role.findOne({ name: 'Dueño' })
-    const newOwner = new Owner({ name, lastName, password: hashedPassword, phoneNumber, role: ownerRole._id })
+      next(errorHandler(404, 'The password path is required'))
+      return
+    }
 
+    const hashedPassword = bcryptjs.hashSync(password, 10)
+    const role = await Role.findOne({ name: 'Gerente' }).select('_id')
+    const newEmployee = await Employee({ name, lastName, password: hashedPassword, role: role._id, phoneNumber })
+    const company = await newCompanyFunction({ name: company, ownerId: newEmployee._id })
 
-    await newOwner.save()
-    res.status(201).json('New owner created successfully')
+    newEmployee.company = company._id
+    const employeeDailyBalance = new EmployeeDailyBalance({ employee: newEmployee._id, company: newEmployee.company, createdAt: (new Date().toISOString()) })
+    await newEmployee.save()
+    await employeeDailyBalance.save()
+
+    if(employeeDailyBalance && newEmployee) {
+
+      res.status(201).json('New employee created succesfully')
+
+    } else {
+
+      res.status(404).json('An error ocurred')
+    }
 
   } catch (error) {
 
@@ -84,11 +95,16 @@ export const signIn = async (req, res, next) => {
 
   try {
 
-    let validUser = await Employee.findOne({phoneNumber})
+    let validUser = await Employee.findOne({ phoneNumber })
 
     if (!validUser) {
 
-      return next(errorHandler(404, 'Wrong credentials'))
+      return next(errorHandler(404, 'Número de teléfono o contraseña incorrectos.'))
+    }
+
+    if(!validUser.active) {
+
+      return next(errorHandler(404, 'Tu perfil no se encuentra activo. Pide a algún gerente reactivarlo.'))
     }
 
     const validPassword = bcryptjs.compareSync(password, validUser.password)

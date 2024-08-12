@@ -1067,6 +1067,10 @@ export default function RegistroCuentaDiaria() {
         if (assistantTempOption) {
 
           setSelectedAssistant(assistantTempOption)
+
+        } else {
+
+          setSelectedAssistant(null)
         }
 
         setBranchReport(data.originalBranchReport)

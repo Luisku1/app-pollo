@@ -131,26 +131,7 @@ export default function Header() {
                       <DropdownItem text={'Supervisión'} link={'/supervision-diaria'} onClick={() => { setOpen(!open) }} />
                       <DropdownItem text={'Registro Empleado'} link={'/registro-empleado'} onClick={() => { setOpen(!open) }} />
                       <DropdownItem text={'Sucursales'} link={'/sucursales'} onClick={() => { setOpen(!open) }} />
-
-                      {/* < div >
-                        <div className='menu-trigger flex items-center justify-between' onClick={() => { setProviderIsOpen(!providerIsOpen) }}>
-                          <DropdownItem text={'Entradas Proveedores'} link={'#'} />
-
-                          {providerIsOpen ? <MdKeyboardArrowDown className='text-3xl' /> : <MdKeyboardArrowRight className='text-3xl' />}
-                        </div>
-
-                        <div className={`${providerIsOpen ? '' : 'hidden'} pl-2 text-m`}>
-                          <ul className='border-l pl-5 border-gray-400'>
-                            {products && products.length > 0 && products.map((product) => (
-
-
-                              <DropdownItem key={product._id} text={product.name} link={'/entrada-inicial/' + product._id + '/' + product.name} onClick={() => { setProviderIsOpen(!providerIsOpen), setOpen(!open) }} />
-
-
-                            ))}
-                          </ul>
-                        </div>
-                      </div> */}
+                      <DropdownItem text={"Reporte"} link={'/reporte'} onClick={() => { setOpen(!open) }} />
 
                     </div>
 
@@ -165,7 +146,6 @@ export default function Header() {
 
                     <div>
 
-                      <DropdownItem text={"Reporte"} link={'/reporte'} onClick={() => { setOpen(!open) }} />
 
                       <DropdownItem text={"Nomina"} link={'/nomina'} onClick={() => { setOpen(!open) }} />
 

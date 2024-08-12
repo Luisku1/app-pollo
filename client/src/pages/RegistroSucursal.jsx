@@ -10,7 +10,7 @@ export default function RegistroSucursal() {
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
   const [zones, setZones] = useState([])
-  const [branchesLastPosition, setBranchesLastPosition] = useState(null)
+  const [branchPosition, setBranchPosition] = useState(0)
 
   useEffect(() => {
 
@@ -49,7 +49,7 @@ export default function RegistroSucursal() {
           return
         }
 
-        setBranchesLastPosition(data.branchLastPosition.position)
+        setBranchPosition(data.branchPosition)
         setError(null)
 
       } catch (error) {
@@ -172,9 +172,7 @@ export default function RegistroSucursal() {
           <input type="number" name="p" id="p" placeholder="%" step={0.001} className='border p-3 rounded-lg' onChange={handleChange} />
           <input type="text" name="rentDay" id="rentDay" placeholder="Día de renta" className='border p-3 rounded-lg' onChange={handleChange} />
           <input type="number" name="rentAmount" id="rentAmount" placeholder="Monto de renta" className='border p-3 rounded-lg' onChange={handleChange} />
-          {branchesLastPosition ?
-          <input type="number" name="position" id="position" placeholder={branchesLastPosition ? branchesLastPosition + 1 : 'Indique el orden'} className='border p-3 rounded-lg' onChange={handleChange} />
-          : ''}
+          <input type="number" name="position" id="position" defaultValue={branchPosition} disabled className='border p-3 rounded-lg' onChange={handleChange} />
           <select name="zone" id="zone" className='border p-3 rounded-lg'>
           {zones && zones.length == 0 ? <option> No hay zonas registradas </option> : ''}
           {zones && zones.length > 0 && zones.map((zone) => (

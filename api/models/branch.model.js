@@ -52,6 +52,8 @@ const branchSchema = mongoose.Schema({
   }
 })
 
+branchSchema.index({position: 1, company: 1}, {unique: true})
+
 const Branch = mongoose.model('Branch', branchSchema)
 
 export default Branch
