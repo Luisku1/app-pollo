@@ -470,7 +470,7 @@ export default function Reporte() {
         </div>
         : ''}
 
-      {supervisorsInfo && supervisorsInfo.length > 0 ?
+      {supervisorsInfo && showTable && supervisorsInfo.length > 0 ?
         <div className="bg-white mt-3 absolute">
 
           <div className="my-1 border border-slate-500 border-spacing-4 p-2 m-auto sticky top-0 bg-white z-10">
@@ -488,7 +488,7 @@ export default function Reporte() {
             </div>
           </div>
 
-          {filteredIds && showTable && supervisorsInfo.map((info) => (
+          {filteredIds && supervisorsInfo.map((info) => (
             <div key={info.supervisor._id}>
 
               {filteredIds && filteredIds.includes(info.supervisor._id) || all ?
