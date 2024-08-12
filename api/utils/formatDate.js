@@ -22,10 +22,10 @@ export const getDayRange = (date) => {
   const datePlusOne = new Date(principalDate)
   datePlusOne.setDate(datePlusOne.getDate() + 1)
 
-  if(principalDate.getUTCHours() == 6) {
+  if(principalDate.getUTCHours() == 0) {
 
-    principalDate.setHours(0,0,0)
-    datePlusOne.setHours(0,0,0)
+    principalDate.setHours(6,0,0)
+    datePlusOne.setHours(6,0,0)
   }
 
   console.log(principalDate, datePlusOne)
