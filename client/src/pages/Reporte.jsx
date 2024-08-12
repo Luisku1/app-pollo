@@ -73,8 +73,6 @@ export default function Reporte() {
 
       } else {
 
-        console.log('entro')
-        // const index = filteredIds.findIndex((supervisorId) => supervisorId == e.target.value)
         const newFilteredIdsArray = filteredIds.map((supervisorId) => {
 
           if (supervisorId != e.target.value) {
@@ -88,6 +86,11 @@ export default function Reporte() {
       }
     } else {
 
+      filteredIds.forEach((supervisorId) => {
+
+        const checkbox = document.getElementById(supervisorId)
+        checkbox.checked = !checkbox.checked
+      })
       setFilteredIds([e.target.value, ...filteredIds])
       checkbox.checked = false
       setAll(false)
@@ -330,7 +333,7 @@ export default function Reporte() {
           setError(data.message)
           return
         }
-        await setManagerRoleFunction(data.roles)
+        setManagerRoleFunction(data.roles)
         setError(null)
 
       } catch (error) {
@@ -471,7 +474,7 @@ export default function Reporte() {
         : ''}
 
       {supervisorsInfo && showTable && supervisorsInfo.length > 0 ?
-        <div className="bg-white mt-3 absolute">
+        <div className="bg-white mt-3 absolute mx-auto">
 
           <div className="my-1 border border-slate-500 border-spacing-4 p-2 m-auto sticky top-0 bg-white z-10">
             <div id="filterBySupervisor" className="flex flex-wrap justify-evenly">

@@ -117,7 +117,6 @@ export default function Sobrante({ date }) {
         }
         setStockByBranch(data.stock)
 
-        console.log(data.stock)
         let total = 0.0
 
         Object.values(data.stock).forEach((branch) => total += parseFloat(branch.total))
