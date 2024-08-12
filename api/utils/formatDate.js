@@ -18,13 +18,18 @@ export const localTimeZone = () => {
 
 export const getDayRange = (date) => {
 
-  console.log(date)
   const principalDate = convertTZ(date ? date : new Date())
   const datePlusOne = new Date(principalDate)
   datePlusOne.setDate(datePlusOne.getDate() + 1)
 
-  principalDate.setHours(6,0,0)
-  datePlusOne.setHours(6,0,0)
+  if(principalDate.getUTCHours() == 6) {
+
+    principalDate.setHours(0,0,0)
+    datePlusOne.setHours(0,0,0)
+  }
+
+  console.log(principalDate, datePlusOne)
+  console.log(principalDate.toISOString(), datePlusOne.toISOString())
 
   return {bottomDate: principalDate.toISOString(), topDate: datePlusOne.toISOString()}
 }
