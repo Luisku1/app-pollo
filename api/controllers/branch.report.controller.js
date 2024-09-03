@@ -11,7 +11,7 @@ export const createBranchReport = async (req, res, next) => {
   const inputBalance = initialStock + inputs
   const outputBalance = outgoings + outputs + incomes + finalStock
   const balance = outputBalance - inputBalance
-  const createdAt = new Date(date).toISOString()
+  const createdAt = new Date(date)
 
   const {bottomDate, topDate} = getDayRange(date)
 

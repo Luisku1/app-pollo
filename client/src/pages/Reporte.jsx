@@ -86,11 +86,6 @@ export default function Reporte() {
       }
     } else {
 
-      // filteredIds.forEach((supervisorId) => {
-
-      //   const checkbox = document.getElementById(supervisorId)
-      //   checkbox.checked = !checkbox.checked
-      // })
       setFilteredIds([e.target.value, ...filteredIds])
       allCheckbox.checked = false
       setAll(false)

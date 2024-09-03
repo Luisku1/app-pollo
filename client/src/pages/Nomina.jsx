@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux'
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import FechaDePagina from "../components/FechaDePagina";
 import { formatDate } from "../helpers/DatePickerFunctions";
+import ShowEmployeePayments from "../components/ShowEmployeePayments";
 
 
 export default function Nomina() {
@@ -174,9 +175,10 @@ export default function Nomina() {
                           <p>Deuda total: </p>
                           <p className={(employeePayroll.totalDebt < 0 ? 'text-red-500' : '') + ' text-xs my-auto'}>{employeePayroll.totalDebt.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 items-center">
                           <p>Pagos recibidos: </p>
-                          <p className={(employeePayroll.employeePayments < 0 ? 'text-red-500' : '') + ' text-xs my-auto'}>{employeePayroll.totalDebt.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>
+                          <ShowEmployeePayments employeeName={employeePayroll.name} employeeId={employeePayroll._id} date={stringDatePickerValue}></ShowEmployeePayments>
+                          {/* <p className={(employeePayroll.employeePayments < 0 ? 'text-red-500' : '') + ' text-xs my-auto'}>{employeePayroll.totalDebt.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p> */}
                         </div>
                       </div>
 

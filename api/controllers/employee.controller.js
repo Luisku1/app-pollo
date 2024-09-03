@@ -53,21 +53,38 @@ export const getEmployee = async (req, res, next) => {
 export const getEmployeeReports = async (req, res, next) => {
 
 	const employeeId = req.params.employeeId
+	const { bottomDate, topDate } = getDayRange(new Date())
 
 	try {
 
-		const employeeWorkedDays = await getEmployeeWorkedDays(req, res, employeeId, next)
+		const employeeWeekDays = await getEmployeeWorkedDays(bottomDate, employeeId)
+		const firstWeekDay = new Date(bottomDate)
+		firstWeekDay.setDate(firstWeekDay.getDate() - employeeWeekDays)
 
 		const employeeReports = await BranchReport.find({
-			$or: [
+			$and: [
 				{
-					employee: employeeId
+					$or: [
+						{
+							employee: employeeId
+						},
+						{
+							assistant: employeeId
+						}
+					]
 				},
 				{
-					assistant: employeeId
-				}
+					createdAt: {
+						$gte: firstWeekDay
+					}
+				},
+				{
+					createdAt: {
+						$lt: new Date(topDate)
+					}
+				},
 			]
-		}).sort({ createdAt: -1 }).limit(employeeWorkedDays).populate({ path: 'branch', select: 'branch' })
+		}).sort({ createdAt: -1 }).populate({ path: 'branch', select: 'branch' })
 
 		if (employeeReports.length > 0) {
 
@@ -84,34 +101,29 @@ export const getEmployeeReports = async (req, res, next) => {
 	}
 }
 
-const getEmployeeWorkedDays = async (req, res, employeeId, next) => {
+const getEmployeeWorkedDays = async (bottomDate, employeeId) => {
 
-	const day = new Date().getDay()
+	const bottomDateDay = (new Date(bottomDate)).getDay()
+	const employeePayDay = (await Employee.findById(employeeId)).payDay
+	let weekDaysWorked = 0
 
-	try {
+	if (bottomDateDay == employeePayDay) {
 
-		const employee = await Employee.findById(employeeId).select('payDay')
+		weekDaysWorked = 7
 
-		if (employee.payDay - day > 0) {
+	} else {
 
-			return 8 - (employee.payDay - day)
+		if (bottomDateDay > employeePayDay) {
+
+			weekDaysWorked = bottomDateDay - employeePayDay
 
 		} else {
 
-			if (employee.payDay - day < 0) {
-
-				return (Math.abs(employee.payDay - day) + 1)
-
-			} else {
-
-				return 8
-			}
+			weekDaysWorked = bottomDateDay - employeePayDay + 7
 		}
-
-	} catch (error) {
-
-		next(error)
 	}
+
+	return weekDaysWorked
 }
 
 export const getEmployeeDayInfo = async (req, res, next) => {
@@ -279,6 +291,71 @@ export const newEmployeePaymentFunction = async ({ amount, detail, employee, sup
 	return newEmployeePayment
 }
 
+export const getEmployeePayments = async (req, res, next) => {
+
+	const employeeId = req.params.employeeId
+	const { bottomDate, topDate } = getDayRange(new Date(req.params.date))
+	const bottomDateDay = (new Date(bottomDate)).getDay()
+
+	try {
+
+		const employeePayDay = (await Employee.findById(employeeId)).payDay
+		let weekDaysWorked = 0
+
+		if (bottomDateDay == employeePayDay) {
+
+			weekDaysWorked = 7
+
+		} else {
+
+			if (bottomDateDay > employeePayDay) {
+
+				weekDaysWorked = bottomDateDay - employeePayDay
+
+			} else {
+
+				weekDaysWorked = bottomDateDay - employeePayDay + 7
+			}
+		}
+
+		const firstWeekDay = new Date(bottomDate)
+		firstWeekDay.setDate(firstWeekDay.getDate() - weekDaysWorked)
+		const employeePayments = {
+
+			total: 0,
+			employeePayments: []
+		}
+
+		employeePayments.employeePayments = await EmployeePayment.find({
+			$and: [
+
+				{
+					createdAt: {
+						$gte: firstWeekDay
+					}
+				},
+				{
+					createdAt: {
+						$lt: new Date(topDate)
+					}
+				},
+				{ employee: employeeId }
+			]
+		})
+
+		employeePayments.employeePayments.forEach((employeePayment) => {
+
+			employeePayments.total += employeePayment.amount
+		})
+
+		res.status(200).json(employeePayments)
+
+	} catch (error) {
+
+		console.log(error)
+	}
+}
+
 export const getEmployeesPaymentsQuery = async (req, res, next) => {
 
 	const { bottomDate, topDate } = getDayRange(new Date(req.params.date))
@@ -313,19 +390,16 @@ export const getEmployeesPaymentsQuery = async (req, res, next) => {
 export const deleteEmployeePaymentQuery = async (req, res, next) => {
 
 	const { paymentId, incomeId, extraOutgoingId } = req.params
-	console.log(incomeId == 'undefined')
-	console.log(typeof incomeId)
-	let deletedIncome = incomeId == 'undefined' ? {deletedCount: 1} : {}
+	let deletedIncome = incomeId == 'undefined' ? { deletedCount: 1 } : {}
 
 	try {
 
 		const deletedExtraOutgoing = await ExtraOutgoing.deleteOne({ _id: extraOutgoingId })
-		if(incomeId != 'undefined') {
+		if (incomeId != 'undefined') {
 
 			deletedIncome = await IncomeCollected.deleteOne({ _id: incomeId })
 		}
 		const deletedPayment = await EmployeePayment.deleteOne({ _id: paymentId })
-		console.log(deletedPayment, deletedIncome, deletedExtraOutgoing)
 
 		if (!(deletedExtraOutgoing.deletedCount == 0 && deletedIncome.deletedCount == 0 && deletedPayment.deletedCount == 0)) {
 
@@ -346,8 +420,6 @@ export const getEmployeePayroll = async (req, res, next) => {
 	const companyId = req.params.companyId
 	const { bottomDate } = getDayRange(req.params.date)
 	const day = (new Date(bottomDate)).getDay()
-	console.log(new Date(bottomDate))
-	console.log(day)
 
 	try {
 

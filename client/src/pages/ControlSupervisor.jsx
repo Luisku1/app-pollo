@@ -669,7 +669,7 @@ export default function ControlSupervisor() {
     const weightInput = document.getElementById('outputWeight')
     const branchInput = document.getElementById('outputBranch')
     const commentInput = document.getElementById('outputComment')
-    const inputSpecialPrice = document.getElementById('inputSpecialPrice')
+    const inputSpecialPrice = document.getElementById('outputSpecialPrice')
     const date = today ? new Date().toISOString() : new Date(stringDatePickerValue).toISOString()
 
     e.preventDefault()
@@ -719,6 +719,8 @@ export default function ControlSupervisor() {
       inputSpecialPrice.value = ''
       productInput.value = 'none'
       branchInput.focus()
+
+      delete outputFormData['outputSpecialPrice']
 
       setLoading(false)
 
@@ -802,6 +804,8 @@ export default function ControlSupervisor() {
       weightInput.value = ''
       productInput.value = 'none'
       inputSpecialPrice.value = ''
+
+      delete inputFormData['inputSpecialPrice']
 
       setLoading(false)
 

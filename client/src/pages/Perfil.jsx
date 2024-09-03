@@ -4,6 +4,7 @@ import { useParams } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { weekDays } from '../helpers/Constants'
 import TarjetaCuenta from '../components/TarjetaCuenta'
+import ShowEmployeePayments from '../components/ShowEmployeePayments'
 
 export default function Perfil() {
 
@@ -228,6 +229,14 @@ export default function Perfil() {
 
               <h1 className="text-3xl font-bold">{employee.name + ' ' + employee.lastName}</h1>
 
+              <div className='p-3'>
+
+                <div className='flex flex-row-reverse gap-2 items-center'>
+                  <ShowEmployeePayments employeeId={employee._id} employeeName={employee.name} date={(new Date()).toISOString()}></ShowEmployeePayments>
+                  <p className='text-center text-lg'>Pagos: </p>
+                </div>
+              </div>
+
               <div className="p-3">
                 <div className="flex gap-2">
                   <p className="text-lg">Balance: </p>
@@ -317,7 +326,7 @@ export default function Perfil() {
 
                   <h3 className='text-2xl font-bold'>Cuentas</h3>
 
-                  <TarjetaCuenta reportArray={employeeReports} managerRole={managerRole} currentUser={currentUser}/>
+                  <TarjetaCuenta reportArray={employeeReports} managerRole={managerRole} currentUser={currentUser} />
 
                 </div>
                 : ''

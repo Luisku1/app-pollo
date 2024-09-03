@@ -20,7 +20,7 @@ export const newIncomeQuery = async (req, res, next) => {
   }
 }
 
-export const newIncomeFunction = async ({ amount, company, branch, employee, type, createdAt, partOfAPayment = false  }) => {
+export const newIncomeFunction = async ({ amount, company, branch, employee, type, createdAt, partOfAPayment = false }) => {
 
   const newIncome = new IncomeCollected({ amount, company, branch, employee, type, createdAt, partOfAPayment })
   await newIncome.save()
@@ -165,18 +165,16 @@ export const getIncomeTypes = async (req, res, next) => {
   }
 }
 
-export const deleteIncome = async (req, res, next) => {
+export const deleteIncomeQuery = async (req, res, next) => {
 
   const incomeId = req.params.incomeId
 
   try {
 
-    const income = await IncomeCollected.findById(incomeId)
-    const deleted = await IncomeCollected.findByIdAndDelete({ _id: incomeId })
+    const income = await deleteIncome(incomeId)
 
-    if (deleted._id) {
+    if (income._id) {
 
-      await updateReportIncomes(income.branch, income.createdAt, -(income.amount))
       res.status(200).json('Income deleted successfully')
 
     } else {
@@ -188,4 +186,20 @@ export const deleteIncome = async (req, res, next) => {
 
     next(error)
   }
+}
+
+export const deleteIncome = async (incomeId) => {
+
+  const income = await IncomeCollected.findById(incomeId)
+  const deleted = await IncomeCollected.deleteOne({ _id: incomeId })
+
+  console.log(deleted)
+
+  if (deleted.deletedCount > 0) {
+
+    await updateReportIncomes(income.branch, income.createdAt, -(income.amount))
+    return income
+  }
+
+  return
 }

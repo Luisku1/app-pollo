@@ -49,7 +49,7 @@ const employeeSchema = new mongoose.Schema({
     type: Schema.Types.ObjectId, ref: 'Role',
     required: true
   }
-})
+}, {timestamps: {createdAt: true, updatedAt: false}})
 
 employeeSchema.index({phoneNumber: 1}, {unique: true})
 
