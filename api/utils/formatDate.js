@@ -29,6 +29,8 @@ export const getDayRange = (date) => {
     datePlusOne.setHours(6,0,0)
   }
 
+  console.log(principalDate.toISOString(), datePlusOne.toISOString())
+
   return {bottomDate: principalDate.toISOString(), topDate: datePlusOne.toISOString()}
 }
 

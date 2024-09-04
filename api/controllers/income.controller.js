@@ -175,6 +175,7 @@ export const deleteIncomeQuery = async (req, res, next) => {
 
     if (income._id) {
 
+      await updateReportIncomes(income.branch, income.createdAt, -(income.amount))
       res.status(200).json('Income deleted successfully')
 
     } else {

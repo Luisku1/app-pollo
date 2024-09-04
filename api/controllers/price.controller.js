@@ -131,7 +131,6 @@ export const getBranchCurrentPrices = async (req, res, next) => {
 
     next(error)
   }
-
 }
 
 const getPrices = async (branchId, date, reportExists, next) => {

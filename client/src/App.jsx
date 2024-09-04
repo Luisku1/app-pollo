@@ -21,6 +21,7 @@ import Gastos from './pages/Gastos'
 import Nomina from './pages/Nomina'
 import Sobrante from './pages/Sobrante'
 import Graficos from './pages/Graficos'
+import PreciosSucursal from './pages/PreciosSucursal'
 
 
 export default function App() {
@@ -30,6 +31,7 @@ export default function App() {
       <Routes>
         <Route path="/inicio-sesion" element={<InicioSesion />} />
         <Route path="/registro" element={<RegistroDueño />} />
+        <Route path="/precios-sucursal/:branchId" element={<PreciosSucursal />} />
 
         <Route element={<PrivateRoute />}>
 

@@ -22,6 +22,30 @@ export const newBranch = async (req, res, next) => {
 	}
 }
 
+export const getBranch = async (req, res, next) => {
+
+	const branchId = req.params.branchId
+
+	try {
+
+		const branch = await Branch.findById(branchId)
+
+		if (branch) {
+
+			res.status(200).json(branch)
+
+		} else {
+
+			next(errorHandler(404, 'Branch not found'))
+		}
+
+
+	} catch (error) {
+
+		next(error)
+	}
+}
+
 export const getBranches = async (req, res, next) => {
 
 	const companyId = req.params.companyId
@@ -52,7 +76,7 @@ export const getBranchesLastPosition = async (req, res, next) => {
 
 		} else {
 
-			res.status(200).json({branchPosition: 1})
+			res.status(200).json({ branchPosition: 1 })
 		}
 
 	} catch (error) {
