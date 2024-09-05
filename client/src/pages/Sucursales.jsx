@@ -158,6 +158,9 @@ export default function Sucursales() {
                   <p className="text-lg">Teléfono: {branch.phoneNumber ? branch.phoneNumber.replace(/(\d{2})(\d{4})(\d{4})/, '$1-$2-$3') : ''}</p>
                   : ''}
                 <div className="flex gap-1 text-lg mt-2">
+                  <a className="text-blue-700 font-bold" target="_blank" rel="noopener noreferrer" href={'https://pioapp.onrender.com/precios-sucursal/' + branch._id}>Precios</a>
+                </div>
+                <div className="flex gap-1 text-lg mt-2">
                   <p className="">Visítanos</p>
 
                   <a href={branch.location} target="_blank" rel="noopener noreferrer" className='text-blue-700'>aquí</a>

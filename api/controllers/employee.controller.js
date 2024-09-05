@@ -131,6 +131,7 @@ export const getEmployeeDayInfo = async (req, res, next) => {
 	const employeeId = req.params.employeeId
 
 	const { bottomDate } = getDayRange(new Date())
+	console.log(bottomDate)
 
 	try {
 
