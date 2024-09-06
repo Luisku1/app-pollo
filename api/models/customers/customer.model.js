@@ -17,11 +17,6 @@ const customerSchema = mongoose.Schema({
     required: true
   },
 
-  balance: {
-    type: Number,
-    default: 0.0
-  },
-
   location: {
     type: String,
     required: true
@@ -31,7 +26,9 @@ const customerSchema = mongoose.Schema({
     type: Schema.Types.ObjectId, ref: 'Company',
     required: true
   }
-})
+}, {timestamps: {createdAt: true, updatedAt: false}})
+
+customerSchema.index({phoneNumber: 1, company: 1}, {unique: true})
 
 const Customer = mongoose.model('Customer', customerSchema)
 

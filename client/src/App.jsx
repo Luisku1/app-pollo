@@ -22,6 +22,8 @@ import Nomina from './pages/Nomina'
 import Sobrante from './pages/Sobrante'
 import Graficos from './pages/Graficos'
 import PreciosSucursal from './pages/PreciosSucursal'
+import RegistroCliente from './pages/RegistroCliente'
+import RegistroProveedor from './pages/RegistroProveedor'
 
 
 export default function App() {
@@ -49,6 +51,8 @@ export default function App() {
           <Route path="/registro-empresa" element={<RegistroEmpresa />} />
           <Route path="/registro-empleado" element={<RegistroEmpleado />} />
           <Route path="/registro-sucursal" element={<RegistroSucursal />} />
+          <Route path="/registro-proveedor" element={<RegistroProveedor />} />
+          <Route path="/registro-cliente" element={<RegistroCliente />} />
           <Route path="/supervision-diaria" element={<ControlSupervisor />} />
           <Route path="/supervision-diaria/:date" element={<ControlSupervisor />} />
           <Route path="/entrada-inicial/:productId/:productName" element={<EntradaInicial />} />

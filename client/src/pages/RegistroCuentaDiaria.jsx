@@ -1125,9 +1125,7 @@ export default function RegistroCuentaDiaria() {
         setError(error.message)
         setLoading(false)
       }
-
     }
-
 
     if (branchReport && branchId && stringDatePickerValue) {
 

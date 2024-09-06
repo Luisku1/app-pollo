@@ -21,6 +21,7 @@ const customerPaymentSchema = mongoose.Schema({
 		type: Date,
 		required: true
 	}
+
 })
 
 const CustomerPayment = mongoose.model('ProviderPayment', customerPaymentSchema)

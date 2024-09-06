@@ -4,44 +4,19 @@ import { useSelector } from 'react-redux'
 import { useEffect, useRef, useState } from 'react'
 import DropdownItem from './DropdownItem'
 import { MdOutlineMenu } from "react-icons/md";
-import { MdKeyboardArrowRight, MdKeyboardArrowDown } from "react-icons/md";
-
 import '../assets/dropdown.css'
 
 export default function Header() {
 
   const [error, setError] = useState(null)
   const [roles, setRoles] = useState([])
-  const [products, setProducts] = useState([])
   const { currentUser, company } = useSelector((state) => state.user)
   const [open, setOpen] = useState(false);
-  const [reportIsOpen, setReportIsOpen] = useState(false)
   let menuRef = useRef();
   let supervisorRole
   let managerRole
 
   useEffect(() => {
-
-    const fetchProducts = async () => {
-
-      try {
-
-        const res = await fetch('/api/product/get-products/' + company._id)
-        const data = await res.json()
-
-        if (data.success === false) {
-
-          setError(data.message)
-          return
-        }
-
-        setProducts(data.products)
-
-      } catch (error) {
-
-        setError(error.message)
-      }
-    }
 
     const fetchRoles = async () => {
 
@@ -68,8 +43,6 @@ export default function Header() {
     if (currentUser) {
 
       fetchRoles()
-      fetchProducts()
-
     }
 
     let handler = (e) => {
@@ -108,7 +81,7 @@ export default function Header() {
 
         <div className='menu-container z-30' ref={menuRef}>
 
-          <div className="menu-trigger" onClick={() => { setReportIsOpen(false), setOpen(!open) }}>
+          <div className="menu-trigger" onClick={() => { setOpen(!open) }}>
             <MdOutlineMenu className='w-5 h-5 mdoutline' />
           </div>
 
@@ -130,6 +103,8 @@ export default function Header() {
 
                       <DropdownItem text={'Supervisión'} link={'/supervision-diaria'} onClick={() => { setOpen(!open) }} />
                       <DropdownItem text={'Registro Empleado'} link={'/registro-empleado'} onClick={() => { setOpen(!open) }} />
+                      <DropdownItem text={'Registro Cliente'} link={'/registro-cliente'} onClick={() => { setOpen(!open) }} />
+                      <DropdownItem text={'Registro Proveedor'} link={'/registro-proveedor'} onClick={() => { setOpen(!open) }} />
                       <DropdownItem text={'Sucursales'} link={'/sucursales'} onClick={() => { setOpen(!open) }} />
                       <DropdownItem text={"Reporte"} link={'/reporte'} onClick={() => { setOpen(!open) }} />
 

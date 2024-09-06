@@ -18,6 +18,8 @@ import outputRouter from './routes/output.route.js'
 import inputRouter from './routes/input.route.js'
 import incomeRouter from './routes/income.route.js'
 import reportRouter from './routes/report.route.js'
+import customerRouter from './routes/customer.route.js'
+import providerRouter from './routes/provider.route.js'
 import path from 'path'
 
 const app = express()
@@ -47,6 +49,8 @@ app.listen(PORT, () =>
 })
 
 app.use('/api/employee', employeeRouter)
+app.use('/api/customer', customerRouter)
+app.use('/api/provider', providerRouter)
 app.use('/api/auth', authRouter)
 app.use('/api/role', roleRouter)
 app.use('/api/company', companyRouter)

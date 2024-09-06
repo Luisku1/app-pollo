@@ -7,6 +7,11 @@ const customerSaleSchema = mongoose.Schema({
     required: true
   },
 
+  price: {
+    type: Number,
+    required: true
+  },
+
   amount: {
     type: Number,
     default: 0.0
@@ -17,13 +22,9 @@ const customerSaleSchema = mongoose.Schema({
     required: true
   },
 
-  precentageIncluded: {
-    type: Boolean,
-    required: true
-  },
-
   product: {
-    type: Schema.Types.ObjectId, ref: 'Product'
+    type: Schema.Types.ObjectId, ref: 'Product',
+    required: true
   },
 
   company: {
