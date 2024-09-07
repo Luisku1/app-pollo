@@ -7,13 +7,15 @@ import BranchReport from "../models/accounts/branch.report.model.js"
 import { errorHandler } from "../utils/error.js"
 import ReportData from "../models/accounts/report.data.model.js"
 import { getDayRange } from "../utils/formatDate.js"
+import Outgoing from "../models/accounts/outgoings/outgoing.model.js"
+import Stock from "../models/accounts/stock.model.js"
 
 export const getBranchReports = async (req, res, next) => {
 
   const date = new Date(req.params.date)
   const companyId = req.params.companyId
 
-  const {bottomDate, topDate} = getDayRange(date)
+  const { bottomDate, topDate } = getDayRange(date)
 
   try {
 
@@ -30,7 +32,7 @@ export const getBranchReports = async (req, res, next) => {
           company: companyId
         }
       ]
-    }).populate({ path: 'branch', select: 'branch position' }).populate({path: 'employee', select: 'name lastName'}).populate({path: 'assistant', select: 'name lastName'})
+    }).populate({ path: 'branch', select: 'branch position' }).populate({ path: 'employee', select: 'name lastName' }).populate({ path: 'assistant', select: 'name lastName' })
 
     if (branchReports.length > 0) {
 
@@ -52,7 +54,7 @@ export const getSupervisorsInfo = async (req, res, next) => {
   const date = new Date(req.params.date)
   const companyId = req.params.companyId
 
-  const {bottomDate, topDate} = getDayRange(date)
+  const { bottomDate, topDate } = getDayRange(date)
 
   try {
 
@@ -78,7 +80,7 @@ export const getSupervisorInfo = async (req, res, next) => {
 
   const employeeId = req.params.employeeId
 
-  const {bottomDate, topDate} = getDayRange(new Date())
+  const { bottomDate, topDate } = getDayRange(new Date())
 
   const supervisorInfo = {
     incomes: 0.0,
@@ -127,9 +129,9 @@ export const getSupervisorInfo = async (req, res, next) => {
           employee: employeeId
         }
       ]
-    }, 'amount type').populate({path: 'type', select: 'name'})
+    }, 'amount type').populate({ path: 'type', select: 'name' })
 
-    if(outgoings.length > 0) {
+    if (outgoings.length > 0) {
 
       outgoings.forEach(outgoing => {
         supervisorInfo.outgoings += outgoing.amount
@@ -137,13 +139,13 @@ export const getSupervisorInfo = async (req, res, next) => {
 
     }
 
-    if(incomes.length > 0) {
+    if (incomes.length > 0) {
 
       incomes.forEach(income => {
         supervisorInfo.incomes += income.amount
       })
     }
-    res.status(200).json({supervisorInfo: supervisorInfo})
+    res.status(200).json({ supervisorInfo: supervisorInfo })
 
   } catch (error) {
 
@@ -208,7 +210,7 @@ export const supervisorsInfoQuery = async (companyId, dateTopRange, dateBottomRa
             employee: supervisors[supervisor]._id
           }
         ]
-      }).populate({path: 'branch', select: 'branch'}).populate({path: 'type', select: 'name'})
+      }).populate({ path: 'branch', select: 'branch' }).populate({ path: 'type', select: 'name' })
 
       if (supervisorModel.incomes.length > 0) {
 
@@ -216,7 +218,7 @@ export const supervisorsInfoQuery = async (companyId, dateTopRange, dateBottomRa
 
           supervisorModel.totalIncomes += supervisorModel.incomes[income].amount
 
-          if(supervisorModel.incomes[income].type.name == 'Efectivo') {
+          if (supervisorModel.incomes[income].type.name == 'Efectivo') {
 
             supervisorModel.cash += supervisorModel.incomes[income].amount
 
@@ -290,6 +292,120 @@ export const getDaysReportsData = async (req, res, next) => {
     } else {
 
       next(errorHandler(404, 'Reports data not found'))
+    }
+
+  } catch (error) {
+
+    next(error)
+  }
+}
+
+export const updateReportDatasInfo = async (req, res, next) => {
+
+  const companyId = req.params.companyId
+
+  try {
+
+    let date = new Date('2024-09-06T01:02:42.309+00:00')
+
+    while (!(date > (new Date()))) {
+
+      const { bottomDate, topDate } = getDayRange(date)
+      let outgoingsTotal = 0
+      let incomesTotal = 0
+      let stockTotal = 0
+
+      const reportData = await ReportData.findOne({
+        $and: [
+          {
+            createdAt: { $lt: topDate }
+          },
+          {
+            createdAt: { $gte: bottomDate }
+          },
+          {
+            company: companyId
+          }
+        ]
+      })
+
+      console.log(reportData)
+
+      if (!reportData) {
+
+        console.log('No report data found: ', date)
+        date.setDate(date.getDate() + 1)
+
+      } else {
+
+
+        const outgoings = await Outgoing.find({
+          $and: [
+            {
+              createdAt: { $lt: topDate }
+            },
+            {
+              createdAt: { $gte: bottomDate }
+            },
+            {
+              company: companyId
+            }
+          ]
+        })
+
+        const incomes = await IncomeCollected.find({
+          $and: [
+            {
+              createdAt: { $lt: topDate }
+            },
+            {
+              createdAt: { $gte: bottomDate }
+            },
+            {
+              company: companyId
+            }
+          ]
+        })
+
+        const stock = await Stock.find({
+          $and: [
+            {
+              createdAt: { $lt: topDate }
+            },
+            {
+              createdAt: { $gte: bottomDate }
+            },
+            {
+              company: companyId
+            }
+          ]
+        })
+
+        outgoings.forEach(outgoing => {
+
+          outgoingsTotal += outgoing.amount
+        })
+
+        stock.forEach(stock => {
+
+          stockTotal += stock.amount
+        })
+
+        incomes.forEach(income => {
+
+          incomesTotal += income.amount
+        })
+
+        reportData.incomes = incomesTotal
+        reportData.stock = stockTotal
+        reportData.outgoings = outgoingsTotal
+
+        reportData.save()
+
+        console.log('Día: ', date)
+
+        date.setDate(date.getDate() + 1)
+      }
     }
 
   } catch (error) {

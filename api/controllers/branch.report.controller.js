@@ -13,7 +13,7 @@ export const createBranchReport = async (req, res, next) => {
   const balance = outputBalance - inputBalance
   const createdAt = new Date(date)
 
-  const {bottomDate, topDate} = getDayRange(createdAt)
+  const { bottomDate, topDate } = getDayRange(createdAt)
 
   try {
 
@@ -129,11 +129,27 @@ export const updateBranchReport = async (req, res, next) => {
   const outputBalance = outgoings + outputs + incomes + finalStock
   const balance = outputBalance - inputBalance
 
-  const {bottomDate, topDate} = getDayRange(new Date(branchReport.createdAt))
+  const { bottomDate, topDate } = getDayRange(new Date(branchReport.createdAt))
 
   try {
 
-    const reportData = await ReportData.findOne({ _id: branchReport.reportData })
+    console.log(branchReport)
+
+    const reportData = await ReportData.findOne({
+      $and: [
+        {
+          createdAt: { $gte: bottomDate }
+        },
+        {
+          createdAt: { $lt: topDate }
+        },
+        {
+          company: branchReport.company
+        }
+      ]
+    })
+
+    console.log(reportData)
 
     if (reportData) {
 
@@ -212,7 +228,7 @@ export const getBranchReport = async (req, res, next) => {
 
 export const fetchBranchReport = async (branchId, reportDate) => {
 
-  const {bottomDate, topDate} = getDayRange(new Date(reportDate))
+  const { bottomDate, topDate } = getDayRange(new Date(reportDate))
 
   try {
 
