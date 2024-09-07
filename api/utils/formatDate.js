@@ -18,7 +18,7 @@ export const localTimeZone = () => {
 
 export const getDayRange = (date) => {
 
-  const formatedDate = formatDate(date ? new Date(date).getUTCDate() : (new Date()).getUTCDate())
+  const formatedDate = formatDate(date ? new Date(date).toUTCString() : (new Date()).toUTCString())
   const principalDate = convertTZ(new Date(formatedDate))
   const datePlusOne = new Date(principalDate.toISOString())
   datePlusOne.setDate(datePlusOne.getDate() + 1)
