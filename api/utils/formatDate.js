@@ -1,6 +1,6 @@
 export const formatDate = (date) => {
 
-  const actualLocaleDate = date
+  const actualLocaleDate = new Date(date)
 
   return (actualLocaleDate.getFullYear() + '-' + (actualLocaleDate.getMonth() < 9 ? '0' + ((actualLocaleDate.getMonth()) + 1) : ((actualLocaleDate.getMonth()))) + '-' + ((actualLocaleDate.getDate() < 10 ? '0' : '') + actualLocaleDate.getDate()) + 'T06:00:00.000Z')
 }
@@ -18,7 +18,7 @@ export const localTimeZone = () => {
 
 export const getDayRange = (date) => {
 
-  const formatedDate = formatDate(date ? new Date(date).toISOString() : (new Date()).toISOString())
+  const formatedDate = formatDate(date ? new Date(date).getUTCDate() : (new Date()).getUTCDate())
   const principalDate = convertTZ(new Date(formatedDate))
   const datePlusOne = new Date(principalDate.toISOString())
   datePlusOne.setDate(datePlusOne.getDate() + 1)
