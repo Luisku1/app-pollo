@@ -16,3 +16,17 @@ export const newProvider = async (req, res, next) => {
     next(error)
   }
 }
+
+export const newProviderPurchase = async (req, res, next) => {
+
+  const { weight, price, company, supervisor, product, createdAt } = req.body
+  const amount = weight * price
+
+  try {
+
+    // const newProviderPurchase =
+
+  } catch (error) {
+
+  }
+}
