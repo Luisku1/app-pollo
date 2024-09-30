@@ -1,47 +1,19 @@
 import { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { weekDays } from '../helpers/Constants'
+import { useRoles } from '../hooks/useRoles'
 
 export default function RegistroEmpleadoNuevo() {
 
   const [formData, setFormData] = useState({})
-  const {company} = useSelector((state) => state.user)
+  const { company } = useSelector((state) => state.user)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [successMessage, setMessage] = useState(null)
-  const [roles, setRoles] = useState([])
+  const { roles } = useRoles()
   const day = new Date().getDay()
 
-  useEffect(() => {
-
-    const fetchRoles = async () => {
-
-      try {
-
-        setLoading(true)
-
-        const res = await fetch('/api/role/get')
-        const data = await res.json()
-
-        if (data.success === false) {
-          setError(data.message)
-          setLoading(false)
-          return
-        }
-
-        setRoles(data.roles)
-        setLoading(false)
-        setError(null)
-
-      } catch (error) {
-
-        setError(error.message)
-        setLoading(false)
-
-      }
-    }
-    fetchRoles()
-  }, [])
+  console.log(roles)
 
   const handleChange = (e) => {
 
@@ -68,7 +40,7 @@ export default function RegistroEmpleadoNuevo() {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          ... formData,
+          ...formData,
           role: role.value,
           payDay: payDay.value,
           company: company._id
@@ -77,7 +49,7 @@ export default function RegistroEmpleadoNuevo() {
 
       const data = await res.json()
 
-      if(data.success === false) {
+      if (data.success === false) {
 
         setError(data.message)
         return
@@ -110,9 +82,9 @@ export default function RegistroEmpleadoNuevo() {
 
         </h1>
 
-        { successMessage ?
+        {successMessage ?
           <p className='bg-green-200 mb-4'>{successMessage}</p>
-        : ''
+          : ''
         }
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -124,7 +96,7 @@ export default function RegistroEmpleadoNuevo() {
 
             <p>Rol del empleado:</p>
             <select name="role" id="role" className='border p-3 rounded-lg'>
-              {roles && roles.length > 0 && roles.map((role) => (
+              {roles != {} && Object.values(roles) && Object.values(roles).length > 0 && Object.values(roles).map((role) => (
 
                 <option selected={role.name == 'Vendedor' ? 'selected' : ""} key={role._id} value={role._id}>{role.name}</option>
               ))}
@@ -146,7 +118,7 @@ export default function RegistroEmpleadoNuevo() {
 
               {weekDays && weekDays.length > 0 && weekDays.map((element, index) => (
 
-                <option key={index} value={index} selected={index == day? 'selected' : ""}>{element}</option>
+                <option key={index} value={index} selected={index == day ? 'selected' : ""}>{element}</option>
               ))}
 
             </select>

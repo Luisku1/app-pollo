@@ -5,7 +5,7 @@ import Employee from "../models/employees/employee.model.js"
 import { errorHandler } from "../utils/error.js"
 import { getDayRange } from "../utils/formatDate.js"
 import { newExtraOutgoingFunction } from "./outgoing.controller.js"
-import { getIncomeTypeId, newIncomeFunction } from "./income.controller.js"
+import { getIncomeTypeId, newBranchIncomeFunction } from "./income.controller.js"
 import EmployeePayment from "../models/employees/employee.payment.model.js"
 import ExtraOutgoing from "../models/accounts/outgoings/extra.outgoing.model.js"
 import IncomeCollected from "../models/accounts/incomes/income.collected.model.js"
@@ -15,7 +15,15 @@ export const getEmployees = async (req, res, next) => {
 	try {
 
 		const companyId = req.params.companyId
-		const employees = await Employee.find({ company: companyId }).sort({ name: 1 }).populate({ path: 'role', select: 'name' })
+		const employees = await Employee.find({
+
+			$and: [
+
+				{ active: true },
+
+				{ company: companyId }
+			]
+		}).sort({ name: 1 }).populate({ path: 'role', select: 'name' })
 
 		res.status(200)
 			.json({ employees: employees })
@@ -24,6 +32,21 @@ export const getEmployees = async (req, res, next) => {
 	} catch (error) {
 
 		next(error)
+	}
+}
+
+export const getAllEmployees = async (req, res, next) => {
+
+	const companyId = req.params.companyId
+
+	try {
+
+		const employees = await Employee.find({company: companyId}).sort({name: 1}).populate({path: 'role', select: 'name'})
+
+		res.status(200).json({employees})
+
+	} catch (error) {
+
 	}
 }
 
@@ -264,7 +287,7 @@ export const newEmployeePaymentQuery = async (req, res, next) => {
 
 			const incomeType = await getIncomeTypeId({ name: 'Efectivo' })
 			console.log(incomeType._id)
-			income = await newIncomeFunction({ amount, company, branch, employee: supervisor, type: String(incomeType._id), createdAt, partOfAPayment: true })
+			income = await newBranchIncomeFunction({ amount, company, branch, employee: supervisor, type: String(incomeType._id), createdAt, partOfAPayment: true })
 
 			employeePayment = await newEmployeePaymentFunction({ amount, detail, employee, supervisor, company, extraOutgoing: extraOutgoing._id, income: income._id, createdAt })
 
@@ -429,7 +452,8 @@ export const getEmployeePayroll = async (req, res, next) => {
 			{
 				$match: {
 					'company': new Types.ObjectId(companyId),
-					'payDay': day
+					'payDay': day,
+					'active': true
 				}
 			},
 
@@ -550,6 +574,30 @@ export const updateDailyBalancesBalance = async (employeeId, isoDate, balance) =
 	} catch (error) {
 
 		console.log(error)
+	}
+}
+
+export const changeEmployeeActiveStatus = async (req, res, next) => {
+
+	const {newStatus} = req.body
+	const employeeId = req.params.employeeId
+
+	try {
+
+		const updatedEmployee = await Employee.findOneAndUpdate({_id: employeeId}, {active: newStatus}, {new: true}).populate({path: 'role'})
+
+		if(Object.getOwnPropertyNames(updatedEmployee).length > 0) {
+
+			res.status(200).json({updatedEmployee})
+
+		} else {
+
+			next(errorHandler(404, 'No se pudo actualizar el usuario'))
+		}
+
+	} catch (error) {
+
+		next(error)
 	}
 }
 

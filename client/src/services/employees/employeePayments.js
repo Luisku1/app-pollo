@@ -5,7 +5,7 @@ export const getEmployeePayments = async ({ employeeId, date }) => {
 
   if (data.success === false) {
 
-    return null
+    return []
   }
 
   return data

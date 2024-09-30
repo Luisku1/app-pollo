@@ -6,43 +6,15 @@ import ProviderInput from '../models/providers/provider.input.model.js'
 import { updateReportInputs, updateReportOutputs } from '../utils/updateReport.js'
 import { fetchBranchReport } from './branch.report.controller.js'
 import { getDayRange } from '../utils/formatDate.js'
+import { Types } from 'mongoose'
 
-export const newInput = async (req, res, next) => {
+export const newBranchInput = async (req, res, next) => {
 
-  const { inputWeight, inputComment, inputPieces, company, product, employee, branch, inputSpecialPrice, createdAt } = req.body
+  const { weight, specialPrice, price, amount, comment, pieces, company, product, employee, customerBranch: branch, createdAt } = req.body
 
   try {
 
-    let amount = 0
-    let price = 0
-    let specialPrice = false
-
-    if (inputSpecialPrice) {
-
-      price = inputSpecialPrice
-      amount = price * inputWeight
-      specialPrice = !specialPrice
-
-    } else {
-
-      const branchReport = await fetchBranchReport(branch, createdAt)
-
-      if (branchReport != null || branchReport != undefined) {
-
-        if (Object.getOwnPropertyNames(branchReport).length != 0) {
-
-          price = (await getProductPrice(product, branch, branchReport.createdAt)).price
-
-        }
-      } else {
-
-        price = (await getProductPrice(product, branch)).price
-
-      }
-      amount = price * inputWeight
-    }
-
-    const newInput = new Input({ weight: inputWeight, comment: inputComment, pieces: inputPieces, company, product, employee, branch, amount, price: price, createdAt, specialPrice })
+    const newInput = new Input({ weight, comment, pieces, company, product, employee, branch, amount, price, createdAt, specialPrice })
 
     await newInput.save()
 
@@ -56,12 +28,32 @@ export const newInput = async (req, res, next) => {
   }
 }
 
+export const newCustomerInput = async (req, res, next) => {
+
+  const { weight, price, pieces, amount, employee, comment, product, company, branchCustomer: customer, createdAt } = req.body
+
+  try {
+
+    const newCustomerInput = new Input({ weight, pieces, price, employee, amount, comment, product, company, customer, createdAt })
+
+    await newCustomerInput.save()
+
+    // await recalculateCustomerNote
+
+    res.status(200).json({ input: newInput })
+
+  } catch (error) {
+
+    next(error)
+  }
+}
+
 export const getNetDifference = async (req, res, next) => {
 
   const date = new Date(req.params.date)
   const companyId = req.params.companyId
 
-  const {bottomDate, topDate} = getDayRange(date)
+  const { bottomDate, topDate } = getDayRange(date)
 
   try {
 
@@ -226,7 +218,7 @@ export const getBranchInputs = async (req, res, next) => {
   const date = new Date(req.params.date)
   const branchId = req.params.branchId
 
-  const {bottomDate, topDate} = getDayRange(date)
+  const { bottomDate, topDate } = getDayRange(date)
 
 
   try {
@@ -274,7 +266,7 @@ export const getBranchProviderInputs = async (req, res, next) => {
   const branchId = req.params.branchId
   const date = new Date(req.params.date)
 
-  const {bottomDate, topDate} = getDayRange(date)
+  const { bottomDate, topDate } = getDayRange(date)
 
   try {
     const providerInputs = await ProviderInput.find({
@@ -315,7 +307,7 @@ export const getInputs = async (req, res, next) => {
   const date = new Date(req.params.date)
   const companyId = req.params.companyId
 
-  const {bottomDate, topDate} = getDayRange(date)
+  const { bottomDate, topDate } = getDayRange(date)
 
 
   try {
@@ -348,8 +340,66 @@ export const getInputs = async (req, res, next) => {
 
     } else {
 
-      res.status(200).json({ inputs: inputs })
+      let totalWeight = 0
+
+      inputs.forEach(input => {
+
+        totalWeight += input.weight
+      })
+
+      inputs.sort((output, nextOutput) => {
+
+        return output.branch.position - nextOutput.branch.position
+      })
+
+      res.status(200).json({ inputs: inputs, totalWeight: totalWeight })
     }
+
+  } catch (error) {
+
+    next(error)
+  }
+
+}
+
+export const getBranchInputsAvg = async (req, res, next) => {
+
+  const branchId = req.params.branchId
+  const date = new Date()
+
+  date.setDate(date.getDate() - 30)
+
+  try {
+
+    const branchInputsAvg = await Input.aggregate([
+      {
+        $match: {
+          "branch": new Types.ObjectId(branchId),
+          "createdAt": { $gte: date }
+        }
+      },
+      {
+        $project: {
+          total: { $sum: ["$amount"] }
+        }
+      },
+      {
+        $group: {
+          _id: branchId,
+          average: { $avg: '$total' }
+        }
+      }
+    ])
+
+    if (branchInputsAvg.length > 0) {
+
+      res.status(200).json({ branchInputsAvg: branchInputsAvg[0].average })
+
+    } else {
+
+      res.status(200).json({ branchInputsAvg: 0 })
+    }
+
 
   } catch (error) {
 
@@ -383,48 +433,17 @@ export const deleteInput = async (req, res, next) => {
   }
 }
 
-export const newOutput = async (req, res, next) => {
+export const newBranchOutput = async (req, res, next) => {
 
-  const { outputWeight, outputComment, pieces, company, product, employee, branch, outputSpecialPrice, createdAt } = req.body
+  const { weight, comment, pieces, company, product, employee, branchCustomer: branch, specialPrice, createdAt } = req.body
 
   try {
 
-    let amount = 0
-    let price = 0
-    let specialPrice = false
-
-    if (outputSpecialPrice) {
-
-      price = outputSpecialPrice
-      amount = price * outputWeight
-      specialPrice = !specialPrice
-
-    } else {
-
-      const branchReport = await fetchBranchReport(branch, createdAt)
-
-      if (branchReport != null || branchReport != undefined) {
-
-        if (Object.getOwnPropertyNames(branchReport).length != 0) {
-
-          price = (await getProductPrice(product, branch, branchReport.createdAt)).price
-
-        }
-
-      } else {
-
-        price = (await getProductPrice(product, branch)).price
-
-      }
-
-      amount = price * outputWeight
-    }
-
-    const newOutput = new Output({ weight: outputWeight, comment: outputComment, pieces, company, product, employee, branch, amount, price: price, createdAt: createdAt, specialPrice })
+    const newOutput = new Output({ weight, comment, pieces, company, product, employee, branch, amount, price, createdAt, specialPrice })
 
     await newOutput.save()
 
-    await updateReportOutputs(branch, createdAt, amount)
+    await updateReportOutputs(branchCustomer, createdAt, amount)
     res.status(200).json({ message: 'New output created', output: newOutput })
 
   } catch (error) {
@@ -433,12 +452,32 @@ export const newOutput = async (req, res, next) => {
   }
 }
 
+export const newCustomerOutput = async (req, res, next) => {
+
+  const { weight, comment, pieces, company, product, employee, branchCustomer: customer, price, createdAt } = req.body
+
+  try {
+
+    const newOutput = new Output({ weight, comment, pieces, company, product, employee, customer: customer, amount, price, createdAt })
+
+    await newOutput.save()
+
+    // await updateCustomerTicket(branch, createdAt, amount)
+    res.status(200).json({ message: 'New output created', output: newOutput })
+
+  } catch (error) {
+
+    next(error)
+
+  }
+}
+
 export const getBranchOutputs = async (req, res, next) => {
 
   const date = new Date(req.params.date)
   const branchId = req.params.branchId
 
-  const {bottomDate, topDate} = getDayRange(date)
+  const { bottomDate, topDate } = getDayRange(date)
 
   try {
 
@@ -484,7 +523,7 @@ export const getOutputs = async (req, res, next) => {
   const date = new Date(req.params.date)
   const companyId = req.params.companyId
 
-  const {bottomDate, topDate} = getDayRange(date)
+  const { bottomDate, topDate } = getDayRange(date)
 
   try {
 
@@ -516,7 +555,19 @@ export const getOutputs = async (req, res, next) => {
 
     } else {
 
-      res.status(200).json({ outputs: outputs })
+      let totalWeight = 0
+
+      outputs.forEach(input => {
+
+        totalWeight += input.weight
+      })
+
+      outputs.sort((output, nextOutput) => {
+
+        return output.branch.position - nextOutput.branch.position
+      })
+
+      res.status(200).json({ outputs: outputs, totalWeight: totalWeight })
     }
 
   } catch (error) {
@@ -525,12 +576,57 @@ export const getOutputs = async (req, res, next) => {
   }
 }
 
+export const getBranchOutputsAvg = async (req, res, next) => {
+
+  const branchId = req.params.branchId
+  const date = new Date()
+
+  date.setDate(date.getDate() - 30)
+
+  try {
+
+    const branchOutputsAvg = await Output.aggregate([
+      {
+        $match: {
+          "branch": new Types.ObjectId(branchId),
+          "createdAt": { $gte: date }
+        }
+      },
+      {
+        $project: {
+          total: { $sum: ["$amount"] }
+        }
+      },
+      {
+        $group: {
+          _id: branchId,
+          average: { $avg: '$total' }
+        }
+      }
+    ])
+
+    if (branchOutputsAvg.length > 0) {
+
+      res.status(200).json({ branchOutputsAvg: branchOutputsAvg[0].average })
+
+    } else {
+
+      res.status(200).json({ branchOutputsAvg: 0 })
+    }
+
+  } catch (error) {
+
+    next(error)
+  }
+
+}
+
 export const getProviderProductInputs = async (req, res, next) => {
 
   const { companyId, productId } = req.params
   const date = new Date(req.params.date)
 
-  const {bottomDate, topDate} = getDayRange(date)
+  const { bottomDate, topDate } = getDayRange(date)
 
   try {
 
@@ -560,7 +656,18 @@ export const getProviderProductInputs = async (req, res, next) => {
 
     if (providerInputs.length > 0) {
 
-      res.status(200).json({ providerInputs: providerInputs })
+      let providerInputsWeight = 0.0
+      let providerInputsPieces = 0
+      let providerInputsAmount = 0.0
+
+      providerInputs.forEach((input) => {
+
+        providerInputsWeight += input.weight
+        providerInputsPieces += input.pieces
+        providerInputsAmount += input.amount
+      })
+
+      res.status(200).json({ providerInputs: providerInputs, providerInputsWeight, providerInputsPieces, providerInputsAmount })
 
     } else {
 
@@ -573,14 +680,57 @@ export const getProviderProductInputs = async (req, res, next) => {
   }
 }
 
+export const getBranchProviderInputsAvg = async (req, res, next) => {
+
+  const branchId = req.params.branchId
+  const date = new Date()
+
+  date.setDate(date.getDate() - 30)
+
+  try {
+
+    const branchProviderInputsAvg = await ProviderInput.aggregate([
+      {
+        $match: {
+          "branch": new Types.ObjectId(branchId),
+          "createdAt": { $gte: date }
+        }
+      },
+      {
+        $project: {
+          total: { $sum: ["$amount"] }
+        }
+      },
+      {
+        $group: {
+          _id: branchId,
+          average: { $avg: '$total' }
+        }
+      }
+    ])
+
+    if (branchProviderInputsAvg.length > 0) {
+
+      res.status(200).json({ branchProviderInputsAvg: branchProviderInputsAvg[0].average })
+
+    } else {
+
+      res.status(200).json({ branchProviderInputsAvg: 0 })
+    }
+
+  } catch (error) {
+
+    next(error)
+  }
+
+}
+
 export const createProviderInput = async (req, res, next) => {
 
-  const { providerInputWeight, product, employee, branch, company, comment, providerInputPieces, createdAt } = req.body
+  const { weight, product, price, amount, employee, branchCustomer, company, comment, pieces, createdAt } = req.body
   const pricesDate = new Date(createdAt)
   pricesDate.setDate(pricesDate.getDate() + 1)
-  const productPrice = await getProductPrice(product, branch, pricesDate)
-  const amount = productPrice.price * providerInputWeight
-  const newProviderInput = ProviderInput({ weight: providerInputWeight, product, employee, branch, company, comment, pieces: providerInputPieces, amount, createdAt })
+  const newProviderInput = ProviderInput({ weight, product, price, employee, branch: branchCustomer, company, comment, pieces, amount, createdAt })
 
   try {
 

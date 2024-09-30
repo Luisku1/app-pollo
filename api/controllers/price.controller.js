@@ -3,6 +3,11 @@ import { errorHandler } from "../utils/error.js";
 import Product from '../models/product.model.js'
 import Branch from '../models/branch.model.js'
 import { Types } from "mongoose";
+import { getDayRange, today } from "../utils/formatDate.js";
+import { fetchBranchReport } from "./branch.report.controller.js";
+import ProviderInput from "../models/providers/provider.input.model.js";
+import Input from "../models/accounts/input.model.js";
+import Output from "../models/accounts/output.model.js";
 
 export const newPrice = async (req, res, next) => {
 
@@ -112,13 +117,12 @@ export const getBranchCurrentPrices = async (req, res, next) => {
 
   const branchId = req.params.branchId
   const date = req.params.date
-  const reportExists = req.params.reportExists
 
   try {
 
-    const currentPrices = await getPrices(branchId, date, reportExists, next)
+    const currentPrices = await getPrices(branchId, date)
 
-    if (Object.getOwnPropertyNames(currentPrices).length > 0) {
+    if (currentPrices) {
 
       res.status(200).json({ data: currentPrices })
 
@@ -133,40 +137,26 @@ export const getBranchCurrentPrices = async (req, res, next) => {
   }
 }
 
-const getPrices = async (branchId, date, reportExists, next) => {
+const getPrices = async (branchId, date) => {
 
-  let topDate
+  let finalDate
 
-  if (reportExists == 1) {
+  const branchReport = await fetchBranchReport(branchId, date)
 
-    topDate = new Date(date)
+  if (branchReport && Object.getOwnPropertyNames(branchReport).length > 0) {
+
+    finalDate = new Date(branchReport.createdAt)
 
   } else {
 
-    const actualLocaleDay = date.slice(0, 10)
-
-    const actualLocaleDatePlusOne = new Date(actualLocaleDay)
-    actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
-    const actualLocaleDayPlusOne = actualLocaleDatePlusOne.toISOString().slice(0, 10)
-
-    topDate = new Date(actualLocaleDayPlusOne + 'T00:00:00.000-06:00')
+    const { topDate } = getDayRange(new Date(date))
+    finalDate = today(date) ? new Date() : new Date(topDate)
   }
 
-  try {
+  const productsPrice = await pricesAggregate(branchId, finalDate)
 
-    const productsPrice = await pricesAggregate(branchId, topDate)
+  return productsPrice.data
 
-    if (productsPrice.error == null) {
-
-      return productsPrice.data
-
-    }
-
-
-  } catch (error) {
-
-    next(error)
-  }
 }
 
 
@@ -262,6 +252,127 @@ export const getAllBranchPrices = async (req, res, next) => {
 
       next(errorHandler(404, 'Error ocurred'))
     }
+
+
+  } catch (error) {
+
+    next(error)
+  }
+}
+
+export const getBranchProductPrice = async (req, res, next) => {
+
+  const { branchId, productId, date } = req.params
+  let finalDate
+
+  try {
+
+    const branchReport = await fetchBranchReport(branchId, date)
+
+    if (branchReport && Object.getOwnPropertyNames(branchReport).length > 0) {
+
+      finalDate = new Date(branchReport.createdAt)
+
+    } else {
+
+      const { topDate } = getDayRange(new Date(date))
+      finalDate = today(date) ? new Date() : new Date(topDate)
+    }
+
+    const productPrice = await getProductPrice(productId, branchId, finalDate)
+
+    if (productPrice) {
+
+      res.status(200).json({ price: productPrice.price || 0.0 })
+
+    } else {
+
+      next(errorHandler(404, 'No se encontró el precio de ese producto en esa sucursal'))
+    }
+
+  } catch (error) {
+
+    next(error)
+  }
+
+}
+
+export const getCustomerProductPrice = async (req, res, next) => {
+
+  const { customerId, productId, date } = req.params
+
+  try {
+
+    const [customerLastProviderInput, customerLastInput, customerLastOutput] = await Promise.all([
+      ProviderInput.findOne({
+        $and: [
+          {
+            customer: customerId
+          },
+          {
+            product: productId
+          },
+          {
+            createdAt: { $lte: new Date(date) }
+          }
+        ]
+      }).sort({ createdAt: -1 }),
+
+      Input.findOne({
+        $and: [
+          {
+            customer: customerId
+          },
+          {
+            product: productId
+          },
+          {
+            createdAt: { $lte: new Date(date) }
+          }
+        ]
+      }).sort({ createdAt: -1 }),
+
+      Output.findOne({
+        $and: [
+          {
+            customer: customerId
+          },
+          {
+            product: productId
+          },
+          {
+            createdAt: { $lte: new Date(date) }
+          }
+        ]
+      }).sort({ createdAt: -1 })
+    ])
+
+    // Manejo de casos donde no se encuentran registros
+    if (!customerLastProviderInput && !customerLastInput && !customerLastOutput) {
+      return res.status(404).json({ price: 0.0 });
+    }
+
+    // Obtiene los precios de ambos registros
+    const providerPrice = customerLastProviderInput ? customerLastProviderInput.price : 0.0;
+    const inputPrice = customerLastInput ? customerLastInput.price : 0.0;
+    const outputPrice = customerLastOutput ? customerLastOutput.price : 0.0
+
+    // Devuelve el precio más reciente
+    if (customerLastInput && customerLastProviderInput && outputPrice) {
+      if (customerLastInput.createdAt > customerLastProviderInput.createdAt && customerLastInput.createdAt > customerLastOutput.createdAt) {
+        return res.status(200).json({ price: inputPrice });
+      } else if (customerLastProviderInput.createdAt > customerLastInput.createdAt && customerLastProviderInput.createdAt > customerLastOutput.createdAt) {
+        return res.status(200).json({ price: providerPrice });
+      } else if (customerLastOutput.createdAt > customerLastInput.createdAt && customerLastOutput.createdAt > customerLastProviderInput.createdAt) {
+        return res.status(200).json({ price: outputPrice })
+      } else if (customerLastInput == customerLastOutput && customerLastOutput == customerLastProviderInput) {
+
+        return res.status(200).json({ price: Math.max(inputPrice, providerPrice, customerLastOutput) });
+      }
+    }
+
+    // Si solo hay un registro, devuelve su precio
+    return res.status(200).json({ price: providerPrice || inputPrice || outputPrice });
 
 
   } catch (error) {

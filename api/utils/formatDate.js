@@ -16,6 +16,11 @@ export const localTimeZone = () => {
 
 }
 
+export const today = (date) => {
+
+  return formatDate(date) == formatDate((new Date())) ? true : false
+}
+
 export const getDayRange = (date) => {
 
   const formatedDate = formatDate(date ? new Date(date).toUTCString() : (new Date()).toUTCString())
@@ -23,15 +28,15 @@ export const getDayRange = (date) => {
   const datePlusOne = new Date(principalDate.toISOString())
   datePlusOne.setDate(datePlusOne.getDate() + 1)
 
-  if(principalDate.getUTCHours() == 0) {
+  if (principalDate.getUTCHours() == 0) {
 
-    principalDate.setHours(6,0,0)
-    datePlusOne.setHours(6,0,0)
+    principalDate.setHours(6, 0, 0)
+    datePlusOne.setHours(6, 0, 0)
   }
 
   console.log(principalDate.toISOString(), datePlusOne.toISOString())
 
-  return {bottomDate: principalDate.toISOString(), topDate: datePlusOne.toISOString()}
+  return { bottomDate: principalDate.toISOString(), topDate: datePlusOne.toISOString() }
 }
 
 export const getMonthRange = (date) => {
@@ -40,5 +45,5 @@ export const getMonthRange = (date) => {
   const bottomDate = new Date(principalDate.getFullYear(), principalDate.getMonth(), 1)
   const topDate = new Date(principalDate.getFullYear(), principalDate.getMonth() + 1, 1)
 
-  return {bottomDate: bottomDate.toISOString(), topDate: topDate.toISOString()}
+  return { bottomDate: bottomDate.toISOString(), topDate: topDate.toISOString() }
 }

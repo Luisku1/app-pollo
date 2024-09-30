@@ -1,31 +1,40 @@
 /* eslint-disable react/prop-types */
 import { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
-import { deleteOutgoingFetch, deleteStockFetch, fetchBranches, fetchEmployees, fetchPrices, fetchProducts } from '../helpers/FetchFunctions';
+import { deleteOutgoingFetch, deleteStockFetch, fetchPrices, fetchProducts } from '../helpers/FetchFunctions';
 import { FaTrash } from 'react-icons/fa';
 import { useParams, useNavigate } from 'react-router-dom';
 import { MdKeyboardArrowDown, MdKeyboardArrowRight } from 'react-icons/md';
-import Select from "react-tailwindcss-select";
+import Select from "react-select";
 import FechaDePagina from '../components/FechaDePagina';
 import { formatDate } from '../helpers/DatePickerFunctions';
+import { useEmployees } from '../hooks/Employees/useEmployees';
+import EmployeesSelect from '../components/Select/EmployeesSelect';
+import { customSelectStyles } from '../helpers/Constants';
+import { useBranches } from '../hooks/Branches/useBranches';
+import { useBranchReport } from '../hooks/BranchReports.js/useBranchReport';
+import { useLoading } from '../hooks/loading';
+import Loading from '../helpers/Loading';
+import { useOutgoings } from '../hooks/Outgoings/useOutgoings';
+import { useAddOutgoing } from '../hooks/Outgoings/useAddOutgoing';
 
 export default function RegistroCuentaDiaria() {
 
   const { currentUser, company } = useSelector((state) => state.user)
   const paramsDate = useParams().date
+  let datePickerValue = (paramsDate ? new Date(paramsDate) : new Date())
+  let stringDatePickerValue = formatDate(datePickerValue)
+  let today = formatDate(datePickerValue) == formatDate(new Date()) ? true : false
   const [branchId, setBranchId] = useState(useParams().branchId || null)
-  const [branchReport, setBranchReport] = useState({})
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
   const [outgoingFormData, setOutgoingFormData] = useState({})
   const [stockFormData, setStockFormData] = useState({})
-  // const [productLossFormData, setProductLossFormData] = useState({})
-  // const [productLosses, setProductLosses] = useState([])
-  const [employees, setEmployees] = useState([])
+  const { employees } = useEmployees({ companyId: company._id })
   const [managerRole, setManagerRole] = useState({})
-  const [branches, setBranches] = useState([])
-  const [outgoings, setOutgoings] = useState([])
-  const [outgoingsTotal, setOutgoingsTotal] = useState(0.0)
+  const { outgoings, outgoingsTotal, pushOutgoing, spliceOutgoing, updateOutgoingId, loading: outgoingLoading } = useOutgoings({ branchId, date: stringDatePickerValue })
+  const { addOutgoing } = useAddOutgoing()
+  const { branches } = useBranches({ companyId: company._id })
   const [outputs, setOutputs] = useState([])
   const [outputsTotal, setOutputsTotal] = useState(0.0)
   const [inputs, setInputs] = useState([])
@@ -41,20 +50,19 @@ export default function RegistroCuentaDiaria() {
   const [outputsIsOpen, setOutputsIsOpen] = useState(false)
   const [incomesIsOpen, setIncomesIsOpen] = useState(false)
   const [providerInputsIsOpen, setProviderInputsIsOpen] = useState(false)
-  // const [productLossTotal, setProductLossTotal] = useState(0.0)
   const [products, setProducts] = useState([])
   const [branchPrices, setPrices] = useState([])
   const [productName, setProductName] = useState(null)
   const [isOpen, setIsOpen] = useState(false)
   const [buttonId, setButtonId] = useState(null)
-  const [selectedEmployee, setSelectedEmployee] = useState(null)
+  const [selectedEmployee, setSelectedEmployee] = useState()
   const [selectedAssistant, setSelectedAssistant] = useState(null)
   const [selectedBranch, setSelectedBranch] = useState(null)
   const navigate = useNavigate()
   const reportDate = (paramsDate ? new Date(paramsDate) : new Date()).toLocaleDateString('es-mx', { weekday: 'long', year: 'numeric', month: '2-digit', day: '2-digit' })
-  let datePickerValue = (paramsDate ? new Date(paramsDate) : new Date())
-  let stringDatePickerValue = formatDate(datePickerValue)
-  let today = formatDate(datePickerValue) == formatDate(new Date()) ? true : false
+  const { branchReport, loading: repLoading } = useBranchReport({ branchId, date: stringDatePickerValue })
+
+  const isLoading = useLoading(repLoading, loading, outgoingLoading)
 
   const handleEmployeeSelectChange = (employee) => {
 
@@ -74,6 +82,7 @@ export default function RegistroCuentaDiaria() {
 
   }
 
+
   const changeDatePickerValue = (e) => {
 
     stringDatePickerValue = (e.target.value + 'T06:00:00.000Z')
@@ -87,8 +96,6 @@ export default function RegistroCuentaDiaria() {
     navigate('/formato/' + date + '/' + branchId)
 
   }
-
-
 
   const SectionHeader = (props) => {
 
@@ -106,7 +113,6 @@ export default function RegistroCuentaDiaria() {
 
   const getProductPrice = (productId) => {
 
-    console.log(branchPrices.prices)
     const priceIndex = branchPrices.prices.findIndex((price) => (price.productId == productId))
     return branchPrices.prices[priceIndex].latestPrice
   }
@@ -231,7 +237,7 @@ export default function RegistroCuentaDiaria() {
   //   }
   // }
 
-  const addOutgoing = async (e) => {
+  const addOutgoingSubmit = async (e) => {
 
     const conceptInput = document.getElementById('concept')
     const amountInput = document.getElementById('amount')
@@ -240,48 +246,31 @@ export default function RegistroCuentaDiaria() {
 
     e.preventDefault()
 
+    const { amount, concept } = outgoingFormData
+
+    const outgoing = {
+
+      _id: 'TempId',
+      amount: parseFloat(amount),
+      concept,
+      company: company._id,
+      employee: selectedEmployee.value,
+      branch: selectedBranch.value,
+      message: 'Soy el nuevo',
+      createdAt: date
+
+    }
+
+    conceptInput.value = ''
+    amountInput.value = ''
+    conceptInput.focus()
     button.disabled = true
 
-    try {
+    addOutgoing({outgoing, pushOutgoing, spliceOutgoing, updateOutgoingId})
 
-      const res = await fetch('/api/outgoing/create', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          ...outgoingFormData,
-          createdAt: date,
-          employee: selectedEmployee.value,
-          branch: selectedBranch.value,
-          company: company._id
-        })
-      })
-
-      const data = await res.json()
-
-      if (data.success === false) {
-
-        setError(data.message)
-        button.disabled = false
-        return
-      }
-
-      setError(null)
-      setOutgoings([data.outgoing, ...outgoings])
-      setOutgoingsTotal(outgoingsTotal + parseFloat(data.outgoing.amount))
-
-      conceptInput.value = ''
-      amountInput.value = ''
-      conceptInput.focus()
-      button.disabled = false
-
-    } catch (error) {
-
-      setError(error.message)
-      button.disabled = false
-    }
+    button.disabled = false
   }
+
 
   const deleteOutgoing = async (outgoingId, index) => {
 
@@ -292,8 +281,7 @@ export default function RegistroCuentaDiaria() {
 
     if (error == null) {
 
-      setOutgoingsTotal(outgoingsTotal - parseFloat(outgoings[index].amount))
-      outgoings.splice(index, 1)
+      spliceOutgoing({index})
     }
 
     setLoading(false)
@@ -360,66 +348,6 @@ export default function RegistroCuentaDiaria() {
     }
   }
 
-  // const addProductLossItem = async (e) => {
-
-  //   e.preventDefault()
-  //   setLoading(true)
-
-  //   const branchSelect = document.getElementById('branch')
-  //   const employeeSelect = document.getElementById('employee')
-  //   const productSelect = document.getElementById('product-loss')
-  //   const weightInput = document.getElementById('productLossWeight')
-  //   const commentInput = document.getElementById('comment')
-  //   const amount = parseFloat(getProductPrice(productSelect.value) * productLossFormData.productLossWeight)
-  //   const date = new Date(stringDatePickerValue).toISOString()
-
-
-  //   try {
-
-  //     const res = await fetch('/api/outgoing/product-loss/create', {
-  //       method: 'POST',
-  //       headers: {
-  //         'Content-Type': 'application/json'
-  //       },
-  //       body: JSON.stringify({
-  //         ...productLossFormData,
-  //         amount: amount,
-  //         product: productSelect.value,
-  //         employee: employeeSelect.value,
-  //         branch: branchSelect.value,
-  //         company: company._id
-  //       })
-  //     })
-
-  //     const data = await res.json()
-
-  //     if (data.success === false) {
-
-  //       setError(data.message)
-  //       setLoading(false)
-  //       return
-  //     }
-
-  //     data.productLoss.product = productName
-
-  //     setProductLosses([...productLosses, data.productLoss])
-
-
-  //     setProductLossTotal(productLossTotal + data.productLoss.amount)
-  //     setError(null)
-
-  //     weightInput.value = ''
-  //     commentInput.value = ''
-
-  //     setLoading(false)
-
-  //   } catch (error) {
-
-  //     setError(error.message)
-  //     setLoading(false)
-  //   }
-  // }
-
   const deleteStockItem = async (stockId, index) => {
 
     setLoading(true)
@@ -451,17 +379,6 @@ export default function RegistroCuentaDiaria() {
   //   }
   // }
 
-
-
-  const setOutgoingsTotalFunction = (outgoings) => {
-
-    let total = 0
-    outgoings.forEach((outgoing) => {
-      total += parseFloat(outgoing.amount)
-    })
-
-    setOutgoingsTotal(total)
-  }
 
 
   const setStockTotalFunction = (stockItems) => {
@@ -705,38 +622,6 @@ export default function RegistroCuentaDiaria() {
       }
     }
 
-    const fetchOutgoings = async () => {
-
-      const date = new Date(stringDatePickerValue).toISOString()
-
-      setLoading(true)
-      setOutgoingsTotal(0.0)
-      setOutgoings([])
-
-      try {
-
-        const res = await fetch('/api/outgoing/branch-outgoings/' + branchId + '/' + date)
-        const data = await res.json()
-
-        if (data.success === false) {
-
-          setError(data.message)
-          setLoading(false)
-          return
-        }
-
-        setOutgoingsTotalFunction(data.outgoings)
-        setOutgoings(data.outgoings)
-        setError(null)
-        setLoading(false)
-
-      } catch (error) {
-
-        setError(error.message)
-        setLoading(false)
-      }
-    }
-
     const fetchInputs = async () => {
 
       const date = new Date(stringDatePickerValue).toISOString()
@@ -835,36 +720,6 @@ export default function RegistroCuentaDiaria() {
       }
     }
 
-    // const fetchProductLosses = async () => {
-
-    // const date = new Date(stringDatePickerValue).toISOString()
-
-    //   setLoading(true)
-
-    //   try {
-
-    //     const res = await fetch('/api/outgoing/product-loss/get/' + branchId + '/' + date)
-    //     const data = await res.json()
-
-    //     if (date.success === false) {
-
-    //       setError(data.message)
-    //       setLoading(false)
-    //       return
-    //     }
-
-    //     // setProductLosses(data.productLosses)
-    //     setProductLossTotalFunction(data.productLosses)
-    //     setError(null)
-    //     setLoading(false)
-
-    //   } catch (error) {
-
-    //     setError(error.message)
-    //     setLoading(false)
-    //   }
-    // }
-
     const fetchProviderInputs = async () => {
 
       const date = new Date(stringDatePickerValue).toISOString()
@@ -897,12 +752,8 @@ export default function RegistroCuentaDiaria() {
       }
     }
 
-
-
-
     const fetchs = () => {
 
-      fetchOutgoings()
       fetchStock()
       fetchIncomes()
       fetchInputs()
@@ -920,72 +771,6 @@ export default function RegistroCuentaDiaria() {
 
   useEffect(() => {
 
-    const setEmployeesFunction = async () => {
-
-      const { error, data } = await fetchEmployees(company._id)
-
-      if (error == null) {
-
-        const tempOptions = []
-
-        data.map((employee) => {
-
-          const option = {
-            value: employee._id,
-            label: employee.name + ' ' + employee.lastName
-          }
-
-          if (currentUser._id == employee._id) {
-            setSelectedEmployee(option)
-          }
-
-          tempOptions.push(option)
-        })
-
-        setError(null)
-        setEmployees(tempOptions)
-
-      } else {
-
-        setError(error)
-      }
-
-    }
-
-    const setBranchesFunction = async () => {
-
-      const { error, data } = await fetchBranches(company._id)
-
-      if (error == null) {
-
-        const tempOptions = []
-
-        data.map((branch) => {
-
-          const option = {
-
-            value: branch._id,
-            label: branch.branch
-          }
-
-          if (branchId == branch._id) {
-
-            setSelectedBranch(option)
-          }
-
-          tempOptions.push(option)
-        })
-
-        setError(null)
-        setBranches(tempOptions)
-
-      } else {
-
-        setError(error)
-      }
-
-    }
-
     const setProductsFunction = async () => {
 
       const { error, data } = await fetchProducts(company._id)
@@ -1002,23 +787,19 @@ export default function RegistroCuentaDiaria() {
 
     }
 
-    setEmployeesFunction()
-    setBranchesFunction()
     setProductsFunction()
-
-
 
   }, [company, branchId, currentUser])
 
   useEffect(() => {
 
-    const setPricesFunction = async () => {
+    if (!branchId || !employees || !stringDatePickerValue) return
 
-      const date = branchReport.createdAt ? branchReport.createdAt : new Date().toISOString()
+    const setPricesFunction = async () => {
 
       setLoading(true)
 
-      const { error, data } = await fetchPrices(branchId, date, branchReport.createdAt ? 1 : 0)
+      const { error, data } = await fetchPrices(branchId, stringDatePickerValue)
 
 
       if (error == null) {
@@ -1032,67 +813,61 @@ export default function RegistroCuentaDiaria() {
       setLoading(false)
     }
 
-    const fetchBranchReport = async () => {
-
-      const date = new Date(stringDatePickerValue).toISOString()
-
-      setLoading(true)
-      setBranchReport({})
-
-      try {
-
-        const res = await fetch('/api/branch/report/get-branch-report/' + branchId + '/' + date)
-        const data = await res.json()
-
-        if (data.success === false) {
-
-          setLoading(false)
-          await setPricesFunction()
-          setError(data.message)
-          return
-        }
-
-        const employeeTempOption = employees.find((employee) =>
-
-          employee.value == data.originalBranchReport.employee
-        )
-
-        const assistantTempOption = employees.find((assistant) => assistant.value == data.originalBranchReport.assistant)
-
-        if (employeeTempOption) {
-
-          setSelectedEmployee(employeeTempOption)
-        }
-
-        if (assistantTempOption) {
-
-          setSelectedAssistant(assistantTempOption)
-
-        } else {
-
-          setSelectedAssistant(null)
-        }
-
-        setBranchReport(data.originalBranchReport)
-
-        setLoading(false)
-        setError(null)
-
-      } catch (error) {
-
-        setError(error.message)
-        setLoading(false)
-      }
-
-      await setPricesFunction()
-    }
-
-    if (branchId && employees && stringDatePickerValue) {
-
-      fetchBranchReport()
-    }
+    setPricesFunction()
 
   }, [branchId, employees, stringDatePickerValue])
+
+
+
+  useEffect(() => {
+
+
+    if (!(employees?.length > 0 && Object.getOwnPropertyNames(branchReport).length > 0)) {
+
+      if (employees?.length > 0 && (!Object.getOwnPropertyNames(branchReport).length > 0)) {
+
+        setSelectedEmployee({ value: currentUser._id, label: currentUser.name + ' ' + currentUser.lastName })
+      }
+
+      return
+    }
+
+    const employeeTempOption = employees.find((employee) =>
+
+      employee.value == branchReport.employee
+    )
+
+    const assistantTempOption = employees.find((assistant) => assistant.value == branchReport.assistant)
+
+    if (employeeTempOption) {
+
+      setSelectedEmployee(employeeTempOption)
+
+    }
+
+    if (assistantTempOption) {
+
+      setSelectedAssistant(assistantTempOption)
+
+    } else {
+
+      setSelectedAssistant(null)
+    }
+
+  }, [branchReport, employees, currentUser])
+
+  useEffect(() => {
+
+    if (!branchId || !branches) return
+
+    branches.forEach(branch => {
+
+      if (branchId == branch.value) {
+
+        setSelectedBranch(branch)
+      }
+    })
+  }, [branchId, branches])
 
   useEffect(() => {
 
@@ -1146,6 +921,12 @@ export default function RegistroCuentaDiaria() {
 
     <main className="p-3 max-w-lg mx-auto">
 
+      {isLoading ?
+
+        <Loading></Loading>
+
+        : ''}
+
       {managerRole._id == currentUser.role ?
 
         <FechaDePagina changeDay={changeDay} stringDatePickerValue={stringDatePickerValue} changeDatePickerValue={changeDatePickerValue} ></FechaDePagina>
@@ -1166,12 +947,8 @@ export default function RegistroCuentaDiaria() {
         <p className='col-span-4'>Encargado:</p>
         <div className='col-span-8'>
 
-          <Select
-            value={selectedEmployee}
-            onChange={handleEmployeeSelectChange}
-            options={employees}
-            isSearchable={true}
-          />
+          <EmployeesSelect defaultLabel={'Encargado'} employees={employees} selectedEmployee={selectedEmployee} handleEmployeeSelectChange={handleEmployeeSelectChange}></EmployeesSelect>
+
         </div>
       </div>
 
@@ -1179,14 +956,8 @@ export default function RegistroCuentaDiaria() {
         <p className='col-span-4'>Auxiliar:</p>
         <div className='col-span-8'>
 
-          <Select
-            value={selectedAssistant}
-            onChange={handleAssistantSelectChange}
-            options={employees}
-            placeholder='Sin auxiliar'
-            isSearchable={true}
-            isClearable={true}
-          />
+          <EmployeesSelect defaultLabel={'Sin Auxiliar'} employees={employees} selectedEmployee={selectedAssistant} handleEmployeeSelectChange={handleAssistantSelectChange}></EmployeesSelect>
+
         </div>
       </div>
 
@@ -1196,7 +967,7 @@ export default function RegistroCuentaDiaria() {
         <div className='col-span-8'>
 
           <Select
-            id='branchSelect'
+            styles={customSelectStyles}
             value={selectedBranch}
             onChange={handleBranchSelectChange}
             options={branches}
@@ -1238,7 +1009,7 @@ export default function RegistroCuentaDiaria() {
           <div className='border p-3 mt-4 bg-white'>
             <SectionHeader label={'Gastos'} />
 
-            <form id='outgoingForm' onSubmit={addOutgoing} className="grid grid-cols-3 items-center justify-between">
+            <form id='outgoingForm' onSubmit={addOutgoingSubmit} className="grid grid-cols-3 items-center justify-between">
 
               <input type="text" name="concept" id="concept" placeholder='Concepto' className='border p-3 rounded-lg' required onInput={outgoingsButtonControl} onChange={handleOutgoingInputsChange} />
               <input type="number" name="amount" id="amount" placeholder='$0.00' step={0.01} className='border p-3 rounded-lg' required onInput={outgoingsButtonControl} onChange={handleOutgoingInputsChange} />

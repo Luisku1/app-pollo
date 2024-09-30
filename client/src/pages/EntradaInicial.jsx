@@ -1,109 +1,63 @@
 /* eslint-disable react/prop-types */
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useSelector } from "react-redux"
-import { useParams } from 'react-router-dom';
 import SectionHeader from "../components/SectionHeader";
-import { fetchBranches } from "../helpers/FetchFunctions";
 import { MdCancel } from "react-icons/md";
 import { FaListAlt, FaTrash } from "react-icons/fa";
-import { Slide, toast } from "react-toastify";
 import { BsInfoSquare } from "react-icons/bs";
+import Select from 'react-select'
+import { customSelectStyles } from "../helpers/Constants";
+import MenuSucursal from "../components/EntradasDeProveedor/MenuSucursal";
+import { useProviderInputs } from "../hooks/ProviderInputs/useProviderInputs";
+import { useDeleteProviderInput } from "../hooks/ProviderInputs/useDeleteProviderInput";
 
-export default function EntradaInicial({ products, defaultProduct, managerRole }) {
+export default function EntradaInicial({ date, branchAndCustomerSelectOptions, products, roles }) {
 
-  let paramsDate = useParams().date
   const { company, currentUser } = useSelector((state) => state.user)
-  const [providerInputs, setProviderInputs] = useState([])
-  const [productName, setProductName] = useState('Elige un producto')
-  const [productId, setProductId] = useState(null)
-  const [branches, setBranches] = useState([])
-  const [error, setError] = useState(null)
-  const [loading, setLoading] = useState(false)
-  const [providerInputFormData, setProviderInputFormData] = useState({})
-  const [providerInputsTotal, setProviderInputsTotal] = useState(0.0)
-  const [providerInputsPieces, setProviderInputsPieces] = useState(0)
-  const [branchName, setBranchName] = useState(null)
+  const [selectedProduct, setSelectedProduct] = useState(null)
+  const { deleteProviderInput, loading: deletingLoading } = useDeleteProviderInput()
+  const { providerInputs, providerInputsWeight, providerInputsPieces, pushProviderInput, spliceProviderInput } = useProviderInputs({ companyId: company._id, productId: selectedProduct == null ? products.length > 0 ? products[0].value : null : selectedProduct.value, date })
   const [showProviderInputs, setShowProviderInputs] = useState(false)
   const [showProviderInputsStats, setShowProviderInputsStats] = useState(false)
   const [buttonId, setButtonId] = useState(null)
   const [isOpen, setIsOpen] = useState(false)
-  let datePickerValue = (paramsDate ? new Date(paramsDate) : new Date())
+  const listRef = useRef(null);
 
-  const notify = (message) => {
+  useEffect(() => {
 
-    toast.success(message, {
-      position: 'top-center',
-      transition: Slide,
-      autoClose: 2000,
-      draggable: true,
-      closeOnClick: true,
-      theme: 'dark',
-      pauseOnHover: false
-    })
-  }
+    const list = listRef.current;
 
-  const saveProductName = (e) => {
+    if (list) {
 
-    let index = e.target.selectedIndex
-    setProductName(e.target.options[index].text)
-    setProductId(e.target.value)
-  }
+      const handleScroll = () => {
 
-  const formatDate = (date) => {
+        sessionStorage.setItem('scrollPosition', list.scrollTop);
 
-    const actualLocaleDate = date
+      };
 
-    return (actualLocaleDate.getFullYear() + '-' + (actualLocaleDate.getMonth() < 9 ? '0' + ((actualLocaleDate.getMonth()) + 1) : ((actualLocaleDate.getMonth()))) + '-' + ((actualLocaleDate.getDate() < 10 ? '0' : '') + actualLocaleDate.getDate()) + 'T06:00:00.000Z')
+      list.addEventListener('scroll', handleScroll);
 
-  }
+      // Restaurar la posición del scroll
+      const scrollPosition = sessionStorage.getItem('scrollPosition');
 
-  let stringDatePickerValue = formatDate(datePickerValue)
+      if (scrollPosition) {
 
-  const saveBranchName = (e) => {
+        list.scrollTop = scrollPosition;
+      }
 
-    let index = e.target.selectedIndex
-    setBranchName(e.target.options[index].text)
-  }
-
-  const handleProviderInputInputsChange = (e) => {
-
-    setProviderInputFormData({
-
-      ...providerInputFormData,
-      [e.target.id]: e.target.value,
-
-    })
-  }
-
-  const providerInputButtonControl = () => {
-
-    const weightInput = document.getElementById('providerInputWeight')
-    const piecesInput = document.getElementById('providerInputPieces')
-    const button = document.getElementById('providerInputButton')
-    const branchSelect = document.getElementById('providerInputBranch')
-
-    let filledInputs = true
-
-    if (piecesInput.value == '') {
-
-      filledInputs = false
-
+      return () => {
+        list.removeEventListener('scroll', handleScroll);
+      };
     }
+  }, []);
 
-    if (weightInput.value == '') {
+  useEffect(() => {
 
-      filledInputs = false
-    }
+    if (products.length < 1) return
 
-    if (filledInputs && branchSelect.value != 'none') {
+    setSelectedProduct({ value: products[0].value, label: `${products[0].label} de proveedor` })
 
-      button.disabled = false
-
-    } else {
-
-      button.disabled = true
-    }
-  }
+  }, [products])
 
   const showProviderInputsFunction = async () => {
 
@@ -116,258 +70,56 @@ export default function EntradaInicial({ products, defaultProduct, managerRole }
     setShowProviderInputs(false)
   }
 
-  const submitProviderInput = async (e) => {
+  const handleProductSelectChange = (product) => {
 
-    const date = new Date(stringDatePickerValue).toISOString()
-    const piecesInput = document.getElementById('providerInputPieces')
-    const weightInput = document.getElementById('providerInputWeight')
-    const branchInput = document.getElementById('providerInputBranch')
-    const commentInput = document.getElementById('providerInputComment')
-    const inputButton = document.getElementById('providerInputButton')
-    const productId = (document.getElementById('providerInputProduct')).value
-
-    e.preventDefault()
-
-    inputButton.disabled = true
-    setLoading(true)
-
-
-    try {
-
-      const res = await fetch('/api/input/create-provider-input', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          ...providerInputFormData,
-          product: productId,
-          employee: currentUser._id,
-          branch: branchInput.value,
-          company: company._id,
-          comment: commentInput.value,
-          createdAt: date
-        })
-      })
-
-      const data = await res.json()
-
-      if (data.success === false) {
-
-        setError(data.message)
-        setLoading(false)
-        inputButton.disabled = false
-        return
-      }
-
-      notify('Entrada de proveedor registrada')
-
-      data.providerInput.branch = branchName
-      data.providerInput.product = productName
-      data.providerInput.employee = currentUser
-
-      setError(null)
-      setProviderInputs([data.providerInput, ...providerInputs])
-      setProviderInputsTotal((prev) => prev + data.providerInput.weight)
-
-      piecesInput.value = ''
-      weightInput.value = ''
-
-      setLoading(false)
-      inputButton.disabled = false
-
-
-    } catch (error) {
-
-      setError(error.message)
-      setLoading(false)
-      inputButton.disabled = false
-
-    }
-  }
-
-  const deleteProviderInput = async (providerInputId, index) => {
-
-    setLoading(true)
-
-    try {
-
-      const res = await fetch('/api/input/delete-provider-input/' + providerInputId, {
-
-        method: 'DELETE'
-      })
-
-      const data = await res.json()
-
-      if (data.success === false) {
-
-        setError(null)
-        setLoading(false)
-        return
-      }
-
-      setProviderInputsTotal(providerInputsTotal - parseFloat(providerInputs[index].weight))
-      providerInputs.splice(index, 1)
-
-      setError(null)
-      setLoading(false)
-
-    } catch (error) {
-
-      setError(error.message)
-    }
+    setSelectedProduct({ value: product.value, label: `${product.label} de proveedor` })
   }
 
   useEffect(() => {
 
-    const setBranchesFunction = async () => {
+    if (products && products.length == 0) return
 
-      const { error, data } = await fetchBranches(company._id)
+    handleProductSelectChange(products[0])
 
-      if (error == null) {
-
-        setError(null)
-        setBranches(data)
-
-      } else {
-
-        setError(error)
-      }
-    }
-
-    setBranchesFunction()
-  }, [company])
-
-  useEffect(() => {
-
-    const fetchProviderInputs = async () => {
-
-      const date = new Date(stringDatePickerValue).toISOString()
-
-      setProviderInputs([])
-      setProviderInputsTotal(0.0)
-      setProviderInputsPieces(0)
-      hideProviderInputs()
-
-      const product = productId == null ? products[0]._id : productId
-
-      try {
-
-        const res = await fetch('/api/input/get-provider-inputs/' + company._id + '/' + product + '/' + date)
-        const data = await res.json()
-
-        if (data.success === false) {
-
-          setError(data.message)
-          return
-        }
-
-        data.providerInputs.sort((providerInput, nextProviderInput) => {
-
-          return providerInput.branch.position - nextProviderInput.branch.position
-        })
-
-        data.providerInputs.forEach((providerInput) => {
-
-          setProviderInputsTotal((prev) => prev + providerInput.weight)
-          setProviderInputsPieces((prev) => prev + providerInput.pieces)
-        })
-
-        console.log(data.providerInputs)
-
-        setProviderInputs(data.providerInputs)
-        setError(null)
-
-      } catch (error) {
-
-        setError(error.message)
-      }
-
-    }
-
-    if (productId) {
-
-      fetchProviderInputs()
-    }
-
-  }, [company._id, productId, stringDatePickerValue, products])
-
-  useEffect(() => {
-
-    if (defaultProduct) {
-
-      setProductId(defaultProduct._id)
-      setProductName(defaultProduct.name)
-    }
-  }, [defaultProduct])
+  }, [products])
 
   return (
 
     <main className="max-w-lg mx-auto">
 
-      {error ? <p>{error}</p> : ''}
-
       <div className='border bg-white p-3 mt-4'>
-        {/* <SectionHeader label={productName + ' de proveedor'} /> */}
+        <SectionHeader label={(selectedProduct ? selectedProduct.label : 'Producto')} />
 
         <div className="grid grid-rows-2">
-          <div className="grid grid-cols-2">
+          <div className="flex gap-3 justify-self-end items-center">
 
             <div className="flex gap-3">
 
               <button className="w-10 h-10" onClick={showProviderInputsFunction}><FaListAlt className="h-full w-full text-red-600" />
               </button>
               <button className="w-10 h-10 rounded-lg shadow-lg" onClick={() => setShowProviderInputsStats(true)}><BsInfoSquare className="h-full w-full text-red-600" />
-
               </button>
             </div>
-            <p className='font-bold text-lg text-red-700 text-center'>{providerInputsTotal.toFixed(2) + ' Kg'}</p>
+            <p className='font-bold text-lg text-red-700 text-center'>{providerInputsWeight.toFixed(2) + ' Kg'}</p>
           </div>
           <h2 className='text-2xl font-semibold mb-4 text-red-800'>
             <div className="">
-              <select name="providerInputProduct" id="providerInputProduct" className='truncate border p-3 rounded-lg text-lg' onChange={(e) => { providerInputButtonControl(), saveProductName(e) }}>
-
-                <option className="" selected disabled hidden value={defaultProduct ? defaultProduct._id : 'none'}>{(defaultProduct ? defaultProduct.name : productName) + ' de proveedor'}</option>
-
-                {products && products.length != 0 && products.map((product) => (
-
-                  <option key={product._id} value={product._id}>{product.name}</option>
-                ))}
-              </select>
+              <div className="col-span-3">
+                <Select
+                  styles={customSelectStyles}
+                  value={selectedProduct}
+                  onChange={handleProductSelectChange}
+                  options={products}
+                  placeholder={'Producto de Proveedor'}
+                  isSearchable={true}
+                />
+              </div>
             </div>
           </h2>
 
         </div>
-        <form onSubmit={submitProviderInput} className="grid grid-cols-4 items-center justify-between">
-          <select name="provider" id="provider" className='border p-3 rounded-lg text-xs'>
 
-            <option value="none" disabled selected hidden>Proveedor</option>
-
-
-          </select>
-
-          <select name="providerInputBranch" id="providerInputBranch" onChange={(e) => { providerInputButtonControl(), saveBranchName(e) }} className='border p-3 rounded-lg text-xs'>
-
-            <option value="none" disabled selected hidden >Sucursal</option>
-
-            {branches && branches.length == 0 ? <option> No hay sucursales registradas </option> : ''}
-            {branches && branches.length > 0 && branches.map((branch) => (
-
-              <option key={branch._id} value={branch._id}>{branch.branch}</option>
-
-            ))}
-          </select>
-
-          <input type="number" name="providerInputPieces" id="providerInputPieces" placeholder='Piezas' step={0.1} className='border p-3 rounded-lg' required onInput={providerInputButtonControl} onChange={handleProviderInputInputsChange} />
-          <input type="number" name="providerInputWeight" id="providerInputWeight" placeholder='0.00 kg' step={0.01} className='border p-3 rounded-lg' required onInput={providerInputButtonControl} onChange={handleProviderInputInputsChange} />
-
-          <textarea className='col-span-4 rounded-lg p-3 shadow mt-2' name="providerInputComment" id="providerInputComment" cols="30" rows="2" defaultValue={'Todo bien'} onChange={handleProviderInputInputsChange}></textarea>
-
-
-          <button type='submit' id='providerInputButton' disabled className='bg-slate-500 text-white p-3 rounded-lg col-span-4 mt-8'>Agregar</button>
-
-        </form>
-
+        <MenuSucursal date={date} branchAndCustomerSelectOptions={branchAndCustomerSelectOptions} spliceProviderInput={spliceProviderInput} pushProviderInput={pushProviderInput} selectedProduct={selectedProduct}></MenuSucursal>
 
       </div>
 
@@ -398,22 +150,22 @@ export default function EntradaInicial({ products, defaultProduct, managerRole }
 
 
 
-                  {providerInputs && providerInputs.length > 0 && providerInputs.map((providerInput, index) => (
+                  {providerInputs && providerInputs.length > 0 && providerInputs.map((providerInput) => (
 
 
-                    <div key={providerInput._id} className={(currentUser._id == providerInput.employee || currentUser.role == managerRole._id ? '' : 'py-3 ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
+                    <div key={providerInput._id} className={(currentUser._id == providerInput.employee || currentUser.role == roles.managerRole._id ? '' : 'py-3 ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
 
                       <div id='list-element' className='flex col-span-10 items-center justify-around'>
                         <p className='text-center text-xs  w-3/12'>{providerInput.branch.branch ? providerInput.branch.branch : providerInput.branch}</p>
                         <p className='text-center text-xs w-3/12'>{providerInput.employee != null ? providerInput.employee.name + ' ' + providerInput.employee.lastName : ''}</p>
-                        <p className='text-center text-xs w-3/12'>{providerInput.pieces ? providerInput.pieces : '0'}</p>
-                        <p className='text-center text-xs w-1/12'>{providerInput.weight}</p>
+                        <p className='text-center text-xs w-3/12'>{providerInputsPieces}</p>
+                        <p className='text-center text-xs w-1/12'>{`${providerInput.weight.toFixed(2)}`}</p>
                       </div>
 
-                      {providerInput.employee._id == currentUser._id || managerRole._id == currentUser.role ?
+                      {providerInput.employee._id == currentUser._id || roles.managerRole._id == currentUser.role ?
 
                         <div>
-                          <button id={providerInput._id} onClick={() => { setIsOpen(!isOpen), setButtonId(providerInput._id) }} disabled={loading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
+                          <button id={providerInput._id} onClick={() => { setIsOpen(!isOpen), setButtonId(providerInput._id) }} disabled={deletingLoading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
                             <span>
                               <FaTrash className='text-red-700 m-auto' />
                             </span>
@@ -427,7 +179,7 @@ export default function EntradaInicial({ products, defaultProduct, managerRole }
                                 </div>
                                 <div className='flex gap-10'>
                                   <div>
-                                    <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteProviderInput(providerInput._id, index), setIsOpen(!isOpen) }}>Si</button>
+                                    <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteProviderInput({ providerInput: providerInput, spliceProviderInput, pushProviderInput }), setIsOpen(!isOpen) }}>Si</button>
                                   </div>
                                   <div>
                                     <button className='rounded-lg border shadow-lg w-20 h-10' onClick={() => { setIsOpen(!isOpen) }}>No</button>
@@ -463,7 +215,7 @@ export default function EntradaInicial({ products, defaultProduct, managerRole }
                 <div >
                   <div className="grid grid-cols-2 p-3 shadow-lg rounded-lg mb-4 gap-2 items-center">
                     <p className="font-bold text-lg">Kilos: </p>
-                    <p>{providerInputsTotal.toFixed(2) + ' Kg'}</p>
+                    <p>{providerInputsWeight.toFixed(2) + ' Kg'}</p>
                   </div>
                   <div className="grid grid-cols-2 p-3 shadow-lg rounded-lg mb-4 gap-2 items-center">
                     <p className="font-bold text-lg">Piezas: </p>
@@ -471,7 +223,7 @@ export default function EntradaInicial({ products, defaultProduct, managerRole }
                   </div>
                   <div className="grid grid-cols-2 p-3 shadow-lg rounded-lg mb-4 gap-2 items-center">
                     <p className="font-bold text-lg">Promedio: </p>
-                    <p>{(providerInputsTotal / providerInputsPieces).toFixed(2) + ' Kg/u'}</p>
+                    <p>{(providerInputsWeight / providerInputsPieces).toFixed(2) + ' Kg/u'}</p>
                   </div>
                 </div>
 

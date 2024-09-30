@@ -4,11 +4,17 @@ import { useNavigate } from "react-router-dom"
 import { MdClear, MdEdit } from "react-icons/md";
 import { FaTrash } from "react-icons/fa";
 import { CiSearch } from "react-icons/ci";
+import BranchSaleAvg from "../components/BranchSaleAvg";
+import { useExtraOutgoingsAvg } from "../hooks/ExtraOutgoings.js/useExtraOutgoingsAvg";
+import BranchProviderInputsAvg from "../components/Sucursales/BranchProviderInputsAvg";
+import BranchOutputsAvg from "../components/Sucursales/BranchOutputsAvg";
+import BranchInputsAvg from "../components/Sucursales/BranchInputsAvg";
 
 export default function Sucursales() {
 
   const { company } = useSelector((state) => state.user)
   const [branches, setBranches] = useState([])
+  const { extraOutgoingsAvg } = useExtraOutgoingsAvg({companyId: company._id})
   const [filteredBranches, setFilteredBranches] = useState([])
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
@@ -149,6 +155,19 @@ export default function Sucursales() {
 
             <div className="col-span-10">
               <p className="text-2xl font-bold">{branch.branch}</p>
+
+              <BranchSaleAvg branchId={branch._id}></BranchSaleAvg>
+
+              <BranchProviderInputsAvg branchId={branch._id}></BranchProviderInputsAvg>
+              <BranchInputsAvg branchId={branch._id}></BranchInputsAvg>
+              <BranchOutputsAvg branchId={branch._id}></BranchOutputsAvg>
+
+              <div className='flex gap-2'>
+                <p className='font-bold text-lg'>{'Promedio de gastos fuera de cuentas:'}</p>
+                <p className='text-lg text-red-700 font-bold'>
+                  {extraOutgoingsAvg.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}
+                </p>
+              </div>
 
               <div className="p-3">
                 <p className="text-lg">{'Día de renta: ' + branch.rentDay}</p>

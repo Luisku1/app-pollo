@@ -12,6 +12,11 @@ const providerInputSchema = mongoose.Schema({
     default: 0.0
   },
 
+  price: {
+    type: Number,
+    required: true
+  },
+
   pieces: {
     type: Number,
     required: true
@@ -22,9 +27,17 @@ const providerInputSchema = mongoose.Schema({
     required: true
   },
 
+  specialPrice: {
+    type: Boolean,
+    default: false
+  },
+
   branch: {
     type: Schema.Types.ObjectId, ref: 'Branch',
-    required: true
+  },
+
+  customer: {
+    type: Schema.Types.ObjectId, ref: 'Customer'
   },
 
   product: {
@@ -42,7 +55,7 @@ const providerInputSchema = mongoose.Schema({
     default: null
   },
 
-}, {timestamps: true})
+}, { timestamps: true })
 
 const ProviderInput = mongoose.model('ProviderInput', providerInputSchema)
 

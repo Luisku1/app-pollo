@@ -1,9 +1,10 @@
 import express from 'express'
-import { getBranchIncomes, getIncomes, newIncomeType, getIncomeTypes, newIncomeQuery, deleteIncomeQuery } from '../controllers/income.controller.js'
+import { getBranchIncomes, getIncomes, newIncomeType, getIncomeTypes, deleteIncomeQuery, newBranchIncomeQuery, newCustomerIncomeQuery } from '../controllers/income.controller.js'
 
 const router = express.Router()
 
-router.post('/create', newIncomeQuery)
+router.post('/branch/create', newBranchIncomeQuery)
+router.post('/customer/create', newCustomerIncomeQuery)
 router.post('/types/create', newIncomeType)
 router.get('/types/get', getIncomeTypes)
 router.get('/branch-incomes/:branchId/:date', getBranchIncomes)

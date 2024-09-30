@@ -52,6 +52,8 @@ export default function RegistroCliente() {
 
       form.reset()
 
+      setLoading(false)
+
     } catch (error) {
 
       setLoading(false)

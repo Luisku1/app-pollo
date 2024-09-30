@@ -4,6 +4,8 @@ import Loan from '../models/accounts/outgoings/loan.model.js'
 import { errorHandler } from "../utils/error.js"
 import { updateReportOutgoings } from "../utils/updateReport.js"
 import { getDayRange } from "../utils/formatDate.js"
+import { Types } from "mongoose"
+import Branch from "../models/branch.model.js"
 
 export const newOutgoing = async (req, res, next) => {
 
@@ -136,7 +138,14 @@ export const getBranchOutgoings = async (req, res, next) => {
 
     } else {
 
-      res.status(200).json({ outgoings: outgoings })
+      let total = 0
+
+      outgoings.forEach((outgoing) => {
+
+        total += outgoing.amount
+      })
+
+      res.status(200).json({ outgoings: outgoings, outgoingsTotal: total })
     }
 
   } catch (error) {
@@ -181,6 +190,75 @@ export const getExtraOutgoings = async (req, res, next) => {
     } else {
 
       res.status(200).json({ extraOutgoings: extraOutgoings })
+    }
+
+  } catch (error) {
+
+    next(error)
+  }
+}
+
+export const getExtraOutgoingsAvg = async (req, res, next) => {
+
+  const companyId = req.params.companyId
+  const date = new Date()
+
+  date.setDate(date.getDate() - 30)
+
+  try {
+
+    const [extraOutgoingsAvg, branchesRentAvg] = await Promise.all([
+
+      ExtraOutgoing.aggregate([
+
+        {
+          $match: {
+            "company": new Types.ObjectId(companyId),
+            "createdAt": { $gte: date }
+          }
+        },
+        {
+          $project: {
+            extraOutgoingsTotal: { $sum: ["$amount"] }
+          }
+        },
+        {
+          $group: {
+            _id: null,
+            average: { $avg: '$extraOutgoingsTotal' }
+          }
+        }
+      ]),
+
+      Branch.aggregate([
+        {
+          $match: {
+            "company": new Types.ObjectId(companyId),
+            "active": true
+          }
+        },
+        {
+          $project: {
+            rentsTotal: {$sum: ['$rentAmount']}
+          }
+        },
+        {
+          $group: {
+            _id: null,
+            average: {$avg: '$rentsTotal'}
+          }
+        }
+      ])
+
+    ])
+
+    if (extraOutgoingsAvg.length > 0) {
+
+      res.status(200).json({ extraOutgoingsAvg: extraOutgoingsAvg[0].average - (branchesRentAvg[0].average / 30)  })
+
+    } else {
+
+      res.status(200).json({ extraOutgoingsAvg: 0 })
     }
 
   } catch (error) {

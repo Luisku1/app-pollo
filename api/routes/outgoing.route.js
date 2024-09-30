@@ -1,5 +1,5 @@
 import express from 'express'
-import { deleteOutgoing, getBranchOutgoings, newOutgoing, getExtraOutgoings, deleteExtraOutgoing, createLoan, getLoans, deleteLoan, getOutgoings, newExtraOutgoingQuery } from '../controllers/outgoing.controller.js'
+import { deleteOutgoing, getBranchOutgoings, newOutgoing, getExtraOutgoings, deleteExtraOutgoing, createLoan, getLoans, deleteLoan, getOutgoings, newExtraOutgoingQuery, getExtraOutgoingsAvg } from '../controllers/outgoing.controller.js'
 
 const router = express.Router()
 
@@ -9,6 +9,7 @@ router.post('/extra-outgoing/create', newExtraOutgoingQuery)
 router.put('/extra-outgoing/reject-extra-outgoing/:extraOutgoingId/:employeeId/:date')
 router.post('/loan/create', createLoan)
 router.put('/loan/reject-loan/:loanId/:employeeId/:date')
+router.get('/extra-outgoing/get-avg/:companyId', getExtraOutgoingsAvg)
 router.get('/loan/get-loans/:companyId/:date', getLoans)
 router.get('/branch-outgoings/:branchId/:date', getBranchOutgoings)
 router.get('/get-outgoings/:companyId/:date', getOutgoings)

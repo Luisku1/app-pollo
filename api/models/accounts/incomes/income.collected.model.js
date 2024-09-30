@@ -14,8 +14,11 @@ const incomeCollectedSchema = mongoose.Schema({
   },
 
   branch: {
-    type: Schema.Types.ObjectId, ref: 'Branch',
-    required: true
+    type: Schema.Types.ObjectId, ref: 'Branch'
+  },
+
+  customer: {
+    type: Schema.Types.ObjectId, ref: 'Customer'
   },
 
   employee: {

@@ -17,6 +17,11 @@ const customerSchema = mongoose.Schema({
     required: true
   },
 
+  active: {
+    type: Boolean,
+    default: true
+  },
+
   location: {
     type: String,
     required: true

@@ -1,31 +1,17 @@
 /* eslint-disable react/prop-types */
 import { useEffect, useState } from 'react'
-import { getEmployeePayments } from '../services/employees/employeePayments'
 import SectionHeader from './SectionHeader'
 import { MdCancel } from 'react-icons/md'
 import { useSelector } from 'react-redux'
 import { FaTrash } from 'react-icons/fa'
 import { deleteEmployeePaymentFetch } from '../helpers/FetchFunctions'
+import { useEmployeePayments } from '../hooks/Employees/useEmployeePayments'
 
-const useEmployeePayment = ({ employeeId, date }) => {
-
-  const [employeePayments, setEmployeePayments] = useState()
-
-  useEffect(() => {
-
-    if (!employeeId || !date) return
-
-    getEmployeePayments({ employeeId, date }).then(setEmployeePayments)
-
-  }, [employeeId, date])
-
-  return { employeePayments }
-}
 export default function ShowEmployeePayments({ employeeId, employeeName, date }) {
 
   const { currentUser } = useSelector((state) => state.user)
   const [employeePaymentsIsOpen, setEmployeePaymentsIsOpen] = useState(false)
-  const { employeePayments } = useEmployeePayment({ employeeId, date })
+  const { employeePayments } = useEmployeePayments({ employeeId, date })
   const [managerRole, setManagerRole] = useState({})
   const [buttonId, setButtonId] = useState(null)
   const [loading, setLoading] = useState(false)

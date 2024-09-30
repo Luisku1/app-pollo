@@ -133,8 +133,6 @@ export const updateBranchReport = async (req, res, next) => {
 
   try {
 
-    console.log(branchReport)
-
     const reportData = await ReportData.findOne({
       $and: [
         {
@@ -148,8 +146,6 @@ export const updateBranchReport = async (req, res, next) => {
         }
       ]
     })
-
-    console.log(reportData)
 
     if (reportData) {
 
@@ -209,11 +205,11 @@ export const getBranchReport = async (req, res, next) => {
 
   try {
 
-    const originalBranchReport = await fetchBranchReport(branchId, date)
+    const branchReport = await fetchBranchReport(branchId, date)
 
-    if (originalBranchReport) {
+    if (branchReport) {
 
-      res.status(200).json({ originalBranchReport: originalBranchReport })
+      res.status(200).json({ branchReport })
 
     } else {
 

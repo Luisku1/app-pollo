@@ -329,11 +329,9 @@ export const updateReportDatasInfo = async (req, res, next) => {
         ]
       })
 
-      console.log(reportData)
 
       if (!reportData) {
 
-        console.log('No report data found: ', date)
         date.setDate(date.getDate() + 1)
 
       } else {
@@ -401,8 +399,6 @@ export const updateReportDatasInfo = async (req, res, next) => {
         reportData.outgoings = outgoingsTotal
 
         reportData.save()
-
-        console.log('Día: ', date)
 
         date.setDate(date.getDate() + 1)
       }

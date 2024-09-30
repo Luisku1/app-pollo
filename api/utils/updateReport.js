@@ -7,8 +7,6 @@ export const updateReportIncomes = async (branchId, reportDate, amount) => {
 
     const branchReport = await fetchBranchReport(branchId, reportDate)
 
-    console.log(branchReport)
-
     if (branchReport != null || branchReport != undefined) {
 
       if (Object.getOwnPropertyNames(branchReport).length != 0) {

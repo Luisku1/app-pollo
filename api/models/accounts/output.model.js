@@ -47,7 +47,10 @@ const outputSchema = mongoose.Schema({
 
   branch: {
     type: Schema.Types.ObjectId, ref: 'Branch',
-    required: true
+  },
+
+  customer: {
+    type: Schema.Types.ObjectId, ref: 'Customer'
   },
 
   createdAt: {

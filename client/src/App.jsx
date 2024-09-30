@@ -24,12 +24,16 @@ import Graficos from './pages/Graficos'
 import PreciosSucursal from './pages/PreciosSucursal'
 import RegistroCliente from './pages/RegistroCliente'
 import RegistroProveedor from './pages/RegistroProveedor'
+import { ToastContainerComponent } from './helpers/toastify'
+// import 'bootstrap/dist/css/bootstrap.min.css'
+import './index.css'
 
 
 export default function App() {
   return (
     <BrowserRouter>
       <Header />
+        <ToastContainerComponent/>
       <Routes>
         <Route path="/inicio-sesion" element={<InicioSesion />} />
         <Route path="/registro" element={<RegistroDueño />} />

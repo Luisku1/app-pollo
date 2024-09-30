@@ -4,13 +4,13 @@ import { errorHandler } from "../utils/error.js";
 import { getDayRange } from "../utils/formatDate.js";
 import { updateReportIncomes } from "../utils/updateReport.js";
 
-export const newIncomeQuery = async (req, res, next) => {
+export const newBranchIncomeQuery = async (req, res, next) => {
 
-  const { incomeAmount, company, branch, employee, type, createdAt } = req.body
+  const { amount, company, branch, employee, type, createdAt } = req.body
 
   try {
 
-    const newIncome = await newIncomeFunction({ amount: incomeAmount, company, branch, employee, type, createdAt })
+    const newIncome = await newBranchIncomeFunction({ amount, company, branch, employee, type, createdAt })
 
     res.status(201).json({ message: 'New income created successfully', income: newIncome })
 
@@ -20,9 +20,34 @@ export const newIncomeQuery = async (req, res, next) => {
   }
 }
 
-export const newIncomeFunction = async ({ amount, company, branch, employee, type, createdAt, partOfAPayment = false }) => {
+export const newBranchIncomeFunction = async ({ amount, company, branch, employee, type, createdAt, partOfAPayment = false }) => {
 
   const newIncome = new IncomeCollected({ amount, company, branch, employee, type, createdAt, partOfAPayment })
+  await newIncome.save()
+  await updateReportIncomes(branch, createdAt, amount)
+  return newIncome
+
+}
+
+export const newCustomerIncomeQuery = async (req, res, next) => {
+
+  const { amount, company, customer, employee, type, createdAt } = req.body
+
+  try {
+
+    const newIncome = await newCustomerIncomeFunction({ amount, company, customer, employee, type, createdAt })
+
+    res.status(201).json({ message: 'New income created successfully', income: newIncome })
+
+  } catch (error) {
+
+    next(error)
+  }
+}
+
+export const newCustomerIncomeFunction = async ({ amount, company, customer, employee, type, createdAt, partOfAPayment = false }) => {
+
+  const newIncome = new IncomeCollected({ amount, company, customer, employee, type, createdAt, partOfAPayment })
   await newIncome.save()
   await updateReportIncomes(branch, createdAt, amount)
   return newIncome
@@ -131,7 +156,29 @@ export const getIncomes = async (req, res, next) => {
 
     if (incomes.length > 0) {
 
-      res.status(200).json({ incomes: incomes })
+      console.log(incomes)
+
+      let total = 0
+      const branchesIncomes = []
+      const customersIncomes = []
+
+      incomes.forEach((income) => {
+
+        if(income.branch === undefined) {
+
+          customersIncomes.push(income)
+
+        } else {
+
+          branchesIncomes.push(income)
+        }
+
+        total += income.amount
+      })
+
+      branchesIncomes.sort((prevIncome, nextIncome) => prevIncome.branch.position - nextIncome.branch.position)
+
+      res.status(200).json({ incomes: [...branchesIncomes, ...customersIncomes], total })
 
     } else {
 

@@ -1,8 +1,10 @@
-import { Types } from 'mongoose';
+import { get, Types } from 'mongoose';
 import Price from '../models/accounts/price.model.js';
 import Branch from '../models/branch.model.js'
 import { errorHandler } from '../utils/error.js'
 import { getMonthRange } from '../utils/formatDate.js';
+import ReportData from '../models/accounts/report.data.model.js';
+import BranchReport from '../models/accounts/branch.report.model.js';
 
 export const newBranch = async (req, res, next) => {
 
@@ -170,6 +172,52 @@ export const getMonthBranchesIncomes = async (date, companyId) => {
 		throw error
 	}
 
+}
+
+export const getBranchSalesAverage = async (req, res, next) => {
+
+	const branchId = req.params.branchId
+	const date = new Date()
+
+	date.setDate(date.getDate() - 7)
+
+	try {
+
+
+		const branchAvg = await BranchReport.aggregate([
+
+			{
+				$match: {
+					"branch": new Types.ObjectId(branchId),
+					"createdAt": { $gte: date }
+				}
+			},
+			{
+				$project: {
+					outgoingsAndIncomes: { $sum: ['$outgoings', '$incomes'] }
+				}
+			},
+			{
+				$group: {
+					_id: branchId,
+					average: { $avg: '$outgoingsAndIncomes' }
+				}
+			}
+		])
+
+		if (branchAvg.length > 0) {
+
+			res.status(201).json({ branchAvg: branchAvg[0].average })
+
+		} else {
+
+			next(errorHandler(404, 'No data found'))
+		}
+
+	} catch (error) {
+
+		next(error)
+	}
 }
 
 export const deleteBranch = async (req, res, next) => {
