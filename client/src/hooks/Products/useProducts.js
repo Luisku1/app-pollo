@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { getProductsFetch } from "../../services/products/getProducts"
+import { getProductsFetch } from "../../services/Products/getProducts"
 
 export const useProducts = ({ companyId }) => {
 
