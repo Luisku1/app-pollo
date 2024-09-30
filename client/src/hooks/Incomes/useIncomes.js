@@ -23,7 +23,7 @@ export const useIncomes = ({ companyId, date }) => {
 
     setIncomes((prevIncomes) => prevIncomes.map((income, index) =>
 
-      index == 0 ? {_id: incomeId, ...income} : income
+      index == 0 ? { _id: incomeId, ...income } : income
     ))
   }
 

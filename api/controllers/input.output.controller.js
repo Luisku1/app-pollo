@@ -4,13 +4,12 @@ import { errorHandler } from '../utils/error.js'
 import { getProductPrice } from './price.controller.js'
 import ProviderInput from '../models/providers/provider.input.model.js'
 import { updateReportInputs, updateReportOutputs } from '../utils/updateReport.js'
-import { fetchBranchReport } from './branch.report.controller.js'
 import { getDayRange } from '../utils/formatDate.js'
 import { Types } from 'mongoose'
 
 export const newBranchInput = async (req, res, next) => {
 
-  const { weight, specialPrice, price, amount, comment, pieces, company, product, employee, customerBranch: branch, createdAt } = req.body
+  const { weight, specialPrice, price, amount, comment, pieces, company, product, employee, branch, createdAt } = req.body
 
   try {
 
@@ -341,18 +340,29 @@ export const getInputs = async (req, res, next) => {
     } else {
 
       let totalWeight = 0
+      const branchInputs = []
+      const customerInputs = []
 
       inputs.forEach(input => {
+
+        if (input.branch === undefined) {
+
+          customerInputs.push(input)
+
+        } else {
+
+          branchInputs.push(input)
+        }
 
         totalWeight += input.weight
       })
 
-      inputs.sort((output, nextOutput) => {
+      branchInputs.sort((input, nextInput) => {
 
-        return output.branch.position - nextOutput.branch.position
+        return input.branch.position - nextInput.branch.position
       })
 
-      res.status(200).json({ inputs: inputs, totalWeight: totalWeight })
+      res.status(200).json({ inputs: [...branchInputs, ...customerInputs], totalWeight: totalWeight })
     }
 
   } catch (error) {
@@ -435,7 +445,7 @@ export const deleteInput = async (req, res, next) => {
 
 export const newBranchOutput = async (req, res, next) => {
 
-  const { weight, comment, amount, pieces, company, product, employee, branchCustomer: branch, specialPrice, createdAt } = req.body
+  const { weight, comment, amount, price, pieces, company, product, employee, branch: branch, specialPrice, createdAt } = req.body
 
   try {
 
@@ -443,7 +453,7 @@ export const newBranchOutput = async (req, res, next) => {
 
     await newOutput.save()
 
-    await updateReportOutputs(branchCustomer, createdAt, amount)
+    await updateReportOutputs(branch, createdAt, amount)
     res.status(200).json({ message: 'New output created', output: newOutput })
 
   } catch (error) {
@@ -454,11 +464,11 @@ export const newBranchOutput = async (req, res, next) => {
 
 export const newCustomerOutput = async (req, res, next) => {
 
-  const { weight, comment, pieces, company, product, employee, branchCustomer: customer, price, createdAt } = req.body
+  const { weight, amount, comment, pieces, company, product, employee, customer, price, createdAt } = req.body
 
   try {
 
-    const newOutput = new Output({ weight, comment, pieces, company, product, employee, customer: customer, amount, price, createdAt })
+    const newOutput = new Output({ weight, comment, pieces, company, product, employee, customer, amount, price, createdAt })
 
     await newOutput.save()
 
@@ -557,17 +567,29 @@ export const getOutputs = async (req, res, next) => {
 
       let totalWeight = 0
 
-      outputs.forEach(input => {
+      const branchOutputs = []
+      const customerOutputs = []
 
-        totalWeight += input.weight
+      outputs.forEach(output => {
+
+        if (output.branch === undefined) {
+
+          customerOutputs.push(output)
+
+        } else {
+
+          branchOutputs.push(output)
+        }
+
+        totalWeight += output.weight
       })
 
-      outputs.sort((output, nextOutput) => {
+      branchOutputs.sort((output, nextOutput) => {
 
         return output.branch.position - nextOutput.branch.position
       })
 
-      res.status(200).json({ outputs: outputs, totalWeight: totalWeight })
+      res.status(200).json({ outputs: [...branchOutputs, ...customerOutputs], totalWeight: totalWeight })
     }
 
   } catch (error) {
@@ -725,18 +747,35 @@ export const getBranchProviderInputsAvg = async (req, res, next) => {
 
 }
 
-export const createProviderInput = async (req, res, next) => {
+export const createBranchProviderInput = async (req, res, next) => {
 
-  const { weight, product, price, amount, employee, branchCustomer, company, comment, pieces, createdAt } = req.body
-  const pricesDate = new Date(createdAt)
-  pricesDate.setDate(pricesDate.getDate() + 1)
-  const newProviderInput = ProviderInput({ weight, product, price, employee, branch: branchCustomer, company, comment, pieces, amount, createdAt })
+  const { weight, product, price, amount, employee, branch, company, comment, pieces, specialPrice, createdAt } = req.body
+  const newProviderInput = ProviderInput({ weight, product, price, employee, branch, company, comment, pieces, amount, specialPrice, createdAt })
 
   try {
 
     await newProviderInput.save()
 
     await updateReportInputs(branch, createdAt, amount)
+
+    res.status(200).json({ providerInput: newProviderInput })
+
+  } catch (error) {
+    console.log(error)
+    next(error)
+  }
+}
+
+export const createCustomerProviderInput = async (req, res, next) => {
+
+  const { weight, product, price, amount, employee, customer, company, comment, pieces, createdAt } = req.body
+  const newProviderInput = ProviderInput({ weight, product, price, employee, customer, company, comment, pieces, amount, createdAt })
+
+  try {
+
+    await newProviderInput.save()
+
+    // await updateReportInputs(branch, createdAt, amount)
 
     res.status(200).json({ providerInput: newProviderInput })
 

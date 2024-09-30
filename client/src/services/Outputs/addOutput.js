@@ -15,4 +15,6 @@ export const addOutputFetch = async ({ output, group }) => {
     throw new Error("No se registró la salida de producto");
 
   }
+
+  return data.output
 }

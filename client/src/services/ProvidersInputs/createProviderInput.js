@@ -1,22 +1,11 @@
-export const createProviderInputFetch = async ({ providerInput, selectedGroup }) => {
-
-  const group = selectedGroup == 'Sucursales' ? 'branch' : 'customer'
+export const createProviderInputFetch = async ({ providerInput, group }) => {
 
   const res = await fetch(`/api/input/${group}/create-provider-input`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({
-      weight: providerInput.weight,
-      pieces: providerInput.pieces,
-      product: providerInput.product.value,
-      employee: providerInput.employee._id,
-      branch: providerInput.branch.value,
-      company: providerInput.company,
-      comment: providerInput.comment,
-      createdAt: providerInput.createdAt
-    })
+    body: JSON.stringify(providerInput)
   })
 
   const data = await res.json()
@@ -27,4 +16,5 @@ export const createProviderInputFetch = async ({ providerInput, selectedGroup })
 
   }
 
+  return data.providerInput
 }

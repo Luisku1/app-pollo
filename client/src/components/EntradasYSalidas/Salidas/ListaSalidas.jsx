@@ -5,9 +5,8 @@ import { MdCancel } from 'react-icons/md'
 import SectionHeader from '../../SectionHeader'
 import { useSelector } from 'react-redux'
 import { FaTrash } from 'react-icons/fa'
-import { useRoles } from '../../../hooks/useRoles'
 
-export default function ListaSalidas({ outputs, totalWeight, changeOutputsIsOpenValue, outputsIsOpen, sliceOutput, roles }) {
+export default function ListaSalidas({ outputs, changeOutputsIsOpenValue, outputsIsOpen, sliceOutput, roles }) {
 
   const { currentUser } = useSelector((state) => state.user)
   const [loading, setLoading] = useState(false)
@@ -15,6 +14,8 @@ export default function ListaSalidas({ outputs, totalWeight, changeOutputsIsOpen
   const [movementDetailsIsOpen, setMovementDetailsIsOpen] = useState(false)
   const [deleteOutputIdButton, setDeleteOutputIdButton] = useState(null)
   const [confirmationIsOpen, setConfirmationIsOpen] = useState(false)
+
+  console.log(outputs)
 
   const deleteOutput = async (outputId, index) => {
 
@@ -110,12 +111,12 @@ export default function ListaSalidas({ outputs, totalWeight, changeOutputsIsOpen
                 {outputs && outputs.length > 0 && outputs.map((output, index) => (
 
 
-                  <div key={output._id} className={(currentUser._id == output.employee || currentUser.role == roles.managerRole._id ? '' : 'py-3 ') + (output.specialPrice ? 'border border-red-500 ' : 'border border-black ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-70 shadow-sm mt-2'}>
+                  <div key={output._id} className={(currentUser._id == output.employee?._id || currentUser.role == roles.managerRole._id ? '' : 'py-3 ') + (output.specialPrice ? 'border border-red-500 ' : 'border border-black ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-70 shadow-sm mt-2'}>
 
                     <button onClick={() => { setSelectedOutput(output), setMovementDetailsIsOpen(!movementDetailsIsOpen) }} id='list-element' className='flex col-span-10 items-center justify-around h-full'>
-                      <p className='text-center text-xs  w-3/12'>{output.branch.branch ? output.branch.branch : output.branch}</p>
+                      <p className='text-center text-xs  w-3/12'>{`${output.branch?.branch || output.branch?.label || (`${output.customer?.name} ${output.customer?.lastName}`)}`}</p>
                       <p className='text-center text-xs w-3/12'>{output.employee.name + ' ' + output.employee.lastName}</p>
-                      <p className='text-center text-xs w-3/12'>{output.product.name ? output.product.name : output.product}</p>
+                      <p className='text-center text-xs w-3/12'>{output.product.name || output.product.label}</p>
                       <p className='text-center text-xs w-1/12'>{output.weight}</p>
                     </button>
 

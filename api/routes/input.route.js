@@ -1,12 +1,13 @@
 import express from 'express'
-import { createProviderInput, deleteInput, deleteProviderInput, getBranchInputs, getBranchInputsAvg, getBranchProviderInputs, getBranchProviderInputsAvg, getInputs, getNetDifference, getProviderProductInputs, newBranchInput, newCustomerInput } from '../controllers/input.output.controller.js'
+import { createBranchProviderInput, createCustomerProviderInput, deleteInput, deleteProviderInput, getBranchInputs, getBranchInputsAvg, getBranchProviderInputs, getBranchProviderInputsAvg, getInputs, getNetDifference, getProviderProductInputs, newBranchInput, newCustomerInput } from '../controllers/input.output.controller.js'
 
 
 const router = express.Router()
 
 router.post('/customer/create', newCustomerInput)
 router.post('/branch/create', newBranchInput)
-router.post('/create-provider-input', createProviderInput)
+router.post('/branch/create-provider-input', createBranchProviderInput)
+router.post('/customer/create-provider-input', createCustomerProviderInput)
 router.get('/get-net-difference/:companyId/:date', getNetDifference)
 router.get('/get-branch-provider-inputs/:branchId/:date', getBranchProviderInputs)
 router.get('/get-provider-inputs/:companyId/:productId/:date', getProviderProductInputs)

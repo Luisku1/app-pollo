@@ -3,14 +3,14 @@ import { getOutputs } from "../../services/Outputs/getOutputs"
 
 export const useOutput = ({ companyId, date }) => {
 
-  const [outputs, setOutputs] = useState({})
+  const [outputs, setOutputs] = useState([])
   const [totalWeight, setTotalWeight] = useState(0)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
   const pushOutput = ({ output }) => {
 
-    setOutputs((prevOutput) => [output, ...prevOutput])
+    setOutputs((prevOutputs) => [output, ...prevOutputs])
     setTotalWeight((prevTotal) => prevTotal + output.weight)
   }
 
@@ -22,7 +22,10 @@ export const useOutput = ({ companyId, date }) => {
 
   const updateLastOutputId = ({ outputId }) => {
 
-    outputs[0]._id = outputId
+    setOutputs((prevOutputs) => prevOutputs.map((output, index) =>
+
+      index == 0 ? { _id: outputId, ...output } : output
+    ))
   }
 
   useEffect(() => {
@@ -33,6 +36,7 @@ export const useOutput = ({ companyId, date }) => {
 
     getOutputs({ companyId, date }).then((response) => {
 
+      console.log(response)
       setOutputs(response.outputs)
       setTotalWeight(response.totalWeight)
 

@@ -1,13 +1,12 @@
 /* eslint-disable react/prop-types */
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useSelector } from 'react-redux'
-import { useRoles } from '../../../hooks/useRoles'
 import { MdCancel } from 'react-icons/md'
 import SectionHeader from '../../SectionHeader'
-import { deleteOutputFetch } from '../../../helpers/FetchFunctions'
+import { deleteInputFetch } from '../../../helpers/FetchFunctions'
 import { FaTrash } from 'react-icons/fa'
 
-export default function ListaEntradas({ inputs, totalWeight, sliceInput, changeInputsIsOpenValue, inputsIsOpen, roles }) {
+export default function ListaEntradas({ inputs, spliceInput, changeInputsIsOpenValue, inputsIsOpen, roles }) {
 
   const { currentUser } = useSelector((state) => state.user)
   const [loading, setLoading] = useState(false)
@@ -20,13 +19,13 @@ export default function ListaEntradas({ inputs, totalWeight, sliceInput, changeI
 
     setLoading(true)
 
-    const { error } = await deleteOutputFetch(outputId)
+    const { error } = await deleteInputFetch(outputId)
 
     setLoading(false)
 
     if (error == null) {
 
-      sliceInput(index)
+      spliceInput(index)
     }
   }
 
@@ -92,7 +91,7 @@ export default function ListaEntradas({ inputs, totalWeight, sliceInput, changeI
     )
   }
 
-  if(!inputsIsOpen) {
+  if (!inputsIsOpen) {
 
     return
   }
@@ -122,9 +121,9 @@ export default function ListaEntradas({ inputs, totalWeight, sliceInput, changeI
               <div key={input._id} className={(currentUser._id == input.employee._id || currentUser.role == roles.managerRole._id ? '' : 'py-3 ') + (input.specialPrice ? 'border border-red-500 ' : 'border border-black ') + 'grid grid-cols-12 items-center border-opacity-70 rounded-lg shadow-sm mt-2'}>
 
                 <button onClick={() => { setSelectedInput(input), setMovementDetailsIsOpen(!movementDetailsIsOpen) }} id='list-element' className='flex col-span-10 items-center justify-around h-full'>
-                  <p className='text-center text-xs  w-3/12'>{input.branch.branch ? input.branch.branch : input.branch}</p>
+                  <p className='text-center text-xs  w-3/12'>{`${input.branch?.branch || input.branch?.label || (`${input.customer?.name} ${input.customer?.lastName}`)}`}</p>
                   <p className='text-center text-xs w-3/12'>{input.employee.name + ' ' + input.employee.lastName}</p>
-                  <p className='text-center text-xs w-3/12'>{input.product.name ? input.product.name : input.product}</p>
+                  <p className='text-center text-xs w-3/12'>{input.product.name || input.product.label}</p>
                   <p className='text-center text-xs w-1/12'>{input.weight}</p>
                 </button>
                 {selectedInput != null && selectedInput._id == input._id && movementDetailsIsOpen ?

@@ -3,7 +3,7 @@ import { getInputs } from "../../services/Inputs/getInputs"
 
 export const useInputs = ({ companyId, date }) => {
 
-  const [inputs, setInputs] = useState({})
+  const [inputs, setInputs] = useState([])
   const [totalWeight, setTotalWeight] = useState(0)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -22,7 +22,10 @@ export const useInputs = ({ companyId, date }) => {
 
   const updateLastInputId = ({ inputId }) => {
 
-    inputs[0]._id = inputId
+    setInputs((prevInputs) => prevInputs.map((input, index) =>
+
+      index == 0 ? { _id: inputId, ...input } : input
+    ))
   }
 
   useEffect(() => {

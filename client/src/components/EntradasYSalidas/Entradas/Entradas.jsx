@@ -127,29 +127,48 @@ export default function Entradas({ branchAndCustomerSelectOptions, products, dat
 
       const { weight, pieces } = inputFormData
 
-      const input = {
-
-        _id: 'temp',
-        price,
-        amount: parseFloat(amount.replace(/[$,]/g, '')),
-        weight,
-        comment: commentInput.value,
-        pieces,
-        specialPrice: priceInput.value == '' ? false : true,
-        company: company._id,
-        product: selectedProduct,
-        employee: currentUser,
-        branchCustomer: selectedCustomerBranchOption,
-        createdAt: date
-      }
-
       const group = selectedGroup == 'Sucursales' ? 'branch' : 'customer'
 
-      addInput({input, group, pushInput, spliceInput, updateLastInputId})
+      let input = {}
+
+      if (group == 'branch') {
+
+        input = {
+          price,
+          amount: parseFloat(amount.replace(/[$,]/g, '')),
+          comment: commentInput.value == '' ? 'Todo bien' : commentInput.value,
+          weight: parseFloat(weight),
+          pieces: parseFloat(pieces),
+          specialPrice: priceInput.value == '' ? false : true,
+          company: company._id,
+          product: selectedProduct,
+          employee: currentUser,
+          branch: selectedCustomerBranchOption,
+          createdAt: date
+        }
+
+      } else {
+
+        input = {
+          price,
+          amount: parseFloat(amount.replace(/[$,]/g, '')),
+          comment: commentInput.value == '' ? 'Todo bien' : commentInput.value,
+          weight: parseFloat(weight),
+          pieces: parseFloat(pieces),
+          specialPrice: priceInput.value == '' ? false : true,
+          company: company._id,
+          product: selectedProduct,
+          employee: currentUser,
+          customer: selectedCustomerBranchOption,
+          createdAt: date
+        }
+      }
+
+      addInput({ input, group, pushInput, spliceInput, updateLastInputId })
 
       piecesInput.value = ''
       weightInput.value = ''
-      selectedProduct(null)
+      setSelectedProduct(null)
       priceInput.value = ''
 
       setLoading(false)
@@ -234,7 +253,7 @@ export default function Entradas({ branchAndCustomerSelectOptions, products, dat
         </form>
       </div>
 
-      <ListaEntradas inputs={inputs} totalWeight={totalWeight} sliceInput={spliceInput} changeInputsIsOpenValue={changeInputsIsOpenValue} inputsIsOpen={inputsIsOpen} roles={roles}></ListaEntradas>
+      <ListaEntradas inputs={inputs} totalWeight={totalWeight} spliceInput={spliceInput} changeInputsIsOpenValue={changeInputsIsOpenValue} inputsIsOpen={inputsIsOpen} roles={roles}></ListaEntradas>
 
     </div>
   )

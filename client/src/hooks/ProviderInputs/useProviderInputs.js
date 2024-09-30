@@ -12,8 +12,8 @@ export const useProviderInputs = ({ companyId, productId, date }) => {
   const spliceProviderInput = ({ index }) => {
 
     const removedProviderInput = providerInputs.splice(index, 1)
-    setProviderInputsWeight((prevTotal) => prevTotal - removedProviderInput.weight)
-    setProviderInputsPieces((prevTotal) => prevTotal - removedProviderInput.pieces)
+    setProviderInputsWeight((prevTotal) => prevTotal - removedProviderInput[0].weight)
+    setProviderInputsPieces((prevTotal) => prevTotal - removedProviderInput[0].pieces)
 
   }
 
@@ -25,6 +25,15 @@ export const useProviderInputs = ({ companyId, productId, date }) => {
     setProviderInputsWeight((prevTotal) => parseFloat(providerInput.weight) + prevTotal)
     setProviderInputsPieces((prevTotal) => parseFloat(providerInput.pieces) + prevTotal)
   }
+
+  const updateLastProviderInputId = ({ providerInputId }) => {
+
+    setProviderInputs((prevInputs) => prevInputs.map((input, index) =>
+
+      index == 0 ? { _id: providerInputId, ...input } : input
+    ))
+  }
+
 
   useEffect(() => {
 
@@ -47,5 +56,5 @@ export const useProviderInputs = ({ companyId, productId, date }) => {
 
   }, [companyId, date, productId])
 
-  return { providerInputs, providerInputsWeight, providerInputsPieces, pushProviderInput, spliceProviderInput, loading, error }
+  return { providerInputs, providerInputsWeight, providerInputsPieces, pushProviderInput, spliceProviderInput, updateLastProviderInputId, loading, error }
 }

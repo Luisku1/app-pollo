@@ -11,23 +11,27 @@ import { today } from "../../../helpers/DatePickerFunctions"
 import BranchAndCustomerSelect from "../../Select/BranchAndCustomerSelect"
 import { useLoading } from "../../../hooks/loading"
 import Loading from "../../Loading"
-import { ToastDanger, ToastSuccess } from "../../../helpers/toastify"
+import { ToastDanger } from "../../../helpers/toastify"
 import { useBranchCustomerProductPrice } from "../../../hooks/Prices/useBranchCustomerProductPrice"
+import { useAddOutput } from "../../../hooks/Outputs/useAddOutput"
 
 export default function Salidas({ branchAndCustomerSelectOptions, products, date, roles }) {
 
   const { company, currentUser } = useSelector((state) => state.user)
-  const { outputs, totalWeight, pushOutput, sliceOutput, loading: outputLoading } = useOutput({ companyId: company._id, date })
+  const { outputs, totalWeight, pushOutput, spliceOutput, loading: outputLoading, updateLastOutputId } = useOutput({ companyId: company._id, date })
   const [outputsIsOpen, setOutputsIsOpen] = useState(false)
   const [outputFormData, setOutputFormData] = useState({})
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [selectedCustomerBranchOption, setSelectedCustomerBranchOption] = useState(null)
   const [selectedGroup, setSelectedGroup] = useState('');
   const { price } = useBranchCustomerProductPrice({ branchCustomerId: selectedCustomerBranchOption ? selectedCustomerBranchOption.value : null, productId: selectedProduct ? selectedProduct.value : null, date, group: selectedGroup == '' ? null : selectedGroup })
+  const { addOutput } = useAddOutput()
   const [amount, setAmount] = useState('$0.00')
   const [loading, setLoading] = useState(false)
 
   const isLoading = useLoading(outputLoading)
+
+  console.log(outputs)
 
   const generarMonto = () => {
 
@@ -59,12 +63,12 @@ export default function Salidas({ branchAndCustomerSelectOptions, products, date
 
   }
 
-  const addOutput = async (e) => {
+  const addOutputSubmitButton = async (e) => {
 
     const piecesInput = document.getElementById('output-pieces')
     const weightInput = document.getElementById('output-weight')
     const commentInput = document.getElementById('output-comment')
-    const priceInput = document.getElementById('price')
+    const priceInput = document.getElementById('output-price')
     const date = today ? new Date().toISOString() : new Date(date).toISOString()
 
     e.preventDefault()
@@ -77,47 +81,44 @@ export default function Salidas({ branchAndCustomerSelectOptions, products, date
 
       const { weight, pieces } = outputFormData
 
-      const output = {
-        _id: 'temp',
-        price,
-        amount: parseFloat(amount.replace(/[$,]/g, '')),
-        comment: commentInput.value,
-        weight,
-        pieces,
-        specialPrice: priceInput.value == '' ? false : true,
-        company: company._id,
-        product: selectedProduct,
-        employee: currentUser,
-        branchCustomer: selectedCustomerBranchOption,
-        createdAt: date
-      }
 
       const group = selectedGroup == 'Sucursales' ? 'branch' : 'customer'
+      let output = {}
 
-      const res = await fetch(`/api/output/${group}/create`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(output)
-      })
+      if (group == 'branch') {
 
-      const data = await res.json()
+        output = {
+          price,
+          amount: parseFloat(amount.replace(/[$,]/g, '')),
+          comment: commentInput.value == '' ? 'Todo bien' : commentInput.value,
+          weight: parseFloat(weight),
+          pieces: parseFloat(pieces),
+          specialPrice: priceInput.value == '' ? false : true,
+          company: company._id,
+          product: selectedProduct,
+          employee: currentUser,
+          branch: selectedCustomerBranchOption,
+          createdAt: date
+        }
 
-      if (data.success === false) {
+      } else {
 
-        ToastDanger(data.message)
-        setLoading(false)
-        return
+        output = {
+          price,
+          amount: parseFloat(amount.replace(/[$,]/g, '')),
+          comment: commentInput.value == '' ? 'Todo bien' : commentInput.value,
+          weight: parseFloat(weight),
+          pieces: parseFloat(pieces),
+          specialPrice: priceInput.value == '' ? false : true,
+          company: company._id,
+          product: selectedProduct,
+          employee: currentUser,
+          customer: selectedCustomerBranchOption,
+          createdAt: date
+        }
       }
 
-      ToastSuccess('Salida registrada')
-
-      data.output.branch = selectedCustomerBranchOption.label
-      data.output.product = selectedProduct.label
-      data.output.employee = currentUser
-
-      pushOutput(output)
+      addOutput({ output, group, pushOutput, spliceOutput, updateLastOutputId })
 
       piecesInput.value = ''
       weightInput.value = ''
@@ -206,7 +207,7 @@ export default function Salidas({ branchAndCustomerSelectOptions, products, date
 
           </div>
 
-          <form onSubmit={addOutput} className="flex flex-col space-y-2">
+          <form onSubmit={addOutputSubmitButton} className="flex flex-col space-y-2">
 
             <div>
 
@@ -260,7 +261,7 @@ export default function Salidas({ branchAndCustomerSelectOptions, products, date
 
 
         {roles && Object.getOwnPropertyNames(roles).length > 0 ?
-          <ListaSalidas outputs={outputs} totalWeight={totalWeight} sliceOutput={sliceOutput} changeOutputsIsOpenValue={changeOutputsIsOpenValue} outputsIsOpen={outputsIsOpen} roles={roles}></ListaSalidas>
+          <ListaSalidas outputs={outputs} totalWeight={totalWeight} sliceOutput={spliceOutput} changeOutputsIsOpenValue={changeOutputsIsOpenValue} outputsIsOpen={outputsIsOpen} roles={roles}></ListaSalidas>
 
           : ''}
 

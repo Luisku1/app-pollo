@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import BranchAndCustomerSelect from '../Select/BranchAndCustomerSelect'
 import { useSelector } from 'react-redux'
 import { useCreateProviderInput } from '../../hooks/ProviderInputs/useCreateProviderInput'
@@ -7,7 +7,7 @@ import Select from 'react-select'
 import { customSelectStyles } from '../../helpers/Constants'
 import { useBranchCustomerProductPrice } from '../../hooks/Prices/useBranchCustomerProductPrice'
 
-export default function MenuSucursal({ branchAndCustomerSelectOptions, date, pushProviderInput, spliceProviderInput, selectedProduct }) {
+export default function MenuSucursal({ branchAndCustomerSelectOptions, date, pushProviderInput, spliceProviderInput, selectedProduct, updateLastProviderInputId }) {
 
   const { currentUser, company } = useSelector((state) => state.user)
   const [selectedBranchCustomerOption, setSelectedBranchCustomerOption] = useState(null)
@@ -15,13 +15,33 @@ export default function MenuSucursal({ branchAndCustomerSelectOptions, date, pus
   const [selectedGroup, setSelectedGroup] = useState('')
   const { price } = useBranchCustomerProductPrice({ branchCustomerId: selectedBranchCustomerOption ? selectedBranchCustomerOption.value : null, productId: selectedProduct ? selectedProduct.value : null, date, group: selectedGroup == '' ? null : selectedGroup })
   const [providerInputFormData, setProviderInputFormData] = useState({})
+  const [amount, setAmount] = useState(0)
+
+  const generarMonto = () => {
+
+    const priceInput = document.getElementById('provider-input-price')
+    const weightInput = document.getElementById('provider-input-weight')
+
+    const price = parseFloat(priceInput.value == '' ? priceInput.placeholder : priceInput.value)
+    const weight = parseFloat(weightInput.value != '' ? weightInput.value : '0.0')
+
+    setAmount((price * weight).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' }))
+  }
+
+  useEffect(() => {
+
+    generarMonto()
+
+  }, [price])
 
   const handleProviderInputInputsChange = (e) => {
+
+    generarMonto()
 
     setProviderInputFormData({
 
       ...providerInputFormData,
-      [e.target.id]: e.target.value,
+      [e.target.name]: e.target.value,
 
     })
   }
@@ -34,8 +54,8 @@ export default function MenuSucursal({ branchAndCustomerSelectOptions, date, pus
 
   const providerInputButtonControl = () => {
 
-    const weightInput = document.getElementById('weight')
-    const piecesInput = document.getElementById('pieces')
+    const weightInput = document.getElementById('provider-input-weight')
+    const piecesInput = document.getElementById('provider-input-pieces')
     const button = document.getElementById('providerInputButton')
 
     let filledInputs = true
@@ -63,10 +83,10 @@ export default function MenuSucursal({ branchAndCustomerSelectOptions, date, pus
 
   const submitProviderInput = async (e) => {
 
-    const piecesInput = document.getElementById('pieces')
-    const weightInput = document.getElementById('weight')
-    const priceInput = document.getElementById('price')
-    const commentInput = document.getElementById('comment')
+    const piecesInput = document.getElementById('provider-input-pieces')
+    const weightInput = document.getElementById('provider-input-weight')
+    const priceInput = document.getElementById('provider-input-price')
+    const commentInput = document.getElementById('provider-input-comment')
     const inputButton = document.getElementById('providerInputButton')
 
     e.preventDefault()
@@ -75,28 +95,51 @@ export default function MenuSucursal({ branchAndCustomerSelectOptions, date, pus
 
     inputButton.disabled = true
 
-    const {weight, pieces} = providerInputFormData
+    const { weight, pieces } = providerInputFormData
 
-    const providerInput = {
+    const group = selectedGroup == 'Sucursales' ? 'branch' : 'customer'
 
-      weight,
-      amount: price * weight,
-      price,
-      pieces,
-      comment: commentInput.value ? commentInput.value : 'Todo bien',
-      specialPrice: priceInput == '' ? false : true,
-      branchCustomer: selectedBranchCustomerOption,
-      product: selectedProduct,
-      company: company._id,
-      employee: currentUser,
-      createdAt: date
+    let providerInput = {}
+
+    if (group == 'branch') {
+
+      providerInput = {
+        weight: parseFloat(weight),
+        amount: parseFloat(amount.replace(/[$,]/g, '')),
+        price,
+        comment: commentInput.value == '' ? 'Todo bien' : commentInput.value,
+        pieces: parseFloat(pieces),
+        specialPrice: priceInput.value == '' ? false : true,
+        branch: selectedBranchCustomerOption,
+        product: selectedProduct,
+        company: company._id,
+        employee: currentUser,
+        createdAt: date
+      }
+
+    } else {
+
+      providerInput = {
+        price,
+        amount: parseFloat(amount.replace(/[$,]/g, '')),
+        comment: commentInput.value == '' ? 'Todo bien' : commentInput.value,
+        weight: parseFloat(weight),
+        pieces: parseFloat(pieces),
+        specialPrice: priceInput.value == '' ? false : true,
+        company: company._id,
+        product: selectedProduct,
+        employee: currentUser,
+        customer: selectedBranchCustomerOption,
+        createdAt: date
+      }
     }
 
-    createProviderInput({ providerInput, pushProviderInput, spliceProviderInput })
+    createProviderInput({ providerInput, group, pushProviderInput, spliceProviderInput, updateLastProviderInputId })
 
     piecesInput.value = ''
     weightInput.value = ''
     commentInput.value = ''
+    generarMonto()
     inputButton.disabled = false
   }
 
@@ -114,18 +157,28 @@ export default function MenuSucursal({ branchAndCustomerSelectOptions, date, pus
       <BranchAndCustomerSelect options={branchAndCustomerSelectOptions} defaultLabel={'Sucursal o Cliente'} selectedOption={selectedBranchCustomerOption} handleSelectChange={handleBranchCustomerSelectChange}></BranchAndCustomerSelect>
 
       <div className='grid grid-cols-3 gap-2'>
-        <input type="number" name="pieces" id="pieces" placeholder='Piezas' step={0.1} className='border border-black p-3 rounded-lg' required onInput={providerInputButtonControl} onChange={handleProviderInputInputsChange} />
+        <input type="number" name="pieces" id="provider-input-pieces" placeholder='Piezas' step={0.1} className='border border-black p-3 rounded-lg' required onInput={providerInputButtonControl} onChange={handleProviderInputInputsChange} />
 
-        <input type="number" name="weight" id="weight" placeholder='0.000 kg' step={0.001} className='border border-black p-3 rounded-lg' required onInput={providerInputButtonControl} onChange={handleProviderInputInputsChange} />
+        <input type="number" name="weight" id="provider-input-weight" placeholder='0.000 kg' step={0.001} className='border border-black p-3 rounded-lg' required onInput={providerInputButtonControl} onChange={handleProviderInputInputsChange} />
 
 
         <div className="relative">
           <span className="absolute text-red-700 font-semibold left-3 top-3">$</span>
-          <input className='pl-6 w-full rounded-lg p-3 text-red-700 font-semibold border border-red-600' name='price' placeholder={price.toFixed(2)} id='price' step={0.01} type="number" />
+          <input className='pl-6 w-full rounded-lg p-3 text-red-700 font-semibold border border-red-600' name='price' placeholder={price.toFixed(2)} id='provider-input-price' step={0.01} type="number" />
         </div>
       </div>
 
-      <input type="text" className='border border-black rounded-lg p-3 mt-2' name="comment" id="comment" placeholder={'Comentario del producto (Opcional)'} onChange={handleProviderInputInputsChange}></input>
+      <div className='grid grid-cols-4 gap-1'>
+
+        <input className='col-span-3 text-sm border border-black rounded-lg p-3 mt-2' name="comment" id="provider-input-comment" placeholder='Comentario del producto (Opcional)' onChange={handleProviderInputInputsChange}></input>
+
+        <div className='w-full h-fit'>
+          <label htmlFor="input-field" className="block text-sm font-medium text-gray-600 mb-1">
+            Monto total
+          </label>
+          <p type="text" name="amount" id="input-amount" className='text-green-700 w-full border border-gray-300 rounded-md p-1 focus:outline-none focus:border-blue-500' >{amount}</p>
+        </div>
+      </div>
       <button type='submit' id='providerInputButton' disabled className='bg-slate-500 text-white p-3 rounded-lg col-span-4 mt-8'>Agregar</button>
 
     </form>

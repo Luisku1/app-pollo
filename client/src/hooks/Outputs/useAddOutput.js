@@ -6,7 +6,7 @@ export const useAddOutput = () => {
 
   const [loading, setLoading] = useState(false)
 
-  const addOutput = ({ output, group, pushOutput, spliceOutput, updateOutputId }) => {
+  const addOutput = ({ output, group, pushOutput, spliceOutput, updateLastOutputId }) => {
 
     setLoading(true)
 
@@ -23,16 +23,19 @@ export const useAddOutput = () => {
         company: output.company,
         product: output.product.value,
         employee: output.employee._id,
-        branchCustomer: output.branchCustomer.value,
+        branch: output.branch?.value || null,
+        customer: output.customer?.value || null,
         createdAt: output.createdAt
       }, group
     }).then((response) => {
 
-      updateOutputId({ outputId: response._id })
+      console.log(response)
+      updateLastOutputId({ outputId: response._id })
       ToastSuccess(`Se guardó la salida de ${output.product.label}`)
 
     }).catch((error) => {
 
+      console.log(error)
       spliceOutput({ index: 0 })
       ToastDanger(error.message)
     })

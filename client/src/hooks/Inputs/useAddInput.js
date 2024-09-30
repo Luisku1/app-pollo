@@ -6,7 +6,7 @@ export const useAddInput = () => {
 
   const [loading, setLoading] = useState(false)
 
-  const addInput = ({ input, group, pushInput, spliceInput, updateInputId }) => {
+  const addInput = ({ input, group, pushInput, spliceInput, updateLastInputId }) => {
 
     setLoading(true)
 
@@ -23,18 +23,20 @@ export const useAddInput = () => {
         company: input.company,
         product: input.product.value,
         employee: input.employee._id,
-        branchCustomer: input.branchCustomer.value,
+        branch: input.branch?.value || null,
+        customer: input.customer?.value || null,
         createdAt: input.createdAt
 
       }, group
     }).then((response) => {
 
-      updateInputId({ inputId: response._id })
+      updateLastInputId({ inputId: response._id })
       ToastSuccess(`Se guardó la salida de ${input.product.label}`)
 
     }).catch((error) => {
 
       spliceInput({ index: 0 })
+      console.log(error)
       ToastDanger(error.message)
     })
 

@@ -16,7 +16,7 @@ export default function EntradaInicial({ date, branchAndCustomerSelectOptions, p
   const { company, currentUser } = useSelector((state) => state.user)
   const [selectedProduct, setSelectedProduct] = useState(null)
   const { deleteProviderInput, loading: deletingLoading } = useDeleteProviderInput()
-  const { providerInputs, providerInputsWeight, providerInputsPieces, pushProviderInput, spliceProviderInput } = useProviderInputs({ companyId: company._id, productId: selectedProduct == null ? products.length > 0 ? products[0].value : null : selectedProduct.value, date })
+  const { providerInputs, providerInputsWeight, providerInputsPieces, pushProviderInput, spliceProviderInput, updateLastProviderInputId } = useProviderInputs({ companyId: company._id, productId: selectedProduct == null ? products.length > 0 ? products[0].value : null : selectedProduct.value, date })
   const [showProviderInputs, setShowProviderInputs] = useState(false)
   const [showProviderInputsStats, setShowProviderInputsStats] = useState(false)
   const [buttonId, setButtonId] = useState(null)
@@ -119,7 +119,7 @@ export default function EntradaInicial({ date, branchAndCustomerSelectOptions, p
 
         </div>
 
-        <MenuSucursal date={date} branchAndCustomerSelectOptions={branchAndCustomerSelectOptions} spliceProviderInput={spliceProviderInput} pushProviderInput={pushProviderInput} selectedProduct={selectedProduct}></MenuSucursal>
+        <MenuSucursal date={date} updateLastProviderInputId={updateLastProviderInputId} branchAndCustomerSelectOptions={branchAndCustomerSelectOptions} spliceProviderInput={spliceProviderInput} pushProviderInput={pushProviderInput} selectedProduct={selectedProduct}></MenuSucursal>
 
       </div>
 
@@ -156,8 +156,8 @@ export default function EntradaInicial({ date, branchAndCustomerSelectOptions, p
                     <div key={providerInput._id} className={(currentUser._id == providerInput.employee || currentUser.role == roles.managerRole._id ? '' : 'py-3 ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
 
                       <div id='list-element' className='flex col-span-10 items-center justify-around'>
-                        <p className='text-center text-xs  w-3/12'>{providerInput.branch.branch ? providerInput.branch.branch : providerInput.branch}</p>
-                        <p className='text-center text-xs w-3/12'>{providerInput.employee != null ? providerInput.employee.name + ' ' + providerInput.employee.lastName : ''}</p>
+                        <p className='text-center text-xs  w-3/12'>{`${providerInput.branch?.branch || providerInput.branch?.label || (`${providerInput.customer?.name} ${providerInput.customer?.lastName}`)}`}</p>
+                        <p className='text-center text-xs w-3/12'>{providerInput.employee.name + ' ' + providerInput.employee.lastName}</p>
                         <p className='text-center text-xs w-3/12'>{providerInputsPieces}</p>
                         <p className='text-center text-xs w-1/12'>{`${providerInput.weight.toFixed(2)}`}</p>
                       </div>

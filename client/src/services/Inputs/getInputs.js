@@ -5,7 +5,8 @@ export const getInputs = async ({ companyId, date }) => {
 
   if (data.success === false) {
 
-    return {}
+    throw new Error(data.message);
+
   }
 
   return { inputs: data.inputs, totalWeight: data.totalWeight }
