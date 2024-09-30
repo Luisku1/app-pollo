@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { getProducts } from "../../../../api/controllers/product.controller"
+import { getProductsFetch } from "../../services/products/getProducts"
 
 export const useProducts = ({ companyId }) => {
 
@@ -13,7 +13,7 @@ export const useProducts = ({ companyId }) => {
 
     setLoading(true)
 
-    getProducts({ companyId }).then((response) => {
+    getProductsFetch({ companyId }).then((response) => {
 
       setProducts(response)
 
