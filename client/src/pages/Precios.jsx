@@ -93,11 +93,6 @@ export default function Precios() {
           return
         }
 
-        data.data.forEach(branch => {
-
-          console.log('https://pioapp.onrender.com/precios-sucursal/' + branch._id.branchId + ';' + branch._id.branchName)
-        });
-
         setPrices(data.data)
         setError(null)
 

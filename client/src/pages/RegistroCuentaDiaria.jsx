@@ -303,6 +303,8 @@ export default function RegistroCuentaDiaria() {
 
     try {
 
+
+      console.log(date)
       const res = await fetch('/api/stock/create', {
         method: 'POST',
         headers: {

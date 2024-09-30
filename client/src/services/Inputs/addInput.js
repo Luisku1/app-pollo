@@ -1,7 +1,5 @@
 export const addInputFetch = async ({ input, group }) => {
 
-  console.log(input, group)
-
   const res = await fetch(`/api/input/${group}/create`, {
     method: 'POST',
     headers: {
