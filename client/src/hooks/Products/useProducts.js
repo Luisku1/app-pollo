@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { getProducts } from "../../services/products/getProducts"
+import { getProducts } from "../../../../api/controllers/product.controller"
 
 export const useProducts = ({ companyId }) => {
 
