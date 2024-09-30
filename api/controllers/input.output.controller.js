@@ -435,7 +435,7 @@ export const deleteInput = async (req, res, next) => {
 
 export const newBranchOutput = async (req, res, next) => {
 
-  const { weight, comment, pieces, company, product, employee, branchCustomer: branch, specialPrice, createdAt } = req.body
+  const { weight, comment, amount, pieces, company, product, employee, branchCustomer: branch, specialPrice, createdAt } = req.body
 
   try {
 
