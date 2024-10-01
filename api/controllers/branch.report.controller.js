@@ -279,7 +279,7 @@ export const getBranchReport = async (req, res, next) => {
 
 export const fetchBranchReport = async ({ branchId, date, populate = false }) => {
 
-  const { bottomDate, topDate } = getDayRange(new Date(date))
+  const { bottomDate, topDate } = getDayRange(date)
 
   try {
 

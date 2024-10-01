@@ -10,6 +10,8 @@ export const newBranchIncomeQuery = async (req, res, next) => {
 
   try {
 
+    console.log(createdAt)
+
     const newIncome = await newBranchIncomeFunction({ amount, company, branch, employee, type, createdAt })
 
     res.status(201).json({ message: 'New income created successfully', income: newIncome })
