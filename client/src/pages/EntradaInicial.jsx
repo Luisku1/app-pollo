@@ -100,7 +100,7 @@ export default function EntradaInicial({ date, branchAndCustomerSelectOptions, p
               <button className="w-10 h-10 rounded-lg shadow-lg" onClick={() => setShowProviderInputsStats(true)}><BsInfoSquare className="h-full w-full text-red-600" />
               </button>
             </div>
-            <p className='font-bold text-lg text-red-700 text-center'>{providerInputsWeight.toFixed(2) + ' Kg'}</p>
+            <p className='font-bold text-lg text-red-700 text-center'>{`${providerInputsWeight.toFixed(2)} Kg / ${providerInputsPieces}`}<sup>u</sup></p>
           </div>
           <h2 className='text-2xl font-semibold mb-4 text-red-800'>
             <div className="">
@@ -158,7 +158,7 @@ export default function EntradaInicial({ date, branchAndCustomerSelectOptions, p
                       <div id='list-element' className='flex col-span-10 items-center justify-around'>
                         <p className='text-center text-xs  w-3/12'>{`${providerInput.branch?.branch || providerInput.branch?.label || (`${providerInput.customer?.name} ${providerInput.customer?.lastName}`)}`}</p>
                         <p className='text-center text-xs w-3/12'>{providerInput.employee.name + ' ' + providerInput.employee.lastName}</p>
-                        <p className='text-center text-xs w-3/12'>{providerInputsPieces}</p>
+                        <p className='text-center text-xs w-3/12'>{providerInput.pieces}</p>
                         <p className='text-center text-xs w-1/12'>{`${providerInput.weight.toFixed(2)}`}</p>
                       </div>
 

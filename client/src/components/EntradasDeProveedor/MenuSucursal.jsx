@@ -81,6 +81,8 @@ export default function MenuSucursal({ branchAndCustomerSelectOptions, date, pus
     }
   }
 
+  useEffect(providerInputButtonControl, [createInputLoading, selectedBranchCustomerOption, selectedProduct])
+
   const submitProviderInput = async (e) => {
 
     const piecesInput = document.getElementById('provider-input-pieces')

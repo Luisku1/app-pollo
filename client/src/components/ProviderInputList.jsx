@@ -4,11 +4,6 @@ export default function ProviderInputList() {
 
   const [providerInputs, setProviderInputs] = useState()
 
-  function useProviderInputs () {
-
-
-  }
-
   return (
     <div>
 

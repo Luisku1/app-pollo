@@ -51,7 +51,7 @@ export default function ControlSupervisor() {
   const [totalNetDifference, setTotalNetDifference] = useState(0.0)
   const { incomes, incomesTotal, pushIncome, spliceIncome, updateLastIncomeId } = useIncomes({ companyId: company._id, date: stringDatePickerValue })
   const { addIncome } = useAddIncome()
-  const { incomeTypes, loading: typesLoading } = useIncomeTypes()
+  const { incomeTypes } = useIncomeTypes()
   const [selectedIncomeType, setSelectedIncomeType] = useState(null)
   const [buttonId, setButtonId] = useState(null)
   const [isOpen, setIsOpen] = useState(false)
@@ -216,11 +216,7 @@ export default function ControlSupervisor() {
     }
   }
 
-  useEffect(() => {
-
-    paymentsButtonControl()
-
-  }, [selectedEmployee, selectedBranch])
+  useEffect(paymentsButtonControl, [selectedEmployee, selectedBranch, loading])
 
   const extraOutgoingsButtonControl = () => {
 

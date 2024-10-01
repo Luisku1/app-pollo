@@ -55,11 +55,6 @@ export default function Entradas({ branchAndCustomerSelectOptions, products, dat
 
   }, [price])
 
-  if (isLoading) {
-
-    return <Loading></Loading>
-  }
-
   const inputButtonControl = () => {
 
     const weightInput = document.getElementById('input-weight')
@@ -88,6 +83,16 @@ export default function Entradas({ branchAndCustomerSelectOptions, products, dat
       button.disabled = true
     }
   }
+
+  useEffect(inputButtonControl, [selectedProduct, selectedCustomerBranchOption, loading])
+
+  if (isLoading) {
+
+    return <Loading></Loading>
+  }
+
+
+
 
   const changeInputsIsOpenValue = (value) => {
 

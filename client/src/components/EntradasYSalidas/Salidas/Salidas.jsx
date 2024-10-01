@@ -42,11 +42,42 @@ export default function Salidas({ branchAndCustomerSelectOptions, products, date
     setAmount((price * weight).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' }))
   }
 
+  const outputButtonControl = () => {
+
+    const weightInput = document.getElementById('output-weight')
+    const piecesInput = document.getElementById('output-pieces')
+    const button = document.getElementById('outputButton')
+
+    let filledInputs = true
+
+    if (piecesInput.value == '') {
+
+      filledInputs = false
+
+    }
+
+    if (weightInput.value == '') {
+
+      filledInputs = false
+    }
+
+    if (filledInputs && selectedCustomerBranchOption != null && selectedProduct != null && !loading) {
+
+      button.disabled = false
+
+    } else {
+
+      button.disabled = true
+    }
+  }
+
   useEffect(() => {
 
     generarMonto()
 
   }, [price])
+
+  useEffect(outputButtonControl, [selectedProduct, selectedCustomerBranchOption, loading])
 
   const handleOutputInputsChange = (e) => {
 
@@ -130,35 +161,6 @@ export default function Salidas({ branchAndCustomerSelectOptions, products, date
       ToastDanger(error.message)
       setLoading(false)
 
-    }
-  }
-
-  const outputButtonControl = () => {
-
-    const weightInput = document.getElementById('output-weight')
-    const piecesInput = document.getElementById('output-pieces')
-    const button = document.getElementById('outputButton')
-
-    let filledInputs = true
-
-    if (piecesInput.value == '') {
-
-      filledInputs = false
-
-    }
-
-    if (weightInput.value == '') {
-
-      filledInputs = false
-    }
-
-    if (filledInputs && selectedCustomerBranchOption != null && selectedProduct != null && !loading) {
-
-      button.disabled = false
-
-    } else {
-
-      button.disabled = true
     }
   }
 
