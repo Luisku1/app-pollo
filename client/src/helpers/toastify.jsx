@@ -1,9 +1,6 @@
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-
-
-
 // Función para mostrar una notificación de éxito
 function ToastSuccess(message) {
   toast.success(message);
@@ -27,7 +24,7 @@ function ToastInfo(message) {
 // Componente que muestra el contenedor de notificaciones
 function ToastContainerComponent() {
   return <ToastContainer
-    limit={1}
+    draggable={true}
     position='top-center'
 
   ></ToastContainer>;

@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
-import { deleteOutgoingFetch, deleteStockFetch, fetchPrices, fetchProducts } from '../helpers/FetchFunctions';
+import { deleteOutgoingFetch, fetchPrices, fetchProducts } from '../helpers/FetchFunctions';
 import { FaTrash } from 'react-icons/fa';
 import { useParams, useNavigate } from 'react-router-dom';
 import { MdKeyboardArrowDown, MdKeyboardArrowRight } from 'react-icons/md';
@@ -17,6 +17,9 @@ import { useLoading } from '../hooks/loading';
 import Loading from '../helpers/Loading';
 import { useOutgoings } from '../hooks/Outgoings/useOutgoings';
 import { useAddOutgoing } from '../hooks/Outgoings/useAddOutgoing';
+import { useStock } from '../hooks/Stock/useStock';
+import { useDeleteStock } from '../hooks/Stock/useDeleteStock';
+import { useAddStock } from '../hooks/Stock/useAddStock';
 
 export default function RegistroCuentaDiaria() {
 
@@ -35,6 +38,9 @@ export default function RegistroCuentaDiaria() {
   const { outgoings, outgoingsTotal, pushOutgoing, spliceOutgoing, updateOutgoingId, loading: outgoingLoading } = useOutgoings({ branchId, date: stringDatePickerValue })
   const { addOutgoing } = useAddOutgoing()
   const { branches } = useBranches({ companyId: company._id })
+  const { stock, totalStock, spliceStock, pushStock, updateLastStockId } = useStock({ branchId, date: stringDatePickerValue })
+  const { deleteStock } = useDeleteStock()
+  const { addStock } = useAddStock()
   const [outputs, setOutputs] = useState([])
   const [outputsTotal, setOutputsTotal] = useState(0.0)
   const [inputs, setInputs] = useState([])
@@ -42,8 +48,6 @@ export default function RegistroCuentaDiaria() {
   const [incomes, setIncomes] = useState([])
   const [incomesTotal, setIncomesTotal] = useState(0.0)
   const [initialStock, setInitialStock] = useState(0.0)
-  const [stockItems, setStockItems] = useState([])
-  const [stockTotal, setStockTotal] = useState(0.0)
   const [providerInputs, setProviderInputs] = useState([])
   const [providerInputsTotal, setProviderInputsTotal] = useState(0.0)
   const [inputsIsOpen, setInputsIsOpen] = useState(false)
@@ -52,7 +56,6 @@ export default function RegistroCuentaDiaria() {
   const [providerInputsIsOpen, setProviderInputsIsOpen] = useState(false)
   const [products, setProducts] = useState([])
   const [branchPrices, setPrices] = useState([])
-  const [productName, setProductName] = useState(null)
   const [isOpen, setIsOpen] = useState(false)
   const [buttonId, setButtonId] = useState(null)
   const [selectedEmployee, setSelectedEmployee] = useState()
@@ -130,8 +133,6 @@ export default function RegistroCuentaDiaria() {
 
   const handleStockInputsChange = (e) => {
 
-    console.log(stockFormData)
-
     setStockFormData({
       ...stockFormData,
       [e.target.id]: e.target.value,
@@ -180,31 +181,29 @@ export default function RegistroCuentaDiaria() {
   const stockButtonControl = () => {
 
     const productSelect = selectedProduct != null
-    const weightInput = document.getElementById('weight')
-    const button = document.getElementById('stock-button')
     const branchSelect = selectedBranch != null
     const employeeSelect = selectedEmployee != null
 
-    let filledInputs = true
+    if (branchSelect && employeeSelect && productSelect && !loading) {
 
-    if (productSelect.value == 'none') {
+      const weightInput = document.getElementById('weight')
+      const button = document.getElementById('stock-button')
 
-      filledInputs = false
+      let filledInputs = true
 
-    }
+      if (weightInput.value == '') {
 
-    if (weightInput.value == '') {
+        filledInputs = false
+      }
 
-      filledInputs = false
-    }
+      if (filledInputs) {
 
-    if (filledInputs && branchSelect && employeeSelect && productSelect && !loading) {
+        button.disabled = false
 
-      button.disabled = false
+      } else {
 
-    } else {
-
-      button.disabled = true
+        button.disabled = true
+      }
     }
   }
 
@@ -310,7 +309,6 @@ export default function RegistroCuentaDiaria() {
       const { pieces, weight } = stockFormData
 
       const stock = {
-
         pieces,
         weight,
         amount: amount,
@@ -322,36 +320,9 @@ export default function RegistroCuentaDiaria() {
         company: company._id
       }
 
-      const res = await fetch('/api/stock/create', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          pieces: stock.pieces,
-          weight: stock.weight,
-          amount: stock.amount,
-          price: stock.price,
-          employee: stock.employee.value,
-          product: stock.product.value,
-          branch: stock.branch.value,
-          createdAt: date,
-          company: company._id
-        })
-      })
-
-      const data = await res.json()
-
-      if (data.success === false) {
-
-        setError(data.message)
-        button.disabled = false
-        return
-      }
+      addStock({ stock, pushStock, spliceStock, updateLastStockId })
 
       setError(null)
-      setStockItems([stock, ...stockItems])
-      setStockTotal(stockTotal + data.stock.amount)
 
       weightInput.value = ''
       piecesInput.value = ''
@@ -363,22 +334,6 @@ export default function RegistroCuentaDiaria() {
       setError(error.message)
       button.disabled = false
     }
-  }
-
-  const deleteStockItem = async (stockId, index) => {
-
-    setLoading(true)
-
-    const { error } = await deleteStockFetch(stockId)
-
-
-    if (error == null) {
-
-      setStockTotal(stockTotal - parseFloat(stockItems[index].amount))
-      stockItems.splice(index, 1)
-    }
-
-    setLoading(false)
   }
 
   // const deleteProductLossItem = async (productLossItemId, index) => {
@@ -395,18 +350,6 @@ export default function RegistroCuentaDiaria() {
   //     productLosses.splice(index, 1)
   //   }
   // }
-
-
-
-  const setStockTotalFunction = (stockItems) => {
-
-    let total = 0
-    stockItems.forEach((stockItem) => {
-      total += parseFloat(stockItem.amount)
-    })
-
-    setStockTotal(total)
-  }
 
   const setInputsTotalFunction = (inputs) => {
 
@@ -491,7 +434,7 @@ export default function RegistroCuentaDiaria() {
           branch: selectedBranch.value,
           company: company._id,
           initialStock: initialStock,
-          finalStock: stockTotal,
+          finalStock: totalStock,
           inputs: inputsTotal + providerInputsTotal,
           outputs: outputsTotal,
           outgoings: outgoingsTotal,
@@ -539,7 +482,7 @@ export default function RegistroCuentaDiaria() {
           employee: selectedEmployee.value,
           assistant: assistant,
           initialStock: branchReport.initialStock != 0 ? initialStock : initialStock,
-          finalStock: stockTotal,
+          finalStock: totalStock,
           inputs: inputsTotal + providerInputsTotal,
           outputs: outputsTotal,
           outgoings: outgoingsTotal,
@@ -605,39 +548,6 @@ export default function RegistroCuentaDiaria() {
   }, [])
 
   useEffect(() => {
-
-    const fetchStock = async () => {
-
-      const date = new Date(stringDatePickerValue).toISOString()
-
-      setLoading(true)
-      setStockTotal(0.0)
-      setStockItems([])
-
-      try {
-
-        const res = await fetch('/api/stock/get-branch-stock/' + branchId + '/' + date)
-        const data = await res.json()
-
-        if (data.success === false) {
-
-          setError(data.message)
-          setLoading(false)
-          return
-        }
-
-        setStockItems(data.stock)
-        setStockTotalFunction(data.stock)
-        setError(null)
-
-        setLoading(false)
-
-      } catch (error) {
-
-        setError(error.message)
-        setLoading(false)
-      }
-    }
 
     const fetchInputs = async () => {
 
@@ -771,7 +681,6 @@ export default function RegistroCuentaDiaria() {
 
     const fetchs = () => {
 
-      fetchStock()
       fetchIncomes()
       fetchInputs()
       fetchProviderInputs()
@@ -1127,7 +1036,7 @@ export default function RegistroCuentaDiaria() {
 
             </form>
 
-            {stockItems && stockItems.length > 0 ?
+            {stock && stock.length > 0 ?
               <div id='header' className='grid grid-cols-12 gap-4 items-center justify-around font-semibold mt-4 mb-4'>
                 <p className='rounded-lg col-span-3 text-center'>Producto</p>
                 <p className='rounded-lg col-span-2 text-center'>Piezas</p>
@@ -1135,7 +1044,7 @@ export default function RegistroCuentaDiaria() {
                 <p className='rounded-lg col-span-3 text-center'>Monto</p>
               </div>
               : ''}
-            {stockItems && stockItems.length > 0 && stockItems.map((stock, index) => (
+            {stock && stock.length > 0 && stock.map((stock, index) => (
 
 
               <div key={stock._id} className={(currentUser._id == stock.employee || currentUser.role == managerRole._id ? '' : 'py-3 ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
@@ -1165,7 +1074,7 @@ export default function RegistroCuentaDiaria() {
                           </div>
                           <div className='flex gap-10'>
                             <div>
-                              <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteStockItem(stock._id, index), setIsOpen(isOpen ? false : true) }}>Si</button>
+                              <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteStock({ stock, spliceStock, index }), setIsOpen(isOpen ? false : true) }}>Si</button>
                             </div>
                             <div>
                               <button className='rounded-lg border shadow-lg w-20 h-10' onClick={() => { setIsOpen(!isOpen) }}>No</button>
@@ -1183,11 +1092,11 @@ export default function RegistroCuentaDiaria() {
 
             ))}
 
-            {stockItems && stockItems.length > 0 ?
+            {stock && stock.length > 0 ?
 
               <div className='flex mt-4 border-black border rounded-lg p-3 border-opacity-30 shadow-lg'>
                 <p className='w-6/12 text-center'>Total:</p>
-                <p className='w-6/12 text-center font-bold'>{stockTotal.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
+                <p className='w-6/12 text-center font-bold'>{totalStock.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
 
               </div>
 

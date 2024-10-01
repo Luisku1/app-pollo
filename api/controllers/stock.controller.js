@@ -166,7 +166,14 @@ export const getBranchDayStock = async (req, res, next) => {
 
     } else {
 
-      res.status(200).json({ stock: stockItems })
+      let totalStock = 0
+
+      stockItems.map((stock) => {
+
+        totalStock += stock.amount
+      })
+
+      res.status(200).json({ stock: stockItems, totalStock: totalStock })
     }
 
   } catch (error) {
