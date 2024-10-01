@@ -263,30 +263,6 @@ export const deleteOutputFetch = async (outputId) => {
   }
 }
 
-export const deleteInputFetch = async (inputId) => {
-
-  try {
-
-    const res = await fetch('/api/input/delete-input/' + inputId, {
-
-      method: 'DELETE'
-    })
-
-    const data = await res.json()
-
-    if (data.success === false) {
-
-      return { error: data.message, data: null }
-    }
-
-    return { error: null, data: null }
-
-  } catch (error) {
-
-    return { error: error.message, data: null }
-  }
-}
-
 export const deleteIncomeFetch = async (incomeId) => {
 
   try {

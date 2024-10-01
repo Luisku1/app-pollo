@@ -58,6 +58,7 @@ export default function RegistroCuentaDiaria() {
   const [selectedEmployee, setSelectedEmployee] = useState()
   const [selectedAssistant, setSelectedAssistant] = useState(null)
   const [selectedBranch, setSelectedBranch] = useState(null)
+  const [selectedProduct, setSelectedProduct] = useState(null)
   const navigate = useNavigate()
   const reportDate = (paramsDate ? new Date(paramsDate) : new Date()).toLocaleDateString('es-mx', { weekday: 'long', year: 'numeric', month: '2-digit', day: '2-digit' })
   const { branchReport, loading: repLoading } = useBranchReport({ branchId, date: stringDatePickerValue })
@@ -105,10 +106,9 @@ export default function RegistroCuentaDiaria() {
     )
   }
 
-  const saveProductName = (e) => {
+  const handleProductSelectChange = (option) => {
 
-    let index = e.target.selectedIndex
-    setProductName(e.target.options[index].text)
+    setSelectedProduct(option)
   }
 
   const getProductPrice = (productId) => {
@@ -129,6 +129,8 @@ export default function RegistroCuentaDiaria() {
   }
 
   const handleStockInputsChange = (e) => {
+
+    console.log(stockFormData)
 
     setStockFormData({
       ...stockFormData,
@@ -177,7 +179,7 @@ export default function RegistroCuentaDiaria() {
 
   const stockButtonControl = () => {
 
-    const productSelect = document.getElementById('product')
+    const productSelect = selectedProduct != null
     const weightInput = document.getElementById('weight')
     const button = document.getElementById('stock-button')
     const branchSelect = selectedBranch != null
@@ -196,7 +198,7 @@ export default function RegistroCuentaDiaria() {
       filledInputs = false
     }
 
-    if (filledInputs && branchSelect && employeeSelect && !loading) {
+    if (filledInputs && branchSelect && employeeSelect && productSelect && !loading) {
 
       button.disabled = false
 
@@ -205,6 +207,8 @@ export default function RegistroCuentaDiaria() {
       button.disabled = true
     }
   }
+
+  useEffect(stockButtonControl, [loading, selectedBranch, selectedEmployee, selectedProduct])
 
   // const productLossButtonControl = () => {
 
@@ -266,7 +270,7 @@ export default function RegistroCuentaDiaria() {
     conceptInput.focus()
     button.disabled = true
 
-    addOutgoing({outgoing, pushOutgoing, spliceOutgoing, updateOutgoingId})
+    addOutgoing({ outgoing, pushOutgoing, spliceOutgoing, updateOutgoingId })
 
     button.disabled = false
   }
@@ -281,7 +285,7 @@ export default function RegistroCuentaDiaria() {
 
     if (error == null) {
 
-      spliceOutgoing({index})
+      spliceOutgoing({ index })
     }
 
     setLoading(false)
@@ -295,13 +299,28 @@ export default function RegistroCuentaDiaria() {
 
     button.disabled = true
 
-    const productSelect = document.getElementById('product')
     const piecesInput = document.getElementById('pieces')
     const weightInput = document.getElementById('weight')
-    const amount = parseFloat(getProductPrice(productSelect.value) * stockFormData.weight)
+    const price = getProductPrice(selectedProduct.value)
+    const amount = parseFloat(price * stockFormData.weight)
     const date = today ? new Date().toISOString() : new Date(stringDatePickerValue).toISOString()
 
     try {
+
+      const { pieces, weight } = stockFormData
+
+      const stock = {
+
+        pieces,
+        weight,
+        amount: amount,
+        price,
+        employee: selectedEmployee,
+        product: selectedProduct,
+        branch: selectedBranch,
+        createdAt: date,
+        company: company._id
+      }
 
       const res = await fetch('/api/stock/create', {
         method: 'POST',
@@ -309,11 +328,13 @@ export default function RegistroCuentaDiaria() {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          ...stockFormData,
-          amount: amount,
-          employee: selectedEmployee.value,
-          product: productSelect.value,
-          branch: selectedBranch.value,
+          pieces: stock.pieces,
+          weight: stock.weight,
+          amount: stock.amount,
+          price: stock.price,
+          employee: stock.employee.value,
+          product: stock.product.value,
+          branch: stock.branch.value,
           createdAt: date,
           company: company._id
         })
@@ -328,16 +349,12 @@ export default function RegistroCuentaDiaria() {
         return
       }
 
-      data.stock.product = productName
-
       setError(null)
-      setStockItems([data.stock, ...stockItems])
+      setStockItems([stock, ...stockItems])
       setStockTotal(stockTotal + data.stock.amount)
 
       weightInput.value = ''
       piecesInput.value = ''
-
-      productSelect.focus()
 
       button.disabled = false
 
@@ -778,13 +795,20 @@ export default function RegistroCuentaDiaria() {
       if (error == null) {
 
         setError(null)
-        setProducts(data)
+        const products = data.map((product) => {
+
+          const { _id: value, name: label, ...rest } = product
+
+          return { value, label, ...rest }
+
+        })
+
+        setProducts(products)
 
       } else {
 
         setError(error)
       }
-
     }
 
     setProductsFunction()
@@ -1088,14 +1112,14 @@ export default function RegistroCuentaDiaria() {
 
             <form onSubmit={addStockItem} className="grid grid-cols-4 items-center justify-between">
 
-              <select name="product" id="product" onChange={(e) => { stockButtonControl(), saveProductName(e) }} className='border p-3 rounded-lg text-xs'>
-                <option value="none" selected hidden >Productos</option>
-
-                {products && products.length != 0 && products.map((product) => (
-
-                  <option key={product._id} value={product._id}>{product.name}</option>
-                ))}
-              </select>
+              <Select
+                styles={customSelectStyles}
+                options={products}
+                isSearchable={true}
+                value={selectedProduct}
+                onChange={handleProductSelectChange}
+                placeholder={'Productos'}
+              />
 
               <input type="number" name="pieces" id="pieces" placeholder='Piezas' step={0.1} className='border p-3 rounded-lg' required onInput={stockButtonControl} onChange={handleStockInputsChange} />
               <input type="number" name="weight" id="weight" placeholder='0.00 kg' step={0.01} className='border p-3 rounded-lg' required onInput={stockButtonControl} onChange={handleStockInputsChange} />
@@ -1117,7 +1141,7 @@ export default function RegistroCuentaDiaria() {
               <div key={stock._id} className={(currentUser._id == stock.employee || currentUser.role == managerRole._id ? '' : 'py-3 ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
 
                 <div id='list-element' className='flex col-span-10 items-center '>
-                  <p className='text-center w-4/12'>{stock.product.name ? stock.product.name : stock.product}</p>
+                  <p className='text-center w-4/12'>{stock.product.name ?? stock.product.label}</p>
                   <p className='text-center w-4/12'>{stock.pieces}</p>
                   <p className='text-center w-4/12'>{stock.weight}</p>
                   <p className='text-right w-4/12'>{stock.amount.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>

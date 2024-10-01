@@ -7,12 +7,12 @@ import { pricesAggregate } from "./price.controller.js";
 
 export const createStock = async (req, res, next) => {
 
-  const { pieces, weight, amount, branch, product, company, employee, createdAt } = req.body
+  const { pieces, weight, price, amount, branch, product, company, employee, createdAt } = req.body
 
   console.log(createdAt)
   try {
 
-    const newStock = new Stock({ pieces, employee, weight, amount, branch, product, company, createdAt })
+    const newStock = new Stock({ pieces, price, employee, weight, amount, branch, product, company, createdAt })
     await newStock.save()
 
     // await updateReportStock(branch, createdAt, amount)

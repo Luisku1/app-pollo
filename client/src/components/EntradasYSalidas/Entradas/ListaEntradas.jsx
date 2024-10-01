@@ -3,31 +3,17 @@ import { useState } from 'react'
 import { useSelector } from 'react-redux'
 import { MdCancel } from 'react-icons/md'
 import SectionHeader from '../../SectionHeader'
-import { deleteInputFetch } from '../../../helpers/FetchFunctions'
 import { FaTrash } from 'react-icons/fa'
+import { useDeleteInput } from '../../../hooks/Inputs/useDeleteInput'
 
 export default function ListaEntradas({ inputs, spliceInput, changeInputsIsOpenValue, inputsIsOpen, roles }) {
 
   const { currentUser } = useSelector((state) => state.user)
-  const [loading, setLoading] = useState(false)
   const [selectedInput, setSelectedInput] = useState(null)
+  const {deleteInput, loading} = useDeleteInput()
   const [movementDetailsIsOpen, setMovementDetailsIsOpen] = useState(false)
   const [deleteInputIdButton, setDeleteOutputIdButton] = useState(null)
   const [confirmationIsOpen, setConfirmationIsOpen] = useState(false)
-
-  const deleteInput = async (outputId, index) => {
-
-    setLoading(true)
-
-    const { error } = await deleteInputFetch(outputId)
-
-    setLoading(false)
-
-    if (error == null) {
-
-      spliceInput(index)
-    }
-  }
 
   const ShowInputDetails = (props) => {
 
@@ -146,7 +132,7 @@ export default function ListaEntradas({ inputs, spliceInput, changeInputsIsOpenV
                           </div>
                           <div className='flex gap-10'>
                             <div>
-                              <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteInput(input._id, index), setConfirmationIsOpen(!confirmationIsOpen) }}>Si</button>
+                              <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteInput({input, spliceInput, index}), setConfirmationIsOpen(!confirmationIsOpen) }}>Si</button>
                             </div>
                             <div>
                               <button className='rounded-lg border shadow-lg w-20 h-10' onClick={() => { setConfirmationIsOpen(!confirmationIsOpen) }}>No</button>
