@@ -11,6 +11,7 @@ export const useCreateProviderInput = () => {
     setLoading(true)
 
     pushProviderInput({ providerInput })
+    ToastSuccess(`Se creó la entrada de ${providerInput.product.label}`)
 
     createProviderInputFetch({
       providerInput: {
@@ -29,7 +30,6 @@ export const useCreateProviderInput = () => {
       }, group
     }).then((response) => {
 
-      ToastSuccess('Se creó la entrada de proveedor')
       updateLastProviderInputId({providerInputId: response._id})
 
     }).catch((error) => {

@@ -11,6 +11,7 @@ export const useAddOutput = () => {
     setLoading(true)
 
     pushOutput({ output })
+    ToastSuccess(`Se guardó la salida de ${output.product.label}`)
 
     addOutputFetch({
       output: {
@@ -29,15 +30,13 @@ export const useAddOutput = () => {
       }, group
     }).then((response) => {
 
-      console.log(response)
       updateLastOutputId({ outputId: response._id })
-      ToastSuccess(`Se guardó la salida de ${output.product.label}`)
 
     }).catch((error) => {
 
       console.log(error)
       spliceOutput({ index: 0 })
-      ToastDanger(error.message)
+      ToastDanger(`Se guardó la salida de ${output.product.label}`)
     })
 
     setLoading(false)

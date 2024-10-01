@@ -19,8 +19,6 @@ export const useProviderInputs = ({ companyId, productId, date }) => {
 
   const pushProviderInput = ({ providerInput }) => {
 
-    console.log(providerInput)
-
     setProviderInputs((prevProviderInputs) => [providerInput, ...prevProviderInputs])
     setProviderInputsWeight((prevTotal) => parseFloat(providerInput.weight) + prevTotal)
     setProviderInputsPieces((prevTotal) => parseFloat(providerInput.pieces) + prevTotal)

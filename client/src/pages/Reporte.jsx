@@ -31,8 +31,12 @@ export default function Reporte() {
   const [filteredIds, setFilteredIds] = useState([])
   const [all, setAll] = useState(true)
   const navigate = useNavigate()
+
+
   let datePickerValue = (paramsDate ? new Date(paramsDate) : new Date())
   let stringDatePickerValue = formatDate(datePickerValue)
+
+  console.log(stringDatePickerValue)
 
   const changeDatePickerValue = (e) => {
 
@@ -221,7 +225,7 @@ export default function Reporte() {
 
     const fetchBranchesReports = async () => {
 
-      const date = new Date(stringDatePickerValue).toISOString()
+      const date = new Date(stringDatePickerValue).toISOString() ?? (new date()).toISOString()
 
       setIncomesTotal(0.0)
       setStockTotal(0.0)

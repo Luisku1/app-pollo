@@ -51,7 +51,7 @@ export const getInitialStock = async (req, res, next) => {
   }
 }
 
-const getStockValue = async (date, branchId, reportExists, reportDate, next) => {
+export const getStockValue = async (date, branchId, reportExists, reportDate, next) => {
 
   let pricesDate
 

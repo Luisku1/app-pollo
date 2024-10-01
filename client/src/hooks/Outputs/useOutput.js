@@ -36,7 +36,6 @@ export const useOutput = ({ companyId, date }) => {
 
     getOutputs({ companyId, date }).then((response) => {
 
-      console.log(response)
       setOutputs(response.outputs)
       setTotalWeight(response.totalWeight)
 

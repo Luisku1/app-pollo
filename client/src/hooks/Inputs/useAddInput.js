@@ -11,6 +11,7 @@ export const useAddInput = () => {
     setLoading(true)
 
     pushInput({ input })
+    ToastSuccess(`Se guardó la salida de ${input.product.label}`)
 
     addInputFetch({
       input: {
@@ -31,13 +32,12 @@ export const useAddInput = () => {
     }).then((response) => {
 
       updateLastInputId({ inputId: response._id })
-      ToastSuccess(`Se guardó la salida de ${input.product.label}`)
 
     }).catch((error) => {
 
       spliceInput({ index: 0 })
       console.log(error)
-      ToastDanger(error.message)
+      ToastDanger(`No se guardó la salida de ${input.product.label}`)
     })
 
     setLoading(false)

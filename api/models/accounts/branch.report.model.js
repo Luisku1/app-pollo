@@ -9,28 +9,63 @@ const branchReportSchema = mongoose.Schema({
 
   finalStock: {
     type: Number,
-    required: true
+    default: 0
   },
+
+  finalStockArray: [{
+    type: Schema.Types.ObjectId, ref: 'Stock',
+    required: true
+  }],
 
   inputs: {
     type: Number,
-    required: true
+    default: 0
   },
+
+  inputsArray: [{
+    type: Schema.Types.ObjectId, ref: 'Input',
+    required: true
+  }],
+
+  providerInputs: {
+    type: Number,
+    default: 0
+  },
+
+  providerInputsArray: [{
+    type: Schema.Types.ObjectId, ref: 'ProviderInput',
+    required: true
+  }],
 
   outputs: {
     type: Number,
-    required: true
+    default: 0
   },
+
+  outputsArray: [{
+    type: Schema.Types.ObjectId, ref: 'Output',
+    required: true
+  }],
 
   outgoings: {
     type: Number,
-    required: true
+    default: 0
   },
+
+  outgoingsArray: [{
+    type: Schema.Types.ObjectId, ref: 'Outgoing',
+    required: true
+  }],
 
   incomes: {
     type: Number,
-    required: true
+    default: 0
   },
+
+  incomesArray: [{
+    type: Schema.Types.ObjectId, ref: 'IncomeCollected',
+    required: true
+  }],
 
   balance: {
     type: Number,
@@ -49,24 +84,18 @@ const branchReportSchema = mongoose.Schema({
 
   employee: {
     type: Schema.Types.ObjectId, ref: 'Employee',
-    required: true
   },
 
   assistant: {
     type: Schema.Types.ObjectId, ref: 'Employee'
   },
 
-  reportData: {
-
-    type: Schema.Types.ObjectId, ref: 'ReportData',
-    required: true
-  },
-
-  createdAt: {
+  dateSent: {
     type: Date,
-    required: true
+    required: false
   }
-})
+
+}, { timestamps: { createdAt: true, updatedAt: false } })
 
 const BranchReport = mongoose.model('BranchReport', branchReportSchema)
 

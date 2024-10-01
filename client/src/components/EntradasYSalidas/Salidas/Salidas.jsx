@@ -31,8 +31,6 @@ export default function Salidas({ branchAndCustomerSelectOptions, products, date
 
   const isLoading = useLoading(outputLoading)
 
-  console.log(outputs)
-
   const generarMonto = () => {
 
     const priceInput = document.getElementById('output-price')

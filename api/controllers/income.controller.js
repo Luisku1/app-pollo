@@ -156,8 +156,6 @@ export const getIncomes = async (req, res, next) => {
 
     if (incomes.length > 0) {
 
-      console.log(incomes)
-
       let total = 0
       const branchesIncomes = []
       const customersIncomes = []

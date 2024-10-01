@@ -5,7 +5,6 @@ export const getIncomesFetch = async ({ companyId, date }) => {
 
   if (data.success === false) {
 
-    console.log(data)
     throw new Error("No se encontraron efectivos");
 
   }

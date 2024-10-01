@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { addOutgoingFetch } from '../../services/Outgoings/addOutgoing'
-import { ToastSuccess } from '../../helpers/toastify'
+import { ToastDanger, ToastSuccess } from '../../helpers/toastify'
 
 export const useAddOutgoing = () => {
 
@@ -9,15 +9,16 @@ export const useAddOutgoing = () => {
   const addOutgoing = async ({ outgoing, pushOutgoing, spliceOutgoing, updateOutgoingId }) => {
 
     pushOutgoing({ outgoing })
+    ToastSuccess(`Se agregó el gasto de "${outgoing.concept.toLowerCase()}"`)
 
     addOutgoingFetch({ outgoing }).then((response) => {
 
       updateOutgoingId(outgoing._id, response._id)
-      ToastSuccess(`Se agregó el gasto "${outgoing.concept}"`)
 
     }).catch((error) => {
 
       spliceOutgoing(0)
+      ToastDanger(`No se agregó el gasto de "${outgoing.concept.toLowerCase()}"`)
       setError(error)
     })
   }

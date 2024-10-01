@@ -11,6 +11,7 @@ export const useAddIncome = () => {
     setLoading(true)
 
     pushIncome({ income })
+    ToastSuccess(`Se registró el efectivo de ${income.amount.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}`)
 
     addIncomeFetch({
       income: {
@@ -27,16 +28,16 @@ export const useAddIncome = () => {
     }).then((response) => {
 
       updateLastIncomeId({ incomeId: response._id })
-      ToastSuccess(`Se registró el efectivo de ${income.amount.toLocaleString('es-Mx', {style: 'currency', currency: 'MXN'})}`)
 
     }).catch((error) => {
 
       spliceIncome({ index: 0 })
-      ToastDanger(error.message)
+      ToastDanger(`No se registró el efectivo de ${income.amount.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}`)
+      console.log(error)
     })
 
     setLoading(false)
   }
 
-  return {addIncome, loading}
+  return { addIncome, loading }
 }

@@ -15,8 +15,6 @@ export default function ListaSalidas({ outputs, changeOutputsIsOpenValue, output
   const [deleteOutputIdButton, setDeleteOutputIdButton] = useState(null)
   const [confirmationIsOpen, setConfirmationIsOpen] = useState(false)
 
-  console.log(outputs)
-
   const deleteOutput = async (outputId, index) => {
 
     setLoading(true)
