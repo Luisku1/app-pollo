@@ -852,6 +852,44 @@ export default function RegistroCuentaDiaria() {
     }
   }, [selectedBranch, stringDatePickerValue])
 
+  const customStockSelectStyles = {
+    container: (provided) => ({
+      ...provided,
+      width: 'fit', // Fija el ancho del select
+      borderRadius: '0.5rem',
+      border: 'black'
+    }),
+    control: (provided) => ({
+      ...provided,
+      minHeight: 'auto', // Ajusta la altura del control
+      height: 'fit', // Altura fija
+      overflow: 'hidden', // Evita expansión
+      borderRadius: '0.5rem',
+      border: '1px solid black',
+      padding: '.25rem',
+      fontSize: '14px'
+    }),
+    singleValue: (provided) => ({
+      ...provided,
+      whiteSpace: 'nowrap', // Evita el salto de línea
+      overflow: 'hidden', // Oculta el desbordamiento
+      textOverflow: 'ellipsis', // Agrega puntos suspensivos
+    }),
+    clearIndicator: (provided) => ({
+      ...provided,
+      cursor: 'pointer', // Asegura que el botón sea clickeable
+    }),
+    dropdownIndicator: (provided) => ({
+      ...provided,
+      display: 'none', // Oculta el Dropdown Indicator
+    }),
+    placeholder: (provided) => ({
+      ...provided,
+      fontSize: '14px',
+      color: 'black',
+    }),
+  }
+
   return (
 
     <main className="p-3 max-w-lg mx-auto">
@@ -1024,7 +1062,7 @@ export default function RegistroCuentaDiaria() {
             <form onSubmit={addStockItem} className="grid grid-cols-4 items-center justify-between">
 
               <Select
-                styles={customSelectStyles}
+                styles={customStockSelectStyles}
                 options={products}
                 isSearchable={true}
                 value={selectedProduct}
