@@ -220,6 +220,8 @@ export const getBranchSalesAverage = async (req, res, next) => {
 	}
 }
 
+
+
 export const deleteBranch = async (req, res, next) => {
 
 	const branchId = req.params.branchId

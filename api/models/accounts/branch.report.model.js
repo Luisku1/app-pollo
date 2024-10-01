@@ -90,9 +90,12 @@ const branchReportSchema = mongoose.Schema({
     type: Schema.Types.ObjectId, ref: 'Employee'
   },
 
+  reportData: {
+    type: Schema.Types.ObjectId, ref: 'ReportData'
+  },
+
   dateSent: {
-    type: Date,
-    required: false
+    type: Date
   }
 
 }, { timestamps: { createdAt: true, updatedAt: false } })
