@@ -98,7 +98,9 @@ export default function Salidas({ branchAndCustomerSelectOptions, products, date
     const weightInput = document.getElementById('output-weight')
     const commentInput = document.getElementById('output-comment')
     const priceInput = document.getElementById('output-price')
-    const date = today ? new Date().toISOString() : new Date(date).toISOString()
+    const date = today() ? new Date().toISOString() : new Date(date).toISOString()
+
+    console.log(date)
 
     e.preventDefault()
 
