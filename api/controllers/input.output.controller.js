@@ -689,6 +689,11 @@ export const getProviderProductInputs = async (req, res, next) => {
         providerInputsAmount += input.amount
       })
 
+      providerInputs.sort((providerInput, nextProviderInput) => {
+
+        return providerInput.branch.position - nextProviderInput.branch.position
+      })
+
       res.status(200).json({ providerInputs: providerInputs, providerInputsWeight, providerInputsPieces, providerInputsAmount })
 
     } else {

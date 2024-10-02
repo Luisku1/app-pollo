@@ -10,13 +10,14 @@ import { customSelectStyles } from "../helpers/Constants";
 import MenuSucursal from "../components/EntradasDeProveedor/MenuSucursal";
 import { useProviderInputs } from "../hooks/ProviderInputs/useProviderInputs";
 import { useDeleteProviderInput } from "../hooks/ProviderInputs/useDeleteProviderInput";
+import { stringToCurrency } from "../helpers/Functions";
 
 export default function EntradaInicial({ date, branchAndCustomerSelectOptions, products, roles }) {
 
   const { company, currentUser } = useSelector((state) => state.user)
   const [selectedProduct, setSelectedProduct] = useState(null)
   const { deleteProviderInput, loading: deletingLoading } = useDeleteProviderInput()
-  const { providerInputs, providerInputsWeight, providerInputsPieces, pushProviderInput, spliceProviderInput, updateLastProviderInputId } = useProviderInputs({ companyId: company._id, productId: selectedProduct == null ? products.length > 0 ? products[0].value : null : selectedProduct.value, date })
+  const { providerInputs, providerInputsWeight, providerInputsPieces, providerInputsAmount, pushProviderInput, spliceProviderInput, updateLastProviderInputId } = useProviderInputs({ companyId: company._id, productId: selectedProduct == null ? products.length > 0 ? products[0].value : null : selectedProduct.value, date })
   const [showProviderInputs, setShowProviderInputs] = useState(false)
   const [showProviderInputsStats, setShowProviderInputsStats] = useState(false)
   const [buttonId, setButtonId] = useState(null)
@@ -100,7 +101,7 @@ export default function EntradaInicial({ date, branchAndCustomerSelectOptions, p
               <button className="w-10 h-10 rounded-lg shadow-lg" onClick={() => setShowProviderInputsStats(true)}><BsInfoSquare className="h-full w-full text-red-600" />
               </button>
             </div>
-            <p className='font-bold text-lg text-red-700 text-center'>{`${providerInputsWeight.toFixed(2)} Kg / ${providerInputsPieces}`}<sup>u</sup></p>
+            <p className='font-bold text-lg'><span className=" text-red-700 text-center">{`${providerInputsWeight.toFixed(2)} Kg / ${providerInputsPieces}`}</span><sup className="text-red-700">u</sup><span>:</span><span className="text-green-700">{` ${stringToCurrency({amount: providerInputsAmount})}`}</span></p>
           </div>
           <h2 className='text-2xl font-semibold mb-4 text-red-800'>
             <div className="">
@@ -179,7 +180,7 @@ export default function EntradaInicial({ date, branchAndCustomerSelectOptions, p
                                 </div>
                                 <div className='flex gap-10'>
                                   <div>
-                                    <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteProviderInput({ providerInput: providerInput, spliceProviderInput, pushProviderInput }), setIsOpen(!isOpen) }}>Si</button>
+                                    <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteProviderInput({ providerInput, spliceProviderInput, pushProviderInput }), setIsOpen(!isOpen) }}>Si</button>
                                   </div>
                                   <div>
                                     <button className='rounded-lg border shadow-lg w-20 h-10' onClick={() => { setIsOpen(!isOpen) }}>No</button>

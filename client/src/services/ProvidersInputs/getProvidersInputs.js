@@ -9,5 +9,5 @@ export const getProvidersInputs = async ({companyId, productId, date}) => {
 
   }
 
-  return {providerInputs: data.providerInputs, providerInputsWeight: data.providerInputsWeight, providerInputsPieces: data.providerInputsPieces}
+  return {providerInputs: data.providerInputs, providerInputsAmount: data.providerInputsAmount, providerInputsWeight: data.providerInputsWeight, providerInputsPieces: data.providerInputsPieces}
 }

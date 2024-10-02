@@ -181,8 +181,8 @@ export const recalculateBranchReport = async ({ branchId, date }) => {
 
 export const updateBranchReport = async (req, res, next) => {
 
-  const { branchReport, employee, assistant, branch, company, initialStock, finalStock, inputs, outputs, outgoings, incomes } = req.body
-  const inputBalance = initialStock + inputs
+  const { branchReport, employee, assistant, branch, company, providerInputs, initialStock, finalStock, inputs, outputs, outgoings, incomes } = req.body
+  const inputBalance = initialStock + inputs + providerInputs
   const outputBalance = outgoings + outputs + incomes + finalStock
   const balance = outputBalance - inputBalance
 
@@ -281,7 +281,7 @@ export const getBranchReport = async (req, res, next) => {
 
 export const fetchBranchReport = async ({ branchId, date, populate = false }) => {
 
-  const { bottomDate, topDate } = getDayRange(date)
+  const { bottomDate, topDate } = getDayRange(new Date(date))
 
   try {
 

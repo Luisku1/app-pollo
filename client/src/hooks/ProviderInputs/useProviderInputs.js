@@ -6,6 +6,7 @@ export const useProviderInputs = ({ companyId, productId, date }) => {
   const [providerInputs, setProviderInputs] = useState([])
   const [providerInputsWeight, setProviderInputsWeight] = useState(0.0)
   const [providerInputsPieces, setProviderInputsPieces] = useState(0)
+  const [providerInputsAmount, setProviderInputsAmount] = useState(0.0)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
@@ -42,6 +43,7 @@ export const useProviderInputs = ({ companyId, productId, date }) => {
     getProvidersInputs({ companyId, productId, date }).then((response) => {
 
       setProviderInputs(response.providerInputs)
+      setProviderInputsAmount(response.providerInputsAmount)
       setProviderInputsWeight(response.providerInputsWeight)
       setProviderInputsPieces(response.providerInputsPieces)
 
@@ -54,5 +56,5 @@ export const useProviderInputs = ({ companyId, productId, date }) => {
 
   }, [companyId, date, productId])
 
-  return { providerInputs, providerInputsWeight, providerInputsPieces, pushProviderInput, spliceProviderInput, updateLastProviderInputId, loading, error }
+  return { providerInputs, providerInputsAmount, providerInputsWeight, providerInputsPieces, pushProviderInput, spliceProviderInput, updateLastProviderInputId, loading, error }
 }
