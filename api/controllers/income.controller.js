@@ -10,8 +10,6 @@ export const newBranchIncomeQuery = async (req, res, next) => {
 
   try {
 
-    console.log(createdAt)
-
     const newIncome = await newBranchIncomeFunction({ amount, company, branch, employee, type, createdAt })
 
     res.status(201).json({ message: 'New income created successfully', income: newIncome })
@@ -240,8 +238,6 @@ export const deleteIncome = async (incomeId) => {
 
   const income = await IncomeCollected.findById(incomeId)
   const deleted = await IncomeCollected.deleteOne({ _id: incomeId })
-
-  console.log(deleted)
 
   if (deleted.deletedCount > 0) {
 

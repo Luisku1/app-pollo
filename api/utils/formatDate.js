@@ -24,8 +24,7 @@ export const today = (date) => {
 export const getDayRange = (date) => {
 
   const formatedDate = formatDate((new Date(date)).toUTCString() ?? (new Date()).toUTCString())
-  const principalDate = convertTZ(new Date(formatedDate))
-  console.log(principalDate)
+  const principalDate = new Date(formatedDate)
   const datePlusOne = new Date(principalDate.toISOString())
   datePlusOne.setDate(datePlusOne.getDate() + 1)
 
