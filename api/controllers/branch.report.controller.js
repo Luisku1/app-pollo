@@ -15,8 +15,6 @@ export const createBranchReport = async (req, res, next) => {
   const balance = outputBalance - inputBalance
   const createdAt = date
 
-  console.log(balance)
-
   const { bottomDate, topDate } = getDayRange(createdAt)
 
   try {
@@ -260,8 +258,6 @@ export const getBranchReport = async (req, res, next) => {
   const branchId = req.params.branchId
   const date = new Date(req.params.date)
 
-  console.log('primera', date)
-
   try {
 
     const branchReport = await fetchBranchReport({ branchId, date })
@@ -283,10 +279,7 @@ export const getBranchReport = async (req, res, next) => {
 
 export const fetchBranchReport = async ({ branchId, date, populate = false }) => {
 
-  console.log(date, branchId)
-  console.log(date)
-
-  const { bottomDate, topDate } = getDayRange(new Date(date))
+  const { bottomDate, topDate } = getDayRange(date)
 
   try {
 
