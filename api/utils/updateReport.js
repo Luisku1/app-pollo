@@ -5,7 +5,7 @@ export const updateReportIncomes = async (branchId, reportDate, amount) => {
 
   try {
 
-    const branchReport = await fetchBranchReport(branchId, reportDate)
+    const branchReport = await fetchBranchReport({branchId, date: reportDate})
 
     if (branchReport != null || branchReport != undefined) {
 
@@ -28,7 +28,7 @@ export const updateReportIncomes = async (branchId, reportDate, amount) => {
 
 export const updateReportOutgoings = async (branchId, reportDate, amount) => {
 
-  const branchReport = await fetchBranchReport(branchId, reportDate)
+  const branchReport = await fetchBranchReport({branchId, date: reportDate})
 
   if (branchReport != null || branchReport != undefined) {
 
@@ -45,7 +45,7 @@ export const updateReportOutgoings = async (branchId, reportDate, amount) => {
 
 export const updateReportInputs = async (branchId, reportDate, amount) => {
 
-  const branchReport = await fetchBranchReport(branchId, reportDate)
+  const branchReport = await fetchBranchReport({branchId, date: reportDate})
 
   if (branchReport != null || branchReport != undefined) {
 
@@ -62,7 +62,7 @@ export const updateReportInputs = async (branchId, reportDate, amount) => {
 
 export const updateReportOutputs = async (branchId, reportDate, amount) => {
 
-  const branchReport = await fetchBranchReport(branchId, reportDate)
+  const branchReport = await fetchBranchReport({branchId, date: reportDate})
 
   if (branchReport != null || branchReport != undefined) {
 
@@ -79,7 +79,7 @@ export const updateReportOutputs = async (branchId, reportDate, amount) => {
 
 export const updateReportProviderInputs = async (branchId, reportDate, amount) => {
 
-  const branchReport = await fetchBranchReport(branchId, reportDate)
+  const branchReport = await fetchBranchReport({branchId, date: reportDate})
 
   if (branchReport != null || branchReport != undefined) {
 
@@ -96,7 +96,7 @@ export const updateReportProviderInputs = async (branchId, reportDate, amount) =
 
 export const updateReportStock = async (branchId, reportDate, amount) => {
 
-  const branchReport = await fetchBranchReport(branchId, reportDate)
+  const branchReport = await fetchBranchReport({branchId, date: reportDate})
 
   if (branchReport != null || branchReport != undefined) {
 
@@ -114,7 +114,7 @@ export const updateReportStock = async (branchId, reportDate, amount) => {
   const nextReportDate = new Date(reportDate)
   nextReportDate.setDate(nextReportDate.getDate() + 1)
 
-  const nextBranchReport = await fetchBranchReport(branchId, nextReportDate)
+  const nextBranchReport = await fetchBranchReport({branchId, date: nextReportDate})
 
   if (nextBranchReport != null || nextBranchReport != undefined) {
 

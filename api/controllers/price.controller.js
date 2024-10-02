@@ -116,7 +116,7 @@ export const initializeBranchPrices = async (req, res, next) => {
 export const getBranchCurrentPrices = async (req, res, next) => {
 
   const branchId = req.params.branchId
-  const date = req.params.date
+  const date = new Date(req.params.date)
 
   try {
 
@@ -139,9 +139,10 @@ export const getBranchCurrentPrices = async (req, res, next) => {
 
 const getPrices = async (branchId, date) => {
 
+  console.log('precios', date)
   let finalDate
 
-  const branchReport = await fetchBranchReport(branchId, date)
+  const branchReport = await fetchBranchReport({branchId, date})
 
   if (branchReport && Object.getOwnPropertyNames(branchReport).length > 0) {
 
