@@ -380,7 +380,7 @@ export const getEmployeePayments = async (req, res, next) => {
 
 export const getEmployeesPaymentsQuery = async (req, res, next) => {
 
-	const { bottomDate, topDate } = getDayRange(new Date(req.params.date))
+	const { bottomDate, topDate } = getDayRange(req.params.date)
 	const companyId = req.params.companyId
 
 	try {

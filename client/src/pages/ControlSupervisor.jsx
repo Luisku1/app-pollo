@@ -597,7 +597,7 @@ export default function ControlSupervisor() {
 
     const fetchLoans = async () => {
 
-      const date = new Date(stringDatePickerValue).toISOString()
+      const date = today() ? new Date().toISOString() : new Date(stringDatePickerValue).toISOString()
 
       setLoading(true)
 
