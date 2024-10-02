@@ -15,16 +15,16 @@ import { ToastDanger } from "../../../helpers/toastify"
 import { useBranchCustomerProductPrice } from "../../../hooks/Prices/useBranchCustomerProductPrice"
 import { useAddOutput } from "../../../hooks/Outputs/useAddOutput"
 
-export default function Salidas({ branchAndCustomerSelectOptions, products, date, roles }) {
+export default function Salidas({ branchAndCustomerSelectOptions, products, date: dateParams, roles }) {
 
   const { company, currentUser } = useSelector((state) => state.user)
-  const { outputs, totalWeight, pushOutput, spliceOutput, loading: outputLoading, updateLastOutputId } = useOutput({ companyId: company._id, date })
+  const { outputs, totalWeight, pushOutput, spliceOutput, loading: outputLoading, updateLastOutputId } = useOutput({ companyId: company._id, date: dateParams })
   const [outputsIsOpen, setOutputsIsOpen] = useState(false)
   const [outputFormData, setOutputFormData] = useState({})
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [selectedCustomerBranchOption, setSelectedCustomerBranchOption] = useState(null)
   const [selectedGroup, setSelectedGroup] = useState('');
-  const { price } = useBranchCustomerProductPrice({ branchCustomerId: selectedCustomerBranchOption ? selectedCustomerBranchOption.value : null, productId: selectedProduct ? selectedProduct.value : null, date, group: selectedGroup == '' ? null : selectedGroup })
+  const { price } = useBranchCustomerProductPrice({ branchCustomerId: selectedCustomerBranchOption ? selectedCustomerBranchOption.value : null, productId: selectedProduct ? selectedProduct.value : null, date: dateParams, group: selectedGroup == '' ? null : selectedGroup })
   const { addOutput } = useAddOutput()
   const [amount, setAmount] = useState('$0.00')
   const [loading, setLoading] = useState(false)
@@ -98,7 +98,7 @@ export default function Salidas({ branchAndCustomerSelectOptions, products, date
     const weightInput = document.getElementById('output-weight')
     const commentInput = document.getElementById('output-comment')
     const priceInput = document.getElementById('output-price')
-    const date = today() ? new Date().toISOString() : new Date(date).toISOString()
+    const date = today() ? new Date().toISOString() : new Date(dateParams).toISOString()
 
     console.log(date)
 

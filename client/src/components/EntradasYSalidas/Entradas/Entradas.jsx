@@ -15,7 +15,7 @@ import { ToastDanger } from '../../../helpers/toastify'
 import { useBranchCustomerProductPrice } from '../../../hooks/Prices/useBranchCustomerProductPrice'
 import { useAddInput } from '../../../hooks/Inputs/useAddInput'
 
-export default function Entradas({ branchAndCustomerSelectOptions, products, date, roles }) {
+export default function Entradas({ branchAndCustomerSelectOptions, products, date: dateParams, roles }) {
 
   const { company, currentUser } = useSelector((state) => state.user)
   const [inputFormData, setInputFormData] = useState({})
@@ -26,13 +26,13 @@ export default function Entradas({ branchAndCustomerSelectOptions, products, dat
     spliceInput,
     updateLastInputId,
     loading: prodLoading
-  } = useInputs({ companyId: company._id, date })
+  } = useInputs({ companyId: company._id, date: dateParams })
   const { addInput } = useAddInput()
   const [inputsIsOpen, setInputsIsOpen] = useState(false)
   const [selectedCustomerBranchOption, setSelectedCustomerBranchOption] = useState(null)
   const [selectedGroup, setSelectedGroup] = useState('')
   const [selectedProduct, setSelectedProduct] = useState(null)
-  const { price } = useBranchCustomerProductPrice({ branchCustomerId: selectedCustomerBranchOption ? selectedCustomerBranchOption.value : null, productId: selectedProduct ? selectedProduct.value : null, date, group: selectedGroup == '' ? null : selectedGroup })
+  const { price } = useBranchCustomerProductPrice({ branchCustomerId: selectedCustomerBranchOption ? selectedCustomerBranchOption.value : null, productId: selectedProduct ? selectedProduct.value : null, date: dateParams, group: selectedGroup == '' ? null : selectedGroup })
   const [amount, setAmount] = useState('$0.00')
   const [loading, setLoading] = useState(false)
 
@@ -122,7 +122,7 @@ export default function Entradas({ branchAndCustomerSelectOptions, products, dat
     const weightInput = document.getElementById('input-weight')
     const commentInput = document.getElementById('input-comment')
     const priceInput = document.getElementById('input-price')
-    const date = today() ? new Date().toISOString() : new Date(date).toISOString()
+    const date = today() ? new Date().toISOString() : new Date(dateParams).toISOString()
 
     e.preventDefault()
 
