@@ -60,7 +60,7 @@ export const getStockValue = async (date, branchId, reportExists, reportDate) =>
   actualLocaleDateMinusOne.setDate(actualLocaleDateMinusOne.getDate() - 1)
 
   const actualLocaleDayMinusOne = actualLocaleDateMinusOne.toISOString().slice(0, 10)
-  const actualLocaleDay = date.toISOString().slice(0, 10)
+  const actualLocaleDay = new Date(date).toISOString().slice(0, 10)
 
   const topDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
   const bottomDate = new Date(actualLocaleDayMinusOne + 'T00:00:00.000-06:00')

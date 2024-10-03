@@ -162,6 +162,10 @@ export const addRecordToBranchReportArrays = async ({ branchId, company, record,
       break;
     case 'finalStock':
       branchReport.finalStockArray.push(record._id);
+      const date = new Date(record.createdAt)
+      date.setDate(date.getDate() + 1)
+      const branchReport = await fetchBranchReport({ branchId: branchId, date })
+      cleanBranchReportReferences(branchReport)
       break;
     default:
       throw new Error('Tipo de registro no soportado');
@@ -192,11 +196,16 @@ export const removeRecordFromBranchReport = async ({ recordId, recordType }) => 
     case 'outgoing':
       recordDeleted = await Outgoing.findByIdAndDelete(recordId);
       break;
+    case 'finalStock':
+      recordDeleted = await Stock.findByIdAndDelete(recordId)
+      const date = new Date(recordDeleted.createdAt)
+      date.setDate(date.getDate() + 1)
+      const branchReport = await fetchBranchReport({ branchId: recordDeleted.branch, date })
+      cleanBranchReportReferences(branchReport)
+      break;
     default:
       throw new Error('Tipo de registro no válido');
   }
-
-  console.log('hola', recordDeleted)
 
   if (!recordDeleted) {
 
