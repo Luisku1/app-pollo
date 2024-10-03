@@ -430,7 +430,7 @@ export default function Reporte() {
                         <Link className='' to={'/formato/' + branchReport.createdAt + '/' + branchReport.branch._id}>
                           <p className=" text-sm">{branchReport.branch.branch}</p>
                           <div className="hidden group-hover:block group-hover:fixed group-hover:overflow-hidden group-hover:mt-2 ml-24 bg-slate-600 text-white shadow-2xl rounded-md p-2">
-                            <p>{branchReport.employee != null ? branchReport.employee.name + ' ' + branchReport.employee.lastName : 'Empleado eliminado'}</p>
+                            <p>{branchReport.employee != null ? branchReport.employee.name + ' ' + branchReport.employee.lastName : 'Sin empleado'}</p>
                             {branchReport.assistant != null ?
 
                               <p>{branchReport.assistant.name + ' ' + branchReport.assistant.lastName}</p>

@@ -1127,7 +1127,7 @@ export default function ControlSupervisor() {
 
               </div>
 
-              {currentUser.role == roles.managerRole._id ?
+              {roles && currentUser.role == roles.managerRole._id ?
 
                 <div className='flex mt-4 border-black border border-opacity-30 shadow-lg rounded-lg p-3'>
                   <p className='w-6/12 text-center'>Total:</p>

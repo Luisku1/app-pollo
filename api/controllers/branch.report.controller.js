@@ -289,12 +289,12 @@ export const recalculateBranchReport = async ({ branchId, date, company = null }
   branchReport.outgoings = outgoings
 
   const inputs = branchReport.inputsArray?.length > 0
-    ? branchReport.inputs.reduce((total, input) => total + input.amount, 0)
+    ? branchReport.inputsArray.reduce((total, input) => total + input.amount, 0)
     : 0
   branchReport.inputs = inputs
 
-  const outputs = branchReport.inputsArray?.length > 0
-    ? branchReport.inputsArray.reduce((total, input) => total + input.amount, 0)
+  const outputs = branchReport.outputsArray?.length > 0
+    ? branchReport.outputsArray.reduce((total, output) => total + output.amount, 0)
     : 0
   branchReport.outputs = outputs
 
@@ -303,8 +303,8 @@ export const recalculateBranchReport = async ({ branchId, date, company = null }
     : 0
   branchReport.providerInputs = providerInputs
 
-  const finalStock = branchReport.providerInputsArray?.length > 0
-    ? branchReport.providerInputsArray.reduce((total, providerInput) => total + providerInput.amount, 0)
+  const finalStock = branchReport.finalStockArray?.length > 0
+    ? branchReport.finalStockArray.reduce((total, providerInput) => total + providerInput.amount, 0)
     : 0
   branchReport.finalStock = finalStock
 

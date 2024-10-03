@@ -33,8 +33,6 @@ export default function ListaSalidas({ outputs, changeOutputsIsOpenValue, output
 
     const output = props.output
 
-    console.log(output)
-
     return (
 
       <div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center max-w-lg my-auto mx-auto'>

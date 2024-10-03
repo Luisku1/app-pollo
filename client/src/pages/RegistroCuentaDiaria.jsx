@@ -1456,11 +1456,7 @@ export default function RegistroCuentaDiaria() {
 
             <div>
 
-              {managerRole._id == currentUser.role ?
-
-                <button disabled={loading} className='bg-slate-600 text-white p-3 rounded-lg uppercase hover:opacity-95 disabled:opacity-80 w-full' onClick={() => handleUpdate()}>Actualizar formato</button>
-
-                : ''}
+              <button disabled={loading} className='bg-slate-600 text-white p-3 rounded-lg uppercase hover:opacity-95 disabled:opacity-80 w-full' onClick={() => handleUpdate()}>Actualizar formato</button>
 
             </div>
             :

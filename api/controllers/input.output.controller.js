@@ -458,6 +458,8 @@ export const newBranchOutput = async (req, res, next) => {
 
   const { weight, comment, amount, price, pieces, company, product, employee, branch: branch, specialPrice, createdAt } = req.body
 
+  console.log(req.body)
+
   try {
 
     const newOutput = new Output({ weight, comment, pieces, company, product, employee, branch, amount, price, createdAt, specialPrice })
