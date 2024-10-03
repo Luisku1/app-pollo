@@ -319,72 +319,19 @@ export const recalculateBranchReport = async ({ branchId, date, company = null }
 
 export const updateBranchReport = async (req, res, next) => {
 
-  const { branchReport, employee, assistant, branch, company, providerInputs, initialStock, finalStock, inputs, outputs, outgoings, incomes } = req.body
-  const inputBalance = initialStock + inputs + providerInputs
-  const outputBalance = outgoings + outputs + incomes + finalStock
-  const balance = outputBalance - inputBalance
-
-  const { bottomDate, topDate } = getDayRange(new Date(branchReport.createdAt))
+  const { branchReport, employee, assistant } = req.body
 
   try {
 
-    const reportData = await ReportData.findOne({
-      $and: [
-        {
-          createdAt: { $gte: bottomDate }
-        },
-        {
-          createdAt: { $lt: topDate }
-        },
-        {
-          company: branchReport.company
-        }
-      ]
+    const updatedBranchReport = await BranchReport.updateOne({ _id: branchReport._id }, {
+      $set: { employee: employee, assistant: assistant }
     })
 
-    if (reportData) {
+    if (updatedBranchReport.acknowledged) {
 
-      const updatedBranchReport = await BranchReport.updateOne({ _id: branchReport._id }, {
-        $set: { initialStock: initialStock, finalStock: finalStock, inputs: inputs, outputs: outputs, outgoings: outgoings, incomes: incomes, balance: balance, employee: employee, assistant: assistant }
-      })
+      recalculateBranchReport({ branchId: branchReport.branch, date: branchReport.createdAt })
 
-      if (updatedBranchReport.acknowledged) {
-
-        const updatedEmployeeDailyBalance = await EmployeeDailyBalance.updateOne({
-
-          $and: [
-            {
-              createdAt: {
-
-                $lt: topDate
-              }
-            },
-            {
-              createdAt: {
-
-                $gte: bottomDate
-              }
-            },
-            {
-              employee: employee
-            }
-          ]
-        }, { accountBalance: balance })
-
-        const updatedReportData = await ReportData.updateOne({ _id: branchReport.reportData }, {
-
-          $set: { incomes: (reportData.incomes + incomes - branchReport.incomes), stock: (reportData.stock + finalStock - branchReport.finalStock), outgoings: (reportData.outgoings + outgoings - branchReport.outgoings) }
-        })
-
-        if (updatedReportData.acknowledged) {
-
-          res.status(200).json('Branch report updated successfully')
-
-        } else {
-
-          next(errorHandler(404, 'An error has ocurred'))
-        }
-      }
+      res.status(200).json('Branch report updated successfully')
     }
 
   } catch (error) {

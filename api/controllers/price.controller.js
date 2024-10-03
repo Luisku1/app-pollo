@@ -143,9 +143,9 @@ const getPrices = async (branchId, date) => {
 
   const branchReport = await fetchBranchReport({ branchId, date })
 
-  if (branchReport && Object.getOwnPropertyNames(branchReport).length > 0) {
+  if (branchReport && Object.getOwnPropertyNames(branchReport).length > 0 && branchReport.dateSent) {
 
-    finalDate = new Date(branchReport.createdAt)
+    finalDate = new Date(branchReport.dateSent)
 
   } else {
 
@@ -268,9 +268,9 @@ export const getBranchProductPrice = async (req, res, next) => {
 
     const branchReport = await fetchBranchReport({ branchId, date })
 
-    if (branchReport && Object.getOwnPropertyNames(branchReport).length > 0) {
+    if (branchReport && Object.getOwnPropertyNames(branchReport).length > 0 && branchReport.dateSent) {
 
-      finalDate = new Date(branchReport.createdAt)
+      finalDate = new Date(branchReport.dateSent)
 
     } else {
 
