@@ -144,8 +144,6 @@ export const addRecordToBranchReportArrays = async ({ branchId, company, record,
 
   switch (recordType) {
     case 'income':
-
-      console.log('Entro')
       branchReport.incomesArray.push(record._id);
       break;
     case 'input':
@@ -164,8 +162,8 @@ export const addRecordToBranchReportArrays = async ({ branchId, company, record,
       branchReport.finalStockArray.push(record._id);
       const date = new Date(record.createdAt)
       date.setDate(date.getDate() + 1)
-      const branchReport = await fetchBranchReport({ branchId: branchId, date })
-      cleanBranchReportReferences(branchReport)
+      const nextDayBranchReport = await fetchBranchReport({ branchId: branchId, date })
+      cleanBranchReportReferences(nextDayBranchReport)
       break;
     default:
       throw new Error('Tipo de registro no soportado');

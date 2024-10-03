@@ -10,13 +10,14 @@ export const createStock = async (req, res, next) => {
 
   const { pieces, weight, price, amount, branch, product, company, employee, createdAt } = req.body
 
-  console.log(createdAt)
   try {
 
     const newStock = new Stock({ pieces, price, employee, weight, amount, branch, product, company, createdAt })
     await newStock.save()
 
+
     await addRecordToBranchReportArrays({ branchId: branch, company, record: newStock, recordType: 'finalStock' })
+    console.log(newStock)
     res.status(201).json({ message: 'New stock created successfully', stock: newStock })
 
   } catch (error) {
