@@ -6,7 +6,7 @@ import { updateReportOutgoings } from "../utils/updateReport.js"
 import { getDayRange } from "../utils/formatDate.js"
 import { Types } from "mongoose"
 import Branch from "../models/branch.model.js"
-import { addRecordToBranchReportArrays } from "./branch.report.controller.js"
+import { addRecordToBranchReportArrays, removeRecordFromBranchReport } from "./branch.report.controller.js"
 
 export const newOutgoing = async (req, res, next) => {
 
