@@ -6,6 +6,7 @@ import ProviderInput from '../models/providers/provider.input.model.js'
 import { updateReportInputs, updateReportOutputs } from '../utils/updateReport.js'
 import { getDayRange } from '../utils/formatDate.js'
 import { Types } from 'mongoose'
+import { addRecordToBranchReportArrays, removeRecordFromBranchReport } from './branch.report.controller.js'
 
 export const newBranchInput = async (req, res, next) => {
 
@@ -17,7 +18,7 @@ export const newBranchInput = async (req, res, next) => {
 
     await newInput.save()
 
-    await updateReportInputs(branch, createdAt, amount)
+    await addRecordToBranchReportArrays({ branchId: branch, company, record: newInput, recordType: 'input' })
 
     res.status(200).json({ message: 'New input created', input: newInput })
 
@@ -212,37 +213,14 @@ const groupAndSumFunction = (items) => {
   return result
 }
 
-export const getBranchInputs = async (req, res, next) => {
+export const getBranchInputsRequest = async (req, res, next) => {
 
   const date = new Date(req.params.date)
   const branchId = req.params.branchId
 
-  const { bottomDate, topDate } = getDayRange(date)
-
-
   try {
 
-    const inputs = await Input.find({
-
-      $and: [{
-
-        createdAt: {
-
-          $gte: bottomDate
-        }
-      },
-      {
-
-        createdAt: {
-
-          $lt: topDate
-        }
-
-      },
-      {
-        branch: branchId
-      }]
-    }).populate({ path: 'employee', select: 'name lastName' }).populate({ path: 'product', select: 'name' }).populate({ path: 'branch', select: 'branch' })
+    const inputs = await getBranchInputs({ branchId, date })
 
     if (inputs.length == 0) {
 
@@ -260,35 +238,44 @@ export const getBranchInputs = async (req, res, next) => {
 
 }
 
-export const getBranchProviderInputs = async (req, res, next) => {
+export const getBranchInputs = async ({ branchId, date }) => {
+
+
+  const { bottomDate, topDate } = getDayRange(date)
+
+  const inputs = await Input.find({
+
+    $and: [{
+
+      createdAt: {
+
+        $gte: bottomDate
+      }
+    },
+    {
+
+      createdAt: {
+
+        $lt: topDate
+      }
+
+    },
+    {
+      branch: branchId
+    }]
+  }).populate({ path: 'employee', select: 'name lastName' }).populate({ path: 'product', select: 'name' }).populate({ path: 'branch', select: 'branch' })
+
+  return inputs.length > 0 ? inputs : []
+}
+
+export const getBranchProviderInputsRequest = async (req, res, next) => {
 
   const branchId = req.params.branchId
   const date = new Date(req.params.date)
 
-  const { bottomDate, topDate } = getDayRange(date)
-
   try {
-    const providerInputs = await ProviderInput.find({
 
-      $and: [{
-
-        createdAt: {
-
-          $gte: bottomDate
-        }
-      },
-      {
-
-        createdAt: {
-
-          $lt: topDate
-        }
-
-      },
-      {
-        branch: branchId
-      }]
-    }).populate({ path: 'product', select: 'name' }).populate({ path: 'employee', select: 'name lastName' })
+    const providerInputs = await getBranchProviderInputs({ branchId, date })
 
     if (providerInputs) {
 
@@ -300,6 +287,39 @@ export const getBranchProviderInputs = async (req, res, next) => {
     next(error)
   }
 }
+
+
+export const getBranchProviderInputs = async ({ branchId, date }) => {
+
+  const { bottomDate, topDate } = getDayRange(date)
+
+  const providerInputs = await ProviderInput.find({
+
+    $and: [{
+
+      createdAt: {
+
+        $gte: bottomDate
+      }
+    },
+    {
+
+      createdAt: {
+
+        $lt: topDate
+      }
+
+    },
+    {
+      branch: branchId
+    }]
+  }).populate({ path: 'product', select: 'name' }).populate({ path: 'employee', select: 'name lastName' })
+
+  return providerInputs.length > 0 ? providerInputs : []
+}
+
+
+
 
 export const getInputs = async (req, res, next) => {
 
@@ -424,18 +444,9 @@ export const deleteInput = async (req, res, next) => {
 
   try {
 
-    const input = await Input.findById(inputId)
-    const deleted = await Input.deleteOne({ _id: inputId })
+    await removeRecordFromBranchReport({ recordId: inputId, recordType: 'input' })
+    res.status(200).json({ message: 'Input deleted correctly' })
 
-    if (deleted.acknowledged == 1) {
-
-      await updateReportInputs(input.branch, input.createdAt, -(input.amount))
-      res.status(200).json({ message: 'Input deleted correctly' })
-
-    } else {
-
-      next(errorHandler(404, 'Input not founded'))
-    }
 
   } catch (error) {
 
@@ -453,7 +464,7 @@ export const newBranchOutput = async (req, res, next) => {
 
     await newOutput.save()
 
-    await updateReportOutputs(branch, createdAt, amount)
+    await addRecordToBranchReportArrays({ branchId: branch, company, record: newOutput, recordType: 'output' })
     res.status(200).json({ message: 'New output created', output: newOutput })
 
   } catch (error) {
@@ -482,36 +493,15 @@ export const newCustomerOutput = async (req, res, next) => {
   }
 }
 
-export const getBranchOutputs = async (req, res, next) => {
+export const getBranchOutputsRequest = async (req, res, next) => {
 
   const date = new Date(req.params.date)
   const branchId = req.params.branchId
 
-  const { bottomDate, topDate } = getDayRange(date)
 
   try {
 
-    const outputs = await Output.find({
-
-      $and: [{
-
-        createdAt: {
-
-          $gte: bottomDate
-        }
-      },
-      {
-
-        createdAt: {
-
-          $lt: topDate
-        }
-
-      },
-      {
-        branch: branchId
-      }]
-    }).populate({ path: 'employee', select: 'name lastName' }).populate({ path: 'product', select: 'name' }).populate({ path: 'branch', select: 'branch' })
+    const outputs = await getBranchOutputs({ branchId, date })
 
     if (outputs.length == 0) {
 
@@ -526,6 +516,35 @@ export const getBranchOutputs = async (req, res, next) => {
 
     next(error)
   }
+}
+
+export const getBranchOutputs = async ({ branchId, date }) => {
+
+  const { bottomDate, topDate } = getDayRange(date)
+
+  const outputs = await Output.find({
+
+    $and: [{
+
+      createdAt: {
+
+        $gte: bottomDate
+      }
+    },
+    {
+
+      createdAt: {
+
+        $lt: topDate
+      }
+
+    },
+    {
+      branch: branchId
+    }]
+  }).populate({ path: 'employee', select: 'name lastName' }).populate({ path: 'product', select: 'name' }).populate({ path: 'branch', select: 'branch' })
+
+  return outputs.length > 0 ? outputs : []
 }
 
 export const getOutputs = async (req, res, next) => {
@@ -761,7 +780,7 @@ export const createBranchProviderInput = async (req, res, next) => {
 
     await newProviderInput.save()
 
-    await updateReportInputs(branch, createdAt, amount)
+    await addRecordToBranchReportArrays({ branchId: branch, company, record: newProviderInput, recordType: 'providerInput' })
 
     res.status(200).json({ providerInput: newProviderInput })
 
@@ -796,18 +815,8 @@ export const deleteProviderInput = async (req, res, next) => {
 
   try {
 
-    const providerInput = await ProviderInput.findById(providerInputId)
-    const deleted = await ProviderInput.deleteOne({ _id: providerInputId })
-
-    if (deleted.acknowledged == 1) {
-
-      await updateReportInputs(providerInput.branch, providerInput.createdAt, -(providerInput.amount))
-      res.status(200).json({ message: 'Provider input deleted correctly' })
-
-    } else {
-
-      next(errorHandler(404, 'Provider input not found'))
-    }
+    await removeRecordFromBranchReport({ recordId: providerInputId, recordType: 'providerInput' })
+    res.status(200).json({ message: 'Provider input deleted correctly' })
 
   } catch (error) {
 
@@ -821,18 +830,9 @@ export const deleteOutput = async (req, res, next) => {
 
   try {
 
-    const output = await Output.findById(outputId)
-    const deleted = await Output.deleteOne({ _id: outputId })
+    await removeRecordFromBranchReport({recordId: outputId, recordType: 'output'})
+    res.status(200).json({ message: 'Output deleted correctly' })
 
-    if (deleted.acknowledged == 1) {
-
-      updateReportOutputs(output.branch, output.createdAt, -(output.amount))
-      res.status(200).json({ message: 'Output deleted correctly' })
-
-    } else {
-
-      next(errorHandler(404, 'Output not found'))
-    }
 
   } catch (error) {
 

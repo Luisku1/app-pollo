@@ -3,6 +3,7 @@ import Stock from "../models/accounts/stock.model.js";
 import { errorHandler } from "../utils/error.js";
 import { getDayRange } from "../utils/formatDate.js";
 import { updateReportStock } from "../utils/updateReport.js";
+import { addRecordToBranchReportArrays, removeRecordFromBranchReport } from "./branch.report.controller.js";
 import { pricesAggregate } from "./price.controller.js";
 
 export const createStock = async (req, res, next) => {
@@ -15,7 +16,7 @@ export const createStock = async (req, res, next) => {
     const newStock = new Stock({ pieces, price, employee, weight, amount, branch, product, company, createdAt })
     await newStock.save()
 
-    // await updateReportStock(branch, createdAt, amount)
+    await addRecordToBranchReportArrays({ branchId: branch, company, record: newStock, recordType: 'finalStock' })
     res.status(201).json({ message: 'New stock created successfully', stock: newStock })
 
   } catch (error) {
@@ -34,7 +35,7 @@ export const getInitialStock = async (req, res, next) => {
 
   try {
 
-    const initialStock = await getStockValue(date, branchId, reportExists, reportDate, next)
+    const initialStock = await getStockValue(date, branchId, reportExists, reportDate)
 
     if (initialStock) {
 
@@ -51,7 +52,7 @@ export const getInitialStock = async (req, res, next) => {
   }
 }
 
-export const getStockValue = async (date, branchId, reportExists, reportDate, next) => {
+export const getStockValue = async (date, branchId, reportExists, reportDate) => {
 
   let pricesDate
 
@@ -76,56 +77,49 @@ export const getStockValue = async (date, branchId, reportExists, reportDate, ne
     pricesDate = new Date(actualLocaleDayPlusOne + 'T00:00:00.000-06:00')
   }
 
-  try {
+  const initialStock = await Stock.find({
 
-    const initialStock = await Stock.find({
+    $and: [{
 
-      $and: [{
+      createdAt: {
 
-        createdAt: {
+        $lt: topDate
+      }
+    },
+    {
+      createdAt: {
 
-          $lt: topDate
-        }
-      },
-      {
-        createdAt: {
-
-          $gte: bottomDate
-
-        }
-      },
-      {
-        branch: branchId
-      }]
-    })
-
-    if (initialStock) {
-
-      const branchPrices = await pricesAggregate(branchId, pricesDate)
-
-      let total = 0.0
-
-      if (branchPrices.error == null) {
-
-        initialStock.forEach((stock) => {
-
-          const priceIndex = branchPrices.data.prices.findIndex((price) => (price.productId.toString() == stock.product.toString()))
-
-          total += parseFloat(branchPrices.data.prices[priceIndex].latestPrice * stock.weight)
-
-        })
-
-        return total
+        $gte: bottomDate
 
       }
-    } else {
+    },
+    {
+      branch: branchId
+    }]
+  })
 
-      return 0.0
+  if (initialStock) {
+
+    const branchPrices = await pricesAggregate(branchId, pricesDate)
+
+    let total = 0.0
+
+    if (branchPrices.error == null) {
+
+      initialStock.forEach((stock) => {
+
+        const priceIndex = branchPrices.data.prices.findIndex((price) => (price.productId.toString() == stock.product.toString()))
+
+        total += parseFloat(branchPrices.data.prices[priceIndex].latestPrice * stock.weight)
+
+      })
+
+      return total
+
     }
+  } else {
 
-  } catch (error) {
-
-    next(error)
+    return 0.0
   }
 }
 
@@ -134,31 +128,9 @@ export const getBranchDayStock = async (req, res, next) => {
   const date = new Date(req.params.date)
   const branchId = req.params.branchId
 
-  const {bottomDate, topDate} = getDayRange(date)
-
-
   try {
 
-    const stockItems = await Stock.find({
-
-      $and: [{
-
-        createdAt: {
-
-          $gte: bottomDate
-        }
-      },
-      {
-        createdAt: {
-
-          $lt: topDate
-
-        }
-      },
-      {
-        branch: branchId
-      }]
-    }).populate({ path: 'product', select: 'name' })
+    const stockItems = await getBranchStock({ branchId, date })
 
     if (stockItems.length == 0) {
 
@@ -182,12 +154,41 @@ export const getBranchDayStock = async (req, res, next) => {
   }
 }
 
+export const getBranchStock = async ({ branchId, date }) => {
+
+  const { bottomDate, topDate } = getDayRange(date)
+
+  const stock = await Stock.find({
+
+    $and: [{
+
+      createdAt: {
+
+        $gte: bottomDate
+      }
+    },
+    {
+      createdAt: {
+
+        $lt: topDate
+
+      }
+    },
+    {
+      branch: branchId
+    }]
+  }).populate({ path: 'product', select: 'name' })
+
+  return stock.length > 0 ? stock : []
+
+}
+
 export const getCompanyDayStock = async (req, res, next) => {
 
   const companyId = req.params.companyId
   const date = new Date(req.params.date)
 
-  const {bottomDate, topDate} = getDayRange(date)
+  const { bottomDate, topDate } = getDayRange(date)
 
 
   try {
@@ -235,18 +236,9 @@ export const deleteStock = async (req, res, next) => {
 
   try {
 
-    const stock = await Stock.findById(stockId)
-    const deleted = await Stock.deleteOne({ _id: stockId })
+    await removeRecordFromBranchReport({ recordId: stockId, recordType: 'finalStock' })
+    res.status(200).json('Stock deleted successfully')
 
-    if (!deleted.deletedCount == 0) {
-
-      // await updateReportStock(stock.branch, stock.createdAt, -(stock.amount))
-      res.status(200).json('Stock deleted successfully')
-
-    } else {
-
-      next(errorHandler(404, 'Stock not founded'))
-    }
 
   } catch (error) {
 
@@ -259,7 +251,7 @@ export const getTotalStockByProduct = async (req, res, next) => {
   const companyId = req.params.companyId
   const date = new Date(req.params.date)
 
-  const {bottomDate, topDate} = getDayRange(date)
+  const { bottomDate, topDate } = getDayRange(date)
 
   try {
 
@@ -355,7 +347,7 @@ export const getTotalStockByBranch = async (req, res, next) => {
   const companyId = req.params.companyId
   const date = new Date(req.params.date)
 
-  const {bottomDate, topDate} = getDayRange(date)
+  const { bottomDate, topDate } = getDayRange(date)
 
   try {
 

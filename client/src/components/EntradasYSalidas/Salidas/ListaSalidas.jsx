@@ -33,6 +33,8 @@ export default function ListaSalidas({ outputs, changeOutputsIsOpenValue, output
 
     const output = props.output
 
+    console.log(output)
+
     return (
 
       <div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center max-w-lg my-auto mx-auto'>
@@ -48,7 +50,7 @@ export default function ListaSalidas({ outputs, changeOutputsIsOpenValue, output
             </div>
             <div className={"grid grid-cols-2 p-3 shadow-lg rounded-lg mb-4 gap-2 items-center"}>
               <p className="font-bold text-lg">{'Origen:'}</p>
-              <p>{output.branch.branch ? output.branch.branch : output.branch}</p>
+              <p>{output.branch?.branch ?? output.branch?.label}</p>
             </div>
             <div className={"grid grid-cols-2 p-3 shadow-lg rounded-lg mb-4 gap-2 items-center"}>
               <p className="font-bold text-lg">{'Encargado:'}</p>
@@ -60,7 +62,7 @@ export default function ListaSalidas({ outputs, changeOutputsIsOpenValue, output
             </div>
             <div className={"grid grid-cols-2 p-3 shadow-lg rounded-lg mb-4 gap-2 items-center"}>
               <p className="font-bold text-lg">{'Producto:'}</p>
-              <p>{output.product.name}</p>
+              <p>{output.product?.name ?? output.product?.label}</p>
             </div>
             <div className={"grid grid-cols-2 p-3 shadow-lg rounded-lg mb-4 gap-2 items-center"}>
               <p className="font-bold text-lg">{'Piezas:'}</p>
@@ -109,7 +111,7 @@ export default function ListaSalidas({ outputs, changeOutputsIsOpenValue, output
                 {outputs && outputs.length > 0 && outputs.map((output, index) => (
 
 
-                  <div key={output._id} className={(currentUser._id == output.employee?._id || currentUser.role == roles.managerRole._id ? '' : 'py-3 ') + (output.specialPrice ? 'border border-red-500 ' : 'border border-black ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-70 shadow-sm mt-2'}>
+                  <div key={index} className={(currentUser._id == output.employee?._id || currentUser.role == roles.managerRole._id ? '' : 'py-3 ') + (output.specialPrice ? 'border border-red-500 ' : 'border border-black ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-70 shadow-sm mt-2'}>
 
                     <button onClick={() => { setSelectedOutput(output), setMovementDetailsIsOpen(!movementDetailsIsOpen) }} id='list-element' className='flex col-span-10 items-center justify-around h-full'>
                       <p className='text-center text-xs  w-3/12'>{`${output.branch?.branch || output.branch?.label || (`${output.customer?.name} ${output.customer?.lastName}`)}`}</p>
@@ -142,7 +144,7 @@ export default function ListaSalidas({ outputs, changeOutputsIsOpenValue, output
                                   <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteOutput(output._id, index), setConfirmationIsOpen(!confirmationIsOpen) }}>Si</button>
                                 </div>
                                 <div>
-                                  <button className='rounded-lg border shadow-lg w-20 h-10' onClick={() => { confirmationIsOpen(!confirmationIsOpen) }}>No</button>
+                                  <button className='rounded-lg border shadow-lg w-20 h-10' onClick={() => { setConfirmationIsOpen(!confirmationIsOpen) }}>No</button>
                                 </div>
                               </div>
                             </div>

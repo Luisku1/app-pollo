@@ -4,7 +4,7 @@ const branchReportSchema = mongoose.Schema({
 
   initialStock: {
     type: Number,
-    required: true
+    default: 0
   },
 
   finalStock: {
@@ -12,64 +12,64 @@ const branchReportSchema = mongoose.Schema({
     default: 0
   },
 
-  finalStockArray: [{
-    type: Schema.Types.ObjectId, ref: 'Stock',
-    required: true
-  }],
+  finalStockArray: {
+    type: [{ type: Schema.Types.ObjectId, ref: 'Stock' }],
+    default: []  // Permitir arrays vacíos
+  },
 
   inputs: {
     type: Number,
     default: 0
   },
 
-  inputsArray: [{
-    type: Schema.Types.ObjectId, ref: 'Input',
-    required: true
-  }],
+  inputsArray: {
+    type: [{ type: Schema.Types.ObjectId, ref: 'Input' }],
+    default: []  // Permitir arrays vacíos
+  },
 
   providerInputs: {
     type: Number,
     default: 0
   },
 
-  providerInputsArray: [{
-    type: Schema.Types.ObjectId, ref: 'ProviderInput',
-    required: true
-  }],
+  providerInputsArray: {
+    type: [{ type: Schema.Types.ObjectId, ref: 'ProviderInput' }],
+    default: []  // Permitir arrays vacíos
+  },
 
   outputs: {
     type: Number,
     default: 0
   },
 
-  outputsArray: [{
-    type: Schema.Types.ObjectId, ref: 'Output',
-    required: true
-  }],
+  outputsArray: {
+    type: [{ type: Schema.Types.ObjectId, ref: 'Output' }],
+    default: []  // Permitir arrays vacíos
+  },
 
   outgoings: {
     type: Number,
     default: 0
   },
 
-  outgoingsArray: [{
-    type: Schema.Types.ObjectId, ref: 'Outgoing',
-    required: true
-  }],
+  outgoingsArray: {
+    type: [{ type: Schema.Types.ObjectId, ref: 'Outgoing' }],
+    default: []  // Permitir arrays vacíos
+  },
 
   incomes: {
     type: Number,
     default: 0
   },
 
-  incomesArray: [{
-    type: Schema.Types.ObjectId, ref: 'IncomeCollected',
-    required: true
-  }],
+  incomesArray: {
+    type: [{ type: Schema.Types.ObjectId, ref: 'IncomeCollected' }],
+    default: []  // Permitir arrays vacíos
+  },
 
   balance: {
     type: Number,
-    required: true
+    default: 0
   },
 
   company: {

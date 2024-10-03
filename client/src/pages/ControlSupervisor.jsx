@@ -273,7 +273,7 @@ export default function ControlSupervisor() {
 
     const amount = document.getElementById('paymentAmount')
     const detail = document.getElementById('paymentDetail')
-    const date = today() ? new Date().toISOString() : new Date(stringDatePickerValue).toISOString()
+    const date = today(stringDatePickerValue) ? new Date().toISOString() : new Date(stringDatePickerValue).toISOString()
 
 
     e.preventDefault()
@@ -380,7 +380,7 @@ export default function ControlSupervisor() {
 
     const conceptInput = document.getElementById('extraOutgoingConcept')
     const amountInput = document.getElementById('extraOutgoingAmount')
-    const date = today() ? new Date().toISOString() : new Date(stringDatePickerValue).toISOString()
+    const date = today(stringDatePickerValue) ? new Date().toISOString() : new Date(stringDatePickerValue).toISOString()
 
     e.preventDefault()
 
@@ -465,7 +465,7 @@ export default function ControlSupervisor() {
   const addIncomeSubmit = async (e) => {
 
     const amountInput = document.getElementById('income-amount')
-    const date = today() ? new Date().toISOString() : new Date(stringDatePickerValue).toISOString()
+    const date = today(stringDatePickerValue) ? new Date().toISOString() : new Date(stringDatePickerValue).toISOString()
 
     e.preventDefault()
 
@@ -597,7 +597,7 @@ export default function ControlSupervisor() {
 
     const fetchLoans = async () => {
 
-      const date = today() ? new Date().toISOString() : new Date(stringDatePickerValue).toISOString()
+      const date = new Date(stringDatePickerValue).toISOString()
 
       setLoading(true)
 

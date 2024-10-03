@@ -122,7 +122,7 @@ export default function Entradas({ branchAndCustomerSelectOptions, products, dat
     const weightInput = document.getElementById('input-weight')
     const commentInput = document.getElementById('input-comment')
     const priceInput = document.getElementById('input-price')
-    const date = today() ? new Date().toISOString() : new Date(dateParams).toISOString()
+    const date = today(dateParams) ? new Date().toISOString() : new Date(dateParams).toISOString()
 
     e.preventDefault()
 

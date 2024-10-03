@@ -3,6 +3,7 @@ import IncomeType from "../models/accounts/incomes/income.type.model.js";
 import { errorHandler } from "../utils/error.js";
 import { getDayRange } from "../utils/formatDate.js";
 import { updateReportIncomes } from "../utils/updateReport.js";
+import { addRecordToBranchReportArrays, removeRecordFromBranchReport } from "./branch.report.controller.js";
 
 export const newBranchIncomeQuery = async (req, res, next) => {
 
@@ -24,7 +25,7 @@ export const newBranchIncomeFunction = async ({ amount, company, branch, employe
 
   const newIncome = new IncomeCollected({ amount, company, branch, employee, type, createdAt, partOfAPayment })
   await newIncome.save()
-  await updateReportIncomes(branch, createdAt, amount)
+  await addRecordToBranchReportArrays({ branchId: branch, company, record: newIncome, recordType: 'income' })
   return newIncome
 
 }
@@ -76,36 +77,14 @@ export const getIncomeTypeId = async ({ name }) => {
   return await IncomeType.findOne({ name }, '_id')
 }
 
-export const getBranchIncomes = async (req, res, next) => {
+export const getBranchIncomesRequest = async (req, res, next) => {
 
   const date = new Date(req.params.date)
   const branchId = req.params.branchId
 
-  const { bottomDate, topDate } = getDayRange(date)
-
   try {
 
-    const branchIncomes = await IncomeCollected.find({
-
-      $and: [{
-
-        createdAt: {
-
-          $gte: bottomDate
-        }
-      },
-      {
-
-        createdAt: {
-
-          $lt: topDate
-        }
-
-      },
-      {
-        branch: branchId
-      }]
-    }).populate({ path: 'employee', select: 'name lastName' }).populate({ path: 'branch', select: 'branch' }).populate({ path: 'type', select: 'name' })
+    const branchIncomes = await getBranchIncomes({ branchId, date })
 
     if (branchIncomes.length > 0) {
 
@@ -121,6 +100,35 @@ export const getBranchIncomes = async (req, res, next) => {
     next(error)
   }
 
+}
+
+export const getBranchIncomes = async ({ branchId, date }) => {
+
+  const { bottomDate, topDate } = getDayRange(date)
+
+  const branchIncomes = await IncomeCollected.find({
+
+    $and: [{
+
+      createdAt: {
+
+        $gte: bottomDate
+      }
+    },
+    {
+
+      createdAt: {
+
+        $lt: topDate
+      }
+
+    },
+    {
+      branch: branchId
+    }]
+  }).populate({ path: 'employee', select: 'name lastName' }).populate({ path: 'branch', select: 'branch' }).populate({ path: 'type', select: 'name' })
+
+  return branchIncomes.length > 0 ? branchIncomes : []
 }
 
 export const getIncomes = async (req, res, next) => {
@@ -162,7 +170,7 @@ export const getIncomes = async (req, res, next) => {
 
       incomes.forEach((income) => {
 
-        if(income.branch === undefined) {
+        if (income.branch === undefined) {
 
           customersIncomes.push(income)
 
@@ -216,17 +224,9 @@ export const deleteIncomeQuery = async (req, res, next) => {
 
   try {
 
-    const income = await deleteIncome(incomeId)
+    await removeRecordFromBranchReport({recordId: incomeId, recordType: 'income'})
 
-    if (income._id) {
-
-      await updateReportIncomes(income.branch, income.createdAt, -(income.amount))
-      res.status(200).json('Income deleted successfully')
-
-    } else {
-
-      next(errorHandler(404, 'Income not found'))
-    }
+    res.status(200).json('Registro eliminado')
 
   } catch (error) {
 

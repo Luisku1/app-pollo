@@ -6,6 +6,7 @@ import { updateReportOutgoings } from "../utils/updateReport.js"
 import { getDayRange } from "../utils/formatDate.js"
 import { Types } from "mongoose"
 import Branch from "../models/branch.model.js"
+import { addRecordToBranchReportArrays } from "./branch.report.controller.js"
 
 export const newOutgoing = async (req, res, next) => {
 
@@ -16,7 +17,7 @@ export const newOutgoing = async (req, res, next) => {
     const outgoing = new Outgoing({ amount, concept, company, branch, employee, createdAt })
     await outgoing.save()
 
-    await updateReportOutgoings(branch, createdAt, amount)
+    await addRecordToBranchReportArrays({ branchId: branch, company, record: outgoing, recordType: 'outgoing' })
 
     res.status(201).json({ message: 'New outgoing created successfully', outgoing: outgoing })
 
@@ -100,37 +101,14 @@ export const newExtraOutgoingFunction = async ({ amount, concept, company, emplo
   return extraOutgoing
 }
 
-export const getBranchOutgoings = async (req, res, next) => {
+export const getBranchOutgoingsRequest = async (req, res, next) => {
 
   const date = new Date(req.params.date)
   const branchId = req.params.branchId
 
-  const { bottomDate, topDate } = getDayRange(date)
-
-
   try {
 
-    const outgoings = await Outgoing.find({
-
-      $and: [{
-
-        createdAt: {
-
-          $gte: bottomDate
-        }
-      },
-      {
-
-        createdAt: {
-
-          $lt: topDate
-        }
-
-      },
-      {
-        branch: branchId
-      }]
-    })
+    const outgoings = await getBranchOutgoings({ branchId, date })
 
     if (outgoings.length == 0) {
 
@@ -152,6 +130,35 @@ export const getBranchOutgoings = async (req, res, next) => {
 
     next(error)
   }
+}
+
+export const getBranchOutgoings = async ({ branchId, date }) => {
+
+  const { bottomDate, topDate } = getDayRange(date)
+
+  const outgoings = await Outgoing.find({
+
+    $and: [{
+
+      createdAt: {
+
+        $gte: bottomDate
+      }
+    },
+    {
+
+      createdAt: {
+
+        $lt: topDate
+      }
+
+    },
+    {
+      branch: branchId
+    }]
+  })
+
+  return outgoings.length > 0 ? outgoings : []
 }
 
 export const getExtraOutgoings = async (req, res, next) => {
@@ -239,13 +246,13 @@ export const getExtraOutgoingsAvg = async (req, res, next) => {
         },
         {
           $project: {
-            rentsTotal: {$sum: ['$rentAmount']}
+            rentsTotal: { $sum: ['$rentAmount'] }
           }
         },
         {
           $group: {
             _id: null,
-            average: {$avg: '$rentsTotal'}
+            average: { $avg: '$rentsTotal' }
           }
         }
       ])
@@ -254,7 +261,7 @@ export const getExtraOutgoingsAvg = async (req, res, next) => {
 
     if (extraOutgoingsAvg.length > 0) {
 
-      res.status(200).json({ extraOutgoingsAvg: extraOutgoingsAvg[0].average - (branchesRentAvg[0].average / 30)  })
+      res.status(200).json({ extraOutgoingsAvg: extraOutgoingsAvg[0].average - (branchesRentAvg[0].average / 30) })
 
     } else {
 
@@ -296,18 +303,8 @@ export const deleteOutgoing = async (req, res, next) => {
 
   try {
 
-    const outgoing = await Outgoing.findById(outgoingId)
-    const deleted = await Outgoing.deleteOne({ _id: outgoingId })
-
-    if (!deleted.deletedCount == 0) {
-
-      await updateReportOutgoings(outgoing.branch, outgoing.createdAt, -(outgoing.amount))
-      res.status(200).json('Outgoing deleted successfully')
-
-    } else {
-
-      next(errorHandler(404, 'Outgoing not founded'))
-    }
+    await removeRecordFromBranchReport({ recordId: outgoingId, recordType: 'outgoing' })
+    res.status(200).json('Outgoing deleted successfully')
 
 
   } catch (error) {
