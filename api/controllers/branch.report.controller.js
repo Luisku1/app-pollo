@@ -339,7 +339,7 @@ export const updateBranchReport = async (req, res, next) => {
 
     if (updatedBranchReport.acknowledged) {
 
-      recalculateBranchReport({ branchId: branchReport.branch, date: branchReport.createdAt })
+      await recalculateBranchReport({ branchId: branchReport.branch, date: branchReport.createdAt })
 
       res.status(200).json('Branch report updated successfully')
     }
