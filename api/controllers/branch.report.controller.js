@@ -199,7 +199,9 @@ export const removeRecordFromBranchReport = async ({ recordId, recordType }) => 
       const date = new Date(recordDeleted.createdAt)
       date.setDate(date.getDate() + 1)
       const branchReport = await fetchBranchReport({ branchId: recordDeleted.branch, date })
-      cleanBranchReportReferences(branchReport)
+      if (branchReport) {
+        cleanBranchReportReferences(branchReport)
+      }
       break;
     default:
       throw new Error('Tipo de registro no válido');
@@ -279,8 +281,6 @@ export const recalculateBranchReport = async ({ branchId, date, company = null }
 
     branchReport = await new BranchReport({ branch: branchId, company })
   }
-
-  console.log('recalculate', branchReport)
 
   const initialStock = await getStockValue(date, branchId, 1, branchReport.createdAt)
   branchReport.initialStock = initialStock ?? 0
