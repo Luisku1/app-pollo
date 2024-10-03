@@ -249,28 +249,31 @@ export const removeRecordFromBranchReport = async ({ recordId, recordType }) => 
 }
 
 export const cleanBranchReportReferences = async (branchReport) => {
-  console.log(branchReport)
-  // Verificar y eliminar referencias huérfanas en incomesArray
-  const validIncomes = await IncomeCollected.find({ _id: { $in: branchReport.incomesArray } });
-  branchReport.incomesArray = validIncomes.map(income => income._id);
 
-  // Hacer lo mismo para otros arrays
-  const validInputs = await Input.find({ _id: { $in: branchReport.inputsArray } });
-  branchReport.inputsArray = validInputs.map(input => input._id);
+  if (branchReport) {
 
-  const validProviderInputs = await ProviderInput.find({ _id: { $in: branchReport.providerInputsArray } });
-  branchReport.providerInputsArray = validProviderInputs.map(providerInput => providerInput._id);
+    // Verificar y eliminar referencias huérfanas en incomesArray
+    const validIncomes = await IncomeCollected.find({ _id: { $in: branchReport.incomesArray } });
+    branchReport.incomesArray = validIncomes.map(income => income._id);
 
-  const validOutputs = await Output.find({ _id: { $in: branchReport.outputsArray } });
-  branchReport.outputsArray = validOutputs.map(output => output._id);
+    // Hacer lo mismo para otros arrays
+    const validInputs = await Input.find({ _id: { $in: branchReport.inputsArray } });
+    branchReport.inputsArray = validInputs.map(input => input._id);
 
-  const validOutgoings = await Outgoing.find({ _id: { $in: branchReport.outgoingsArray } });
-  branchReport.outgoingsArray = validOutgoings.map(outgoing => outgoing._id);
+    const validProviderInputs = await ProviderInput.find({ _id: { $in: branchReport.providerInputsArray } });
+    branchReport.providerInputsArray = validProviderInputs.map(providerInput => providerInput._id);
+
+    const validOutputs = await Output.find({ _id: { $in: branchReport.outputsArray } });
+    branchReport.outputsArray = validOutputs.map(output => output._id);
+
+    const validOutgoings = await Outgoing.find({ _id: { $in: branchReport.outgoingsArray } });
+    branchReport.outgoingsArray = validOutgoings.map(outgoing => outgoing._id);
 
 
-  // Guardar los cambios en el BranchReport
-  await branchReport.save();
-  await recalculateBranchReport({ branchId: branchReport.branch, date: branchReport.createdAt })
+    // Guardar los cambios en el BranchReport
+    await branchReport.save();
+    await recalculateBranchReport({ branchId: branchReport.branch, date: branchReport.createdAt })
+  }
 };
 
 export const recalculateBranchReport = async ({ branchId, date, company = null }) => {
