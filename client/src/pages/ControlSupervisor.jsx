@@ -823,7 +823,12 @@ export default function ControlSupervisor() {
                 />
               </div>
 
-              <input type="number" name="paymentAmount" id="paymentAmount" placeholder='$0.00' step={0.01} className='col-span-1 border p-3 rounded-lg border-black' required onInput={paymentsButtonControl} />
+              <div className='relative'>
+                <input type="number" name="paymentAmount" id="paymentAmount" placeholder='$0.00' step={0.01} className='w-full col-span-1 border p-3 rounded-lg border-black' required onInput={paymentsButtonControl} />
+                <label htmlFor="compact-input" className=" -translate-y-full px-1 absolute top-1/4 left-2 rounded-sm bg-white text-red-700 text-sm font-semibold">
+                  Monto entregado al empleado <span>*</span>
+                </label>
+              </div>
               <div className='col-span-1 grid grid-cols-1'>
                 <p className='text-xs text-red-700'>Especifíca el motivo del pago</p>
                 <input type="text" name="paymentDetail" id="paymentDetail" placeholder='Pago de Nómina, Préstamo, Pollo, etc...' className='col-span-1 p-3 border border-black rounded-lg' required onInput={paymentsButtonControl} />
