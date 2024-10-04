@@ -229,14 +229,14 @@ export default function Salidas({ branchAndCustomerSelectOptions, products, date
 
               <div className="relative">
                 <input type="number" name="pieces" id="output-pieces" placeholder='0.00' step={0.01} className='border border-black p-3 rounded-lg w-full' required onInput={outputButtonControl} onChange={handleOutputInputsChange} />
-                <label htmlFor="compact-input" className="px-1 absolute top-1/4 left-2 transform -translate-y-1 rounded-sm bg-white text-gray-500">
+                <label htmlFor="compact-input" className="-translate-y-full px-1 absolute top-1/4 left-2 transform rounded-sm bg-white text-black text-sm font-semibold">
                   Piezas <span>*</span>
                 </label>
               </div>
 
               <div className="relative">
                 <input type="number" name="weight" id="output-weight" placeholder='0.000 kg' step={0.001} className='border border-black p-3 rounded-lg w-full' required onInput={outputButtonControl} onChange={handleOutputInputsChange} />
-                <label htmlFor="compact-input" className="px-1 absolute top-1/4 left-2 transform -translate-y-1 rounded-sm bg-white text-gray-500">
+                <label htmlFor="compact-input" className="-translate-y-full px-1 absolute top-1/4 left-2 transform rounded-sm bg-white text-black text-sm font-semibold">
                   Kilos <span>*</span>
                 </label>
               </div>
@@ -244,7 +244,7 @@ export default function Salidas({ branchAndCustomerSelectOptions, products, date
               <div className="relative">
                 <span className="absolute text-red-700 font-semibold left-3 top-3">$</span>
                 <input className='pl-6 w-full rounded-lg p-3 text-red-700 font-semibold border border-red-600' name='price' placeholder={price.toFixed(2)} id='output-price' step={0.01} type="number" onChange={handleOutputInputsChange} />
-                <label htmlFor="compact-input" className="px-1 absolute top-1/4 left-2 transform -translate-y-1 rounded-sm bg-white text-gray-500">
+                <label htmlFor="compact-input" className="-translate-y-full px-1 absolute top-1/4 left-2 transform rounded-sm bg-white text-black text-sm font-semibold">
                   Precio
                 </label>
               </div>
@@ -253,13 +253,13 @@ export default function Salidas({ branchAndCustomerSelectOptions, products, date
 
             <div className='grid grid-cols-4 gap-1'>
 
-              <input className='col-span-3 text-sm border border-black rounded-lg p-3 mt-2' name="comment" id="output-comment" placeholder='Comentario del producto (Opcional)' onChange={handleOutputInputsChange}></input>
+              <input className='col-span-3 text-sm border border-black rounded-lg p-3 ' name="comment" id="output-comment" placeholder='Comentario del producto (Opcional)' onChange={handleOutputInputsChange}></input>
 
-              <div className='w-full h-fit'>
-                <label htmlFor="input-field" className="block text-sm font-medium text-gray-600 mb-1">
-                  Monto total
+              <div className='relative'>
+                <p type="text" name="amount" id="output-amount" className='text-green-700 w-full border border-black rounded-md p-3' >{amount}</p>
+                <label htmlFor="compact-input" className=" -translate-y-full px-1 absolute top-1/4 left-2 rounded-sm bg-white text-green-700 text-sm font-bold">
+                  Total
                 </label>
-                <p type="text" name="amount" id="output-amount" className='text-green-700 w-full border border-gray-300 rounded-md p-1 focus:outline-none focus:border-blue-500' >{amount}</p>
               </div>
             </div>
 
