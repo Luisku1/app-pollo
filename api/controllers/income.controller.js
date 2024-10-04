@@ -41,18 +41,19 @@ export const newBranchIncomeFunction = async ({ amount, company, branch, employe
 
     const income = await IncomeCollected.create([{ amount, company, branch, employee, type, createdAt, partOfAPayment }], { session })
 
-    const updatedBranchReport = await BranchReport.findByIdAndUpdate(branchReport._id, {
+    await BranchReport.findByIdAndUpdate(branchReport._id, {
 
-      $push: { incomesArray: income._id },
+      $push: { incomesArray: income[0]._id },
       $inc: {
         incomes: income[0].amount,
         balance: income[0].amount
       }
     }, { session })
 
-    if (updatedBranchReport.employee) {
 
-      await updateEmployeeDailyBalancesBalance({branchReport: updatedBranchReport, session})
+    if (branchReport.employee) {
+
+      await updateEmployeeDailyBalancesBalance({ branchReport: branchReport, session })
     }
 
     await session.commitTransaction()

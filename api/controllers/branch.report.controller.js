@@ -469,6 +469,43 @@ export const fetchBranchReport = async ({ branchId, date, populate = false, sess
   return null
 }
 
+export const fetchBranchReportById = async ({ branchReportId, populate = false, session = null }) => {
+
+  try {
+
+    let branchReport = null
+
+    if (populate) {
+
+      branchReport = await BranchReport.findById(branchReportId)
+        .populate('finalStockArray')
+        .populate('inputsArray')
+        .populate('providerInputsArray')
+        .populate('outputsArray')
+        .populate('outgoingsArray')
+        .populate('incomesArray').session(session)
+
+    } else {
+
+      branchReport = await BranchReport.findById(branchReportId).session(session)
+    }
+
+    if (branchReport != null && branchReport != undefined) {
+
+      if (Object.getOwnPropertyNames(branchReport).length > 0) {
+
+        return branchReport
+      }
+    }
+
+  } catch (error) {
+
+    console.log(error)
+  }
+
+  return null
+}
+
 export const refactorBranchReports = async (req, res, next) => {
 
   try {

@@ -9,6 +9,7 @@ import { getIncomeTypeId, newBranchIncomeFunction } from "./income.controller.js
 import EmployeePayment from "../models/employees/employee.payment.model.js"
 import ExtraOutgoing from "../models/accounts/outgoings/extra.outgoing.model.js"
 import IncomeCollected from "../models/accounts/incomes/income.collected.model.js"
+import { fetchBranchReport, fetchBranchReportById } from "./branch.report.controller.js"
 
 export const getEmployees = async (req, res, next) => {
 
@@ -538,8 +539,9 @@ export const updateEmployeeDailyBalancesBalance = async ({ branchReport, session
 	}
 }
 
-export const updateDailyBalancesBalance = async (branchReport, session = null, changedEmployee) => {
+export const updateDailyBalancesBalance = async (branchReport, session = null, changedEmployee = false) => {
 
+	const updatedBranchReport = await fetchBranchReportById({ branchReportId: branchReport._id, session })
 	const { bottomDate, topDate } = getDayRange(branchReport.createdAt)
 
 	try {
@@ -560,15 +562,15 @@ export const updateDailyBalancesBalance = async (branchReport, session = null, c
 					}
 				},
 				{
-					employee: new Types.ObjectId(branchReport.employee)
+					employee: new Types.ObjectId(updatedBranchReport.employee)
 				}
 			]
 		})
 
 		await EmployeeDailyBalance.findByIdAndUpdate(dailyBalance._id, {
-			$inc: {
-				accountBalance: changedEmployee ? -branchReport.balance : branchReport.balance
-			}
+
+			accountBalance: changedEmployee ? 0 : updatedBranchReport.balance
+
 		}, { session })
 
 	} catch (error) {
