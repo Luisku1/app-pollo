@@ -41,9 +41,9 @@ export const getAllEmployees = async (req, res, next) => {
 
 	try {
 
-		const employees = await Employee.find({company: companyId}).sort({name: 1}).populate({path: 'role', select: 'name'})
+		const employees = await Employee.find({ company: companyId }).sort({ name: 1 }).populate({ path: 'role', select: 'name' })
 
-		res.status(200).json({employees})
+		res.status(200).json({ employees })
 
 	} catch (error) {
 
@@ -526,11 +526,11 @@ export const updateEmployeeDailyBalance = async (req, res, next) => {
 }
 
 
-export const updateEmployeeDailyBalancesBalance = async (employeeId, date, balance) => {
+export const updateEmployeeDailyBalancesBalance = async ({ branchReport, session = null }) => {
 
 	try {
 
-		await updateDailyBalancesBalance(employeeId, date, balance)
+		await updateDailyBalancesBalance(branchReport, session)
 
 	} catch (error) {
 
@@ -538,55 +538,58 @@ export const updateEmployeeDailyBalancesBalance = async (employeeId, date, balan
 	}
 }
 
-export const updateDailyBalancesBalance = async (employeeId, isoDate, balance) => {
+export const updateDailyBalancesBalance = async (branchReport, session = null) => {
 
-	const date = new Date(isoDate)
-
-	const { bottomDate, topDate } = getDayRange(date)
+	const { bottomDate, topDate } = getDayRange(branchReport.createdAt)
 
 	try {
 
-		const updatedDailyBalance = await EmployeeDailyBalance.updateOne({
+		const dailyBalance = await EmployeeDailyBalance.findOne({
+
 			$and: [
-
 				{
 					createdAt: {
 
-						$gte: bottomDate
+						$lt: new Date(topDate)
 					}
 				},
 				{
 					createdAt: {
 
-						$lt: topDate
+						$gte: new Date(bottomDate)
 					}
 				},
 				{
-					employee: employeeId
+					employee: new Types.ObjectId(branchReport.employee)
 				}
 			]
-		}, { accountBalance: balance })
+		})
 
-		return updatedDailyBalance
+		await EmployeeDailyBalance.findByIdAndUpdate(dailyBalance._id, {
+			$inc: {
+				accountBalance: branchReport.balance
+			}
+		}, { session })
 
 	} catch (error) {
 
 		console.log(error)
+		await session.abortTransaccion()
 	}
 }
 
 export const changeEmployeeActiveStatus = async (req, res, next) => {
 
-	const {newStatus} = req.body
+	const { newStatus } = req.body
 	const employeeId = req.params.employeeId
 
 	try {
 
-		const updatedEmployee = await Employee.findOneAndUpdate({_id: employeeId}, {active: newStatus}, {new: true}).populate({path: 'role'})
+		const updatedEmployee = await Employee.findOneAndUpdate({ _id: employeeId }, { active: newStatus }, { new: true }).populate({ path: 'role' })
 
-		if(Object.getOwnPropertyNames(updatedEmployee).length > 0) {
+		if (Object.getOwnPropertyNames(updatedEmployee).length > 0) {
 
-			res.status(200).json({updatedEmployee})
+			res.status(200).json({ updatedEmployee })
 
 		} else {
 

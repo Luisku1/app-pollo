@@ -987,14 +987,14 @@ export default function RegistroCuentaDiaria() {
 
               <div className='relative'>
                 <input type="text" name="concept" id="concept" placeholder='Concepto' className='w-full p-3 rounded-lg border border-black' required onInput={outgoingsButtonControl} onChange={handleOutgoingInputsChange} />
-                <label htmlFor="compact-input" className="px-1 absolute top-1/4 left-2 transform -translate-y-1 rounded-sm bg-white text-gray-500">
+                <label htmlFor="compact-input" className="-translate-y-full px-1 absolute top-1/4 left-2 transform rounded-sm bg-white text-black text-sm font-semibold">
                   Concepto <span>*</span>
                 </label>
               </div>
               <div className='relative'>
 
                 <input type="number" name="amount" id="amount" placeholder='$0.00' step={0.01} className='border border-black w-full p-3 rounded-lg' required onInput={outgoingsButtonControl} onChange={handleOutgoingInputsChange} />
-                <label htmlFor="compact-input" className="px-1 absolute top-1/4 left-2 transform -translate-y-1 rounded-sm bg-white text-gray-500">
+                <label htmlFor="compact-input" className="-translate-y-full px-1 absolute top-1/4 left-2 transform rounded-sm bg-white text-black text-sm font-semibold">
                   Monto ($) <span>*</span>
                 </label>
               </div>
@@ -1083,13 +1083,13 @@ export default function RegistroCuentaDiaria() {
               />
               <div className='relative'>
                 <input type="number" name="pieces" id="pieces" placeholder='Piezas' step={0.1} className='w-full border border-black p-3 rounded-lg' required onInput={stockButtonControl} onChange={handleStockInputsChange} />
-                <label htmlFor="compact-input" className="px-1 absolute top-1/4 left-2 transform -translate-y-1 rounded-sm bg-white text-gray-500">
+                <label htmlFor="compact-input" className="-translate-y-full px-1 absolute top-1/4 left-2 transform rounded-sm bg-white text-black text-sm font-semibold">
                   Piezas <span>*</span>
                 </label>
               </div>
               <div className='relative'>
                 <input type="number" name="weight" id="weight" placeholder='0.00 kg' step={0.01} className='w-full border border-black p-3 rounded-lg' required onInput={stockButtonControl} onChange={handleStockInputsChange} />
-                <label htmlFor="compact-input" className="px-1 absolute top-1/4 left-2 transform -translate-y-1 rounded-sm bg-white text-gray-500">
+                <label htmlFor="compact-input" className="-translate-y-full px-1 absolute top-1/4 left-2 transform rounded-sm bg-white text-black text-sm font-semibold">
                   Kilos<span>*</span>
                 </label>
               </div>

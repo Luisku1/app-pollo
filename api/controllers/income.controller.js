@@ -6,6 +6,7 @@ import { getDayRange } from "../utils/formatDate.js";
 import { updateReportIncomes } from "../utils/updateReport.js";
 import { addRecordToBranchReportArrays, createDefaultBranchReport, fetchBranchReport, removeRecordFromBranchReport } from "./branch.report.controller.js";
 import BranchReport from "../models/accounts/branch.report.model.js";
+import { updateDailyBalancesBalance, updateEmployeeDailyBalancesBalance } from "./employee.controller.js";
 
 export const newBranchIncomeQuery = async (req, res, next) => {
 
@@ -40,7 +41,7 @@ export const newBranchIncomeFunction = async ({ amount, company, branch, employe
 
     const income = await IncomeCollected.create([{ amount, company, branch, employee, type, createdAt, partOfAPayment }], { session })
 
-    await BranchReport.findByIdAndUpdate(branchReport._id, {
+    const updatedBranchReport = await BranchReport.findByIdAndUpdate(branchReport._id, {
 
       $push: { incomesArray: income._id },
       $inc: {
@@ -48,6 +49,11 @@ export const newBranchIncomeFunction = async ({ amount, company, branch, employe
         balance: income[0].amount
       }
     }, { session })
+
+    if (updatedBranchReport.employee) {
+
+      await updateEmployeeDailyBalancesBalance({branchReport: updatedBranchReport, session})
+    }
 
     await session.commitTransaction()
     return income[0]
