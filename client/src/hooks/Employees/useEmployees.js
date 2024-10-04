@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import { getEmployeesNameList } from "../../services/employees/employeesNameList"
 import { getAllEmployees } from "../../services/employees/getAllEmployees"
 import { changeActiveStatus } from "../../services/employees/changeActiveStatus"
+import { ToastSuccess } from "../../helpers/toastify"
 
 export const useEmployees = ({ companyId, onlyActiveEmployees = true }) => {
 
@@ -27,9 +28,11 @@ export const useEmployees = ({ companyId, onlyActiveEmployees = true }) => {
     }
   }
 
-  const changeEmployeeActiveStatus = ({ employeeId, newStatus }) => {
+  const changeEmployeeActiveStatus = ({ employee }) => {
 
-    changeActiveStatus({ employeeId, newStatus }).then((updatedEmployee) => {
+    ToastSuccess(`Se ${employee.active ? 'suspendió' : 'restauró'} a ${employee.label}`)
+
+    changeActiveStatus({ employeeId: employee.value, newStatus: !employee.active }).then((updatedEmployee) => {
 
       setEmployees((prevEmployees) =>
 

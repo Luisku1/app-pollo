@@ -25,8 +25,7 @@ export default function Empleados() {
 
   const handleChangeEmployeeStatus = (employee) => {
 
-    changeEmployeeActiveStatus({ employeeId: employee.value, newStatus: !employee.active })
-    employee.active = !employee.active
+    changeEmployeeActiveStatus({ employee })
   }
 
   const handleSearchBarChange = (e) => {
