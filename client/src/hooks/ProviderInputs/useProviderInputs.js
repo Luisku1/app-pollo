@@ -40,6 +40,11 @@ export const useProviderInputs = ({ companyId, productId, date }) => {
 
     setLoading(true)
 
+    setProviderInputs([])
+    setProviderInputsWeight(0.0)
+    setProviderInputsPieces(0.0)
+    setProviderInputsAmount(0.0)
+
     getProvidersInputs({ companyId, productId, date }).then((response) => {
 
       setProviderInputs(response.providerInputs)

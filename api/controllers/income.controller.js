@@ -38,22 +38,23 @@ export const newBranchIncomeFunction = async ({ amount, company, branch, employe
       branchReport = createDefaultBranchReport({ branchId: branch, date: createdAt, companyId: company, session })
     }
 
-    const newIncome = await IncomeCollected.create([{ amount, company, branch, employee, type, createdAt, partOfAPayment }], { session })
+    const income = await IncomeCollected.create([{ amount, company, branch, employee, type, createdAt, partOfAPayment }], { session })
 
     await BranchReport.findByIdAndUpdate(branchReport._id, {
 
       $push: { incomesArray: income._id },
-      $inc: { incomes: income.amount },
-      $inc: { balance: income.amount }
-
+      $inc: {
+        incomes: income[0].amount,
+        balance: income[0].amount
+      }
     }, { session })
 
-    session.commitTransaction()
-    return newIncome
+    await session.commitTransaction()
+    return income[0]
 
   } catch (error) {
 
-    session.abortTransaction()
+    await session.abortTransaction()
     throw error;
 
   } finally {
@@ -267,17 +268,16 @@ export const deleteIncomeQuery = async (req, res, next) => {
     await BranchReport.findByIdAndUpdate(branchReport._id, {
 
       $pull: { incomesArray: deletedIncome._id },
-      $inc: { incomes: deletedIncome.amount },
-      $inc: { balance: -deletedIncome.amount }
+      $inc: { incomes: deletedIncome.amount, balance: -deletedIncome.amount }
 
     }, { session })
 
-    session.commitTransaction()
+    await session.commitTransaction()
     res.status(200).json('Registro eliminado')
 
   } catch (error) {
 
-    session.abortTransaction()
+    await session.abortTransaction()
     next(error);
 
   } finally {

@@ -4,7 +4,7 @@ import { getOutputs } from "../../services/Outputs/getOutputs"
 export const useOutput = ({ companyId, date }) => {
 
   const [outputs, setOutputs] = useState([])
-  const [totalWeight, setTotalWeight] = useState(0)
+  const [totalWeight, setTotalWeight] = useState(0.0)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
@@ -33,6 +33,9 @@ export const useOutput = ({ companyId, date }) => {
     if (!companyId || !date) return
 
     setLoading(true)
+
+    setOutputs([])
+    setTotalWeight(0.0)
 
     getOutputs({ companyId, date }).then((response) => {
 

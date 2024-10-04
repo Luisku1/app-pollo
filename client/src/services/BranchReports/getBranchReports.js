@@ -9,5 +9,5 @@ export const getBranchReportsFetch = async ({ companyId, date }) => {
 
   }
 
-  return { branchReports: data.branchReports, incomesTotal: data.incomesTotal, stockTotal: data.stockTotal, outgoingsTotal: data.outgoingsTotal, balanceTotal: data.balanceTotal }
+  return { branchReports: data.branchReports, totalIncomes: data.totalIncomes, totalStock: data.totalStock, totalOutgoings: data.totalOutgoings, totalBalance: data.totalBalance }
 }

@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import BranchReport from "../models/accounts/branch.report.model.js";
 import Price from "../models/accounts/price.model.js";
 import Stock from "../models/accounts/stock.model.js";
@@ -44,9 +45,11 @@ export const createStockAndUpdateBranchReport = async ({ pieces, price, employee
 
     await BranchReport.findByIdAndUpdate(branchReport._id, {
 
-      $push: { finalStockArray: stock._id },
-      $inc: { finalStock: stock.amount },
-      $inc: { balance: stock.amount }
+      $push: { finalStockArray: stock[0]._id },
+      $inc: {
+        finalStock: stock[0].amount,
+        balance: stock[0].amount
+      }
 
     }, { session })
 
@@ -62,18 +65,20 @@ export const createStockAndUpdateBranchReport = async ({ pieces, price, employee
 
     await BranchReport.findByIdAndUpdate(branchReport._id, {
 
-      $push: { initialStockArray: stock._id },
-      $inc: { initialStock: stock.amount },
-      $inc: { balance: -stock.amount }
+      $push: { initialStockArray: stock[0]._id },
+      $inc: {
+        initialStock: stock[0].amount,
+        balance: -stock[0].amount
+      }
 
     }, { session })
 
-    session.commitTransaction()
-    return stock
+    await session.commitTransaction()
+    return stock[0]
 
   } catch (error) {
 
-    session.abortTransaction()
+    await session.abortTransaction()
     throw error;
 
   } finally {
@@ -111,15 +116,10 @@ export const getInitialStock = async (req, res, next) => {
 export const getStockValue = async (date, branchId, reportExists, reportDate) => {
 
   let pricesDate
+  const dateMinusOne = new Date(date)
+  dateMinusOne.setDate(dateMinusOne.getDate() - 1)
 
-  const actualLocaleDateMinusOne = new Date(date)
-  actualLocaleDateMinusOne.setDate(actualLocaleDateMinusOne.getDate() - 1)
-
-  const actualLocaleDayMinusOne = actualLocaleDateMinusOne.toISOString().slice(0, 10)
-  const actualLocaleDay = new Date(date).toISOString().slice(0, 10)
-
-  const topDate = new Date(actualLocaleDay + 'T00:00:00.000-06:00')
-  const bottomDate = new Date(actualLocaleDayMinusOne + 'T00:00:00.000-06:00')
+  const { bottomDate, topDate } = getDayRange(dateMinusOne)
 
   if (reportExists == 1) {
 
@@ -127,10 +127,8 @@ export const getStockValue = async (date, branchId, reportExists, reportDate) =>
 
   } else {
 
-    const actualLocaleDatePlusOne = new Date(date)
-    actualLocaleDatePlusOne.setDate(actualLocaleDatePlusOne.getDate() + 1)
-    const actualLocaleDayPlusOne = actualLocaleDatePlusOne.toISOString().slice(0, 10)
-    pricesDate = new Date(actualLocaleDayPlusOne + 'T00:00:00.000-06:00')
+    const { topDate } = getDayRange(date)
+    pricesDate = topDate
   }
 
   const initialStock = await Stock.find({
@@ -295,7 +293,7 @@ export const deleteStock = async (req, res, next) => {
 
   try {
 
-    const deletedStock = await Output.findByIdAndDelete(stockId, { session })
+    const deletedStock = await Stock.findByIdAndDelete(stockId, { session })
 
     let branchReport = await fetchBranchReport({ branchId: deletedStock.branch, date: deletedStock.createdAt, session })
 
@@ -303,35 +301,39 @@ export const deleteStock = async (req, res, next) => {
     await BranchReport.findByIdAndUpdate(branchReport._id, {
 
       $pull: { finalStockArray: deletedStock._id },
-      $inc: { finalStock: deletedStock.amount },
-      $inc: { balance: -deletedStock.amount }
+      $inc: {
+        finalStock: deletedStock.amount,
+        balance: -deletedStock.amount
+      }
 
     }, { session })
 
-    const nextBranchReportDate = new Date(createdAt)
+    const nextBranchReportDate = new Date(deletedStock.createdAt)
     nextBranchReportDate.setDate(nextBranchReportDate.getDate() + 1)
 
-    branchReport = await fetchBranchReport({ branchId: branch, date: nextBranchReportDate, session })
+    branchReport = await fetchBranchReport({ branchId: deletedStock.branch, date: nextBranchReportDate, session })
 
     if (!branchReport) {
 
-      branchReport = await createDefaultBranchReport({ branchId: branch, date: nextBranchReportDate, companyId: company, session })
+      branchReport = await createDefaultBranchReport({ branchId: deletedStock.branch, date: nextBranchReportDate, companyId: company, session })
     }
 
     await BranchReport.findByIdAndUpdate(branchReport._id, {
 
       $pull: { initialStockArray: deletedStock._id },
-      $inc: { finalStock: deletedStock.amount },
-      $inc: { balance: deletedStock.amount }
+      $inc: {
+        initialStock: -deletedStock.amount,
+        balance: deletedStock.amount
+      },
 
     }, { session })
 
-    session.commitTransaction()
-    res.status(200).json({ message: 'Output deleted correctly' })
+    await session.commitTransaction()
+    res.status(200).json({ message: 'Stock deleted correctly' })
 
   } catch (error) {
 
-    session.abortTransaction()
+    await session.abortTransaction()
     next(error);
 
   } finally {

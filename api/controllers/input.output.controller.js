@@ -5,7 +5,7 @@ import { getProductPrice } from './price.controller.js'
 import ProviderInput from '../models/providers/provider.input.model.js'
 import { updateReportInputs, updateReportOutputs } from '../utils/updateReport.js'
 import { getDayRange } from '../utils/formatDate.js'
-import { Types } from 'mongoose'
+import mongoose, { Types } from 'mongoose'
 import { addRecordToBranchReportArrays, createDefaultBranchReport, fetchBranchReport, removeRecordFromBranchReport } from './branch.report.controller.js'
 import BranchReport from '../models/accounts/branch.report.model.js'
 
@@ -44,18 +44,17 @@ export const newBranchInputAndUpdateBranchReport = async ({ weight, comment, pie
 
     await BranchReport.findByIdAndUpdate(branchReport._id, {
 
-      $push: { inputsArray: input._id },
-      $inc: { inputs: input.amount },
-      $inc: { balance: -input.amount }
+      $push: { inputsArray: input[0]._id },
+      $inc: { inputs: input[0].amount, balance: -input[0].amount }
 
     }, { session })
 
-    session.commitTransaction()
-    return input
+    await session.commitTransaction()
+    return input[0]
 
   } catch (error) {
 
-    session.abortTransaction()
+    await session.abortTransaction()
     throw error;
 
   } finally {
@@ -485,23 +484,25 @@ export const deleteInput = async (req, res, next) => {
 
     const deletedInput = await Input.findByIdAndDelete(inputId, { session })
 
-    let branchReport = await fetchBranchReport({ branchId: deleteInput.branch, date: deletedInput.createdAt, session })
+    let branchReport = await fetchBranchReport({ branchId: deletedInput.branch, date: deletedInput.createdAt, session })
 
 
     await BranchReport.findByIdAndUpdate(branchReport._id, {
 
       $pull: { inputsArray: deletedInput._id },
-      $inc: { inputs: deletedInput.amount },
-      $inc: { balance: deletedInput.amount }
+      $inc: {
+        inputs: -deletedInput.amount,
+        balance: deletedInput.amount
+      }
 
     }, { session })
 
-    session.commitTransaction()
+    await session.commitTransaction()
     res.status(200).json({ message: 'Input deleted correctly' })
 
   } catch (error) {
 
-    session.abortTransaction()
+    await session.abortTransaction()
     next(error);
 
   } finally {
@@ -547,18 +548,19 @@ export const newBranchOutputAndUpdateBranchReport = async ({ weight, comment, pi
 
     await BranchReport.findByIdAndUpdate(branchReport._id, {
 
-      $push: { outputsArray: output._id },
-      $inc: { outputs: output.amount },
-      $inc: { balance: output.amount }
+      $push: { outputsArray: output[0]._id },
+      $inc: {
+        outputs: output[0].amount,
+        balance: output[0].amount
+      },
 
     }, { session })
 
-    session.commitTransaction()
-    return output
-
+    await session.commitTransaction()
+    return output[0]
   } catch (error) {
 
-    session.abortTransaction()
+    await session.abortTransaction()
     throw error;
 
   } finally {
@@ -591,7 +593,6 @@ export const getBranchOutputsRequest = async (req, res, next) => {
 
   const date = new Date(req.params.date)
   const branchId = req.params.branchId
-
 
   try {
 
@@ -899,18 +900,20 @@ export const createBranchProviderInputAndUpdateBranchReport = async ({ weight, p
 
     await BranchReport.findByIdAndUpdate(branchReport._id, {
 
-      $push: { providerInputsArray: providerInput._id },
-      $inc: { providerInputs: providerInput.amount },
-      $inc: { balance: -providerInput.amount }
+      $push: { providerInputsArray: providerInput[0]._id },
+      $inc: {
+        providerInputs: providerInput[0].amount,
+        balance: -providerInput[0].amount
+      }
 
     }, { session })
 
-    session.commitTransaction()
-    return providerInput
+    await session.commitTransaction()
+    return providerInput[0]
 
   } catch (error) {
 
-    session.abortTransaction()
+    await session.abortTransaction()
     throw error;
 
   } finally {
@@ -949,23 +952,25 @@ export const deleteProviderInput = async (req, res, next) => {
 
     const deletedProviderInput = await ProviderInput.findByIdAndDelete(providerInputId, { session })
 
-    let branchReport = await fetchBranchReport({ branchId: deleteProviderInput.branch, date: deletedProviderInput.createdAt, session })
+    let branchReport = await fetchBranchReport({ branchId: deletedProviderInput.branch, date: deletedProviderInput.createdAt, session })
 
 
     await BranchReport.findByIdAndUpdate(branchReport._id, {
 
       $pull: { providerInputsArray: deletedProviderInput._id },
-      $inc: { providerInputs: deletedProviderInput.amount },
-      $inc: { balance: deletedProviderInput.amount }
+      $inc: {
+        providerInputs: -deletedProviderInput.amount,
+        balance: deletedProviderInput.amount
+      }
 
     }, { session })
 
-    session.commitTransaction()
+    await session.commitTransaction()
     res.status(200).json({ message: 'Provider input deleted correctly' })
 
   } catch (error) {
 
-    session.abortTransaction()
+    await session.abortTransaction()
     next(error);
 
   } finally {
@@ -992,17 +997,16 @@ export const deleteOutput = async (req, res, next) => {
     await BranchReport.findByIdAndUpdate(branchReport._id, {
 
       $pull: { outputsArray: deletedOutput._id },
-      $inc: { outputs: deletedOutput.amount },
-      $inc: { balance: -deletedOutput.amount }
+      $inc: { outputs: -deletedOutput.amount, balance: -deletedOutput.amount }
 
     }, { session })
 
-    session.commitTransaction()
+    await session.commitTransaction()
     res.status(200).json({ message: 'Output deleted correctly' })
 
   } catch (error) {
 
-    session.abortTransaction()
+    await session.abortTransaction()
     next(error);
 
   } finally {

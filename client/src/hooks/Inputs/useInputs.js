@@ -34,6 +34,9 @@ export const useInputs = ({ companyId, date }) => {
 
     setLoading(true)
 
+    setInputs([])
+    setTotalWeight(0.0)
+
     getInputs({ companyId, date }).then((response) => {
 
       setInputs(response.inputs)

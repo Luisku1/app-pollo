@@ -33,6 +33,9 @@ export const useIncomes = ({ companyId, date }) => {
 
     setLoading(true)
 
+    setIncomes([])
+    setIncomesTotal(0.0)
+
     getIncomesFetch({ companyId, date }).then((response) => {
 
       setIncomes(response.incomes)

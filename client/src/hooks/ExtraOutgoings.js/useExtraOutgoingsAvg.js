@@ -13,6 +13,8 @@ export const useExtraOutgoingsAvg = ({ companyId }) => {
 
     setLoading(true)
 
+    setExtraOutgoingsAvg(0.0)
+
     getExtraOutgoingsAvg({companyId}).then((response) => {
 
       setExtraOutgoingsAvg(response.extraOutgoingsAvg)

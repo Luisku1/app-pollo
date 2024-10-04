@@ -19,24 +19,155 @@ export const getBranchReports = async (req, res, next) => {
 
   try {
 
-    const branchReports = await BranchReport.find({
-
-      $and: [
-        {
-          createdAt: { $gte: bottomDate }
-        },
-        {
-          createdAt: { $lt: topDate }
-        },
-        {
-          company: companyId
+    const branchReports = await BranchReport.aggregate([
+      {
+        $match: {
+          'createdAt': { $gte: new Date(bottomDate), $lt: new Date(topDate) },
+          'company': new Types.ObjectId(companyId)
         }
-      ]
-    }).populate({ path: 'branch', select: 'branch position' }).populate({ path: 'employee', select: 'name lastName' }).populate({ path: 'assistant', select: 'name lastName' })
+      },
+      {
+        $lookup: {
+          from: 'providerinputs',
+          localField: 'providerInputsArray',
+          foreignField: '_id',
+          as: 'providerInputsArray'
+        }
+      },
+      {
+        $lookup: {
+          from: 'incomecollecteds',
+          localField: 'incomesArray',
+          foreignField: '_id',
+          as: 'incomesArray' // Poblamos con documentos completos
+        }
+      },
+      {
+        $lookup: {
+          from: 'outgoings',
+          localField: 'outgoingsArray',
+          foreignField: '_id',
+          as: 'outgoingsArray' // Poblamos con documentos completos
+        }
+      },
+      {
+        $lookup: {
+          from: 'stocks',
+          localField: 'finalStockArray',
+          foreignField: '_id',
+          as: 'finalStockArray' // Poblamos con documentos completos
+        }
+      },
+      {
+        $lookup: {
+          from: 'branches',
+          localField: 'branch',
+          foreignField: '_id',
+          as: 'branch'
+        }
+      },
+      {
+        $lookup: {
+          from: 'employees',
+          localField: 'employee',
+          foreignField: '_id',
+          as: 'employee'
+        }
+      },
+      {
+        $lookup: {
+          from: 'employees',
+          localField: 'assistant',
+          foreignField: '_id',
+          as: 'assistant'
+        }
+      },
+      {
+        $sort: {'branch.position': 1}
+      },
+      // {
+      //   $project: {
+      //     branchReport: '$$ROOT',
+      //     totalIncomes: { $sum: '$incomesArray.amount' }, // Sumar ingresos
+      //     totalOutgoings: { $sum: '$outgoingsArray.amount' }, // Sumar egresos
+      //     totalStocks: { $sum: '$finalStockArray.amount' }, // Sumar stocks
+      //     totalBalance: { $sum: '$balance' }
+      //   }
+      // }
+
+      {
+        $facet: {
+          branchReports: [
+            {
+              $project: {
+                _id: 1,
+                createdAt: 1,
+                initialStock: 1,
+                initialStockArray: 1,
+                finalStock: 1,
+                finalStockArray: 1,
+                inputs: 1,
+                inputsArray: 1,
+                providerInputs: 1,
+                providerInputsArray: 1,
+                outputs: 1,
+                outputsArray: 1,
+                outgoings: 1,
+                outgoingsArray: 1,
+                incomes: 1,
+                incomesArray: 1,
+                balance: 1,
+                branch: { $first: '$branch' },
+                employee: { $first: '$employee' },
+                assistant: { $first: '$assistant' },
+                reportData: 1
+              }
+            }
+          ],
+          globalTotals: [
+            {
+              $group: {
+                _id: null,   // Agrupar todos los documentos juntos
+                totalIncomes: { $sum: { $sum: "$incomesArray.amount" } },  // Sumar incomes
+                totalFinalStock: { $sum: { $sum: "$finalStockArray.amount" } },  // Sumar finalStock
+                totalOutgoings: { $sum: { $sum: "$outgoingsArray.amount" } },  // Sumar outgoings
+                totalBalance: { $sum: { $sum: '$balance' } }
+              }
+            },
+            {
+              $project: {
+                _id: 0,                 // No mostrar el _id en el resultado
+                totalIncomes: 1,        // Mostrar el total de incomes
+                totalFinalStock: 1,     // Mostrar el total de finalStock
+                totalOutgoings: 1,      // Mostrar el total de outgoings
+                totalBalance: 1
+              }
+            }
+          ]
+        }
+      }
+    ]);
+
+    console.log(branchReports)
+
+    // const branchReports = await BranchReport.find({
+
+    //   $and: [
+    //     {
+    //       createdAt: { $gte: bottomDate }
+    //     },
+    //     {
+    //       createdAt: { $lt: topDate }
+    //     },
+    //     {
+    //       company: companyId
+    //     }
+    //   ]
+    // }).populate({ path: 'branch', select: 'branch position' }).populate({ path: 'employee', select: 'name lastName' }).populate({ path: 'assistant', select: 'name lastName' })
 
     if (branchReports.length > 0) {
 
-      res.status(200).json({ branchReports })
+      res.status(200).json({ branchReports: branchReports[0].branchReports, totalIncomes: branchReports[0].globalTotals[0].totalIncomes, totalStock: branchReports[0].globalTotals[0].totalFinalStock, totalOutgoings: branchReports[0].globalTotals[0].totalOutgoings, totalBalance: branchReports[0].globalTotals[0].totalBalance })
 
     } else {
 

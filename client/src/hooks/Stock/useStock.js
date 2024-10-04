@@ -32,6 +32,8 @@ export const useStock = ({ branchId, date }) => {
     if (!branchId || !date) return
 
     setLoading(true)
+    setStock([])
+    setTotalStock(0.0)
 
     getStockFetch({ branchId, date }).then((response) => {
 

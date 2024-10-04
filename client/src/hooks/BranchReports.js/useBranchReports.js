@@ -4,28 +4,28 @@ import { getBranchReportsFetch } from "../../services/BranchReports/getBranchRep
 export const useBranchReports = ({ companyId, date }) => {
 
   const [branchReports, setBranchReports] = useState([])
-  const [incomesTotal, setIncomesTotal] = useState(0.0)
-  const [outgoingsTotal, setOutgoingsTotal] = useState(0.0)
-  const [stockTotal, setStockTotal] = useState(0.0)
-  const [balanceTotal, setBalanceTotal] = useState(0.0)
+  const [totalIncomes, setTotalIncomes] = useState(0.0)
+  const [totalOutgoings, setTotalOutgoings] = useState(0.0)
+  const [totalStock, setTotalStock] = useState(0.0)
+  const [totalBalance, setTotalBalance] = useState(0.0)
   const [loading, setLoading] = useState(false)
 
-  const getBranchReports = useCallback( async () => {
+  const getBranchReports = ({ companyId, date }) => {
 
     setLoading(true)
 
     getBranchReportsFetch({ companyId, date }).then((response) => {
 
       setBranchReports(response.branchReports)
-      setIncomesTotal(response.incomesTotal)
-      setOutgoingsTotal(response.outgoingsTotal)
-      setStockTotal(response.stockTotal)
-      setBalanceTotal(response.balanceTotal)
+      setTotalIncomes(response.totalIncomes)
+      setTotalOutgoings(response.totalOutgoings)
+      setTotalStock(response.totalStock)
+      setTotalBalance(response.totalBalance)
     })
 
     setLoading(false)
 
-  }, [companyId, date])
+  }
 
   useEffect(() => {
 
@@ -33,18 +33,26 @@ export const useBranchReports = ({ companyId, date }) => {
 
     setLoading(true)
 
-    getBranchReports(companyId, date)
+    getBranchReportsFetch({ companyId, date }).then((response) => {
+
+      setBranchReports(response.branchReports)
+      setTotalIncomes(response.totalIncomes)
+      setTotalOutgoings(response.totalOutgoings)
+      setTotalStock(response.totalStock)
+      setTotalBalance(response.totalBalance)
+    })
 
     setLoading(false)
 
-  }, [companyId, date, getBranchReports])
+  }, [companyId, date])
 
   return {
     branchReports,
-    incomesTotal,
-    outgoingsTotal,
-    stockTotal,
-    balanceTotal,
+    getBranchReports,
+    totalIncomes,
+    totalOutgoings,
+    totalStock,
+    totalBalance,
     loading
   }
 }

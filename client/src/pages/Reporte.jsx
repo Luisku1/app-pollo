@@ -33,13 +33,16 @@ export default function Reporte() {
   const {
 
     branchReports,
-    incomesTotal,
-    stockTotal,
-    outgoingsTotal,
-    balanceTotal,
+    getBranchReports,
+    totalIncomes,
+    totalStock,
+    totalOutgoings,
+    totalBalance,
 
   } = useBranchReports({companyId: company._id, date: stringDatePickerValue})
   const navigate = useNavigate()
+
+  console.log(totalOutgoings)
 
 
   const changeDatePickerValue = (e) => {
@@ -346,7 +349,7 @@ export default function Reporte() {
                 <p className="col-span-1 font-bold">{'Formatos: ' + branchReports.length + '/20'}</p>
                 <div className="col-span-2 justify-self-end flex items-center">
                   <p className="font-semibold">Recargar formatos:</p>
-                  <button className="text-black h-10 px-8"><IoReload className="w-full h-full" /></button>
+                  <button className="text-black h-10 px-8" onClick={() => getBranchReports({companyId: company._id, date: stringDatePickerValue})}><IoReload className="w-full h-full" /></button>
                 </div>
               </div>
               <table className={'border mt-2 bg-white w-full ' + (!showTable ? 'hidden' : '')}>
@@ -402,10 +405,10 @@ export default function Reporte() {
                 <tfoot className="border border-black text-sm">
                   <tr className="mt-2">
                     <td className="text-center text-m font-bold">Totales:</td>
-                    <td className="text-center text-m font-bold">{stringToCurrency(outgoingsTotal)}</td>
-                    <td className="text-center text-m font-bold">{stockTotal.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
-                    <td className="text-center text-m font-bold">{incomesTotal.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
-                    <td className={(balanceTotal < 0 ? 'text-red-500' : 'text-green-500') + ' text-center text-m font-bold'}>{balanceTotal.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
+                    <td className="text-center text-m font-bold">{stringToCurrency({amount: totalOutgoings ?? 0})}</td>
+                    <td className="text-center text-m font-bold">{totalStock.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
+                    <td className="text-center text-m font-bold">{totalIncomes.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
+                    <td className={(totalBalance < 0 ? 'text-red-500' : 'text-green-500') + ' text-center text-m font-bold'}>{totalBalance.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
                   </tr>
                 </tfoot>
 

@@ -13,6 +13,8 @@ export const useBranchCustomerProductPrice = ({ branchCustomerId, productId, dat
 
     setLoading(true)
 
+    setPrice(0.0)
+
     getBranchCustomerProductPrice({ branchCustomerId, productId, date, group }).then((price) => {
 
       setPrice(price)

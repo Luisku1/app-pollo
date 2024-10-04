@@ -35,6 +35,9 @@ export const useOutgoings = ({ branchId, date }) => {
 
     setLoading(true)
 
+    setOutgoings([])
+    setOutgoingsTotal(0.0)
+
     getOutgoings({ branchId, date }).then((response) => {
 
       setOutgoings(response.outgoings)

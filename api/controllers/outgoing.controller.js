@@ -4,7 +4,7 @@ import Loan from '../models/accounts/outgoings/loan.model.js'
 import { errorHandler } from "../utils/error.js"
 import { updateReportOutgoings } from "../utils/updateReport.js"
 import { getDayRange } from "../utils/formatDate.js"
-import { Types } from "mongoose"
+import mongoose, { Types } from "mongoose"
 import Branch from "../models/branch.model.js"
 import { addRecordToBranchReportArrays, createDefaultBranchReport, fetchBranchReport } from "./branch.report.controller.js"
 import BranchReport from "../models/accounts/branch.report.model.js"
@@ -47,18 +47,17 @@ export const newOutgoingAndUpdateBranchReport = async ({ amount, concept, compan
 
     await BranchReport.findByIdAndUpdate(branchReport._id, {
 
-      $push: { outgoingsArray: outgoing._id },
-      $inc: { outgoings: outgoing.amount },
-      $inc: { balance: outgoing.amount }
+      $push: { outgoingsArray: outgoing[0]._id },
+      $inc: { outgoings: outgoing[0].amount, balance: outgoing[0].amount }
 
     }, { session })
 
-    session.commitTransaction()
-    return outgoing
+    await session.commitTransaction()
+    return outgoing[0]
 
   } catch (error) {
 
-    session.abortTransaction()
+    await session.abortTransaction()
     throw error;
 
   } finally {
@@ -351,17 +350,16 @@ export const deleteOutgoing = async (req, res, next) => {
     await BranchReport.findByIdAndUpdate(branchReport._id, {
 
       $pull: { outgoingsArray: deletedOutgoing._id },
-      $inc: { outgoings: deletedOutgoing.amount },
-      $inc: { outgoings: -deletedOutgoing.amount }
+      $inc: { outgoings: -deletedOutgoing.amount, outgoings: -deletedOutgoing.amount }
 
     }, { session })
 
-    session.commitTransaction()
+    await session.commitTransaction()
     res.status(200).json('Outgoing deleted successfully')
 
   } catch (error) {
 
-    session.abortTransaction()
+    await session.abortTransaction()
     next(error);
 
   } finally {

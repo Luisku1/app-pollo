@@ -425,7 +425,7 @@ export const pricesAggregate = async (branchId, topDate) => {
           foreignField: "branch",
           as: "prices",
           pipeline: [
-            { $match: { createdAt: { $lt: topDate } } }
+            { $match: { createdAt: { $lt: new Date(topDate) } } }
           ]
         }
       },

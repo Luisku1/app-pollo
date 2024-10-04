@@ -261,6 +261,7 @@ export const cleanBranchReportReferences = async (branchReport) => {
 
   if (branchReport) {
 
+
     // Verificar y eliminar referencias huérfanas en incomesArray
     const validIncomes = await IncomeCollected.find({ _id: { $in: branchReport.incomesArray } });
     branchReport.incomesArray = validIncomes.map(income => income._id);
@@ -285,55 +286,50 @@ export const cleanBranchReportReferences = async (branchReport) => {
   }
 };
 
-export const recalculateBranchReport = async ({ branchId, date, company = null }) => {
+export const recalculateBranchReport = async ({ branchReport: paramsBranchReport }) => {
 
-  let branchReport = await fetchBranchReport({ branchId, date, populate: true })
+  if (paramsBranchReport) {
 
-  if (!branchReport) {
+    const branchReport = await fetchBranchReport({ branchId: paramsBranchReport.branch, date: paramsBranchReport.createdAt, populate: true })
 
-    branchReport = await new BranchReport({ branch: branchId, company })
+    const incomes = paramsBranchReport.incomesArray?.length > 0
+      ? paramsBranchReport.incomesArray.reduce((total, income) => total + income.amount, 0)
+      : 0
+    paramsBranchReport.incomes = incomes
+
+    const outgoings = paramsBranchReport.outgoingsArray?.length > 0
+      ? paramsBranchReport.outgoingsArray.reduce((total, outgoing) => total + outgoing.amount, 0)
+      : 0
+    paramsBranchReport.outgoings = outgoings
+
+    const inputs = paramsBranchReport.inputsArray?.length > 0
+      ? paramsBranchReport.inputsArray.reduce((total, input) => total + input.amount, 0)
+      : 0
+    paramsBranchReport.inputs = inputs
+
+    const outputs = paramsBranchReport.outputsArray?.length > 0
+      ? paramsBranchReport.outputsArray.reduce((total, output) => total + output.amount, 0)
+      : 0
+    branchReport.outputs = outputs
+
+    const providerInputs = paramsBranchReport.providerInputsArray?.length > 0
+      ? paramsBranchReport.providerInputsArray.reduce((total, providerInput) => total + providerInput.amount, 0)
+      : 0
+    paramsBranchReport.providerInputs = providerInputs
+
+    const finalStock = branchReport.finalStockArray?.length > 0
+      ? paramsBranchReport.finalStockArray.reduce((total, finalStock) => total + finalStock.amount, 0)
+      : 0
+    paramsBranchReport.finalStock = finalStock
+
+
+    const initialStock = await getStockValue(branchReport.createdAt, paramsBranchReport.branch, 1, paramsBranchReport.createdAt)
+
+
+    const newBalance = ((paramsBranchReport.outgoings + paramsBranchReport.finalStock + paramsBranchReport.outputs + paramsBranchReport.incomes) - (initialStock + paramsBranchReport.inputs + paramsBranchReport.providerInputs))
+
+    await BranchReport.findByIdAndUpdate(paramsBranchReport._id, { balance: newBalance, initialStock: initialStock, finalStock, providerInputs, outputs, inputs, outgoings, incomes })
   }
-
-  const initialStock = await getStockValue(date, branchId, 1, branchReport.createdAt)
-  branchReport.initialStock = initialStock ?? 0
-
-  const incomes = branchReport.incomesArray?.length > 0
-    ? branchReport.incomesArray.reduce((total, income) => total + income.amount, 0)
-    : 0
-  branchReport.incomes = incomes
-
-  const outgoings = branchReport.outgoingsArray?.length > 0
-    ? branchReport.outgoingsArray.reduce((total, outgoing) => total + outgoing.amount, 0)
-    : 0
-  branchReport.outgoings = outgoings
-
-  const inputs = branchReport.inputsArray?.length > 0
-    ? branchReport.inputsArray.reduce((total, input) => total + input.amount, 0)
-    : 0
-  branchReport.inputs = inputs
-
-  const outputs = branchReport.outputsArray?.length > 0
-    ? branchReport.outputsArray.reduce((total, output) => total + output.amount, 0)
-    : 0
-  branchReport.outputs = outputs
-
-  const providerInputs = branchReport.providerInputsArray?.length > 0
-    ? branchReport.providerInputsArray.reduce((total, providerInput) => total + providerInput.amount, 0)
-    : 0
-  branchReport.providerInputs = providerInputs
-
-  const finalStock = branchReport.finalStockArray?.length > 0
-    ? branchReport.finalStockArray.reduce((total, providerInput) => total + providerInput.amount, 0)
-    : 0
-  branchReport.finalStock = finalStock
-
-  const newBalance = ((outgoings + finalStock + outputs + incomes) - (initialStock + inputs + providerInputs))
-
-  branchReport.balance = newBalance
-
-  await branchReport.save()
-
-  return branchReport
 }
 
 export const updateBranchReport = async (req, res, next) => {
@@ -342,13 +338,16 @@ export const updateBranchReport = async (req, res, next) => {
 
   try {
 
-    const updatedBranchReport = await BranchReport.updateOne({ _id: branchReport._id }, {
+    const updatedBranchReport = await BranchReport.findByIdAndUpdate(branchReport._id, {
       $set: { employee: employee, assistant: assistant }
     })
 
-    if (updatedBranchReport.acknowledged) {
+    console.log(updatedBranchReport)
 
-      await recalculateBranchReport({ branchId: branchReport.branch, date: branchReport.createdAt })
+    if (updatedBranchReport) {
+
+      await cleanBranchReportReferences(updatedBranchReport)
+      await recalculateBranchReport({ branchReport: updatedBranchReport })
 
       res.status(200).json('Branch report updated successfully')
     }
@@ -486,167 +485,165 @@ export const refactorBranchReport = async ({ branchReport }) => {
 
   const { bottomDate, topDate } = getDayRange(branchReport.createdAt)
 
-  const [finalStockArray, inputsArray, providerInputsArray, outputsArray, outgoingsArray, incomesArray] = await Promise.all([
+  // const [finalStockArray, inputsArray, providerInputsArray, outputsArray, outgoingsArray, incomesArray] = await Promise.all([
 
-    Stock.find({
+  //   Stock.find({
 
-      $and: [{
+  //     $and: [{
 
-        createdAt: {
+  //       createdAt: {
 
-          $gte: bottomDate
-        }
-      },
-      {
-        createdAt: {
+  //         $gte: bottomDate
+  //       }
+  //     },
+  //     {
+  //       createdAt: {
 
-          $lt: topDate
+  //         $lt: topDate
 
-        }
-      },
-      {
-        branch: new Types.ObjectId(branchReport.branch)
-      }]
-    }).select('_id'),
+  //       }
+  //     },
+  //     {
+  //       branch: new Types.ObjectId(branchReport.branch)
+  //     }]
+  //   }).select('_id'),
 
-    Input.find({
+  //   Input.find({
 
-      $and: [{
+  //     $and: [{
 
-        createdAt: {
+  //       createdAt: {
 
-          $gte: bottomDate
-        }
-      },
-      {
+  //         $gte: bottomDate
+  //       }
+  //     },
+  //     {
 
-        createdAt: {
+  //       createdAt: {
 
-          $lt: topDate
-        }
+  //         $lt: topDate
+  //       }
 
-      },
-      {
-        branch: new Types.ObjectId(branchReport.branch)
-      }]
-    }).select('_id'),
+  //     },
+  //     {
+  //       branch: new Types.ObjectId(branchReport.branch)
+  //     }]
+  //   }).select('_id'),
 
-    ProviderInput.find({
+  //   ProviderInput.find({
 
-      $and: [{
+  //     $and: [{
 
-        createdAt: {
+  //       createdAt: {
 
-          $gte: bottomDate
-        }
-      },
-      {
+  //         $gte: bottomDate
+  //       }
+  //     },
+  //     {
 
-        createdAt: {
+  //       createdAt: {
 
-          $lt: topDate
-        }
+  //         $lt: topDate
+  //       }
 
-      },
-      {
-        branch: new Types.ObjectId(branchReport.branch)
-      }]
-    }).select('_id'),
+  //     },
+  //     {
+  //       branch: new Types.ObjectId(branchReport.branch)
+  //     }]
+  //   }).select('_id'),
 
-    Output.find({
+  //   Output.find({
 
-      $and: [{
+  //     $and: [{
 
-        createdAt: {
+  //       createdAt: {
 
-          $gte: bottomDate
-        }
-      },
-      {
+  //         $gte: bottomDate
+  //       }
+  //     },
+  //     {
 
-        createdAt: {
+  //       createdAt: {
 
-          $lt: topDate
-        }
+  //         $lt: topDate
+  //       }
 
-      },
-      {
-        branch: new Types.ObjectId(branchReport.branch)
-      }]
-    }).select('_id'),
+  //     },
+  //     {
+  //       branch: new Types.ObjectId(branchReport.branch)
+  //     }]
+  //   }).select('_id'),
 
-    Outgoing.find({
+  //   Outgoing.find({
 
-      $and: [{
+  //     $and: [{
 
-        createdAt: {
+  //       createdAt: {
 
-          $gte: bottomDate
-        }
-      },
-      {
+  //         $gte: bottomDate
+  //       }
+  //     },
+  //     {
 
-        createdAt: {
+  //       createdAt: {
 
-          $lt: topDate
-        }
+  //         $lt: topDate
+  //       }
 
-      },
-      {
-        branch: new Types.ObjectId(branchReport.branch)
-      }]
-    }).select('_id'),
+  //     },
+  //     {
+  //       branch: new Types.ObjectId(branchReport.branch)
+  //     }]
+  //   }).select('_id'),
 
-    IncomeCollected.find({
+  //   IncomeCollected.find({
 
-      $and: [{
+  //     $and: [{
 
-        createdAt: {
+  //       createdAt: {
 
-          $gte: bottomDate
-        }
-      },
-      {
+  //         $gte: bottomDate
+  //       }
+  //     },
+  //     {
 
-        createdAt: {
+  //       createdAt: {
 
-          $lt: topDate
-        }
+  //         $lt: topDate
+  //       }
 
-      },
-      {
-        branch: new Types.ObjectId(branchReport.branch)
-      }]
-    }).select('_id'),
+  //     },
+  //     {
+  //       branch: new Types.ObjectId(branchReport.branch)
+  //     }]
+  //   }).select('_id'),
 
-  ])
+  // ])
 
-  const nextBranchReportDate = new Date(branchReport.createdAt)
-  nextBranchReportDate.setDate(nextBranchReportDate.getDate() + 1)
+  // const previousBranchReportDate = new Date(branchReport.createdAt)
+  // previousBranchReportDate.setDate(previousBranchReportDate.getDate() + 1)
 
-  let nextBranchReport = await fetchBranchReport({ branchId: branchReport.branch, date: nextBranchReportDate })
+  // let nextBranchReport = await fetchBranchReport({ branchId: branchReport.branch, date: nextBranchReportDate })
 
-  if (!nextBranchReport) {
+  // if (nextBranchReport) {
 
-    nextBranchReport = await createDefaultBranchReport({ branchId: branchReport.branch, date: nextBranchReportDate, company: branchReport.company })
-  }
+  //   await BranchReport.findByIdAndUpdate(nextBranchReport._id, {
+  //     initialStock,
+  //     $inc: { balance: -initialStock }
+  //   })
+  // }
 
-  const initialStock = await getStockValue(nextBranchReportDate, branchReport.branch, 1, nextBranchReport.dateSent ?? nextBranchReport.createdAt)
+  // await BranchReport.updateOne({ _id: branchReport._id }, {
 
-  await nextBranchReport.findByIdAndUpdate(nextBranchReport._id, {
-    $inc: { initialStock: initialStock.amount },
-    $inc: { balance: -initialStock.amount }
-  })
+  //   finalStockArray: finalStockArray.length > 0 ? finalStockArray : [],
+  //   inputsArray: inputsArray.length > 0 ? inputsArray : [],
+  //   providerInputsArray: providerInputsArray.length > 0 ? providerInputsArray : [],
+  //   outputsArray: outputsArray.length > 0 ? outputsArray : [],
+  //   outgoingsArray: outgoingsArray.length > 0 ? outgoingsArray : [],
+  //   incomesArray: incomesArray.length > 0 ? incomesArray : []
+  // })
 
-  await BranchReport.updateOne({ _id: branchReport._id }, {
-
-    finalStockArray: finalStockArray.length > 0 ? finalStockArray : [],
-    inputsArray: inputsArray.length > 0 ? inputsArray : [],
-    providerInputsArray: providerInputsArray.length > 0 ? providerInputsArray : [],
-    outputsArray: outputsArray.length > 0 ? outputsArray : [],
-    outgoingsArray: outgoingsArray.length > 0 ? outgoingsArray : [],
-    incomesArray: incomesArray.length > 0 ? incomesArray : []
-  })
+  await recalculateBranchReport({ branchReport })
 
 }
 
