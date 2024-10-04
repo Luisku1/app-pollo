@@ -1,9 +1,11 @@
+import BranchReport from "../models/accounts/branch.report.model.js";
 import Price from "../models/accounts/price.model.js";
 import Stock from "../models/accounts/stock.model.js";
+import Branch from "../models/branch.model.js";
 import { errorHandler } from "../utils/error.js";
 import { getDayRange } from "../utils/formatDate.js";
 import { updateReportStock } from "../utils/updateReport.js";
-import { addRecordToBranchReportArrays, removeRecordFromBranchReport } from "./branch.report.controller.js";
+import { createDefaultBranchReport, fetchBranchReport, removeRecordFromBranchReport } from "./branch.report.controller.js";
 import { pricesAggregate } from "./price.controller.js";
 
 export const createStock = async (req, res, next) => {
@@ -12,18 +14,71 @@ export const createStock = async (req, res, next) => {
 
   try {
 
-    const newStock = new Stock({ pieces, price, employee, weight, amount, branch, product, company, createdAt })
-    await newStock.save()
+    const newStock = await createStockAndUpdateBranchReport({ pieces, price, employee, weight, amount, branch, product, company, createdAt })
 
-
-    await addRecordToBranchReportArrays({ branchId: branch, company, record: newStock, recordType: 'finalStock' })
-    console.log(newStock)
     res.status(201).json({ message: 'New stock created successfully', stock: newStock })
 
   } catch (error) {
 
     next(error)
 
+  }
+}
+
+export const createStockAndUpdateBranchReport = async ({ pieces, price, employee, weight, amount, branch, product, company, createdAt }) => {
+
+  const session = await mongoose.startSession()
+
+  session.startTransaction()
+
+  try {
+
+    let branchReport = await fetchBranchReport({ branchId: branch, date: createdAt, session })
+
+    if (!branchReport) {
+
+      branchReport = await createDefaultBranchReport({ branchId: branch, date: createdAt, companyId: company, session })
+    }
+
+    const stock = await Stock.create([{ pieces, price, employee, weight, amount, branch, product, company, createdAt }], { session })
+
+    await BranchReport.findByIdAndUpdate(branchReport._id, {
+
+      $push: { finalStockArray: stock._id },
+      $inc: { finalStock: stock.amount },
+      $inc: { balance: stock.amount }
+
+    }, { session })
+
+    const nextBranchReportDate = new Date(createdAt)
+    nextBranchReportDate.setDate(nextBranchReportDate.getDate() + 1)
+
+    branchReport = await fetchBranchReport({ branchId: branch, date: nextBranchReportDate, session })
+
+    if (!branchReport) {
+
+      branchReport = await createDefaultBranchReport({ branchId: branch, date: nextBranchReportDate, companyId: company, session })
+    }
+
+    await BranchReport.findByIdAndUpdate(branchReport._id, {
+
+      $push: { initialStockArray: stock._id },
+      $inc: { initialStock: stock.amount },
+      $inc: { balance: -stock.amount }
+
+    }, { session })
+
+    session.commitTransaction()
+    return stock
+
+  } catch (error) {
+
+    session.abortTransaction()
+    throw error;
+
+  } finally {
+
+    session.endSession()
   }
 }
 
@@ -234,17 +289,57 @@ export const getCompanyDayStock = async (req, res, next) => {
 export const deleteStock = async (req, res, next) => {
 
   const stockId = req.params.stockId
+  const session = await mongoose.startSession()
+
+  session.startTransaction()
 
   try {
 
-    await removeRecordFromBranchReport({ recordId: stockId, recordType: 'finalStock' })
-    res.status(200).json('Stock deleted successfully')
+    const deletedStock = await Output.findByIdAndDelete(stockId, { session })
 
+    let branchReport = await fetchBranchReport({ branchId: deletedStock.branch, date: deletedStock.createdAt, session })
+
+
+    await BranchReport.findByIdAndUpdate(branchReport._id, {
+
+      $pull: { finalStockArray: deletedStock._id },
+      $inc: { finalStock: deletedStock.amount },
+      $inc: { balance: -deletedStock.amount }
+
+    }, { session })
+
+    const nextBranchReportDate = new Date(createdAt)
+    nextBranchReportDate.setDate(nextBranchReportDate.getDate() + 1)
+
+    branchReport = await fetchBranchReport({ branchId: branch, date: nextBranchReportDate, session })
+
+    if (!branchReport) {
+
+      branchReport = await createDefaultBranchReport({ branchId: branch, date: nextBranchReportDate, companyId: company, session })
+    }
+
+    await BranchReport.findByIdAndUpdate(branchReport._id, {
+
+      $pull: { initialStockArray: deletedStock._id },
+      $inc: { finalStock: deletedStock.amount },
+      $inc: { balance: deletedStock.amount }
+
+    }, { session })
+
+    session.commitTransaction()
+    res.status(200).json({ message: 'Output deleted correctly' })
 
   } catch (error) {
 
-    next(error)
+    session.abortTransaction()
+    next(error);
+
+  } finally {
+
+    session.endSession()
   }
+  res.status(200).json('Stock deleted successfully')
+
 }
 
 export const getTotalStockByProduct = async (req, res, next) => {

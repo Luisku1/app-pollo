@@ -133,6 +133,15 @@ export const createBranchReport = async (req, res, next) => {
   }
 }
 
+export const createDefaultBranchReport = async ({ branchId, date, company, session = null }) => {
+
+  const { bottomDate } = getDayRange(date)
+
+  const newBranchReport = await BranchReport.create({ branch: branchId, createdAt: bottomDate, company }).session(session)
+
+  return newBranchReport
+}
+
 export const addRecordToBranchReportArrays = async ({ branchId, company, record, recordType }) => {
 
   let branchReport = await fetchBranchReport({ branchId, date: record.createdAt })
@@ -374,7 +383,7 @@ export const getBranchReport = async (req, res, next) => {
   }
 }
 
-export const fetchBranchReport = async ({ branchId, date, populate = false }) => {
+export const fetchBranchReport = async ({ branchId, date, populate = false, session = null }) => {
 
   const { bottomDate, topDate } = getDayRange(date)
 
@@ -408,7 +417,7 @@ export const fetchBranchReport = async ({ branchId, date, populate = false }) =>
         .populate('providerInputsArray')
         .populate('outputsArray')
         .populate('outgoingsArray')
-        .populate('incomesArray')
+        .populate('incomesArray').session(session)
 
     } else {
 
@@ -430,7 +439,7 @@ export const fetchBranchReport = async ({ branchId, date, populate = false }) =>
             branch: new Types.ObjectId(branchId)
           }
         ]
-      })
+      }).session(session)
     }
 
     if (branchReport != null && branchReport != undefined) {

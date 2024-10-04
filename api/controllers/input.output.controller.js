@@ -6,7 +6,8 @@ import ProviderInput from '../models/providers/provider.input.model.js'
 import { updateReportInputs, updateReportOutputs } from '../utils/updateReport.js'
 import { getDayRange } from '../utils/formatDate.js'
 import { Types } from 'mongoose'
-import { addRecordToBranchReportArrays, removeRecordFromBranchReport } from './branch.report.controller.js'
+import { addRecordToBranchReportArrays, createDefaultBranchReport, fetchBranchReport, removeRecordFromBranchReport } from './branch.report.controller.js'
+import BranchReport from '../models/accounts/branch.report.model.js'
 
 export const newBranchInput = async (req, res, next) => {
 
@@ -14,17 +15,52 @@ export const newBranchInput = async (req, res, next) => {
 
   try {
 
-    const newInput = new Input({ weight, comment, pieces, company, product, employee, branch, amount, price, createdAt, specialPrice })
-
-    await newInput.save()
-
-    await addRecordToBranchReportArrays({ branchId: branch, company, record: newInput, recordType: 'input' })
+    const newInput = await newBranchInputAndUpdateBranchReport({ weight, comment, pieces, company, product, employee, branch, amount, price, createdAt, specialPrice })
 
     res.status(200).json({ message: 'New input created', input: newInput })
 
   } catch (error) {
 
     next(error)
+  }
+}
+
+export const newBranchInputAndUpdateBranchReport = async ({ weight, comment, pieces, company, product, employee, branch, amount, price, createdAt, specialPrice }) => {
+
+  const session = await mongoose.startSession()
+
+  session.startTransaction()
+
+  try {
+
+    let branchReport = await fetchBranchReport({ branchId: branch, date: createdAt, session })
+
+    if (!branchReport) {
+
+      branchReport = await createDefaultBranchReport({ branchId: branch, date: createdAt, companyId: company, session })
+    }
+
+    const input = await Input.create([weight, comment, pieces, company, product, employee, branch, amount, price, createdAt, specialPrice], { session })
+
+    await BranchReport.findByIdAndUpdate(branchReport._id, {
+
+      $push: { inputsArray: input._id },
+      $inc: { inputs: input.amount },
+      $inc: { balance: -input.amount }
+
+    }, { session })
+
+    session.commitTransaction()
+    return input
+
+  } catch (error) {
+
+    session.abortTransaction()
+    throw error;
+
+  } finally {
+
+    session.endSession()
   }
 }
 
@@ -441,16 +477,36 @@ export const getBranchInputsAvg = async (req, res, next) => {
 export const deleteInput = async (req, res, next) => {
 
   const inputId = req.params.inputId
+  const session = await mongoose.startSession()
+
+  session.startTransaction()
 
   try {
 
-    await removeRecordFromBranchReport({ recordId: inputId, recordType: 'input' })
-    res.status(200).json({ message: 'Input deleted correctly' })
+    const deletedInput = await Input.findByIdAndDelete(inputId, { session })
 
+    let branchReport = await fetchBranchReport({ branchId: deleteInput.branch, date: deletedInput.createdAt, session })
+
+
+    await BranchReport.findByIdAndUpdate(branchReport._id, {
+
+      $pull: { inputsArray: deletedInput._id },
+      $inc: { inputs: deletedInput.amount },
+      $inc: { balance: deletedInput.amount }
+
+    }, { session })
+
+    session.commitTransaction()
+    res.status(200).json({ message: 'Input deleted correctly' })
 
   } catch (error) {
 
-    next(error)
+    session.abortTransaction()
+    next(error);
+
+  } finally {
+
+    session.endSession()
   }
 }
 
@@ -462,16 +518,52 @@ export const newBranchOutput = async (req, res, next) => {
 
   try {
 
-    const newOutput = new Output({ weight, comment, pieces, company, product, employee, branch, amount, price, createdAt, specialPrice })
-
-    await newOutput.save()
-
-    await addRecordToBranchReportArrays({ branchId: branch, company, record: newOutput, recordType: 'output' })
+    const newOutput = await newBranchOutputAndUpdateBranchReport({ weight, comment, pieces, company, product, employee, branch, amount, price, createdAt, specialPrice })
     res.status(200).json({ message: 'New output created', output: newOutput })
 
   } catch (error) {
 
     next(error)
+  }
+}
+
+export const newBranchOutputAndUpdateBranchReport = async ({ weight, comment, pieces, company, product, employee, branch, amount, price, createdAt, specialPrice }) => {
+
+
+  const session = await mongoose.startSession()
+
+  session.startTransaction()
+
+  try {
+
+    let branchReport = await fetchBranchReport({ branchId: branch, date: createdAt, session })
+
+    if (!branchReport) {
+
+      branchReport = await createDefaultBranchReport({ branchId: branch, date: createdAt, companyId: company, session })
+    }
+
+    const output = await Output.create([{ weight, comment, pieces, company, product, employee, branch, amount, price, createdAt, specialPrice }], { session })
+
+    await BranchReport.findByIdAndUpdate(branchReport._id, {
+
+      $push: { outputsArray: output._id },
+      $inc: { outputs: output.amount },
+      $inc: { balance: output.amount }
+
+    }, { session })
+
+    session.commitTransaction()
+    return output
+
+  } catch (error) {
+
+    session.abortTransaction()
+    throw error;
+
+  } finally {
+
+    session.endSession()
   }
 }
 
@@ -776,19 +868,54 @@ export const getBranchProviderInputsAvg = async (req, res, next) => {
 export const createBranchProviderInput = async (req, res, next) => {
 
   const { weight, product, price, amount, employee, branch, company, comment, pieces, specialPrice, createdAt } = req.body
-  const newProviderInput = ProviderInput({ weight, product, price, employee, branch, company, comment, pieces, amount, specialPrice, createdAt })
 
   try {
-
-    await newProviderInput.save()
-
-    await addRecordToBranchReportArrays({ branchId: branch, company, record: newProviderInput, recordType: 'providerInput' })
+    const newProviderInput = await createBranchProviderInputAndUpdateBranchReport({ weight, product, price, employee, branch, company, comment, pieces, amount, specialPrice, createdAt })
 
     res.status(200).json({ providerInput: newProviderInput })
 
   } catch (error) {
     console.log(error)
     next(error)
+  }
+}
+
+export const createBranchProviderInputAndUpdateBranchReport = async ({ weight, product, price, employee, branch, company, comment, pieces, amount, specialPrice, createdAt }) => {
+
+  const session = await mongoose.startSession()
+
+  session.startTransaction()
+
+  try {
+
+    let branchReport = await fetchBranchReport({ branchId: branch, date: createdAt, session })
+
+    if (!branchReport) {
+
+      branchReport = await createDefaultBranchReport({ branchId: branch, date: createdAt, companyId: company, session })
+    }
+
+    const providerInput = await ProviderInput.create([{ weight, product, price, employee, branch, company, comment, pieces, amount, specialPrice, createdAt }], { session })
+
+    await BranchReport.findByIdAndUpdate(branchReport._id, {
+
+      $push: { providerInputsArray: providerInput._id },
+      $inc: { providerInputs: providerInput.amount },
+      $inc: { balance: -providerInput.amount }
+
+    }, { session })
+
+    session.commitTransaction()
+    return providerInput
+
+  } catch (error) {
+
+    session.abortTransaction()
+    throw error;
+
+  } finally {
+
+    session.endSession()
   }
 }
 
@@ -814,30 +941,72 @@ export const createCustomerProviderInput = async (req, res, next) => {
 export const deleteProviderInput = async (req, res, next) => {
 
   const providerInputId = req.params.providerInputId
+  const session = await mongoose.startSession()
+
+  session.startTransaction()
 
   try {
 
-    await removeRecordFromBranchReport({ recordId: providerInputId, recordType: 'providerInput' })
+    const deletedProviderInput = await ProviderInput.findByIdAndDelete(providerInputId, { session })
+
+    let branchReport = await fetchBranchReport({ branchId: deleteProviderInput.branch, date: deletedProviderInput.createdAt, session })
+
+
+    await BranchReport.findByIdAndUpdate(branchReport._id, {
+
+      $pull: { providerInputsArray: deletedProviderInput._id },
+      $inc: { providerInputs: deletedProviderInput.amount },
+      $inc: { balance: deletedProviderInput.amount }
+
+    }, { session })
+
+    session.commitTransaction()
     res.status(200).json({ message: 'Provider input deleted correctly' })
 
   } catch (error) {
 
-    next(error)
+    session.abortTransaction()
+    next(error);
+
+  } finally {
+
+    session.endSession()
   }
+
 }
 
 export const deleteOutput = async (req, res, next) => {
 
   const outputId = req.params.outputId
+  const session = await mongoose.startSession()
+
+  session.startTransaction()
 
   try {
 
-    await removeRecordFromBranchReport({recordId: outputId, recordType: 'output'})
-    res.status(200).json({ message: 'Output deleted correctly' })
+    const deletedOutput = await Output.findByIdAndDelete(outputId, { session })
 
+    let branchReport = await fetchBranchReport({ branchId: deletedOutput.branch, date: deletedOutput.createdAt, session })
+
+
+    await BranchReport.findByIdAndUpdate(branchReport._id, {
+
+      $pull: { outputsArray: deletedOutput._id },
+      $inc: { outputs: deletedOutput.amount },
+      $inc: { balance: -deletedOutput.amount }
+
+    }, { session })
+
+    session.commitTransaction()
+    res.status(200).json({ message: 'Output deleted correctly' })
 
   } catch (error) {
 
-    next(error)
+    session.abortTransaction()
+    next(error);
+
+  } finally {
+
+    session.endSession()
   }
 }

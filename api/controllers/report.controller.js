@@ -170,7 +170,7 @@ export const supervisorsInfoQuery = async (companyId, dateTopRange, dateBottomRa
       ]
     }).select({ path: '_id' })
 
-    const supervisors = await Employee.find({
+    const supervisorsInfo = await Employee.find({
 
 
       role: { $in: roles },

@@ -1,9 +1,11 @@
+import mongoose from "mongoose";
 import IncomeCollected from "../models/accounts/incomes/income.collected.model.js";
 import IncomeType from "../models/accounts/incomes/income.type.model.js";
 import { errorHandler } from "../utils/error.js";
 import { getDayRange } from "../utils/formatDate.js";
 import { updateReportIncomes } from "../utils/updateReport.js";
-import { addRecordToBranchReportArrays, removeRecordFromBranchReport } from "./branch.report.controller.js";
+import { addRecordToBranchReportArrays, createDefaultBranchReport, fetchBranchReport, removeRecordFromBranchReport } from "./branch.report.controller.js";
+import BranchReport from "../models/accounts/branch.report.model.js";
 
 export const newBranchIncomeQuery = async (req, res, next) => {
 
@@ -23,11 +25,41 @@ export const newBranchIncomeQuery = async (req, res, next) => {
 
 export const newBranchIncomeFunction = async ({ amount, company, branch, employee, type, createdAt, partOfAPayment = false }) => {
 
-  const newIncome = new IncomeCollected({ amount, company, branch, employee, type, createdAt, partOfAPayment })
-  await newIncome.save()
-  await addRecordToBranchReportArrays({ branchId: branch, company, record: newIncome, recordType: 'income' })
-  return newIncome
+  const session = await mongoose.startSession()
 
+  session.startTransaction()
+
+  try {
+
+    let branchReport = await fetchBranchReport({ branchId: branch, date: createdAt, session })
+
+    if (!branchReport) {
+
+      branchReport = createDefaultBranchReport({ branchId: branch, date: createdAt, companyId: company, session })
+    }
+
+    const newIncome = await IncomeCollected.create([{ amount, company, branch, employee, type, createdAt, partOfAPayment }], { session })
+
+    await BranchReport.findByIdAndUpdate(branchReport._id, {
+
+      $push: { incomesArray: income._id },
+      $inc: { incomes: income.amount },
+      $inc: { balance: income.amount }
+
+    }, { session })
+
+    session.commitTransaction()
+    return newIncome
+
+  } catch (error) {
+
+    session.abortTransaction()
+    throw error;
+
+  } finally {
+
+    session.endSession()
+  }
 }
 
 export const newCustomerIncomeQuery = async (req, res, next) => {
@@ -221,29 +253,36 @@ export const getIncomeTypes = async (req, res, next) => {
 export const deleteIncomeQuery = async (req, res, next) => {
 
   const incomeId = req.params.incomeId
+  const session = await mongoose.startSession()
+
+  session.startTransaction()
 
   try {
 
-    await removeRecordFromBranchReport({recordId: incomeId, recordType: 'income'})
+    const deletedIncome = await IncomeCollected.findByIdAndDelete(incomeId, { session })
 
+    let branchReport = await fetchBranchReport({ branchId: deletedIncome.branch, date: deletedIncome.createdAt, session })
+
+
+    await BranchReport.findByIdAndUpdate(branchReport._id, {
+
+      $pull: { incomesArray: deletedIncome._id },
+      $inc: { incomes: deletedIncome.amount },
+      $inc: { balance: -deletedIncome.amount }
+
+    }, { session })
+
+    session.commitTransaction()
     res.status(200).json('Registro eliminado')
 
   } catch (error) {
 
-    next(error)
-  }
-}
+    session.abortTransaction()
+    next(error);
 
-export const deleteIncome = async (incomeId) => {
+  } finally {
 
-  const income = await IncomeCollected.findById(incomeId)
-  const deleted = await IncomeCollected.deleteOne({ _id: incomeId })
-
-  if (deleted.deletedCount > 0) {
-
-    await updateReportIncomes(income.branch, income.createdAt, -(income.amount))
-    return income
+    session.endSession()
   }
 
-  return
 }

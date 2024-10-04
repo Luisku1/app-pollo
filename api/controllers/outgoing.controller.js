@@ -6,7 +6,8 @@ import { updateReportOutgoings } from "../utils/updateReport.js"
 import { getDayRange } from "../utils/formatDate.js"
 import { Types } from "mongoose"
 import Branch from "../models/branch.model.js"
-import { addRecordToBranchReportArrays, removeRecordFromBranchReport } from "./branch.report.controller.js"
+import { addRecordToBranchReportArrays, createDefaultBranchReport, fetchBranchReport } from "./branch.report.controller.js"
+import BranchReport from "../models/accounts/branch.report.model.js"
 
 export const newOutgoing = async (req, res, next) => {
 
@@ -14,10 +15,8 @@ export const newOutgoing = async (req, res, next) => {
 
   try {
 
-    const outgoing = new Outgoing({ amount, concept, company, branch, employee, createdAt })
-    await outgoing.save()
+    const outgoing = await newOutgoingAndUpdateBranchReport({ amount, concept, company, branch, employee, createdAt })
 
-    await addRecordToBranchReportArrays({ branchId: branch, company, record: outgoing, recordType: 'outgoing' })
 
     res.status(201).json({ message: 'New outgoing created successfully', outgoing: outgoing })
 
@@ -26,6 +25,45 @@ export const newOutgoing = async (req, res, next) => {
 
     next(error)
 
+  }
+}
+
+export const newOutgoingAndUpdateBranchReport = async ({ amount, concept, company, branch, employee, createdAt }) => {
+
+  const session = await mongoose.startSession()
+
+  session.startTransaction()
+
+  try {
+
+    let branchReport = await fetchBranchReport({ branchId: branch, date: createdAt, session })
+
+    if (!branchReport) {
+
+      branchReport = await createDefaultBranchReport({ branchId: branch, date: createdAt, companyId: company, session })
+    }
+
+    const outgoing = await Outgoing.create([{ amount, concept, company, branch, employee, createdAt }], { session })
+
+    await BranchReport.findByIdAndUpdate(branchReport._id, {
+
+      $push: { outgoingsArray: outgoing._id },
+      $inc: { outgoings: outgoing.amount },
+      $inc: { balance: outgoing.amount }
+
+    }, { session })
+
+    session.commitTransaction()
+    return outgoing
+
+  } catch (error) {
+
+    session.abortTransaction()
+    throw error;
+
+  } finally {
+
+    session.endSession()
   }
 }
 
@@ -300,16 +338,35 @@ export const deleteExtraOutgoing = async (req, res, next) => {
 export const deleteOutgoing = async (req, res, next) => {
 
   const outgoingId = req.params.outgoingId
+  const session = await mongoose.startSession()
+
+  session.startTransaction()
 
   try {
 
-    await removeRecordFromBranchReport({ recordId: outgoingId, recordType: 'outgoing' })
-    res.status(200).json('Outgoing deleted successfully')
+    const deletedOutgoing = await Outgoing.findByIdAndDelete(outgoingId, { session })
 
+    let branchReport = await fetchBranchReport({ branchId: deletedOutgoing.branch, date: deletedOutgoing.createdAt, session })
+
+    await BranchReport.findByIdAndUpdate(branchReport._id, {
+
+      $pull: { outgoingsArray: deletedOutgoing._id },
+      $inc: { outgoings: deletedOutgoing.amount },
+      $inc: { outgoings: -deletedOutgoing.amount }
+
+    }, { session })
+
+    session.commitTransaction()
+    res.status(200).json('Outgoing deleted successfully')
 
   } catch (error) {
 
-    next(error)
+    session.abortTransaction()
+    next(error);
+
+  } finally {
+
+    session.endSession()
   }
 }
 

@@ -7,6 +7,11 @@ const branchReportSchema = mongoose.Schema({
     default: 0
   },
 
+  initialStockArray: {
+    type: [{ type: Schema.Types.ObjectId, ref: 'Stock' }],
+    default: []
+  },
+
   finalStock: {
     type: Number,
     default: 0
@@ -88,10 +93,6 @@ const branchReportSchema = mongoose.Schema({
 
   assistant: {
     type: Schema.Types.ObjectId, ref: 'Employee'
-  },
-
-  reportData: {
-    type: Schema.Types.ObjectId, ref: 'ReportData'
   },
 
   dateSent: {

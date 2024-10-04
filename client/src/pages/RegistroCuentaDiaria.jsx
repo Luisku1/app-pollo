@@ -777,8 +777,6 @@ export default function RegistroCuentaDiaria() {
       setSelectedEmployee({ value: currentUser._id, label: currentUser.name + ' ' + currentUser.lastName })
     }
 
-
-
     const assistantTempOption = employees.find((assistant) => assistant.value == branchReport.assistant)
 
 

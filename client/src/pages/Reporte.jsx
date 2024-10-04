@@ -1,3 +1,4 @@
+import { IoReload } from "react-icons/io5";
 import { useEffect, useState } from "react"
 import { FaCheck } from "react-icons/fa"
 import { useSelector } from "react-redux"
@@ -6,22 +7,21 @@ import FechaDePagina from "../components/FechaDePagina"
 import { formatDate } from "../helpers/DatePickerFunctions"
 import TarjetaCuenta from "../components/TarjetaCuenta"
 import Sobrante from "../pages/Sobrante"
+import { useBranchReports } from "../hooks/BranchReports.js/useBranchReports";
+import { stringToCurrency } from "../helpers/Functions";
 
 export default function Reporte() {
 
   const { company, currentUser } = useSelector((state) => state.user)
   let paramsDate = useParams().date
-  const [branchReports, setBranchReports] = useState([])
+  let datePickerValue = (paramsDate ? new Date(paramsDate) : new Date())
+  let stringDatePickerValue = formatDate(datePickerValue)
   const [supervisorsInfo, setSupervisorsInfo] = useState([])
   const [error, setError] = useState(null)
-  const [incomesTotal, setIncomesTotal] = useState(0.0)
-  const [stockTotal, setStockTotal] = useState(0.0)
-  const [extraOutgoingsTotal, setExtraOutgoingsTotal] = useState(0.0)
   const [extraOutgoingsIsOpen, setExtraOutgoingsIsOpen] = useState(false)
   const [incomesIsOpen, setIncomesIsOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [selectedSupervisor, setSelectedSupervisor] = useState(null)
-  const [balanceTotal, setBalanceTotal] = useState(0.0)
   const [managerRole, setManagerRole] = useState({})
   const [showTable, setShowTable] = useState(true)
   const [showCards, setShowCards] = useState(false)
@@ -30,13 +30,17 @@ export default function Reporte() {
   const [showEarnings, setShowEarnings] = useState(false)
   const [filteredIds, setFilteredIds] = useState([])
   const [all, setAll] = useState(true)
+  const {
+
+    branchReports,
+    incomesTotal,
+    stockTotal,
+    outgoingsTotal,
+    balanceTotal,
+
+  } = useBranchReports({companyId: company._id, date: stringDatePickerValue})
   const navigate = useNavigate()
 
-
-  let datePickerValue = (paramsDate ? new Date(paramsDate) : new Date())
-  let stringDatePickerValue = formatDate(datePickerValue)
-
-  console.log(stringDatePickerValue)
 
   const changeDatePickerValue = (e) => {
 
@@ -214,67 +218,9 @@ export default function Reporte() {
 
   useEffect(() => {
 
-    setIncomesTotal(0.0)
-    setStockTotal(0.0)
-    setExtraOutgoingsTotal(0.0)
-    setBalanceTotal(0.0)
-    setBranchReports([])
     setSupervisorsInfo([])
     setAll(true)
     setFilteredIds([])
-
-    const fetchBranchesReports = async () => {
-
-      const date = new Date(stringDatePickerValue).toISOString() ?? (new date()).toISOString()
-
-      setIncomesTotal(0.0)
-      setStockTotal(0.0)
-      setExtraOutgoingsTotal(0.0)
-      setBalanceTotal(0.0)
-
-      try {
-
-        const res = await fetch('/api/report/get-branches-reports/' + company._id + '/' + date)
-        const data = await res.json()
-
-        if (data.success === false) {
-
-          setError(data.message)
-          return
-        }
-
-        let incomesTotalPivot = 0.0
-        let stockTotalPivot = 0.0
-        let extraOutgoingsTotalPivot = 0.0
-        let balanceTotalPivot = 0.0
-
-        data.branchReports.sort((report, nextReport) => {
-
-
-          return report.branch.position - nextReport.branch.position
-        })
-
-        data.branchReports.forEach((branchReport) => {
-
-          incomesTotalPivot += branchReport.incomes
-          stockTotalPivot += branchReport.finalStock
-          extraOutgoingsTotalPivot += branchReport.outgoings
-          balanceTotalPivot += branchReport.balance
-
-        })
-
-        setIncomesTotal((prev) => prev + incomesTotalPivot)
-        setStockTotal((prev) => prev + stockTotalPivot)
-        setExtraOutgoingsTotal((prev) => prev + extraOutgoingsTotalPivot)
-        setBalanceTotal((prev) => prev + balanceTotalPivot)
-        setBranchReports(data.branchReports)
-        setError(null)
-
-      } catch (error) {
-
-        setError(error.message)
-      }
-    }
 
     const fetchSupervisorsInfo = async () => {
 
@@ -305,8 +251,6 @@ export default function Reporte() {
       }
     }
 
-
-    fetchBranchesReports()
     fetchSupervisorsInfo()
 
 
@@ -374,6 +318,7 @@ export default function Reporte() {
         Reporte
       </h1>
 
+
       {branchReports && branchReports.length > 0 ?
 
         <div>
@@ -383,7 +328,8 @@ export default function Reporte() {
 
             <div>
 
-              <p className="font-bold">{'Formatos: ' + branchReports.length + '/20'}</p>
+
+
               <div className="grid grid-cols-5 border bg-white border-black mx-auto my-auto w-full rounded-lg font-bold">
                 <button className={"h-full p-1 rounded-lg hover:shadow-xl hover:bg-slate-700 hover:text-white " + (showTable ? 'bg-slate-500 text-white' : 'bg-white')} disabled={currentUser.role != managerRole._id} onClick={() => { handleShowTableButton() }}>Tabla</button>
                 <button className={"h-full p-1 rounded-lg hover:shadow-xl hover:bg-slate-700 hover:text-white " + (showStock ? 'bg-slate-500 text-white' : ' bg-white')} onClick={() => { handleShowStockButton() }}>Sobrante</button>
@@ -396,8 +342,14 @@ export default function Reporte() {
 
 
               </div>
-
-              <table className={'border bg-white mt-4 w-full ' + (!showTable ? 'hidden' : '')}>
+              <div className="grid grid-cols-3 mt-3 items-center">
+                <p className="col-span-1 font-bold">{'Formatos: ' + branchReports.length + '/20'}</p>
+                <div className="col-span-2 justify-self-end flex items-center">
+                  <p className="font-semibold">Recargar formatos:</p>
+                  <button className="text-black h-10 px-8"><IoReload className="w-full h-full" /></button>
+                </div>
+              </div>
+              <table className={'border mt-2 bg-white w-full ' + (!showTable ? 'hidden' : '')}>
 
                 <thead className="border border-black">
 
@@ -450,7 +402,7 @@ export default function Reporte() {
                 <tfoot className="border border-black text-sm">
                   <tr className="mt-2">
                     <td className="text-center text-m font-bold">Totales:</td>
-                    <td className="text-center text-m font-bold">{extraOutgoingsTotal.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
+                    <td className="text-center text-m font-bold">{stringToCurrency(outgoingsTotal)}</td>
                     <td className="text-center text-m font-bold">{stockTotal.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
                     <td className="text-center text-m font-bold">{incomesTotal.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
                     <td className={(balanceTotal < 0 ? 'text-red-500' : 'text-green-500') + ' text-center text-m font-bold'}>{balanceTotal.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
