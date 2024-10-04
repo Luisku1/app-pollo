@@ -230,13 +230,28 @@ export default function Entradas({ branchAndCustomerSelectOptions, products, dat
 
           <div className="grid grid-cols-3 gap-2">
 
-            <input type="number" name="pieces" id="input-pieces" placeholder='Piezas' step={0.1} className='w-full border border-black p-3 rounded-lg' required onInput={inputButtonControl} onChange={handleInputInputsChange} />
+            <div className='relative'>
 
-            <input type="number" name="weight" id="input-weight" placeholder='0.000 kg' step={0.001} className='w-full border border-black p-3 rounded-lg' required onInput={inputButtonControl} onChange={handleInputInputsChange} />
+              <input type="number" name="pieces" id="input-pieces" placeholder='Piezas' step={0.1} className='w-full border border-black p-3 rounded-lg' required onInput={inputButtonControl} onChange={handleInputInputsChange} />
+              <label htmlFor="compact-input" className="px-1 absolute top-1/4 left-2 transform -translate-y-1 rounded-sm bg-white text-gray-500">
+                Piezas <span>*</span>
+              </label>
+            </div>
+
+            <div className='relative'>
+
+              <input type="number" name="weight" id="input-weight" placeholder='0.000 kg' step={0.001} className='w-full border border-black p-3 rounded-lg' required onInput={inputButtonControl} onChange={handleInputInputsChange} />
+              <label htmlFor="compact-input" className="px-1 absolute top-1/4 left-2 transform -translate-y-1 rounded-sm bg-white text-gray-500">
+                Kilos <span>*</span>
+              </label>
+            </div>
 
             <div className='relative items-center'>
               <span className="absolute text-red-700 font-semibold left-3 top-3">$</span>
               <input className='pl-6 w-full rounded-lg p-3 text-red-700 font-semibold border border-red-600' name='price' id='input-price' step={0.01} placeholder={price.toFixed(2)} type="number" onChange={handleInputInputsChange} />
+              <label htmlFor="compact-input" className="absolute top-1/4 left-2 transform -translate-y-1 rounded-sm bg-white text-gray-500">
+                Precio
+              </label>
             </div>
 
           </div>

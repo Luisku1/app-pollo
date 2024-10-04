@@ -101,7 +101,7 @@ export default function EntradaInicial({ date, branchAndCustomerSelectOptions, p
               <button className="w-10 h-10 rounded-lg shadow-lg" onClick={() => setShowProviderInputsStats(true)}><BsInfoSquare className="h-full w-full text-red-600" />
               </button>
             </div>
-            <p className='font-bold text-lg'><span className=" text-red-700 text-center">{`${providerInputsWeight.toFixed(2)} Kg / ${providerInputsPieces}`}</span><sup className="text-red-700">u</sup><span>:</span><span className="text-green-700">{` ${stringToCurrency({ amount: providerInputsAmount })}`}</span></p>
+            <p className='font-bold text-md'><span className=" text-red-700 text-center">{`${providerInputsWeight.toFixed(2)} Kg / ${providerInputsPieces}`}</span><sup className="text-red-700">u</sup><span>:</span><span className="text-green-700">{` ${stringToCurrency({ amount: providerInputsAmount })}`}</span></p>
           </div>
           <h2 className='text-2xl font-semibold mb-4 text-red-800'>
             <div className="">

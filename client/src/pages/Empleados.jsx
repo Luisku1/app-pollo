@@ -21,6 +21,7 @@ export default function Empleados() {
   const searchBarRef = useRef(null);
   const [showActiveEmployees, setShowActiveEmployees] = useState(true)
   const [searching, setSearching] = useState(false)
+  const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 
   const handleChangeEmployeeStatus = (employee) => {
 
@@ -36,9 +37,11 @@ export default function Empleados() {
 
   const handleMouseEnter = useCallback((value) => {
 
+    if (isTouchDevice) return
+
     setHoveredIndex(value)
 
-  }, [])
+  }, [isTouchDevice])
 
   const handleMouseLeave = useCallback(() => {
 
@@ -119,7 +122,7 @@ export default function Empleados() {
 
               <div className="my-4 bg-white p-4 grid grid-cols-12 rounded-lg">
 
-                <div className="col-span-10">
+                <div className="col-span-9">
                   <Link to={'/perfil/' + employee.value}>
                     <p className="text-2xl font-bold">{employee.label}</p>
                   </Link>
@@ -142,7 +145,7 @@ export default function Empleados() {
 
                 {employee._id != company.owner._id ?
 
-                  <div className="col-span-2 my-auto mx-auto">
+                  <div className="col-span-3 my-auto justify-self-center">
 
                     <button id={employee.value} className={`transition-colors duration-300 w-full mx-auto border p-3 rounded-lg text-center font-bold ${hoveredIndex != employee.value ? (employee.active ? 'bg-green-600 text-white' : 'bg-red-600 text-white') : (employee.active ? 'bg-red-600 text-white' : 'bg-green-600 text-white')}`} onMouseEnter={() => { handleMouseEnter(employee.value) }} onMouseLeave={handleMouseLeave} onClick={() => { handleChangeEmployeeStatus(employee) }}>
                       {employee.active ?

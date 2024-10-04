@@ -159,14 +159,28 @@ export default function MenuSucursal({ branchAndCustomerSelectOptions, date, pus
       <BranchAndCustomerSelect options={branchAndCustomerSelectOptions} defaultLabel={'Sucursal o Cliente'} selectedOption={selectedBranchCustomerOption} handleSelectChange={handleBranchCustomerSelectChange}></BranchAndCustomerSelect>
 
       <div className='grid grid-cols-3 gap-2'>
-        <input type="number" name="pieces" id="provider-input-pieces" placeholder='Piezas' step={0.1} className='border border-black p-3 rounded-lg' required onInput={providerInputButtonControl} onChange={handleProviderInputInputsChange} />
 
-        <input type="number" name="weight" id="provider-input-weight" placeholder='0.000 kg' step={0.001} className='border border-black p-3 rounded-lg' required onInput={providerInputButtonControl} onChange={handleProviderInputInputsChange} />
+        <div className='relative'>
+          <input type="number" name="pieces" id="provider-input-pieces" placeholder='Piezas' step={0.1} className='border border-black p-3 rounded-lg w-full' required onInput={providerInputButtonControl} onChange={handleProviderInputInputsChange} />
+          <label htmlFor="compact-input" className="px-1 absolute top-1/4 left-2 transform -translate-y-1 rounded-sm bg-white text-gray-500">
+            Piezas <span>*</span>
+          </label>
+        </div>
+
+        <div className='relative'>
+          <input type="number" name="weight" id="provider-input-weight" placeholder='0.000 kg' step={0.001} className='border border-black p-3 rounded-lg w-full' required onInput={providerInputButtonControl} onChange={handleProviderInputInputsChange} />
+          <label htmlFor="compact-input" className="px-1 absolute top-1/4 left-2 transform -translate-y-1 rounded-sm bg-white text-gray-500">
+            Kilos <span>*</span>
+          </label>
+        </div>
 
 
         <div className="relative">
           <span className="absolute text-red-700 font-semibold left-3 top-3">$</span>
           <input className='pl-6 w-full rounded-lg p-3 text-red-700 font-semibold border border-red-600' name='price' placeholder={price.toFixed(2)} id='provider-input-price' step={0.01} type="number" />
+          <label htmlFor="compact-input" className="absolute top-1/4 left-2 transform -translate-y-1 rounded-sm bg-white text-gray-500">
+            Precio
+          </label>
         </div>
       </div>
 

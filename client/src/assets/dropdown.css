@@ -123,3 +123,8 @@ h3 span {
   margin-left: 10px;
   transition: var(--speed);
 }
+
+input:focus+label,
+input:placeholder-shown+label {
+  @apply -translate-y-full text-sm text-black font-bold;
+}
