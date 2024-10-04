@@ -40,7 +40,7 @@ export const newBranchInputAndUpdateBranchReport = async ({ weight, comment, pie
       branchReport = await createDefaultBranchReport({ branchId: branch, date: createdAt, companyId: company, session })
     }
 
-    const input = await Input.create([weight, comment, pieces, company, product, employee, branch, amount, price, createdAt, specialPrice], { session })
+    const input = await Input.create([{weight, comment, pieces, company, product, employee, branch, amount, price, createdAt, specialPrice}], { session })
 
     await BranchReport.findByIdAndUpdate(branchReport._id, {
 
@@ -984,15 +984,14 @@ export const deleteOutput = async (req, res, next) => {
 
   const outputId = req.params.outputId
   const session = await mongoose.startSession()
-
   session.startTransaction()
 
   try {
 
+
     const deletedOutput = await Output.findByIdAndDelete(outputId, { session })
 
     let branchReport = await fetchBranchReport({ branchId: deletedOutput.branch, date: deletedOutput.createdAt, session })
-
 
     await BranchReport.findByIdAndUpdate(branchReport._id, {
 

@@ -11,14 +11,14 @@ export const useDeleteOutput = () => {
     setLoading(true)
 
     spliceOutput({ index })
+    ToastSuccess(`Se borró la salida de ${output.product?.name ?? output.product?.label}`)
 
-    deleteOutputFetch({ inputId: output._id }).then(() => {
+    deleteOutputFetch({ outputId: output._id }).then(() => {
 
-      ToastSuccess(`Se borró la entrada de ${output.product?.name ?? output.product?.label }`)
 
     }).catch((error) => {
 
-      ToastDanger(`No se borró la entrada de ${output.product?.name ?? output.product?.label}`)
+      ToastDanger(`No se borró la salida de ${output.product?.name ?? output.product?.label}`)
       console.log(error)
     })
 

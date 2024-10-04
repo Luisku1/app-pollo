@@ -1,16 +1,18 @@
 import { useState } from "react"
 import { deleteProviderInputFetch } from "../../services/ProvidersInputs/deleteProviderInput"
-import { ToastDanger } from "../../helpers/toastify"
+import { ToastDanger, ToastSuccess } from "../../helpers/toastify"
 
 export const useDeleteProviderInput = () => {
 
   const [loading, setLoading] = useState(null)
 
-  const deleteProviderInput = ({ providerInput, spliceProviderInput, pushProviderInput }) => {
+  const deleteProviderInput = ({ providerInput, spliceProviderInput, pushProviderInput, index }) => {
 
     setLoading(true)
 
-    spliceProviderInput({ providerInputId: providerInput._id })
+    spliceProviderInput({ index })
+
+    ToastSuccess('La entrada de proveedor fue borrada')
 
     deleteProviderInputFetch({ providerInputId: providerInput._id }).catch((error) => {
 

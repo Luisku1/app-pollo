@@ -268,7 +268,7 @@ export const deleteIncomeQuery = async (req, res, next) => {
     await BranchReport.findByIdAndUpdate(branchReport._id, {
 
       $pull: { incomesArray: deletedIncome._id },
-      $inc: { incomes: deletedIncome.amount, balance: -deletedIncome.amount }
+      $inc: { incomes: -deletedIncome.amount, balance: -deletedIncome.amount }
 
     }, { session })
 

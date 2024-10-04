@@ -1,6 +1,6 @@
 export const deleteOutputFetch = async ({ outputId }) => {
 
-  const res = await fetch(`/api/input/delete-input/${outputId}`, {
+  const res = await fetch(`/api/output/delete-output/${outputId}`, {
 
     method: 'DELETE'
   })

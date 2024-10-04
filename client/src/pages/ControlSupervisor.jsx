@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import { useEffect, useRef, useState } from 'react'
 import { useSelector } from 'react-redux'
-import { deleteExtraOutgoingFetch, deleteIncomeFetch, deleteEmployeePaymentFetch } from '../helpers/FetchFunctions';
+import { deleteExtraOutgoingFetch, deleteEmployeePaymentFetch } from '../helpers/FetchFunctions';
 import { FaListAlt, FaTrash } from 'react-icons/fa';
 import { Link } from "react-router-dom"
 import { MdCancel, MdKeyboardArrowDown, MdKeyboardArrowRight } from 'react-icons/md';
@@ -26,6 +26,7 @@ import { useIncomeTypes } from '../hooks/Incomes/useIncomeTypes';
 import EntradasYSalidas from '../components/EntradasYSalidas/EntradasYSalidas';
 import { useIncomes } from '../hooks/Incomes/useIncomes';
 import { useAddIncome } from '../hooks/Incomes/useAddIncome';
+import { useDeleteIncome } from '../hooks/Incomes/useDeleteIncome';
 
 export default function ControlSupervisor() {
 
@@ -51,6 +52,7 @@ export default function ControlSupervisor() {
   const [totalNetDifference, setTotalNetDifference] = useState(0.0)
   const { incomes, incomesTotal, pushIncome, spliceIncome, updateLastIncomeId } = useIncomes({ companyId: company._id, date: stringDatePickerValue })
   const { addIncome } = useAddIncome()
+  const { deleteIncome } = useDeleteIncome()
   const { incomeTypes } = useIncomeTypes()
   const [selectedIncomeType, setSelectedIncomeType] = useState(null)
   const [buttonId, setButtonId] = useState(null)
@@ -526,20 +528,6 @@ export default function ControlSupervisor() {
     }
   }
 
-  const deleteIncome = async (incomeId, index) => {
-
-    setLoading(true)
-
-    const { error } = await deleteIncomeFetch(incomeId)
-
-    setLoading(false)
-
-    if (error == null) {
-
-      spliceIncome({ index })
-    }
-  }
-
   const setEmployeePaymentsTotalFunction = (employeePayments) => {
 
     let total = 0
@@ -897,7 +885,7 @@ export default function ControlSupervisor() {
                                 </div>
                                 <div className='flex gap-10'>
                                   <div>
-                                    <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteIncome(income._id, index), setIsOpen(!isOpen) }}>Si</button>
+                                    <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteIncome({income, spliceIncome, index}), setIsOpen(!isOpen) }}>Si</button>
                                   </div>
                                   <div>
                                     <button className='rounded-lg border shadow-lg w-20 h-10' onClick={() => { setIsOpen(!isOpen) }}>No</button>

@@ -11,10 +11,10 @@ export const useDeleteInput = () => {
     setLoading(true)
 
     spliceInput({ index })
+    ToastSuccess(`Se borró la entrada de ${input.product?.name ?? input.product?.label}`)
 
     deleteInputFetch({ inputId: input._id }).then(() => {
 
-      ToastSuccess(`Se borró la entrada de ${input.product?.name ?? input.product?.label }`)
 
     }).catch((error) => {
 

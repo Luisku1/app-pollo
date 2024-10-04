@@ -1,33 +1,19 @@
 /* eslint-disable react/prop-types */
 import { useState } from 'react'
-import { deleteOutputFetch } from '../../../helpers/FetchFunctions'
 import { MdCancel } from 'react-icons/md'
 import SectionHeader from '../../SectionHeader'
 import { useSelector } from 'react-redux'
 import { FaTrash } from 'react-icons/fa'
+import { useDeleteOutput } from '../../../hooks/Outputs/useDeleteOutput'
 
-export default function ListaSalidas({ outputs, changeOutputsIsOpenValue, outputsIsOpen, sliceOutput, roles }) {
+export default function ListaSalidas({ outputs, changeOutputsIsOpenValue, outputsIsOpen, spliceOutput, roles }) {
 
   const { currentUser } = useSelector((state) => state.user)
-  const [loading, setLoading] = useState(false)
+  const { deleteOutput, loading } = useDeleteOutput()
   const [selectedOutput, setSelectedOutput] = useState(null)
   const [movementDetailsIsOpen, setMovementDetailsIsOpen] = useState(false)
   const [deleteOutputIdButton, setDeleteOutputIdButton] = useState(null)
   const [confirmationIsOpen, setConfirmationIsOpen] = useState(false)
-
-  const deleteOutput = async (outputId, index) => {
-
-    setLoading(true)
-
-    const { error } = await deleteOutputFetch(outputId)
-
-    setLoading(false)
-
-    if (error == null) {
-
-      sliceOutput(index)
-    }
-  }
 
   const ShowOutputDetails = (props) => {
 
@@ -139,7 +125,7 @@ export default function ListaSalidas({ outputs, changeOutputsIsOpenValue, output
                               </div>
                               <div className='flex gap-10'>
                                 <div>
-                                  <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteOutput(output._id, index), setConfirmationIsOpen(!confirmationIsOpen) }}>Si</button>
+                                  <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteOutput({ output, spliceOutput, index }), setConfirmationIsOpen(!confirmationIsOpen) }}>Si</button>
                                 </div>
                                 <div>
                                   <button className='rounded-lg border shadow-lg w-20 h-10' onClick={() => { setConfirmationIsOpen(!confirmationIsOpen) }}>No</button>

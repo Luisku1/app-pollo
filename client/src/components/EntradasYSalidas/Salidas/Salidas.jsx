@@ -259,7 +259,7 @@ export default function Salidas({ branchAndCustomerSelectOptions, products, date
 
 
         {roles && Object.getOwnPropertyNames(roles).length > 0 ?
-          <ListaSalidas outputs={outputs} totalWeight={totalWeight} sliceOutput={spliceOutput} changeOutputsIsOpenValue={changeOutputsIsOpenValue} outputsIsOpen={outputsIsOpen} roles={roles}></ListaSalidas>
+          <ListaSalidas outputs={outputs} totalWeight={totalWeight} spliceOutput={spliceOutput} changeOutputsIsOpenValue={changeOutputsIsOpenValue} outputsIsOpen={outputsIsOpen} roles={roles}></ListaSalidas>
 
           : ''}
 

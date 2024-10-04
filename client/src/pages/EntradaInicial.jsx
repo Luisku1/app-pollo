@@ -101,7 +101,7 @@ export default function EntradaInicial({ date, branchAndCustomerSelectOptions, p
               <button className="w-10 h-10 rounded-lg shadow-lg" onClick={() => setShowProviderInputsStats(true)}><BsInfoSquare className="h-full w-full text-red-600" />
               </button>
             </div>
-            <p className='font-bold text-lg'><span className=" text-red-700 text-center">{`${providerInputsWeight.toFixed(2)} Kg / ${providerInputsPieces}`}</span><sup className="text-red-700">u</sup><span>:</span><span className="text-green-700">{` ${stringToCurrency({amount: providerInputsAmount})}`}</span></p>
+            <p className='font-bold text-lg'><span className=" text-red-700 text-center">{`${providerInputsWeight.toFixed(2)} Kg / ${providerInputsPieces}`}</span><sup className="text-red-700">u</sup><span>:</span><span className="text-green-700">{` ${stringToCurrency({ amount: providerInputsAmount })}`}</span></p>
           </div>
           <h2 className='text-2xl font-semibold mb-4 text-red-800'>
             <div className="">
@@ -151,7 +151,7 @@ export default function EntradaInicial({ date, branchAndCustomerSelectOptions, p
 
 
 
-                  {providerInputs && providerInputs.length > 0 && providerInputs.map((providerInput) => (
+                  {providerInputs && providerInputs.length > 0 && providerInputs.map((providerInput, index) => (
 
 
                     <div key={providerInput._id} className={(currentUser._id == providerInput.employee || currentUser.role == roles.managerRole._id ? '' : 'py-3 ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
@@ -180,7 +180,7 @@ export default function EntradaInicial({ date, branchAndCustomerSelectOptions, p
                                 </div>
                                 <div className='flex gap-10'>
                                   <div>
-                                    <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteProviderInput({ providerInput, spliceProviderInput, pushProviderInput }), setIsOpen(!isOpen) }}>Si</button>
+                                    <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteProviderInput({ providerInput, spliceProviderInput, pushProviderInput, index }), setIsOpen(!isOpen) }}>Si</button>
                                   </div>
                                   <div>
                                     <button className='rounded-lg border shadow-lg w-20 h-10' onClick={() => { setIsOpen(!isOpen) }}>No</button>

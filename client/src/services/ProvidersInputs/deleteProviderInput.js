@@ -1,5 +1,3 @@
-import { ToastSuccess } from "../../helpers/toastify"
-
 export const deleteProviderInputFetch = async ({ providerInputId }) => {
 
   const res = await fetch('/api/input/delete-provider-input/' + providerInputId, {
@@ -14,6 +12,5 @@ export const deleteProviderInputFetch = async ({ providerInputId }) => {
 
   }
 
-  ToastSuccess('La entrada de proveedor fue borrada')
   return
 }
