@@ -291,43 +291,45 @@ export const recalculateBranchReport = async ({ branchReport: paramsBranchReport
 
   if (paramsBranchReport) {
 
-    const branchReport = await fetchBranchReport({ branchId: paramsBranchReport.branch, date: paramsBranchReport.createdAt, populate: true })
+    const populatedBranchReport = await fetchBranchReport({ branchId: paramsBranchReport.branch, date: paramsBranchReport.createdAt, populate: true })
 
-    const incomes = paramsBranchReport.incomesArray?.length > 0
-      ? paramsBranchReport.incomesArray.reduce((total, income) => total + income.amount, 0)
+    const incomes = populatedBranchReport.incomesArray?.length > 0
+      ? populatedBranchReport.incomesArray.reduce((total, income) => total + income.amount, 0)
       : 0
     paramsBranchReport.incomes = incomes
 
-    const outgoings = paramsBranchReport.outgoingsArray?.length > 0
-      ? paramsBranchReport.outgoingsArray.reduce((total, outgoing) => total + outgoing.amount, 0)
+    const outgoings = populatedBranchReport.outgoingsArray?.length > 0
+      ? populatedBranchReport.outgoingsArray.reduce((total, outgoing) => total + outgoing.amount, 0)
       : 0
     paramsBranchReport.outgoings = outgoings
 
-    const inputs = paramsBranchReport.inputsArray?.length > 0
-      ? paramsBranchReport.inputsArray.reduce((total, input) => total + input.amount, 0)
+    const inputs = populatedBranchReport.inputsArray?.length > 0
+      ? populatedBranchReport.inputsArray.reduce((total, input) => total + input.amount, 0)
       : 0
     paramsBranchReport.inputs = inputs
 
-    const outputs = paramsBranchReport.outputsArray?.length > 0
-      ? paramsBranchReport.outputsArray.reduce((total, output) => total + output.amount, 0)
+    const outputs = populatedBranchReport.outputsArray?.length > 0
+      ? populatedBranchReport.outputsArray.reduce((total, output) => total + output.amount, 0)
       : 0
-    branchReport.outputs = outputs
+    paramsBranchReport.outputs = outputs
 
-    const providerInputs = paramsBranchReport.providerInputsArray?.length > 0
-      ? paramsBranchReport.providerInputsArray.reduce((total, providerInput) => total + providerInput.amount, 0)
+    const providerInputs = populatedBranchReport.providerInputsArray?.length > 0
+      ? populatedBranchReport.providerInputsArray.reduce((total, providerInput) => total + providerInput.amount, 0)
       : 0
     paramsBranchReport.providerInputs = providerInputs
 
-    const finalStock = paramsBranchReport.finalStockArray?.length > 0
-      ? paramsBranchReport.finalStockArray.reduce((total, finalStock) => total + finalStock.amount, 0)
+    const finalStock = populatedBranchReport.finalStockArray?.length > 0
+      ? populatedBranchReport.finalStockArray.reduce((total, finalStock) => total + finalStock.amount, 0)
       : 0
     paramsBranchReport.finalStock = finalStock
 
 
-    const initialStock = await getStockValue(branchReport.createdAt, paramsBranchReport.branch, 1, paramsBranchReport.createdAt)
+    const initialStock = await getStockValue(paramsBranchReport.createdAt, paramsBranchReport.branch, 1, paramsBranchReport.createdAt)
 
+    console.log(outgoings, finalStock, outputs, incomes, initialStock, inputs, providerInputs)
 
-    const newBalance = ((paramsBranchReport.outgoings + paramsBranchReport.finalStock + paramsBranchReport.outputs + paramsBranchReport.incomes) - (initialStock + paramsBranchReport.inputs + paramsBranchReport.providerInputs))
+    const newBalance = ((outgoings + finalStock + outputs + incomes) - (initialStock + inputs + providerInputs))
+
 
     const updatedBranchReport = await BranchReport.findByIdAndUpdate(paramsBranchReport._id, { balance: newBalance, initialStock: initialStock, finalStock, providerInputs, outputs, inputs, outgoings, incomes })
 
