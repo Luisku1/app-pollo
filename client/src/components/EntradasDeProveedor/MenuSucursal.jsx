@@ -161,7 +161,7 @@ export default function MenuSucursal({ branchAndCustomerSelectOptions, date, pus
       <div className='grid grid-cols-3 gap-2'>
 
         <div className='relative'>
-          <input type="number" name="pieces" id="provider-input-pieces" placeholder='Piezas' step={0.1} className='border border-black p-3 rounded-lg w-full' required onInput={providerInputButtonControl} onChange={handleProviderInputInputsChange} />
+          <input type="number" name="pieces" id="provider-input-pieces" placeholder='0.00' step={0.01} className='border border-black p-3 rounded-lg w-full' required onInput={providerInputButtonControl} onChange={handleProviderInputInputsChange} />
           <label htmlFor="compact-input" className="px-1 absolute top-1/4 left-2 transform -translate-y-1 rounded-sm bg-white text-gray-500">
             Piezas <span>*</span>
           </label>

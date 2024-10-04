@@ -771,7 +771,7 @@ export default function ControlSupervisor() {
                 <button className="w-full h-full" onClick={() => { setOutgoingsIsOpen(true) }}><FaListAlt className="h-full w-full text-red-600" />
                 </button>
               </div>
-              {roles.managerRole && currentUser.role == roles.managerRole._id ?
+              {roles && roles.managerRole && currentUser.role == roles.managerRole._id ?
 
                 <p className='font-bold text-lg text-red-700 text-center'>{extraOutgoingsTotal.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
 
@@ -793,7 +793,7 @@ export default function ControlSupervisor() {
                 <button className="w-full h-full" onClick={() => { setEmployeePaymentsIsOpen(true) }}><FaListAlt className="h-full w-full text-red-600" />
                 </button>
               </div>
-              {roles.managerRole && currentUser.role == roles.managerRole._id ?
+              {roles && roles.managerRole && currentUser.role == roles.managerRole._id ?
 
                 <p className='font-bold text-lg text-red-700 text-center'>{employeePaymentsTotal.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
 
@@ -885,7 +885,7 @@ export default function ControlSupervisor() {
                                 </div>
                                 <div className='flex gap-10'>
                                   <div>
-                                    <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteIncome({income, spliceIncome, index}), setIsOpen(!isOpen) }}>Si</button>
+                                    <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteIncome({ income, spliceIncome, index }), setIsOpen(!isOpen) }}>Si</button>
                                   </div>
                                   <div>
                                     <button className='rounded-lg border shadow-lg w-20 h-10' onClick={() => { setIsOpen(!isOpen) }}>No</button>

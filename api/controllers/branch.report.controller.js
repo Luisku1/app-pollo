@@ -317,7 +317,7 @@ export const recalculateBranchReport = async ({ branchReport: paramsBranchReport
       : 0
     paramsBranchReport.providerInputs = providerInputs
 
-    const finalStock = branchReport.finalStockArray?.length > 0
+    const finalStock = paramsBranchReport.finalStockArray?.length > 0
       ? paramsBranchReport.finalStockArray.reduce((total, finalStock) => total + finalStock.amount, 0)
       : 0
     paramsBranchReport.finalStock = finalStock

@@ -232,7 +232,7 @@ export default function Entradas({ branchAndCustomerSelectOptions, products, dat
 
             <div className='relative'>
 
-              <input type="number" name="pieces" id="input-pieces" placeholder='Piezas' step={0.1} className='w-full border border-black p-3 rounded-lg' required onInput={inputButtonControl} onChange={handleInputInputsChange} />
+              <input type="number" name="pieces" id="input-pieces" placeholder='0.00' step={0.01} className='w-full border border-black p-3 rounded-lg' required onInput={inputButtonControl} onChange={handleInputInputsChange} />
               <label htmlFor="compact-input" className="px-1 absolute top-1/4 left-2 transform -translate-y-1 rounded-sm bg-white text-gray-500">
                 Piezas <span>*</span>
               </label>

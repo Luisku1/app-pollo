@@ -126,5 +126,5 @@ h3 span {
 
 input:focus+label,
 input:placeholder-shown+label {
-  @apply -translate-y-full text-sm text-black font-bold;
+  @apply -translate-y-full text-sm text-black font-semibold;
 }

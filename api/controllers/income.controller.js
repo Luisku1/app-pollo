@@ -260,17 +260,7 @@ export const deleteIncomeQuery = async (req, res, next) => {
 
   try {
 
-    const deletedIncome = await IncomeCollected.findByIdAndDelete(incomeId, { session })
-
-    let branchReport = await fetchBranchReport({ branchId: deletedIncome.branch, date: deletedIncome.createdAt, session })
-
-
-    await BranchReport.findByIdAndUpdate(branchReport._id, {
-
-      $pull: { incomesArray: deletedIncome._id },
-      $inc: { incomes: -deletedIncome.amount, balance: -deletedIncome.amount }
-
-    }, { session })
+    await deleteIncomeFunction({ incomeId, session })
 
     await session.commitTransaction()
     res.status(200).json('Registro eliminado')
@@ -284,5 +274,20 @@ export const deleteIncomeQuery = async (req, res, next) => {
 
     session.endSession()
   }
+}
 
+export const deleteIncomeFunction = async ({ incomeId, session }) => {
+
+  const deletedIncome = await IncomeCollected.findByIdAndDelete(incomeId, { session })
+
+  let branchReport = await fetchBranchReport({ branchId: deletedIncome.branch, date: deletedIncome.createdAt, session })
+
+  await BranchReport.findByIdAndUpdate(branchReport._id, {
+
+    $pull: { incomesArray: deletedIncome._id },
+    $inc: { incomes: -deletedIncome.amount, balance: -deletedIncome.amount }
+
+  }, { session })
+
+  return
 }

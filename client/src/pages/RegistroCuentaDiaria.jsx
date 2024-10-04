@@ -856,6 +856,7 @@ export default function RegistroCuentaDiaria() {
     container: (provided) => ({
       ...provided,
       width: 'fit', // Fija el ancho del select
+      height: 'fit',
       borderRadius: '0.5rem',
       border: 'black'
     }),
@@ -866,7 +867,7 @@ export default function RegistroCuentaDiaria() {
       overflow: 'hidden', // Evita expansión
       borderRadius: '0.5rem',
       border: '1px solid black',
-      padding: '.25rem',
+      padding: '.5rem',
       fontSize: '14px'
     }),
     singleValue: (provided) => ({
@@ -982,10 +983,21 @@ export default function RegistroCuentaDiaria() {
           <div className='border p-3 mt-4 bg-white'>
             <SectionHeader label={'Gastos'} />
 
-            <form id='outgoingForm' onSubmit={addOutgoingSubmit} className="grid grid-cols-3 items-center justify-between">
+            <form id='outgoingForm' onSubmit={addOutgoingSubmit} className="grid grid-cols-3 gap-2">
 
-              <input type="text" name="concept" id="concept" placeholder='Concepto' className='border p-3 rounded-lg' required onInput={outgoingsButtonControl} onChange={handleOutgoingInputsChange} />
-              <input type="number" name="amount" id="amount" placeholder='$0.00' step={0.01} className='border p-3 rounded-lg' required onInput={outgoingsButtonControl} onChange={handleOutgoingInputsChange} />
+              <div className='relative'>
+                <input type="text" name="concept" id="concept" placeholder='Concepto' className='w-full p-3 rounded-lg border border-black' required onInput={outgoingsButtonControl} onChange={handleOutgoingInputsChange} />
+                <label htmlFor="compact-input" className="px-1 absolute top-1/4 left-2 transform -translate-y-1 rounded-sm bg-white text-gray-500">
+                  Concepto <span>*</span>
+                </label>
+              </div>
+              <div className='relative'>
+
+                <input type="number" name="amount" id="amount" placeholder='$0.00' step={0.01} className='border border-black w-full p-3 rounded-lg' required onInput={outgoingsButtonControl} onChange={handleOutgoingInputsChange} />
+                <label htmlFor="compact-input" className="px-1 absolute top-1/4 left-2 transform -translate-y-1 rounded-sm bg-white text-gray-500">
+                  Monto ($) <span>*</span>
+                </label>
+              </div>
               <button type='submit' id='outgoing-button' disabled className='bg-slate-500 text-white p-3 rounded-lg'>Agregar</button>
 
             </form>
@@ -1069,9 +1081,18 @@ export default function RegistroCuentaDiaria() {
                 onChange={handleProductSelectChange}
                 placeholder={'Productos'}
               />
-
-              <input type="number" name="pieces" id="pieces" placeholder='Piezas' step={0.1} className='border p-3 rounded-lg' required onInput={stockButtonControl} onChange={handleStockInputsChange} />
-              <input type="number" name="weight" id="weight" placeholder='0.00 kg' step={0.01} className='border p-3 rounded-lg' required onInput={stockButtonControl} onChange={handleStockInputsChange} />
+              <div className='relative'>
+                <input type="number" name="pieces" id="pieces" placeholder='Piezas' step={0.1} className='w-full border border-black p-3 rounded-lg' required onInput={stockButtonControl} onChange={handleStockInputsChange} />
+                <label htmlFor="compact-input" className="px-1 absolute top-1/4 left-2 transform -translate-y-1 rounded-sm bg-white text-gray-500">
+                  Piezas <span>*</span>
+                </label>
+              </div>
+              <div className='relative'>
+                <input type="number" name="weight" id="weight" placeholder='0.00 kg' step={0.01} className='w-full border border-black p-3 rounded-lg' required onInput={stockButtonControl} onChange={handleStockInputsChange} />
+                <label htmlFor="compact-input" className="px-1 absolute top-1/4 left-2 transform -translate-y-1 rounded-sm bg-white text-gray-500">
+                  Kilos<span>*</span>
+                </label>
+              </div>
               <button type='submit' id='stock-button' disabled className='bg-slate-500 text-white p-3 rounded-lg'>Agregar</button>
 
             </form>
