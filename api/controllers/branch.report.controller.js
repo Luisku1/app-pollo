@@ -14,6 +14,7 @@ import ProviderInput from '../models/providers/provider.input.model.js'
 import Output from '../models/accounts/output.model.js'
 import Outgoing from '../models/accounts/outgoings/outgoing.model.js'
 import IncomeCollected from '../models/accounts/incomes/income.collected.model.js'
+import { updateEmployeeDailyBalancesBalance } from './employee.controller.js'
 
 export const createBranchReport = async (req, res, next) => {
 
@@ -328,7 +329,12 @@ export const recalculateBranchReport = async ({ branchReport: paramsBranchReport
 
     const newBalance = ((paramsBranchReport.outgoings + paramsBranchReport.finalStock + paramsBranchReport.outputs + paramsBranchReport.incomes) - (initialStock + paramsBranchReport.inputs + paramsBranchReport.providerInputs))
 
-    await BranchReport.findByIdAndUpdate(paramsBranchReport._id, { balance: newBalance, initialStock: initialStock, finalStock, providerInputs, outputs, inputs, outgoings, incomes })
+    const updatedBranchReport = await BranchReport.findByIdAndUpdate(paramsBranchReport._id, { balance: newBalance, initialStock: initialStock, finalStock, providerInputs, outputs, inputs, outgoings, incomes })
+
+    if (updatedBranchReport.employee) {
+
+      await updateEmployeeDailyBalancesBalance({ branchReport: updatedBranchReport })
+    }
   }
 }
 
@@ -338,11 +344,15 @@ export const updateBranchReport = async (req, res, next) => {
 
   try {
 
+
+    if (branchReport.employee && branchReport.employee != employee) {
+
+      await updateEmployeeDailyBalancesBalance({ branchReport, changedEmployee: true })
+    }
+
     const updatedBranchReport = await BranchReport.findByIdAndUpdate(branchReport._id, {
       $set: { employee: employee, assistant: assistant }
     })
-
-    console.log(updatedBranchReport)
 
     if (updatedBranchReport) {
 

@@ -526,11 +526,11 @@ export const updateEmployeeDailyBalance = async (req, res, next) => {
 }
 
 
-export const updateEmployeeDailyBalancesBalance = async ({ branchReport, session = null }) => {
+export const updateEmployeeDailyBalancesBalance = async ({ branchReport, session = null, changedEmployee = false }) => {
 
 	try {
 
-		await updateDailyBalancesBalance(branchReport, session)
+		await updateDailyBalancesBalance(branchReport, session, changedEmployee)
 
 	} catch (error) {
 
@@ -538,7 +538,7 @@ export const updateEmployeeDailyBalancesBalance = async ({ branchReport, session
 	}
 }
 
-export const updateDailyBalancesBalance = async (branchReport, session = null) => {
+export const updateDailyBalancesBalance = async (branchReport, session = null, changedEmployee) => {
 
 	const { bottomDate, topDate } = getDayRange(branchReport.createdAt)
 
@@ -567,7 +567,7 @@ export const updateDailyBalancesBalance = async (branchReport, session = null) =
 
 		await EmployeeDailyBalance.findByIdAndUpdate(dailyBalance._id, {
 			$inc: {
-				accountBalance: branchReport.balance
+				accountBalance: changedEmployee ? -branchReport.balance : branchReport.balance
 			}
 		}, { session })
 
