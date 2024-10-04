@@ -757,28 +757,30 @@ export default function RegistroCuentaDiaria() {
   useEffect(() => {
 
 
-    if (!(employees?.length > 0 && Object.getOwnPropertyNames(branchReport).length > 0)) {
+    if (!employees.length > 0 || !branchReport) return
 
-      if (employees?.length > 0 && (!Object.getOwnPropertyNames(branchReport).length > 0)) {
+    if (branchReport.employee) {
 
-        setSelectedEmployee({ value: currentUser._id, label: currentUser.name + ' ' + currentUser.lastName })
+      const employeeTempOption = employees.find((employee) =>
+
+        employee.value == branchReport.employee
+      )
+
+      if (employeeTempOption) {
+
+        setSelectedEmployee(employeeTempOption)
+
       }
 
-      return
+    } else {
+
+      setSelectedEmployee({ value: currentUser._id, label: currentUser.name + ' ' + currentUser.lastName })
     }
 
-    const employeeTempOption = employees.find((employee) =>
 
-      employee.value == branchReport.employee
-    )
 
     const assistantTempOption = employees.find((assistant) => assistant.value == branchReport.assistant)
 
-    if (employeeTempOption) {
-
-      setSelectedEmployee(employeeTempOption)
-
-    }
 
     if (assistantTempOption) {
 
@@ -1456,7 +1458,7 @@ export default function RegistroCuentaDiaria() {
 
             <div>
 
-              <button disabled={loading} className='bg-slate-600 text-white p-3 rounded-lg uppercase hover:opacity-95 disabled:opacity-80 w-full' onClick={() => handleUpdate()}>Asignar Nombre</button>
+              <button disabled={loading} className='bg-slate-600 text-white p-3 rounded-lg uppercase hover:opacity-95 disabled:opacity-80 w-full' onClick={() => handleUpdate()}>Enviar formato</button>
 
             </div>
             :
