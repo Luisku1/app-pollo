@@ -137,7 +137,7 @@ export const createDefaultBranchReport = async ({ branchId, date, company, sessi
 
   const { bottomDate } = getDayRange(date)
 
-  const newBranchReport = await BranchReport.create({ branch: branchId, createdAt: bottomDate, company }).session(session)
+  const newBranchReport = await BranchReport.create([{ branch: branchId, createdAt: bottomDate, company }], { session })
 
   return newBranchReport
 }
@@ -473,7 +473,7 @@ export const refactorBranchReports = async (req, res, next) => {
         refactorBranchReport({ branchReport })
       });
 
-      res.status(200).json(branchReports)
+      res.status(200).json({ totalBranchReports: branchReports.length, branchReports })
     }
 
   } catch (error) {
@@ -617,8 +617,26 @@ export const refactorBranchReport = async ({ branchReport }) => {
       {
         branch: new Types.ObjectId(branchReport.branch)
       }]
-    }).select('_id')
+    }).select('_id'),
+
   ])
+
+  const nextBranchReportDate = new Date(branchReport.createdAt)
+  nextBranchReportDate.setDate(nextBranchReportDate.getDate() + 1)
+
+  let nextBranchReport = await fetchBranchReport({ branchId: branchReport.branch, date: nextBranchReportDate })
+
+  if (!nextBranchReport) {
+
+    nextBranchReport = await createDefaultBranchReport({ branchId: branchReport.branch, date: nextBranchReportDate, company: branchReport.company })
+  }
+
+  const initialStock = await getStockValue(nextBranchReportDate, branchReport.branch, 1, nextBranchReport.dateSent ?? nextBranchReport.createdAt)
+
+  await nextBranchReport.findByIdAndUpdate(nextBranchReport._id, {
+    $inc: { initialStock: initialStock.amount },
+    $inc: { balance: -initialStock.amount }
+  })
 
   await BranchReport.updateOne({ _id: branchReport._id }, {
 
