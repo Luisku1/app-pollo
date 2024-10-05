@@ -437,13 +437,13 @@ export const fetchBranchReport = async ({ branchId, date, populate = false, sess
           {
             createdAt: {
 
-              $lt: new Date(topDate)
+              $lt: topDate
             }
           },
           {
             createdAt: {
 
-              $gte: new Date(bottomDate)
+              $gte: bottomDate
             }
           },
           {
