@@ -396,7 +396,7 @@ export const getBranchReport = async (req, res, next) => {
 
 export const fetchBranchReport = async ({ branchId, date, populate = false, session = null }) => {
 
-  const { bottomDate, topDate } = getDayRange(date)
+  const { bottomDate, topDate } = getDayRange(new Date(date))
 
   try {
 
@@ -409,13 +409,13 @@ export const fetchBranchReport = async ({ branchId, date, populate = false, sess
           {
             createdAt: {
 
-              $lt: new Date(topDate)
+              $lt: topDate
             }
           },
           {
             createdAt: {
 
-              $gte: new Date(bottomDate)
+              $gte: bottomDate
             }
           },
           {

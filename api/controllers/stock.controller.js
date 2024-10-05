@@ -340,8 +340,6 @@ export const deleteStock = async (req, res, next) => {
 
     session.endSession()
   }
-  res.status(200).json('Stock deleted successfully')
-
 }
 
 export const getTotalStockByProduct = async (req, res, next) => {
