@@ -552,20 +552,20 @@ export const updateDailyBalancesBalance = async (branchReport, session = null, c
 				{
 					createdAt: {
 
-						$lt: new Date(topDate)
+						$lt: topDate
 					}
 				},
 				{
 					createdAt: {
 
-						$gte: new Date(bottomDate)
+						$gte: bottomDate
 					}
 				},
 				{
 					employee: new Types.ObjectId(updatedBranchReport.employee)
 				}
 			]
-		})
+		}).session(session)
 
 		await EmployeeDailyBalance.findByIdAndUpdate(dailyBalance._id, {
 

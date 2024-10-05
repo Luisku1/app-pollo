@@ -144,7 +144,7 @@ export const getBranchIncomesRequest = async (req, res, next) => {
 
 export const getBranchIncomes = async ({ branchId, date }) => {
 
-  const { bottomDate, topDate } = getDayRange(date)
+  const { bottomDate, topDate } = getDayRange(new Date(date))
 
   const branchIncomes = await IncomeCollected.find({
 
