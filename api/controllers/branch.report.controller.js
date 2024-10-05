@@ -264,7 +264,7 @@ export const cleanBranchReportReferences = async (branchReport) => {
 
 
     // Verificar y eliminar referencias huérfanas en incomesArray
-    const validIncomes = await IncomeCollected.find({ _id: { $in: branchReport.incomesArray } });
+    const validIncomes = await getBranchIncomes({branchId: branchReport.branch._id, date: branchReport.createdAt})
     branchReport.incomesArray = validIncomes.map(income => income._id);
 
     // Hacer lo mismo para otros arrays
