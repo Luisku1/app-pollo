@@ -180,7 +180,7 @@ export const getSupervisorsInfo = async (req, res, next) => {
 
     } else {
 
-      next(errorHandler(404, 'Hubo un error en la consulta, verifica que tengas empleados registrados'))
+      next(errorHandler(404, 'Ningún supervisor ha registrado ingresos o egresos'))
     }
 
   } catch (error) {
@@ -325,6 +325,35 @@ export const supervisorsInfoQuery = async (companyId, topDate, bottomDate, next)
               $match: {
                 createdAt: { $gte: new Date(bottomDate), $lt: new Date(topDate) }
               }
+            },
+            {
+              $lookup: {
+                from: 'branches', // Colección donde se almacena la información de las sucursales
+                localField: 'branch', // Campo dentro de 'incomes' que contiene la referencia a la sucursal
+                foreignField: '_id', // Campo en 'branches' que es el ID de la sucursal
+                as: 'branch' // Alias para los datos de la sucursal
+              }
+            },
+            {
+              $lookup: {
+                from: 'incometypes',
+                localField: 'type',
+                foreignField: '_id',
+                as: 'type'
+
+              }
+            },
+            {
+              $unwind: {
+                path: '$branch',
+                preserveNullAndEmptyArrays: true // Por si hay ingresos sin sucursal asociada
+              }
+            },
+            {
+              $unwind: {
+                path: '$type',
+                preserveNullAndEmptyArrays: true
+              }
             }
           ]
         }
@@ -355,8 +384,8 @@ export const supervisorsInfoQuery = async (companyId, topDate, bottomDate, next)
       {
         $match: {
           $or: [
-            {totalExtraOutgoings: { $gt: 0 }},
-            {totalIncomes: { $gt: 0 }}
+            { totalExtraOutgoings: { $gt: 0 } },
+            { totalIncomes: { $gt: 0 } }
           ]
         }
       },
@@ -365,13 +394,8 @@ export const supervisorsInfoQuery = async (companyId, topDate, bottomDate, next)
           _id: null,
           supervisors: {
             $push: {
-              _id: '$_id',
-              name: '$name',
-              lastName: '$lastName',
-              dailyBalance: '$dailyBalanace',
-              totalExtraOutgoings: '$totalExtraOutgoings',
-              extraOugoings: '$extraOutgoings',
-              totalIncomes: '$totalIncomes',
+              supervisor: '$$ROOT',
+              extraOutgoings: '$extraOutgoings',
               incomes: '$incomes'
             }
           },
@@ -448,6 +472,7 @@ export const updateReportDatasInfo = async (req, res, next) => {
           }
         ]
       })
+
 
       if (!reportData) {
 

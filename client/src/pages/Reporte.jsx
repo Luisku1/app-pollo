@@ -39,11 +39,8 @@ export default function Reporte() {
     totalOutgoings,
     totalBalance,
 
-  } = useBranchReports({companyId: company._id, date: stringDatePickerValue})
+  } = useBranchReports({ companyId: company._id, date: stringDatePickerValue })
   const navigate = useNavigate()
-
-  console.log(totalOutgoings)
-
 
   const changeDatePickerValue = (e) => {
 
@@ -243,7 +240,8 @@ export default function Reporte() {
           return
         }
 
-        setSupervisorsInfo(data.supervisorsInfo.data)
+        console.log(data.supervisors[0].supervisor.totalIncomes)
+        setSupervisorsInfo(data.supervisors)
         setLoading(false)
         setError(null)
 
@@ -325,14 +323,8 @@ export default function Reporte() {
       {branchReports && branchReports.length > 0 ?
 
         <div>
-
           <div>
-
-
             <div>
-
-
-
               <div className="grid grid-cols-5 border bg-white border-black mx-auto my-auto w-full rounded-lg font-bold">
                 <button className={"h-full p-1 rounded-lg hover:shadow-xl hover:bg-slate-700 hover:text-white " + (showTable ? 'bg-slate-500 text-white' : 'bg-white')} disabled={currentUser.role != managerRole._id} onClick={() => { handleShowTableButton() }}>Tabla</button>
                 <button className={"h-full p-1 rounded-lg hover:shadow-xl hover:bg-slate-700 hover:text-white " + (showStock ? 'bg-slate-500 text-white' : ' bg-white')} onClick={() => { handleShowStockButton() }}>Sobrante</button>
@@ -340,16 +332,11 @@ export default function Reporte() {
                 <button className={"h-full p-1 rounded-lg hover:shadow-xl hover:bg-slate-700 hover:text-white " + (showOutgoings ? 'bg-slate-500 text-white' : ' bg-white')} disabled={currentUser.role != managerRole._id} onClick={() => { handleShowOutgoingButton() }}>Gastos</button>
                 <button className={"h-full p-1 rounded-lg hover:shadow-xl hover:bg-slate-700 hover:text-white " + (showCards ? 'bg-slate-500 text-white' : ' bg-white')} disabled={currentUser.role != managerRole._id} onClick={() => { handleShowCardsButton() }}>Tarjetas</button>
               </div>
-
-              <div className="grid grid-cols-1">
-
-
-              </div>
               <div className="grid grid-cols-3 mt-3 items-center">
                 <p className="col-span-1 font-bold">{'Formatos: ' + branchReports.length + '/20'}</p>
                 <div className="col-span-2 justify-self-end flex items-center">
                   <p className="font-semibold">Recargar formatos:</p>
-                  <button className="text-black h-10 px-8" onClick={() => getBranchReports({companyId: company._id, date: stringDatePickerValue})}><IoReload className="w-full h-full" /></button>
+                  <button className="text-black h-10 px-8" onClick={() => getBranchReports({ companyId: company._id, date: stringDatePickerValue })}><IoReload className="w-full h-full" /></button>
                 </div>
               </div>
               <table className={'border mt-2 bg-white w-full ' + (!showTable ? 'hidden' : '')}>
@@ -380,7 +367,6 @@ export default function Reporte() {
 
 
                     <tr className={'border-x ' + (index + 1 != branchReports.length ? "border-b " : '') + 'border-black border-opacity-40'}>
-                      {/* <td className="text-xs">{branchReport.branch.position}</td> */}
                       <td className="group">
                         <Link className='' to={'/formato/' + branchReport.createdAt + '/' + branchReport.branch._id}>
                           <p className=" text-sm">{branchReport.branch.branch}</p>
@@ -405,7 +391,7 @@ export default function Reporte() {
                 <tfoot className="border border-black text-sm">
                   <tr className="mt-2">
                     <td className="text-center text-m font-bold">Totales:</td>
-                    <td className="text-center text-m font-bold">{stringToCurrency({amount: totalOutgoings ?? 0})}</td>
+                    <td className="text-center text-m font-bold">{stringToCurrency({ amount: totalOutgoings ?? 0 })}</td>
                     <td className="text-center text-m font-bold">{totalStock.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
                     <td className="text-center text-m font-bold">{totalIncomes.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
                     <td className={(totalBalance < 0 ? 'text-red-500' : 'text-green-500') + ' text-center text-m font-bold'}>{totalBalance.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
@@ -428,7 +414,7 @@ export default function Reporte() {
         : ''}
 
       {supervisorsInfo && showTable && supervisorsInfo.length > 0 ?
-        <div className="bg-white mt-3 absolute max-w-lg mx-auto">
+        <div className="bg-white mt-3 absolute max-w-lg">
 
           <div className="my-1 border border-slate-500 border-spacing-4 p-2 m-auto sticky top-0 bg-white z-5">
             <div id="filterBySupervisor" className="flex flex-wrap gap-1 justify-evenly">
@@ -445,10 +431,10 @@ export default function Reporte() {
             </div>
           </div>
 
-          {filteredIds && supervisorsInfo.map((info) => (
-            <div key={info.supervisor._id}>
+          {filteredIds && supervisorsInfo.map((supervisorInfo) => (
+            <div key={supervisorInfo.supervisor._id}>
 
-              {filteredIds && filteredIds.includes(info.supervisor._id) || all ?
+              {filteredIds && filteredIds.includes(supervisorInfo.supervisor._id) || all ?
                 <div className='border bg-white p-3 mt-4'>
 
                   {error ? <p>{error}</p> : ''}
@@ -456,11 +442,10 @@ export default function Reporte() {
 
                     <div className="flex gap-4">
 
-                      <p className="text-2xl font-semibold">{info.supervisor.name + ' ' + info.supervisor.lastName}</p>
+                      <p className="text-2xl font-semibold">{supervisorInfo.supervisor.name + ' ' + supervisorInfo.supervisor.lastName}</p>
 
-                      <div className="grid grid-rows-2">
-                        <p className="text-lg">Efectivo neto {(info.cash - info.totalExtraOutgoings).toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
-                        <p className="text-lg">Depósitos {(info.deposits).toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
+                      <div className="grid grid-rows-1">
+                        <p className="text-lg">Ingresos netos: {(supervisorInfo.supervisor.totalIncomes - supervisorInfo.supervisor.totalExtraOutgoings).toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
                       </div>
                     </div>
 
@@ -468,30 +453,30 @@ export default function Reporte() {
 
                       <div className="flex justify-between p-3 gap-4">
 
-                        <button className="m-auto border border-black border-opacity-20 shadow-lg rounded-3xl w-10/12 p-3" onClick={() => { incomesIsOpenFunctionControl(info.incomes.length, info.supervisor._id) }}>
+                        <button className="m-auto border border-black border-opacity-20 shadow-lg rounded-3xl w-10/12 p-3" onClick={() => { incomesIsOpenFunctionControl(supervisorInfo.supervisor.incomes.length, supervisorInfo.supervisor._id) }}>
 
                           <p className="text-lg">Ingreso bruto</p>
-                          <p>{info.totalIncomes.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
+                          <p>{stringToCurrency({ amount: supervisorInfo.supervisor.totalIncomes })}</p>
                         </button>
 
-                        <button className="m-auto border border-black border-opacity-20 shadow-lg rounded-3xl p-3 w-10/12" onClick={() => { extraOutgoingsIsOpenFunctionControl(info.extraOutgoings.length, info.supervisor._id) }}>
+                        <button className="m-auto border border-black border-opacity-20 shadow-lg rounded-3xl p-3 w-10/12" onClick={() => { extraOutgoingsIsOpenFunctionControl(supervisorInfo.supervisor.extraOutgoings.length, supervisorInfo.supervisor._id) }}>
                           <p className="text-lg">Gastos</p>
-                          <p>{info.totalExtraOutgoings.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
+                          <p>{stringToCurrency({ amount: supervisorInfo.supervisor.totalExtraOutgoings })}</p>
                         </button>
                       </div>
 
-                      {info && extraOutgoingsIsOpen && info.supervisor._id == selectedSupervisor ?
+                      {supervisorInfo.supervisor && extraOutgoingsIsOpen && supervisorInfo.supervisor._id == selectedSupervisor ?
 
                         <div className={extraOutgoingsIsOpen ? '' : 'hidden'}>
 
-                          {info && info.extraOutgoings && info.extraOutgoings.length > 0 ?
+                          {supervisorInfo.supervisor && supervisorInfo.supervisor.extraOutgoings && supervisorInfo.supervisor.extraOutgoings.length > 0 ?
                             <div id='header' className='grid grid-cols-12 items-center justify-around font-semibold mt-4'>
                               <p className='p-3 rounded-lg col-span-5 text-center bg-white'>Concepto</p>
                               <p className='p-3 rounded-lg col-span-5 text-center bg-white'>Monto</p>
                             </div>
                             : ''}
 
-                          {info && info.extraOutgoings && info.extraOutgoings.length > 0 && info.extraOutgoings.map((extraOutgoing) => (
+                          {supervisorInfo.supervisor && supervisorInfo.supervisor.extraOutgoings && supervisorInfo.supervisor.extraOutgoings.length > 0 && supervisorInfo.supervisor.extraOutgoings.map((extraOutgoing) => (
 
                             <div key={extraOutgoing._id} >
                               <div className={'py-3 grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
@@ -520,7 +505,7 @@ export default function Reporte() {
                         : ''}
 
 
-                      {info && incomesIsOpen && info.supervisor._id == selectedSupervisor ?
+                      {supervisorInfo.supervisor && incomesIsOpen && supervisorInfo.supervisor._id == selectedSupervisor ?
 
                         <div className={incomesIsOpen ? '' : 'hidden'} >
 
@@ -531,7 +516,7 @@ export default function Reporte() {
                             <p className='col-span-4 text-center'>Monto</p>
                           </div>
 
-                          {info && info.incomes.length > 0 && info.incomes.map((income) => (
+                          {supervisorInfo.supervisor && supervisorInfo.supervisor.incomes.length > 0 && supervisorInfo.supervisor.incomes.map((income) => (
 
                             <div key={income._id} className='grid grid-cols-12 items-center border border-black border-opacity-30 mt-2 shadow-m rounded-lg'>
 
