@@ -22,7 +22,7 @@ const extraOutgoingsSchema = mongoose.Schema({
     required: true
   },
 
-    company: {
+  company: {
     type: Schema.Types.ObjectId, ref: 'Company',
     required: true
   },

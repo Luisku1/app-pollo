@@ -15,13 +15,12 @@ import { ToastDanger } from "../../../helpers/toastify"
 import { useBranchCustomerProductPrice } from "../../../hooks/Prices/useBranchCustomerProductPrice"
 import { useAddOutput } from "../../../hooks/Outputs/useAddOutput"
 
-export default function Salidas({ branchAndCustomerSelectOptions, products, date, roles }) {
+export default function Salidas({ branchAndCustomerSelectOptions, products, date, roles, selectedProduct, setSelectedProduct, setSelectedProductToNull }) {
 
   const { company, currentUser } = useSelector((state) => state.user)
   const { outputs, totalWeight, pushOutput, spliceOutput, loading: outputLoading, updateLastOutputId } = useOutput({ companyId: company._id, date })
   const [outputsIsOpen, setOutputsIsOpen] = useState(false)
   const [outputFormData, setOutputFormData] = useState({})
-  const [selectedProduct, setSelectedProduct] = useState(null)
   const [selectedCustomerBranchOption, setSelectedCustomerBranchOption] = useState(null)
   const [selectedGroup, setSelectedGroup] = useState('');
   const { price } = useBranchCustomerProductPrice({ branchCustomerId: selectedCustomerBranchOption ? selectedCustomerBranchOption.value : null, productId: selectedProduct ? selectedProduct.value : null, date, group: selectedGroup == '' ? null : selectedGroup })
@@ -150,8 +149,7 @@ export default function Salidas({ branchAndCustomerSelectOptions, products, date
       piecesInput.value = ''
       weightInput.value = ''
       priceInput.value = ''
-      setSelectedProduct(null)
-
+      setSelectedProductToNull()
       setLoading(false)
 
     } catch (error) {
@@ -270,12 +268,7 @@ export default function Salidas({ branchAndCustomerSelectOptions, products, date
 
         </div>
 
-
-
-        {roles && Object.getOwnPropertyNames(roles).length > 0 ?
-          <ListaSalidas outputs={outputs} totalWeight={totalWeight} spliceOutput={spliceOutput} changeOutputsIsOpenValue={changeOutputsIsOpenValue} outputsIsOpen={outputsIsOpen} roles={roles}></ListaSalidas>
-
-          : ''}
+        <ListaSalidas outputs={outputs} totalWeight={totalWeight} spliceOutput={spliceOutput} changeOutputsIsOpenValue={changeOutputsIsOpenValue} outputsIsOpen={outputsIsOpen} roles={roles}></ListaSalidas>
 
       </div>
     )

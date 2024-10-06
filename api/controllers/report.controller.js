@@ -83,7 +83,7 @@ export const getBranchReports = async (req, res, next) => {
         }
       },
       {
-        $sort: {'branch.position': 1}
+        $sort: { 'branch.position': 1 }
       },
       // {
       //   $project: {
@@ -148,23 +148,6 @@ export const getBranchReports = async (req, res, next) => {
       }
     ]);
 
-    console.log(branchReports)
-
-    // const branchReports = await BranchReport.find({
-
-    //   $and: [
-    //     {
-    //       createdAt: { $gte: bottomDate }
-    //     },
-    //     {
-    //       createdAt: { $lt: topDate }
-    //     },
-    //     {
-    //       company: companyId
-    //     }
-    //   ]
-    // }).populate({ path: 'branch', select: 'branch position' }).populate({ path: 'employee', select: 'name lastName' }).populate({ path: 'assistant', select: 'name lastName' })
-
     if (branchReports.length > 0) {
 
       res.status(200).json({ branchReports: branchReports[0].branchReports, totalIncomes: branchReports[0].globalTotals[0].totalIncomes, totalStock: branchReports[0].globalTotals[0].totalFinalStock, totalOutgoings: branchReports[0].globalTotals[0].totalOutgoings, totalBalance: branchReports[0].globalTotals[0].totalBalance })
@@ -191,13 +174,13 @@ export const getSupervisorsInfo = async (req, res, next) => {
 
     const supervisorsInfo = await supervisorsInfoQuery(companyId, topDate, bottomDate, next)
 
-    if (supervisorsInfo.error == null) {
+    if (supervisorsInfo) {
 
-      res.status(200).json({ supervisorsInfo: supervisorsInfo })
+      res.status(200).json({ supervisors: supervisorsInfo.supervisors, totalExtraOutgoings: supervisorsInfo.totalExtraOutgoings, totalIncomes: supervisorsInfo.totalIncomes })
 
     } else {
 
-      next(errorHandler(404, supervisorsInfo.error))
+      next(errorHandler(404, 'Hubo un error en la consulta, verifica que tengas empleados registrados'))
     }
 
   } catch (error) {
@@ -284,9 +267,7 @@ export const getSupervisorInfo = async (req, res, next) => {
   }
 }
 
-export const supervisorsInfoQuery = async (companyId, dateTopRange, dateBottomRange, next) => {
-
-  let supervisorsInfo = []
+export const supervisorsInfoQuery = async (companyId, topDate, bottomDate, next) => {
 
   try {
 
@@ -301,105 +282,113 @@ export const supervisorsInfoQuery = async (companyId, dateTopRange, dateBottomRa
       ]
     }).select({ path: '_id' })
 
-    const supervisors = await Employee.find({
+    console.log(roles)
 
+    const rolesId = roles.map((role) => {
 
-      role: { $in: roles },
-      company: new Types.ObjectId(companyId)
-
+      return new Types.ObjectId(role._id)
     })
 
-    for (let supervisor in supervisors) {
 
-      let supervisorModel = {
-        supervisor: {},
-        deposits: 0,
-        cash: 0,
-        totalIncomes: 0,
-        totalExtraOutgoings: 0,
-        incomes: [],
-        extraOutgoings: []
-      }
+    const supervisorsInfo = await Employee.aggregate([
 
-      supervisorModel.supervisor = supervisors[supervisor]
+      {
+        $match: {
 
-      supervisorModel.incomes = await IncomeCollected.find({
-        $and: [
-          {
-            createdAt: {
+          'role': { $in: rolesId },
+          'company': new Types.ObjectId(companyId)
+        }
+      },
+      {
+        $lookup: {
+          from: 'extraoutgoings',
+          localField: '_id',
+          foreignField: 'employee',
+          as: 'extraOutgoings',
+          pipeline: [
+            {
+              $match: {
+                createdAt: { $gte: new Date(bottomDate), $lt: new Date(topDate) }
+              }
+            }
+          ]
+        }
+      },
+      {
+        $lookup: {
+          from: 'incomecollecteds',
+          localField: '_id',
+          foreignField: 'employee',
+          as: 'incomes',
+          pipeline: [
+            {
+              $match: {
+                createdAt: { $gte: new Date(bottomDate), $lt: new Date(topDate) }
+              }
+            }
+          ]
+        }
+      },
+      {
+        $lookup: {
 
-              $gte: dateBottomRange
+          from: 'employeedailybalances',
+          localField: '_id',
+          foreignField: 'employee',
+          as: 'dailyBalance',
+          pipeline: [
+            {
+              $match: {
+                createdAt: { $gte: new Date(bottomDate), $lt: new Date(topDate) }
+              }
+            }
+          ]
+        }
+      },
+      {
+        $addFields: {
+
+          totalExtraOutgoings: { $sum: '$extraOutgoings.amount' },
+          totalIncomes: { $sum: '$incomes.amount' }
+        }
+      },
+      {
+        $match: {
+          $or: [
+            {totalExtraOutgoings: { $gt: 0 }},
+            {totalIncomes: { $gt: 0 }}
+          ]
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          supervisors: {
+            $push: {
+              _id: '$_id',
+              name: '$name',
+              lastName: '$lastName',
+              dailyBalance: '$dailyBalanace',
+              totalExtraOutgoings: '$totalExtraOutgoings',
+              extraOugoings: '$extraOutgoings',
+              totalIncomes: '$totalIncomes',
+              incomes: '$incomes'
             }
           },
-          {
-            createdAt: {
-
-              $lt: dateTopRange
-            }
-          },
-          {
-            employee: supervisors[supervisor]._id
-          }
-        ]
-      }).populate({ path: 'branch', select: 'branch' }).populate({ path: 'type', select: 'name' })
-
-      if (supervisorModel.incomes.length > 0) {
-
-        for (let income in supervisorModel.incomes) {
-
-          supervisorModel.totalIncomes += supervisorModel.incomes[income].amount
-
-          if (supervisorModel.incomes[income].type.name == 'Efectivo') {
-
-            supervisorModel.cash += supervisorModel.incomes[income].amount
-
-          } else {
-
-            supervisorModel.deposits += supervisorModel.incomes[income].amount
-
-          }
+          totalExtraOutgoings: { $sum: '$totalExtraOutgoings' },
+          totalIncomes: { $sum: '$totalIncomes' }
         }
       }
+    ])
 
 
-      supervisorModel.extraOutgoings = await ExtraOutgoing.find({
-        $and: [
-          {
-            createdAt: {
+    if (supervisorsInfo.length > 0) {
 
-              $gte: dateBottomRange
-            }
-          },
-          {
-            createdAt: {
-
-              $lt: dateTopRange
-            }
-          },
-          {
-            employee: supervisors[supervisor]._id
-          }
-        ]
-      })
-
-      if (supervisorModel.extraOutgoings.length > 0) {
-
-        for (let extraOutgoing in supervisorModel.extraOutgoings) {
-
-          supervisorModel.totalExtraOutgoings += supervisorModel.extraOutgoings[extraOutgoing].amount
-        }
-      }
-
-      supervisorsInfo.push(supervisorModel)
-    }
-
-    if (supervisorsInfo) {
-
-      return { error: null, data: supervisorsInfo }
+      return supervisorsInfo[0]
 
     } else {
 
-      return { error: 'Error innesperado', data: null }
+      return null
     }
 
   } catch (error) {
@@ -459,7 +448,6 @@ export const updateReportDatasInfo = async (req, res, next) => {
           }
         ]
       })
-
 
       if (!reportData) {
 

@@ -134,11 +134,11 @@ export const createBranchReport = async (req, res, next) => {
   }
 }
 
-export const createDefaultBranchReport = async ({ branchId, date, company, session = null }) => {
+export const createDefaultBranchReport = async ({ branchId, date, companyId, session = null }) => {
 
   const { bottomDate } = getDayRange(date)
 
-  const newBranchReport = await BranchReport.create([{ branch: branchId, createdAt: bottomDate, company }], { session })
+  const newBranchReport = await BranchReport.create([{ branch: branchId, createdAt: bottomDate, company: companyId }], { session })
 
   return newBranchReport
 }

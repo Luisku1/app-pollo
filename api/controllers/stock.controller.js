@@ -38,6 +38,7 @@ export const createStockAndUpdateBranchReport = async ({ pieces, price, employee
 
     if (!branchReport) {
 
+      console.log('Llego aquí ')
       branchReport = await createDefaultBranchReport({ branchId: branch, date: createdAt, companyId: company, session })
     }
 

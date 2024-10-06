@@ -320,6 +320,8 @@ export default function RegistroCuentaDiaria() {
         company: company._id
       }
 
+      console.log(stock)
+
       addStock({ stock, pushStock, spliceStock, updateLastStockId })
 
       setError(null)

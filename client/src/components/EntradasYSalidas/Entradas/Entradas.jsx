@@ -15,7 +15,7 @@ import { ToastDanger } from '../../../helpers/toastify'
 import { useBranchCustomerProductPrice } from '../../../hooks/Prices/useBranchCustomerProductPrice'
 import { useAddInput } from '../../../hooks/Inputs/useAddInput'
 
-export default function Entradas({ branchAndCustomerSelectOptions, products, date: dateParams, roles }) {
+export default function Entradas({ branchAndCustomerSelectOptions, products, date: dateParams, roles, selectedProduct, setSelectedProduct, setSelectedProductToNull  }) {
 
   const { company, currentUser } = useSelector((state) => state.user)
   const [inputFormData, setInputFormData] = useState({})
@@ -31,7 +31,6 @@ export default function Entradas({ branchAndCustomerSelectOptions, products, dat
   const [inputsIsOpen, setInputsIsOpen] = useState(false)
   const [selectedCustomerBranchOption, setSelectedCustomerBranchOption] = useState(null)
   const [selectedGroup, setSelectedGroup] = useState('')
-  const [selectedProduct, setSelectedProduct] = useState(null)
   const { price } = useBranchCustomerProductPrice({ branchCustomerId: selectedCustomerBranchOption ? selectedCustomerBranchOption.value : null, productId: selectedProduct ? selectedProduct.value : null, date: dateParams, group: selectedGroup == '' ? null : selectedGroup })
   const [amount, setAmount] = useState('$0.00')
   const [loading, setLoading] = useState(false)
@@ -173,7 +172,7 @@ export default function Entradas({ branchAndCustomerSelectOptions, products, dat
 
       piecesInput.value = ''
       weightInput.value = ''
-      setSelectedProduct(null)
+      setSelectedProductToNull()
       priceInput.value = ''
 
       setLoading(false)
