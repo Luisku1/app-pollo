@@ -9,7 +9,7 @@ export const useAddOutgoing = () => {
   const addOutgoing = async ({ outgoing, pushOutgoing, spliceOutgoing, updateOutgoingId }) => {
 
     pushOutgoing({ outgoing })
-    ToastSuccess(`Se agregó el gasto de "${outgoing.concept.toLowerCase()}"`)
+    ToastSuccess(`Se agregó el gasto de "${outgoing.concept}"`)
 
     addOutgoingFetch({ outgoing }).then((response) => {
 
@@ -18,7 +18,7 @@ export const useAddOutgoing = () => {
     }).catch((error) => {
 
       spliceOutgoing(0)
-      ToastDanger(`No se agregó el gasto de "${outgoing.concept.toLowerCase()}"`)
+      ToastDanger(`No se agregó el gasto de "${outgoing.concept}"`)
       setError(error)
     })
   }

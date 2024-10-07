@@ -8,6 +8,7 @@ import { getDayRange } from "../utils/formatDate.js";
 import { updateReportStock } from "../utils/updateReport.js";
 import { createDefaultBranchReport, fetchBranchReport, removeRecordFromBranchReport } from "./branch.report.controller.js";
 import { pricesAggregate } from "./price.controller.js";
+import { updateEmployeeDailyBalancesBalance } from "./employee.controller.js";
 
 export const createStock = async (req, res, next) => {
 
@@ -306,7 +307,6 @@ export const deleteStock = async (req, res, next) => {
     const deletedStock = await Stock.findByIdAndDelete(stockId, { session })
 
     let branchReport = await fetchBranchReport({ branchId: deletedStock.branch, date: deletedStock.createdAt, session })
-
 
     await BranchReport.findByIdAndUpdate(branchReport._id, {
 

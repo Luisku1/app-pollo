@@ -8,6 +8,7 @@ import mongoose, { Types } from "mongoose"
 import Branch from "../models/branch.model.js"
 import { addRecordToBranchReportArrays, createDefaultBranchReport, fetchBranchReport } from "./branch.report.controller.js"
 import BranchReport from "../models/accounts/branch.report.model.js"
+import { updateEmployeeDailyBalancesBalance } from "./employee.controller.js"
 
 export const newOutgoing = async (req, res, next) => {
 
@@ -355,7 +356,7 @@ export const deleteOutgoing = async (req, res, next) => {
     await BranchReport.findByIdAndUpdate(branchReport._id, {
 
       $pull: { outgoingsArray: deletedOutgoing._id },
-      $inc: { outgoings: -deletedOutgoing.amount, outgoings: -deletedOutgoing.amount }
+      $inc: { outgoings: -deletedOutgoing.amount, balance: -deletedOutgoing.amount }
 
     }, { session })
 

@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
-import { deleteOutgoingFetch, fetchPrices, fetchProducts } from '../helpers/FetchFunctions';
+import { fetchPrices, fetchProducts } from '../helpers/FetchFunctions';
 import { FaTrash } from 'react-icons/fa';
 import { useParams, useNavigate } from 'react-router-dom';
 import { MdKeyboardArrowDown, MdKeyboardArrowRight } from 'react-icons/md';
@@ -20,6 +20,7 @@ import { useAddOutgoing } from '../hooks/Outgoings/useAddOutgoing';
 import { useStock } from '../hooks/Stock/useStock';
 import { useDeleteStock } from '../hooks/Stock/useDeleteStock';
 import { useAddStock } from '../hooks/Stock/useAddStock';
+import { useDeleteOutgoing } from '../hooks/Outgoings/useDeleteOutgoing';
 
 export default function RegistroCuentaDiaria() {
 
@@ -41,6 +42,7 @@ export default function RegistroCuentaDiaria() {
   const { stock, totalStock, spliceStock, pushStock, updateLastStockId } = useStock({ branchId, date: stringDatePickerValue })
   const { deleteStock } = useDeleteStock()
   const { addStock } = useAddStock()
+  const { deleteOutgoing } = useDeleteOutgoing()
   const [outputs, setOutputs] = useState([])
   const [outputsTotal, setOutputsTotal] = useState(0.0)
   const [inputs, setInputs] = useState([])
@@ -272,22 +274,6 @@ export default function RegistroCuentaDiaria() {
     addOutgoing({ outgoing, pushOutgoing, spliceOutgoing, updateOutgoingId })
 
     button.disabled = false
-  }
-
-
-  const deleteOutgoing = async (outgoingId, index) => {
-
-    setLoading(true)
-
-    const { error } = await deleteOutgoingFetch(outgoingId)
-
-
-    if (error == null) {
-
-      spliceOutgoing({ index })
-    }
-
-    setLoading(false)
   }
 
   const addStockItem = async (e) => {
@@ -1040,7 +1026,7 @@ export default function RegistroCuentaDiaria() {
                             </div>
                             <div className='flex gap-10'>
                               <div>
-                                <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteOutgoing(outgoing._id, index), setIsOpen(isOpen ? false : true) }}>Si</button>
+                                <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteOutgoing({outgoing, spliceOutgoing, pushOutgoing, index}), setIsOpen(isOpen ? false : true) }}>Si</button>
                               </div>
                               <div>
                                 <button className='rounded-lg border shadow-lg w-20 h-10' onClick={() => { setIsOpen(isOpen ? false : true) }}>No</button>
