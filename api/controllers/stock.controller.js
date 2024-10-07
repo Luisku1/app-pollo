@@ -38,7 +38,6 @@ export const createStockAndUpdateBranchReport = async ({ pieces, price, employee
 
     if (!branchReport) {
 
-      console.log('Llego aquí ')
       branchReport = await createDefaultBranchReport({ branchId: branch, date: createdAt, companyId: company, session })
     }
 
@@ -53,6 +52,11 @@ export const createStockAndUpdateBranchReport = async ({ pieces, price, employee
       }
 
     }, { session })
+
+    if (branchReport.employee) {
+
+      await updateEmployeeDailyBalancesBalance({ branchReport: branchReport, session })
+    }
 
     const nextBranchReportDate = new Date(createdAt)
     nextBranchReportDate.setDate(nextBranchReportDate.getDate() + 1)
@@ -73,6 +77,11 @@ export const createStockAndUpdateBranchReport = async ({ pieces, price, employee
       }
 
     }, { session })
+
+    if (branchReport.employee) {
+
+      await updateEmployeeDailyBalancesBalance({ branchReport: branchReport, session })
+    }
 
     await session.commitTransaction()
     return stock[0]
@@ -303,11 +312,16 @@ export const deleteStock = async (req, res, next) => {
 
       $pull: { finalStockArray: deletedStock._id },
       $inc: {
-        finalStock: deletedStock.amount,
+        finalStock: -deletedStock.amount,
         balance: -deletedStock.amount
       }
 
     }, { session })
+
+    if (branchReport.employee) {
+
+      await updateEmployeeDailyBalancesBalance({ branchReport: branchReport, session })
+    }
 
     const nextBranchReportDate = new Date(deletedStock.createdAt)
     nextBranchReportDate.setDate(nextBranchReportDate.getDate() + 1)
@@ -328,6 +342,11 @@ export const deleteStock = async (req, res, next) => {
       },
 
     }, { session })
+
+    if (branchReport.employee) {
+
+      await updateEmployeeDailyBalancesBalance({ branchReport: branchReport, session })
+    }
 
     await session.commitTransaction()
     res.status(200).json({ message: 'Stock deleted correctly' })

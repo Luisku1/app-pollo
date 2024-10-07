@@ -8,6 +8,7 @@ import { getDayRange } from '../utils/formatDate.js'
 import mongoose, { Types } from 'mongoose'
 import { addRecordToBranchReportArrays, createDefaultBranchReport, fetchBranchReport, removeRecordFromBranchReport } from './branch.report.controller.js'
 import BranchReport from '../models/accounts/branch.report.model.js'
+import { updateEmployeeDailyBalancesBalance } from './employee.controller.js'
 
 export const newBranchInput = async (req, res, next) => {
 
@@ -40,7 +41,7 @@ export const newBranchInputAndUpdateBranchReport = async ({ weight, comment, pie
       branchReport = await createDefaultBranchReport({ branchId: branch, date: createdAt, companyId: company, session })
     }
 
-    const input = await Input.create([{weight, comment, pieces, company, product, employee, branch, amount, price, createdAt, specialPrice}], { session })
+    const input = await Input.create([{ weight, comment, pieces, company, product, employee, branch, amount, price, createdAt, specialPrice }], { session })
 
     await BranchReport.findByIdAndUpdate(branchReport._id, {
 
@@ -48,6 +49,11 @@ export const newBranchInputAndUpdateBranchReport = async ({ weight, comment, pie
       $inc: { inputs: input[0].amount, balance: -input[0].amount }
 
     }, { session })
+
+    if (branchReport.employee) {
+
+      await updateEmployeeDailyBalancesBalance({ branchReport: branchReport, session })
+    }
 
     await session.commitTransaction()
     return input[0]
@@ -497,6 +503,11 @@ export const deleteInput = async (req, res, next) => {
 
     }, { session })
 
+    if (branchReport.employee) {
+
+      await updateEmployeeDailyBalancesBalance({ branchReport: branchReport, session })
+    }
+
     await session.commitTransaction()
     res.status(200).json({ message: 'Input deleted correctly' })
 
@@ -908,6 +919,11 @@ export const createBranchProviderInputAndUpdateBranchReport = async ({ weight, p
 
     }, { session })
 
+    if (branchReport.employee) {
+
+      await updateEmployeeDailyBalancesBalance({ branchReport: branchReport, session })
+    }
+
     await session.commitTransaction()
     return providerInput[0]
 
@@ -965,6 +981,11 @@ export const deleteProviderInput = async (req, res, next) => {
 
     }, { session })
 
+    if (branchReport.employee) {
+
+      await updateEmployeeDailyBalancesBalance({ branchReport: branchReport, session })
+    }
+
     await session.commitTransaction()
     res.status(200).json({ message: 'Provider input deleted correctly' })
 
@@ -999,6 +1020,11 @@ export const deleteOutput = async (req, res, next) => {
       $inc: { outputs: -deletedOutput.amount, balance: -deletedOutput.amount }
 
     }, { session })
+
+    if (branchReport.employee) {
+
+      await updateEmployeeDailyBalancesBalance({ branchReport: branchReport, session })
+    }
 
     await session.commitTransaction()
     res.status(200).json({ message: 'Output deleted correctly' })

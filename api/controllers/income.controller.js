@@ -296,5 +296,10 @@ export const deleteIncomeFunction = async ({ incomeId, session }) => {
 
   }, { session })
 
+  if (branchReport.employee) {
+
+    await updateEmployeeDailyBalancesBalance({ branchReport: branchReport, session })
+  }
+
   return
 }

@@ -52,6 +52,11 @@ export const newOutgoingAndUpdateBranchReport = async ({ amount, concept, compan
 
     }, { session })
 
+    if (branchReport.employee) {
+
+      await updateEmployeeDailyBalancesBalance({ branchReport: branchReport, session })
+    }
+
     await session.commitTransaction()
     return outgoing[0]
 
@@ -353,6 +358,11 @@ export const deleteOutgoing = async (req, res, next) => {
       $inc: { outgoings: -deletedOutgoing.amount, outgoings: -deletedOutgoing.amount }
 
     }, { session })
+
+    if (branchReport.employee) {
+
+      await updateEmployeeDailyBalancesBalance({ branchReport: branchReport, session })
+    }
 
     await session.commitTransaction()
     res.status(200).json('Outgoing deleted successfully')
