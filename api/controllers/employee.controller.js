@@ -17,13 +17,8 @@ export const getEmployees = async (req, res, next) => {
 
 		const companyId = req.params.companyId
 		const employees = await Employee.find({
-
-			$and: [
-
-				{ active: true },
-
-				{ company: companyId }
-			]
+			active: true,
+			company: companyId
 		}).sort({ name: 1 }).populate({ path: 'role', select: 'name' })
 
 		res.status(200)
@@ -86,28 +81,17 @@ export const getEmployeeReports = async (req, res, next) => {
 		firstWeekDay.setDate(firstWeekDay.getDate() - employeeWeekDays)
 
 		const employeeReports = await BranchReport.find({
-			$and: [
+			$or: [
 				{
-					$or: [
-						{
-							employee: employeeId
-						},
-						{
-							assistant: employeeId
-						}
-					]
+					employee: employeeId
 				},
 				{
-					createdAt: {
-						$gte: firstWeekDay
-					}
-				},
-				{
-					createdAt: {
-						$lt: new Date(topDate)
-					}
-				},
-			]
+					assistant: employeeId
+				}
+			],
+			createdAt: {
+				$gte: firstWeekDay, $lt: new Date(topDate)
+			}
 		}).sort({ createdAt: -1 }).populate({ path: 'branch', select: 'branch' })
 
 		if (employeeReports.length > 0) {
@@ -159,17 +143,10 @@ export const getEmployeeDayInfo = async (req, res, next) => {
 	try {
 
 		const employeeDayInfo = await EmployeeDailyBalance.findOne({
-			$and: [
-				{
-					createdAt: {
 
-						$gte: bottomDate
-					}
-				},
-				{
-					employee: employeeId
-				}
-			]
+			createdAt: { $gte: bottomDate },
+			employee: employeeId
+
 		}).populate({ path: 'employee', select: 'name lastName' })
 
 		if (employeeDayInfo) {

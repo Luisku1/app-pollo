@@ -30,64 +30,22 @@ export const createBranchReport = async (req, res, next) => {
   try {
 
     const originalBranchReport = await BranchReport.findOne({
-      $and: [
-        {
-          createdAt: {
-
-            $lt: topDate
-          }
-        },
-        {
-          createdAt: {
-
-            $gte: bottomDate
-          }
-        },
-        {
-          branch: branch
-        }
-      ]
+      createdAt: { $lt: topDate, $gte: bottomDate },
+      branch: branch
     })
 
     if (!originalBranchReport) {
 
       await EmployeeDailyBalance.updateOne({
 
-        $and: [
-          {
-            createdAt: {
-
-              $lt: topDate
-            }
-          },
-          {
-            createdAt: {
-
-              $gte: bottomDate
-            }
-          },
-          {
-            employee: employee
-          }
-        ]
+        createdAt: { $lt: topDate, $gte: bottomDate },
+        employee: employee
       }, { accountBalance: balance })
 
       const reportData = await ReportData.findOne({
-        $and: [
-          {
-            company: companyId
-          },
-          {
-            createdAt: {
-              $gte: bottomDate
-            }
-          },
-          {
-            createdAt: {
-              $lt: topDate
-            }
-          }
-        ]
+
+        company: companyId,
+        createdAt: { $gte: bottomDate, $lt: topDate }
       })
 
       if (reportData) {
@@ -264,7 +222,7 @@ export const cleanBranchReportReferences = async (branchReport) => {
 
 
     // Verificar y eliminar referencias huérfanas en incomesArray
-    const validIncomes = await getBranchIncomes({branchId: branchReport.branch._id, date: branchReport.createdAt})
+    const validIncomes = await getBranchIncomes({ branchId: branchReport.branch._id, date: branchReport.createdAt })
     branchReport.incomesArray = validIncomes.map(income => income._id);
 
     // Hacer lo mismo para otros arrays
@@ -405,23 +363,8 @@ export const fetchBranchReport = async ({ branchId, date, populate = false, sess
     if (populate) {
 
       branchReport = await BranchReport.findOne({
-        $and: [
-          {
-            createdAt: {
-
-              $lt: topDate
-            }
-          },
-          {
-            createdAt: {
-
-              $gte: bottomDate
-            }
-          },
-          {
-            branch: new Types.ObjectId(branchId)
-          }
-        ]
+        createdAt: { $lt: topDate, $gte: bottomDate },
+        branch: new Types.ObjectId(branchId)
       })
         .populate('finalStockArray')
         .populate('inputsArray')
@@ -433,33 +376,12 @@ export const fetchBranchReport = async ({ branchId, date, populate = false, sess
     } else {
 
       branchReport = await BranchReport.findOne({
-        $and: [
-          {
-            createdAt: {
-
-              $lt: topDate
-            }
-          },
-          {
-            createdAt: {
-
-              $gte: bottomDate
-            }
-          },
-          {
-            branch: new Types.ObjectId(branchId)
-          }
-        ]
+        createdAt: { $lt: topDate, $gte: bottomDate },
+        branch: new Types.ObjectId(branchId)
       }).session(session)
     }
 
-    if (branchReport != null && branchReport != undefined) {
-
-      if (Object.getOwnPropertyNames(branchReport).length > 0) {
-
-        return branchReport
-      }
-    }
+    return branchReport || null
 
   } catch (error) {
 

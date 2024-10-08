@@ -144,23 +144,8 @@ export const getStockValue = async (date, branchId, reportExists, reportDate) =>
 
   const initialStock = await Stock.find({
 
-    $and: [{
-
-      createdAt: {
-
-        $lt: topDate
-      }
-    },
-    {
-      createdAt: {
-
-        $gte: bottomDate
-
-      }
-    },
-    {
-      branch: branchId
-    }]
+    createdAt: { $lt: topDate, $gte: bottomDate },
+    branch: branchId
   })
 
   if (initialStock) {

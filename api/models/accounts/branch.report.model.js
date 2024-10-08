@@ -101,6 +101,8 @@ const branchReportSchema = mongoose.Schema({
 
 }, { timestamps: { createdAt: true, updatedAt: false } })
 
+branchReportSchema.index({ createdAt: 1, branch: 1 });
+
 const BranchReport = mongoose.model('BranchReport', branchReportSchema)
 
 export default BranchReport

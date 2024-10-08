@@ -919,12 +919,13 @@ export const createBranchProviderInputAndUpdateBranchReport = async ({ weight, p
 
     }, { session })
 
+    await session.commitTransaction()
+
     if (branchReport.employee) {
 
       await updateEmployeeDailyBalancesBalance({ branchReport: branchReport, session })
     }
 
-    await session.commitTransaction()
     return providerInput[0]
 
   } catch (error) {

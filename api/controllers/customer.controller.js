@@ -31,11 +31,8 @@ export const getCustomers = async (req, res, next) => {
   try {
 
     const customers = await Customer.find({
-
-      $and: [
-        { active: true },
-        { company: companyId }
-      ]
+      active: true,
+      company: companyId
     })
 
     if (customers.length > 0) {

@@ -1019,7 +1019,7 @@ export default function RegistroCuentaDiaria() {
                       </button>
 
                       {isOpen && outgoing._id == buttonId ?
-                        <div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center items-center'>
+                        <div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center items-center z-10'>
                           <div className='bg-white p-5 rounded-lg flex flex-col justify-center items-center gap-5'>
                             <div>
                               <p className='text-3xl font-semibold'>¿Estás seguro de borrar este registro?</p>
@@ -1059,7 +1059,7 @@ export default function RegistroCuentaDiaria() {
           <div className='border bg-white p-3 mt-4'>
             <SectionHeader label={'Sobrante'} />
 
-            <form onSubmit={addStockItem} className="grid grid-cols-4 items-center justify-between">
+            <form onSubmit={addStockItem} className="grid grid-cols-4">
 
               <Select
                 styles={customStockSelectStyles}
@@ -1081,6 +1081,7 @@ export default function RegistroCuentaDiaria() {
                   Kilos<span>*</span>
                 </label>
               </div>
+
               <button type='submit' id='stock-button' disabled className='bg-slate-500 text-white p-3 rounded-lg'>Agregar</button>
 
             </form>
@@ -1116,7 +1117,7 @@ export default function RegistroCuentaDiaria() {
                     </button>
 
                     {isOpen && stock._id == buttonId ?
-                      <div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center items-center'>
+                      <div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center items-center z-10'>
                         <div className='bg-white p-5 rounded-lg flex flex-col justify-center items-center gap-5'>
                           <div>
                             <p className='text-3xl font-semibold'>¿Estás seguro de borrar este registro?</p>

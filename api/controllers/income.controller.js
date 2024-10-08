@@ -148,24 +148,8 @@ export const getBranchIncomes = async ({ branchId, date }) => {
 
   const branchIncomes = await IncomeCollected.find({
 
-    $and: [{
-
-      createdAt: {
-
-        $gte: bottomDate
-      }
-    },
-    {
-
-      createdAt: {
-
-        $lt: topDate
-      }
-
-    },
-    {
-      branch: branchId
-    }]
+    createdAt: { $gte: bottomDate, $lt: topDate },
+    branch: branchId
   }).populate({ path: 'employee', select: 'name lastName' }).populate({ path: 'branch', select: 'branch' }).populate({ path: 'type', select: 'name' })
 
   return branchIncomes.length > 0 ? branchIncomes : []
@@ -181,25 +165,8 @@ export const getIncomes = async (req, res, next) => {
   try {
 
     const incomes = await IncomeCollected.find({
-
-      $and: [{
-
-        createdAt: {
-
-          $gte: bottomDate
-        }
-      },
-      {
-
-        createdAt: {
-
-          $lt: topDate
-        }
-
-      },
-      {
-        company: companyId
-      }]
+      createdAt: { $gte: bottomDate, $lt: topDate },
+      company: companyId
     }).populate({ path: 'employee', select: 'name lastName' }).populate({ path: 'branch', select: 'branch position' }).populate({ path: 'type', select: 'name' })
 
     if (incomes.length > 0) {

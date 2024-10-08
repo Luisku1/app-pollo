@@ -53,12 +53,13 @@ export const newOutgoingAndUpdateBranchReport = async ({ amount, concept, compan
 
     }, { session })
 
+    await session.commitTransaction()
+
     if (branchReport.employee) {
 
       await updateEmployeeDailyBalancesBalance({ branchReport: branchReport, session })
     }
 
-    await session.commitTransaction()
     return outgoing[0]
 
   } catch (error) {
@@ -360,12 +361,13 @@ export const deleteOutgoing = async (req, res, next) => {
 
     }, { session })
 
+    await session.commitTransaction()
+
     if (branchReport.employee) {
 
       await updateEmployeeDailyBalancesBalance({ branchReport: branchReport, session })
     }
 
-    await session.commitTransaction()
     res.status(200).json('Outgoing deleted successfully')
 
   } catch (error) {
