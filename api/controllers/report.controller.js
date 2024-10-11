@@ -176,7 +176,7 @@ export const getSupervisorsInfo = async (req, res, next) => {
 
     if (supervisorsInfo) {
 
-      res.status(200).json({ supervisors: supervisorsInfo.supervisors, totalExtraOutgoings: supervisorsInfo.totalExtraOutgoings, totalIncomes: supervisorsInfo.totalIncomes })
+      res.status(200).json({ supervisors: supervisorsInfo.supervisors, totalExtraOutgoings: supervisorsInfo.totalExtraOutgoings, totalIncomes: supervisorsInfo.totalCash + supervisorsInfo.totalDeposits, totalCash: supervisorsInfo.totalCash, totalDeposits: supervisorsInfo.totalDeposits })
 
     } else {
 
@@ -282,8 +282,6 @@ export const supervisorsInfoQuery = async (companyId, topDate, bottomDate, next)
       ]
     }).select({ path: '_id' })
 
-    console.log(roles)
-
     const rolesId = roles.map((role) => {
 
       return new Types.ObjectId(role._id)
@@ -319,7 +317,7 @@ export const supervisorsInfoQuery = async (companyId, topDate, bottomDate, next)
           from: 'incomecollecteds',
           localField: '_id',
           foreignField: 'employee',
-          as: 'incomes',
+          as: 'deposits',
           pipeline: [
             {
               $match: {
@@ -339,7 +337,53 @@ export const supervisorsInfoQuery = async (companyId, topDate, bottomDate, next)
                 from: 'incometypes',
                 localField: 'type',
                 foreignField: '_id',
-                as: 'type'
+                as: 'type',
+              }
+            },
+            {
+              $unwind: {
+                path: '$branch',
+                preserveNullAndEmptyArrays: true // Por si hay ingresos sin sucursal asociada
+              }
+            },
+            {
+              $unwind: {
+                path: '$type',
+                preserveNullAndEmptyArrays: true
+              }
+            },
+            {
+              $match: { 'type.name': 'Depósito' }
+            }
+          ]
+        }
+      },
+      {
+        $lookup: {
+          from: 'incomecollecteds',
+          localField: '_id',
+          foreignField: 'employee',
+          as: 'cash',
+          pipeline: [
+            {
+              $match: {
+                createdAt: { $gte: new Date(bottomDate), $lt: new Date(topDate) }
+              }
+            },
+            {
+              $lookup: {
+                from: 'branches', // Colección donde se almacena la información de las sucursales
+                localField: 'branch', // Campo dentro de 'incomes' que contiene la referencia a la sucursal
+                foreignField: '_id', // Campo en 'branches' que es el ID de la sucursal
+                as: 'branch' // Alias para los datos de la sucursal
+              }
+            },
+            {
+              $lookup: {
+                from: 'incometypes',
+                localField: 'type',
+                foreignField: '_id',
+                as: 'type',
 
               }
             },
@@ -354,6 +398,9 @@ export const supervisorsInfoQuery = async (companyId, topDate, bottomDate, next)
                 path: '$type',
                 preserveNullAndEmptyArrays: true
               }
+            },
+            {
+              $match: { 'type.name': 'Efectivo' }
             }
           ]
         }
@@ -378,14 +425,16 @@ export const supervisorsInfoQuery = async (companyId, topDate, bottomDate, next)
         $addFields: {
 
           totalExtraOutgoings: { $sum: '$extraOutgoings.amount' },
-          totalIncomes: { $sum: '$incomes.amount' }
+          totalCash: { $sum: '$cash.amount' },
+          totalDeposits: { $sum: '$deposits.amount' },
         }
       },
       {
         $match: {
           $or: [
             { totalExtraOutgoings: { $gt: 0 } },
-            { totalIncomes: { $gt: 0 } }
+            { totalCash: { $gt: 0 } },
+            { totalDeposits: { $gt: 0 } }
           ]
         }
       },
@@ -394,13 +443,12 @@ export const supervisorsInfoQuery = async (companyId, topDate, bottomDate, next)
           _id: null,
           supervisors: {
             $push: {
-              supervisor: '$$ROOT',
-              extraOutgoings: '$extraOutgoings',
-              incomes: '$incomes'
+              supervisor: '$$ROOT'
             }
           },
           totalExtraOutgoings: { $sum: '$totalExtraOutgoings' },
-          totalIncomes: { $sum: '$totalIncomes' }
+          totalCash: { $sum: '$totalCash' },
+          totalDeposits: { $sum: '$totalDeposits' }
         }
       }
     ])

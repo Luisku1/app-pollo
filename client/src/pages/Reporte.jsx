@@ -19,7 +19,8 @@ export default function Reporte() {
   const [supervisorsInfo, setSupervisorsInfo] = useState([])
   const [error, setError] = useState(null)
   const [extraOutgoingsIsOpen, setExtraOutgoingsIsOpen] = useState(false)
-  const [incomesIsOpen, setIncomesIsOpen] = useState(false)
+  const [cashIsOpen, setCashIsOpen] = useState(false)
+  const [depositsIsOpen, setDepositsIsOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [selectedSupervisor, setSelectedSupervisor] = useState(null)
   const [managerRole, setManagerRole] = useState({})
@@ -155,9 +156,10 @@ export default function Reporte() {
 
     if (arrayLength > 0) {
 
-      if (incomesIsOpen) {
+      if (cashIsOpen || depositsIsOpen) {
 
-        setIncomesIsOpen((prev) => !prev)
+        setCashIsOpen(false)
+        setDepositsIsOpen(false)
       }
 
       if (selectedSupervisorId == selectedSupervisor) {
@@ -170,7 +172,6 @@ export default function Reporte() {
 
           if (selectedSupervisor != selectedSupervisorId && !extraOutgoingsIsOpen) {
             setExtraOutgoingsIsOpen((prev) => !prev)
-
           }
 
         } else {
@@ -183,32 +184,66 @@ export default function Reporte() {
     }
   }
 
-  const incomesIsOpenFunctionControl = (arrayLength, selectedSupervisorId) => {
+  const cashIsOpenFunctionControl = (arrayLength, selectedSupervisorId) => {
 
     if (arrayLength > 0) {
 
-      if (extraOutgoingsIsOpen) {
+      if (extraOutgoingsIsOpen || depositsIsOpen) {
 
-        setExtraOutgoingsIsOpen((prev) => !prev)
+        setExtraOutgoingsIsOpen(false)
+        setDepositsIsOpen(false)
 
       }
 
       if (selectedSupervisorId == selectedSupervisor) {
 
-        setIncomesIsOpen((prev) => !prev)
+        setCashIsOpen((prev) => !prev)
 
       } else {
 
         if (!(selectedSupervisor == null)) {
 
-          if (selectedSupervisor != selectedSupervisorId && !incomesIsOpen) {
-            setIncomesIsOpen((prev) => !prev)
+          if (selectedSupervisor != selectedSupervisorId && !cashIsOpen) {
+            setCashIsOpen((prev) => !prev)
+          }
+
+        } else {
+
+          setCashIsOpen((prev) => !prev)
+        }
+
+        setSelectedSupervisor(selectedSupervisorId)
+      }
+    }
+  }
+
+  const depositsIsOpenFunctionControl = (arrayLength, selectedSupervisorId) => {
+
+    if (arrayLength > 0) {
+
+      if (extraOutgoingsIsOpen || cashIsOpen) {
+
+        setExtraOutgoingsIsOpen(false)
+        setCashIsOpen(false)
+
+      }
+
+      if (selectedSupervisorId == selectedSupervisor) {
+
+        setDepositsIsOpen((prev) => !prev)
+
+      } else {
+
+        if (!(selectedSupervisor == null)) {
+
+          if (selectedSupervisor != selectedSupervisorId && !depositsIsOpen) {
+            setDepositsIsOpen((prev) => !prev)
 
           }
 
         } else {
 
-          setIncomesIsOpen((prev) => !prev)
+          setDepositsIsOpen((prev) => !prev)
         }
 
         setSelectedSupervisor(selectedSupervisorId)
@@ -240,7 +275,6 @@ export default function Reporte() {
           return
         }
 
-        console.log(data.supervisors[0].supervisor.totalIncomes)
         setSupervisorsInfo(data.supervisors)
         setLoading(false)
         setError(null)
@@ -445,7 +479,10 @@ export default function Reporte() {
                       <p className="text-2xl font-semibold">{supervisorInfo.supervisor.name + ' ' + supervisorInfo.supervisor.lastName}</p>
 
                       <div className="grid grid-rows-1">
-                        <p className="text-lg">Ingresos netos: {(supervisorInfo.supervisor.totalIncomes - supervisorInfo.supervisor.totalExtraOutgoings).toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
+                        <p className="text-lg">Depósitos: {stringToCurrency({ amount: supervisorInfo.supervisor.totalDeposits })}</p>
+                        <p className="text-lg">Efectivo: {stringToCurrency({ amount: supervisorInfo.supervisor.totalCash })}</p>
+                        <p className="text-lg">Gastos: {stringToCurrency({ amount: supervisorInfo.supervisor.totalExtraOutgoings })}</p>
+                        <p className="text-lg">Ingresos netos: {((supervisorInfo.supervisor.totalDeposits + supervisorInfo.supervisor.totalCash) - supervisorInfo.supervisor.totalExtraOutgoings).toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
                       </div>
                     </div>
 
@@ -453,10 +490,16 @@ export default function Reporte() {
 
                       <div className="flex justify-between p-3 gap-4">
 
-                        <button className="m-auto border border-black border-opacity-20 shadow-lg rounded-3xl w-10/12 p-3" onClick={() => { incomesIsOpenFunctionControl(supervisorInfo.supervisor.incomes.length, supervisorInfo.supervisor._id) }}>
+                        <button className="m-auto border border-black border-opacity-20 shadow-lg rounded-3xl w-10/12 p-3" onClick={() => { cashIsOpenFunctionControl(supervisorInfo.supervisor.cash.length, supervisorInfo.supervisor._id) }}>
 
-                          <p className="text-lg">Ingreso bruto</p>
-                          <p>{stringToCurrency({ amount: supervisorInfo.supervisor.totalIncomes })}</p>
+                          <p className="text-lg">Efectivo bruto</p>
+                          <p>{stringToCurrency({ amount: supervisorInfo.supervisor.totalCash })}</p>
+                        </button>
+
+                        <button className="m-auto border border-black border-opacity-20 shadow-lg rounded-3xl w-10/12 p-3" onClick={() => { depositsIsOpenFunctionControl(supervisorInfo.supervisor.deposits.length, supervisorInfo.supervisor._id) }}>
+
+                          <p className="text-lg">Depósitos</p>
+                          <p>{stringToCurrency({ amount: supervisorInfo.supervisor.totalDeposits })}</p>
                         </button>
 
                         <button className="m-auto border border-black border-opacity-20 shadow-lg rounded-3xl p-3 w-10/12" onClick={() => { extraOutgoingsIsOpenFunctionControl(supervisorInfo.supervisor.extraOutgoings.length, supervisorInfo.supervisor._id) }}>
@@ -505,9 +548,9 @@ export default function Reporte() {
                         : ''}
 
 
-                      {supervisorInfo.supervisor && incomesIsOpen && supervisorInfo.supervisor._id == selectedSupervisor ?
+                      {supervisorInfo.supervisor && (cashIsOpen || depositsIsOpen) && supervisorInfo.supervisor._id == selectedSupervisor ?
 
-                        <div className={incomesIsOpen ? '' : 'hidden'} >
+                        <div className={(cashIsOpen || depositsIsOpen) ? '' : 'hidden'} >
 
 
                           <div id='header' className='grid grid-cols-12 items-center justify-around font-semibold mt-4'>
@@ -516,7 +559,21 @@ export default function Reporte() {
                             <p className='col-span-4 text-center'>Monto</p>
                           </div>
 
-                          {supervisorInfo.supervisor && supervisorInfo.supervisor.incomes.length > 0 && supervisorInfo.supervisor.incomes.map((income) => (
+                          {supervisorInfo.supervisor && cashIsOpen && supervisorInfo.supervisor.cash.length > 0 && supervisorInfo.supervisor.cash.map((income) => (
+
+                            <div key={income._id} className='grid grid-cols-12 items-center border border-black border-opacity-30 mt-2 shadow-m rounded-lg'>
+
+                              <div id='list-element' className=' flex col-span-12 items-center justify-around pt-3 pb-3'>
+                                <p className='text-center text-xs w-4/12'>{income.branch.branch ? income.branch.branch : income.branch}</p>
+                                <p className='text-center text-xs w-4/12'>{income.type.name ? income.type.name : income.type}</p>
+                                <p className='text-center text-xs w-4/12'>{income.amount.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
+                              </div>
+
+                            </div>
+
+                          ))}
+
+                          {supervisorInfo.supervisor && depositsIsOpen && supervisorInfo.supervisor.deposits.length > 0 && supervisorInfo.supervisor.deposits.map((income) => (
 
                             <div key={income._id} className='grid grid-cols-12 items-center border border-black border-opacity-30 mt-2 shadow-m rounded-lg'>
 
