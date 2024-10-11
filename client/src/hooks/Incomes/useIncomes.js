@@ -19,6 +19,16 @@ export const useIncomes = ({ companyId, date }) => {
     setIncomesTotal((prevTotal) => prevTotal - removedIncome[0].amount)
   }
 
+  const spliceIncomeById = ({incomeId, amount}) => {
+
+    setIncomes((prevIncomes) => prevIncomes.map((income) =>
+
+      income._id != incomeId
+    ))
+
+    setIncomesTotal((prevTotal) => prevTotal - amount)
+  }
+
   const updateLastIncomeId = ({ incomeId }) => {
 
     setIncomes((prevIncomes) => prevIncomes.map((income, index) =>
@@ -51,6 +61,6 @@ export const useIncomes = ({ companyId, date }) => {
   }, [companyId, date])
 
   return {
-    incomes, incomesTotal, loading, pushIncome, spliceIncome, updateLastIncomeId
+    incomes, incomesTotal, loading, pushIncome, spliceIncome, spliceIncomeById, updateLastIncomeId
   }
 }

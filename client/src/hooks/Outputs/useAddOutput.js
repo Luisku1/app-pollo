@@ -1,6 +1,6 @@
 import { useState } from "react"
-import { ToastDanger, ToastSuccess } from "../../helpers/toastify"
 import { addOutputFetch } from "../../services/Outputs/addOutput"
+import { ToastDanger, ToastSuccess } from "../../helpers/toastify"
 
 export const useAddOutput = () => {
 
@@ -36,7 +36,7 @@ export const useAddOutput = () => {
 
       console.log(error)
       spliceOutput({ index: 0 })
-      ToastDanger(`Se guardó la salida de ${output.product.label}`)
+      ToastDanger(`No se guardó la salida de ${output.product.label}`)
     })
 
     setLoading(false)

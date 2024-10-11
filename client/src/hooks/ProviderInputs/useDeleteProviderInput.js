@@ -12,12 +12,13 @@ export const useDeleteProviderInput = () => {
 
     spliceProviderInput({ index })
 
-    ToastSuccess(`La entrada de ${providerInput.product?.name ?? providerInput.product?.label}`)
+    ToastSuccess(`Se borró la entrada de proveedor de ${providerInput.product?.name ?? providerInput.product?.label}`)
 
     deleteProviderInputFetch({ providerInputId: providerInput._id }).catch((error) => {
 
+      console.log(error)
       pushProviderInput({ providerInput })
-      ToastDanger(error.message)
+      ToastDanger(`No se borró la entrada de proveedor de ${providerInput.product?.name ?? providerInput.product?.label}`)
     })
 
     setLoading(false)

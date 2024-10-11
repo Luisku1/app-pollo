@@ -10,7 +10,7 @@ export default function ListaEntradas({ inputs, spliceInput, changeInputsIsOpenV
 
   const { currentUser } = useSelector((state) => state.user)
   const [selectedInput, setSelectedInput] = useState(null)
-  const {deleteInput, loading} = useDeleteInput()
+  const { deleteInput, loading } = useDeleteInput()
   const [movementDetailsIsOpen, setMovementDetailsIsOpen] = useState(false)
   const [deleteInputIdButton, setDeleteOutputIdButton] = useState(null)
   const [confirmationIsOpen, setConfirmationIsOpen] = useState(false)
@@ -22,7 +22,6 @@ export default function ListaEntradas({ inputs, spliceInput, changeInputsIsOpenV
     return (
 
       <div>
-
 
         {movementDetailsIsOpen && inputs && inputs.length > 0 ?
 
@@ -132,7 +131,7 @@ export default function ListaEntradas({ inputs, spliceInput, changeInputsIsOpenV
                           </div>
                           <div className='flex gap-10'>
                             <div>
-                              <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteInput({input, spliceInput, index}), setConfirmationIsOpen(!confirmationIsOpen) }}>Si</button>
+                              <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteInput({ input, spliceInput, index }), setConfirmationIsOpen(!confirmationIsOpen) }}>Si</button>
                             </div>
                             <div>
                               <button className='rounded-lg border shadow-lg w-20 h-10' onClick={() => { setConfirmationIsOpen(!confirmationIsOpen) }}>No</button>

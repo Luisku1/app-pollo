@@ -5,7 +5,7 @@ import Employee from "../models/employees/employee.model.js"
 import { errorHandler } from "../utils/error.js"
 import { getDayRange } from "../utils/formatDate.js"
 import { newExtraOutgoingFunction } from "./outgoing.controller.js"
-import { getIncomeTypeId, newBranchIncomeFunction } from "./income.controller.js"
+import { deleteIncome, getIncomeTypeId, newBranchIncomeFunction } from "./income.controller.js"
 import EmployeePayment from "../models/employees/employee.payment.model.js"
 import ExtraOutgoing from "../models/accounts/outgoings/extra.outgoing.model.js"
 import IncomeCollected from "../models/accounts/incomes/income.collected.model.js"
@@ -251,32 +251,59 @@ export const newEmployeePaymentQuery = async (req, res, next) => {
 
 	const { amount, detail, company, branch, employee, supervisor, createdAt } = req.body
 
-	let income = {}
-	let employeePayment = {}
+	let income = null
+	let employeePayment = null
+	let incomeType = null
+	let extraOutgoing
 
 	const employeeData = await Employee.findById(employee, 'name lastName')
 
 	try {
 
-		const extraOutgoing = await newExtraOutgoingFunction({ amount, concept: (detail + ' [' + employeeData.name + ' ' + employeeData.lastName + ']'), company, employee: supervisor, createdAt, partOfAPayment: true })
+		extraOutgoing = await newExtraOutgoingFunction({ amount, concept: (detail + ' [' + employeeData.name + ' ' + employeeData.lastName + ']'), company, employee: supervisor, createdAt, partOfAPayment: true })
+
+		if (!extraOutgoing) throw new Error("No se ha podido crear el gasto fuera de cuenta");
 
 		if (branch != null) {
 
-			const incomeType = await getIncomeTypeId({ name: 'Efectivo' })
+			incomeType = await getIncomeTypeId({ name: 'Efectivo' })
+
+			if (!incomeType) throw new Error("No se encontró el tipo de ingreso");
+
 			income = await newBranchIncomeFunction({ amount, company, branch, employee: supervisor, type: String(incomeType._id), createdAt, partOfAPayment: true })
+
+			if (!income) throw new Error("No se pudo crear el efectivo");
 
 			employeePayment = await newEmployeePaymentFunction({ amount, detail, employee, supervisor, company, extraOutgoing: extraOutgoing._id, income: income._id, createdAt })
 
-			res.status(200).json({ extraOutgoing, income, employeePayment })
+			if (!employeePayment) throw new Error("No se ha podido crear el pago a empleado");
 
 		} else {
 
 			employeePayment = await newEmployeePaymentFunction({ amount, detail, employee, supervisor, company, extraOutgoing: extraOutgoing._id, createdAt })
 
-			res.status(200).json({ extraOutgoing, employeePayment })
+			if (!employeePayment) throw new Error("No se ha podido crear el pago a empleado");
+
 		}
 
+		res.status(200).json({ extraOutgoing, income, employeePayment })
+
 	} catch (error) {
+
+		if (extraOutgoing) {
+
+			await ExtraOutgoing.findByIdAndDelete(extraOutgoing._id)
+		}
+
+		if (employeePayment) {
+
+			await EmployeePayment.findByIdAndDelete(employeePayment._id)
+		}
+
+		if (income) {
+
+			await deleteIncome({ incomeId: income._id })
+		}
 
 		next(error)
 	}
@@ -363,23 +390,26 @@ export const getEmployeesPaymentsQuery = async (req, res, next) => {
 
 	try {
 
-		const employeePayments = await EmployeePayment.find({
-
-			$and: [
-
-				{
-					createdAt: { $lt: topDate }
-				},
-
-				{
-					createdAt: { $gte: bottomDate }
-				},
-
-				{ company: companyId }
-			]
+		const employeesPayments = await EmployeePayment.find({
+			createdAt: { $lt: topDate, $gte: bottomDate },
+			company: companyId
 		}).populate('supervisor', 'name lastName').populate('employee', 'name lastName')
 
-		res.status(200).json({ employeePayments })
+		if (employeesPayments.length > 0) {
+
+			let total = 0
+
+			employeesPayments.forEach((employeePayment) => {
+
+				total += employeePayment.amount
+			})
+
+			res.status(200).json({ employeesPayments, totalEmployeesPayments: total })
+
+		} else {
+
+			throw new Error("No se encontraron pagos a empleados");
+		}
 
 	} catch (error) {
 
@@ -390,26 +420,45 @@ export const getEmployeesPaymentsQuery = async (req, res, next) => {
 export const deleteEmployeePaymentQuery = async (req, res, next) => {
 
 	const { paymentId, incomeId, extraOutgoingId } = req.params
-	let deletedIncome = incomeId == 'undefined' ? { deletedCount: 1 } : {}
+
+	console.log(req.params)
+
+	let deletedIncome = null
+	let deletedExtraOutgoing = null
+	let deletedPayment = null
 
 	try {
 
-		const deletedExtraOutgoing = await ExtraOutgoing.deleteOne({ _id: extraOutgoingId })
-		if (incomeId != 'undefined') {
+		deletedExtraOutgoing = await ExtraOutgoing.findByIdAndDelete(extraOutgoingId)
+		if (!deletedExtraOutgoing) throw new Error("No se eliminó el gasto fuera de cuentas");
 
-			deletedIncome = await IncomeCollected.deleteOne({ _id: incomeId })
+		if (incomeId) {
+
+			deletedIncome = await deleteIncome({incomeId})
+			if (!deletedIncome) throw new Error("No se pudo eliminar el ingreso");
 		}
-		const deletedPayment = await EmployeePayment.deleteOne({ _id: paymentId })
 
-		if (!(deletedExtraOutgoing.deletedCount == 0 && deletedIncome.deletedCount == 0 && deletedPayment.deletedCount == 0)) {
+		deletedPayment = await EmployeePayment.findByIdAndDelete(paymentId)
+		if (!deletedPayment) throw new Error("No se pudo eliminar el pago a empleado");
 
-			res.status(200).json('Pago eliminado, verifique que el gasto y el efectivo del pago se hayan eliminado correctamente.')
-		} else {
-
-			next(errorHandler(404, 'Algo ha salido mal'))
-		}
+		res.status(200).json('Pago eliminado, verifique que el gasto y el efectivo del pago se hayan eliminado correctamente.')
 
 	} catch (error) {
+
+		if (deletedExtraOutgoing) {
+
+			await ExtraOutgoing.create({ deletedExtraOutgoing })
+		}
+
+		if (deletedIncome) {
+
+			await IncomeCollected.create({ deletedIncome })
+		}
+
+		if (deletedPayment) {
+
+			await EmployeePayment.create({ deletedPayment })
+		}
 
 		next(error)
 	}
@@ -504,57 +553,27 @@ export const updateEmployeeDailyBalance = async (req, res, next) => {
 }
 
 
-export const updateEmployeeDailyBalancesBalance = async ({ branchReport, session = null, changedEmployee = false }) => {
+export const updateEmployeeDailyBalancesBalance = async ({ branchReport, changedEmployee = false }) => {
 
-	try {
-
-		await updateDailyBalancesBalance(branchReport, session, changedEmployee)
-
-	} catch (error) {
-
-		console.log(error)
-	}
+	return await updateDailyBalancesBalance(branchReport, changedEmployee)
 }
 
-export const updateDailyBalancesBalance = async (branchReport, session = null, changedEmployee = false) => {
+export const updateDailyBalancesBalance = async (branchReport, changedEmployee = false) => {
 
-	const updatedBranchReport = await fetchBranchReportById({ branchReportId: branchReport._id, session })
 	const { bottomDate, topDate } = getDayRange(branchReport.createdAt)
 
-	try {
+	let dailyBalance = await EmployeeDailyBalance.findOne({
+		createdAt: { $lt: topDate, $gte: bottomDate },
+		employee: new Types.ObjectId(branchReport.employee)
+	})
 
-		const dailyBalance = await EmployeeDailyBalance.findOne({
+	if (!dailyBalance) throw new Error("No se encontró el balance del empleado.");
 
-			$and: [
-				{
-					createdAt: {
+	const updatedDailyBalance = await EmployeeDailyBalance.findByIdAndUpdate(dailyBalance._id, { accountBalance: changedEmployee ? 0 : branchReport.balance })
 
-						$lt: topDate
-					}
-				},
-				{
-					createdAt: {
+	if (!updatedDailyBalance) throw new Error("No se actualizó el balance del empleado");
 
-						$gte: bottomDate
-					}
-				},
-				{
-					employee: new Types.ObjectId(updatedBranchReport.employee)
-				}
-			]
-		}).session(session)
-
-		await EmployeeDailyBalance.findByIdAndUpdate(dailyBalance._id, {
-
-			accountBalance: changedEmployee ? 0 : updatedBranchReport.balance
-
-		}, { session })
-
-	} catch (error) {
-
-		console.log(error)
-		await session.abortTransaccion()
-	}
+	return updatedDailyBalance
 }
 
 export const changeEmployeeActiveStatus = async (req, res, next) => {

@@ -1,22 +1,29 @@
 export const errorHandler = (statusCode, message) => {
-    const error = new Error()
+  const error = new Error()
 
-    error.statusCode = statusCode
-    error.message = message
+  error.statusCode = statusCode
+  error.message = message
 
-    return error
+  return error
 }
 
-export const runWithRetry = async (operation, session, retries = 3) => {
-    for (let attempt = 0; attempt < retries; attempt++) {
-        try {
-            await operation(session);
-            return;  // Salir si la operación es exitosa
-        } catch (error) {
-            if (attempt === retries - 1) throw error;  // Lanzar error después de último intento
-            console.log(`Retry ${attempt + 1} due to error: ${error.message}`);
-            await session.abortTransaction();
-            await session.startTransaction();  // Reiniciar la transacción
-        }
+export const runTransactionWithRetry = async (txnFunction) => {
+console.log('Se queida aquí ')
+  while (true) {
+    try {
+      txnFunction();
+      break; // Si la transacción tiene éxito, salimos del bucle.
+    } catch (error) {
+      if (isWriteConflict(error)) {
+        continue; // Reintentamos la transacción.
+      } else {
+        throw error; // Si es otro error, lo lanzamos.
+      }
     }
+  }
+}
+function isWriteConflict(error) {
+  console.log(error)
+  return error.hasErrorLabel('WriteConflict') || error.message.includes("Write conflict");
+
 }

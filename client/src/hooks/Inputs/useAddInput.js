@@ -11,7 +11,7 @@ export const useAddInput = () => {
     setLoading(true)
 
     pushInput({ input })
-    ToastSuccess(`Se guardó la salida de ${input.product.label}`)
+    ToastSuccess(`Se guardó la entrada de ${input.product.label}`)
 
     addInputFetch({
       input: {
@@ -27,7 +27,6 @@ export const useAddInput = () => {
         branch: input.branch?.value || null,
         customer: input.customer?.value || null,
         createdAt: input.createdAt
-
       }, group
     }).then((response) => {
 
@@ -35,9 +34,9 @@ export const useAddInput = () => {
 
     }).catch((error) => {
 
-      spliceInput({ index: 0 })
       console.log(error)
-      ToastDanger(`No se guardó la salida de ${input.product.label}`)
+      spliceInput({ index: 0 })
+      ToastDanger(`No se guardó la entrada de ${input.product.label}`)
     })
 
     setLoading(false)

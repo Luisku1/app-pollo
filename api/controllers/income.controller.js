@@ -26,47 +26,66 @@ export const newBranchIncomeQuery = async (req, res, next) => {
 
 export const newBranchIncomeFunction = async ({ amount, company, branch, employee, type, createdAt, partOfAPayment = false }) => {
 
-  const session = await mongoose.startSession()
-
-  session.startTransaction()
+  let branchReport = null
+  let income = null
+  let updatedEmployeeDailyBalance = null
+  let updatedBranchReport = null
 
   try {
 
-    let branchReport = await fetchBranchReport({ branchId: branch, date: createdAt, session })
+    branchReport = await fetchBranchReport({ branchId: branch, date: createdAt })
 
     if (!branchReport) {
 
-      branchReport = createDefaultBranchReport({ branchId: branch, date: createdAt, companyId: company, session })
+      branchReport = createDefaultBranchReport({ branchId: branch, date: createdAt, companyId: company })
     }
 
-    const income = await IncomeCollected.create([{ amount, company, branch, employee, type, createdAt, partOfAPayment }], { session })
+    if (!branchReport) throw new Error("No se encontró ni se pudo crear el reporte");
 
-    await BranchReport.findByIdAndUpdate(branchReport._id, {
+    income = await IncomeCollected.create({ amount, company, branch, employee, type, createdAt, partOfAPayment })
 
-      $push: { incomesArray: income[0]._id },
-      $inc: {
-        incomes: income[0].amount,
-        balance: income[0].amount
+    if (!income) throw new Error("No se logró crear el registro");
+
+    updatedBranchReport = await BranchReport.findByIdAndUpdate(branchReport._id, {
+
+      $push: { incomesArray: income._id },
+      $inc: { incomes: income.amount, balance: income.amount }
+
+    }, { new: true })
+
+    if (updatedBranchReport) {
+
+      if (updatedBranchReport.employee) {
+
+        updatedEmployeeDailyBalance = await updateEmployeeDailyBalancesBalance({ branchReport: updatedBranchReport })
+
+        if (!updatedEmployeeDailyBalance) throw new Error("No se pudo actualizar la cuenta del empleado");
       }
-    }, { session })
 
+      return income
 
-    if (branchReport.employee) {
+    } else {
 
-      await updateEmployeeDailyBalancesBalance({ branchReport: branchReport, session })
+      throw new Error("Hubo un problema encontrando el reporte a modificar");
     }
-
-    await session.commitTransaction()
-    return income[0]
 
   } catch (error) {
 
-    await session.abortTransaction()
+    if (income) {
+
+      await IncomeCollected.findByIdAndDelete(income._id)
+    }
+
+    if (!updatedEmployeeDailyBalance && updatedBranchReport
+      && (branchReport.balance != updatedBranchReport.balance
+        || branchReport.incomesArray != updatedBranchReport.incomesArray
+        || branchReport.incomes != updatedBranchReport.incomes
+      )) {
+
+      await BranchReport.findByIdAndUpdate(branchReport._id, { balance: branchReport.balance, incomes: branchReport.incomes, incomesArray: branchReport.incomesArray })
+    }
+
     throw error;
-
-  } finally {
-
-    session.endSession()
   }
 }
 
@@ -228,45 +247,78 @@ export const getIncomeTypes = async (req, res, next) => {
 export const deleteIncomeQuery = async (req, res, next) => {
 
   const incomeId = req.params.incomeId
-  const session = await mongoose.startSession()
-
-  session.startTransaction()
 
   try {
 
-    await deleteIncomeFunction({ incomeId, session })
+    const deletedIncome = await deleteIncome({ incomeId })
 
-    await session.commitTransaction()
+    if (!deletedIncome) throw new Error("Algo ha salido mal");
+
     res.status(200).json('Registro eliminado')
 
   } catch (error) {
 
-    await session.abortTransaction()
     next(error);
-
-  } finally {
-
-    session.endSession()
   }
 }
 
-export const deleteIncomeFunction = async ({ incomeId, session }) => {
+export const deleteIncome = async ({ incomeId }) => {
 
-  const deletedIncome = await IncomeCollected.findByIdAndDelete(incomeId, { session })
+  let deletedIncome = null
+  let branchReport = null
+  let updatedEmployeeDailyBalance = null
+  let updatedBranchReport = null
 
-  let branchReport = await fetchBranchReport({ branchId: deletedIncome.branch, date: deletedIncome.createdAt, session })
+  try {
 
-  await BranchReport.findByIdAndUpdate(branchReport._id, {
+    deletedIncome = await IncomeCollected.findByIdAndDelete(incomeId)
 
-    $pull: { incomesArray: deletedIncome._id },
-    $inc: { incomes: -deletedIncome.amount, balance: -deletedIncome.amount }
+    if (!deletedIncome) throw new Error("No se eliminó el registro");
 
-  }, { session })
+    branchReport = await fetchBranchReport({ branchId: deletedIncome.branch, date: deletedIncome.createdAt })
 
-  if (branchReport.employee) {
+    if (!branchReport) throw new Error("No se encontró ningún reporte ");
 
-    await updateEmployeeDailyBalancesBalance({ branchReport: branchReport, session })
+    updatedBranchReport = await BranchReport.findByIdAndUpdate(branchReport._id, {
+
+      $pull: { incomesArray: deletedIncome._id },
+      $inc: { incomes: -deletedIncome.amount, balance: -deletedIncome.amount }
+
+    }, { new: true })
+
+    if (updatedBranchReport) {
+
+      if (updatedBranchReport.employee) {
+
+        updatedEmployeeDailyBalance = await updateEmployeeDailyBalancesBalance({ branchReport: updatedBranchReport })
+
+        if (!updatedEmployeeDailyBalance) throw new Error("No se pudo actualizar la cuenta del empleado");
+      }
+
+      return deletedIncome
+
+    } else {
+
+      throw new Error("No se pudo actualizar la cuenta, verifique el error");
+
+    }
+
+  } catch (error) {
+
+    if (deletedIncome) {
+
+      await IncomeCollected.create({ deletedIncome })
+    }
+
+    if (!updatedEmployeeDailyBalance && updatedBranchReport
+      && (branchReport.balance != updatedBranchReport.balance
+        || branchReport.incomesArray != updatedBranchReport.incomesArray
+        || branchReport.incomes != updatedBranchReport.incomes
+      )) {
+
+      await BranchReport.findByIdAndUpdate(branchReport._id, { balance: branchReport.balance, incomes: branchReport.incomes, incomesArray: branchReport.incomesArray })
+    }
+
+    throw error
   }
-
-  return
 }

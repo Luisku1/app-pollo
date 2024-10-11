@@ -15,6 +15,7 @@ import Output from '../models/accounts/output.model.js'
 import Outgoing from '../models/accounts/outgoings/outgoing.model.js'
 import IncomeCollected from '../models/accounts/incomes/income.collected.model.js'
 import { updateEmployeeDailyBalancesBalance } from './employee.controller.js'
+import { pricesAggregate } from './price.controller.js'
 
 export const createBranchReport = async (req, res, next) => {
 
@@ -98,7 +99,7 @@ export const createDefaultBranchReport = async ({ branchId, date, companyId, ses
 
   const newBranchReport = await BranchReport.create([{ branch: branchId, createdAt: bottomDate, company: companyId }], { session })
 
-  return newBranchReport
+  return newBranchReport[0]
 }
 
 export const addRecordToBranchReportArrays = async ({ branchId, company, record, recordType }) => {
@@ -238,6 +239,10 @@ export const cleanBranchReportReferences = async (branchReport) => {
     const validOutgoings = await Outgoing.find({ _id: { $in: branchReport.outgoingsArray } });
     branchReport.outgoingsArray = validOutgoings.map(outgoing => outgoing._id);
 
+    const validInitialStock = await Stock.find({_id: {$in: branchReport.initialStockArray}})
+    branchReport.initialStockArray = validInitialStock.map(stock => stock._id)
+
+    const branchPrices = await pricesAggregate(branchReport.branch, branchReport.dateSent)
 
     // Guardar los cambios en el BranchReport
     await branchReport.save();
@@ -307,11 +312,11 @@ export const updateBranchReport = async (req, res, next) => {
 
     if (branchReport.employee && branchReport.employee != employee) {
 
-      await updateEmployeeDailyBalancesBalance({ branchReport, changedEmployee: true })
+      await updateEmployeeDailyBalancesBalance({ branchReport: branchReport, changedEmployee: true })
     }
 
     const updatedBranchReport = await BranchReport.findByIdAndUpdate(branchReport._id, {
-      $set: { employee: employee, assistant: assistant }
+      $set: { employee: employee, assistant: assistant, dateSent: new Date() }
     })
 
     if (updatedBranchReport) {

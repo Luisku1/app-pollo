@@ -1,7 +1,6 @@
 /* eslint-disable react/prop-types */
 import { useEffect, useRef, useState } from 'react'
 import { useSelector } from 'react-redux'
-import { deleteExtraOutgoingFetch, deleteEmployeePaymentFetch } from '../helpers/FetchFunctions';
 import { FaListAlt, FaTrash } from 'react-icons/fa';
 import { Link } from "react-router-dom"
 import { MdCancel, MdKeyboardArrowDown, MdKeyboardArrowRight } from 'react-icons/md';
@@ -20,13 +19,20 @@ import { useBranches } from '../hooks/Branches/useBranches';
 import { useCustomers } from '../hooks/Customers/useCustomers';
 import Loading from '../components/Loading';
 import { useRoles } from '../hooks/useRoles';
-import { ToastDanger, ToastSuccess } from '../helpers/toastify';
+import { ToastDanger } from '../helpers/toastify';
 import { customSelectStyles } from '../helpers/Constants';
 import { useIncomeTypes } from '../hooks/Incomes/useIncomeTypes';
 import EntradasYSalidas from '../components/EntradasYSalidas/EntradasYSalidas';
 import { useIncomes } from '../hooks/Incomes/useIncomes';
 import { useAddIncome } from '../hooks/Incomes/useAddIncome';
 import { useDeleteIncome } from '../hooks/Incomes/useDeleteIncome';
+import { useAddEmployeePayment } from '../hooks/Employees/useAddEmployeePayment';
+import { useEmployeesPayments } from '../hooks/Employees/useEmployeesPayments';
+import { useDeleteEmployeePayment } from '../hooks/Employees/useDeleteEmployeePayment';
+import { useDayExtraOutgoings } from '../hooks/ExtraOutgoings.js/useDayExtraOutgoings';
+import { useDeleteExtraOutgoing } from '../hooks/ExtraOutgoings.js/useDeleteExtraOutgoing';
+import { useAddExtraOutgoing } from '../hooks/ExtraOutgoings.js/useAddExtraOutgoing';
+import { stringToCurrency } from '../helpers/Functions';
 
 export default function ControlSupervisor() {
 
@@ -44,13 +50,15 @@ export default function ControlSupervisor() {
   const { products, loading: prodLoading } = useProducts({ companyId: company._id })
   const { roles, loading: roleLoading } = useRoles()
   const [employeesDailyBalances, setEmployeesDailyBalance] = useState([])
-  const [extraOutgoings, setExtraOutgoings] = useState([])
-  const [employeePayments, setEmployeePayments] = useState(null)
-  const [employeePaymentsTotal, setEmployeePaymentsTotal] = useState(0.0)
-  const [extraOutgoingsTotal, setExtraOutgoingsTotal] = useState(0.0)
+  const { extraOutgoings, totalExtraOutgoings, pushExtraOutgoing, spliceExtraOutgoing, spliceExtraOutgoingById, updateLastExtraOutgoingId } = useDayExtraOutgoings({ companyId: company._id, date: stringDatePickerValue })
+  const { deleteExtraOutgoing } = useDeleteExtraOutgoing()
+  const { addExtraOutgoing } = useAddExtraOutgoing()
+  const { employeesPayments, totalEmployeesPayments, pushEmployeePayment, spliceEmployeePayment, updateLastEmployeePayment } = useEmployeesPayments({ companyId: company._id, date: stringDatePickerValue })
   const [netDifference, setNetDifference] = useState({})
+  const { addEmployeePayment } = useAddEmployeePayment()
+  const { deleteEmployeePayment } = useDeleteEmployeePayment()
   const [totalNetDifference, setTotalNetDifference] = useState(0.0)
-  const { incomes, incomesTotal, pushIncome, spliceIncome, updateLastIncomeId } = useIncomes({ companyId: company._id, date: stringDatePickerValue })
+  const { incomes, incomesTotal, pushIncome, spliceIncome, spliceIncomeById, updateLastIncomeId } = useIncomes({ companyId: company._id, date: stringDatePickerValue })
   const { addIncome } = useAddIncome()
   const { deleteIncome } = useDeleteIncome()
   const { incomeTypes } = useIncomeTypes()
@@ -81,10 +89,7 @@ export default function ControlSupervisor() {
         options: customers
       }])
 
-
   }, [branches, customers])
-
-
 
   const isLoading = useLoading(roleLoading, empLoading, branchLoading, custLoading, prodLoading)
 
@@ -141,7 +146,7 @@ export default function ControlSupervisor() {
     setExtraOutgoingFormData({
 
       ...extraOutgoingFormData,
-      [e.target.id]: e.target.value,
+      [e.target.name]: e.target.value,
 
     })
   }
@@ -271,7 +276,7 @@ export default function ControlSupervisor() {
     }
   }
 
-  const addEmployeePayment = async (e) => {
+  const addEmployeePaymentSubmit = async (e) => {
 
     const amount = document.getElementById('paymentAmount')
     const detail = document.getElementById('paymentDetail')
@@ -284,50 +289,17 @@ export default function ControlSupervisor() {
 
     try {
 
-      const res = await fetch('/api/employee/employee-payment/create', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          amount: amount.value,
-          detail: detail.value,
-          company: company._id,
-          branch: selectedBranch != null ? selectedBranch.value : null,
-          employee: selectedEmployee.value,
-          supervisor: currentUser._id,
-          createdAt: date
-        })
-      })
-
-      const data = await res.json()
-
-      if (data.success === false) {
-
-        setError(data.message)
-        setLoading(false)
-        return
+      const employeePayment = {
+        amount: parseFloat(amount.value),
+        detail: detail.value,
+        company: company._id,
+        branch: selectedBranch,
+        employee: selectedEmployee,
+        supervisor: currentUser,
+        createdAt: date
       }
 
-      ToastSuccess('Nuevo pago a empleado registrado')
-
-      if (data.income) {
-
-        data.income.employee = currentUser
-        data.income.branch = { branch: selectedBranch.label }
-        data.income.type = 'Efectivo'
-        pushIncome({ income: data.income })
-      }
-
-      data.extraOutgoing.employee = currentUser
-      data.employeePayment.supervisor = currentUser
-      data.employeePayment.employee = { name: selectedEmployee.label }
-
-      setEmployeePayments([data.employeePayment, ...employeePayments])
-      setEmployeePaymentsTotal(employeePaymentsTotal + parseFloat(data.employeePayment.amount))
-
-      setExtraOutgoings([data.extraOutgoing, ...extraOutgoings])
-      setExtraOutgoingsTotal(extraOutgoingsTotal + parseFloat(data.extraOutgoing.amount))
+      addEmployeePayment({ employeePayment, pushEmployeePayment, pushIncome, pushExtraOutgoing, spliceEmployeePayment, updateLastEmployeePayment })
 
       setSelectedEmployee(null)
       setSelectedBranch(null)
@@ -345,40 +317,7 @@ export default function ControlSupervisor() {
     }
   }
 
-  const deleteEmployeePayment = async (paymentId, incomeId, extraOutgoingId, index) => {
-
-    setLoading(true)
-
-    const { error, data } = await deleteEmployeePaymentFetch(paymentId, incomeId, extraOutgoingId)
-
-    setLoading(false)
-
-    if (error == null) {
-
-      ToastSuccess(data)
-
-      if (incomeId) {
-
-        const incomeIndex = incomes.findIndex((income) => income._id == incomeId)
-
-        spliceIncome({ index: incomeIndex })
-      }
-
-      const extraOutgoingIndex = extraOutgoings.findIndex((extraOutgoing) => extraOutgoing._id == extraOutgoingId)
-
-      setEmployeePaymentsTotal(employeePaymentsTotal - parseFloat(employeePayments[index].amount))
-      setExtraOutgoingsTotal(extraOutgoingsTotal - parseFloat(extraOutgoings[extraOutgoingIndex].amount))
-
-      employeePayments.splice(index, 1)
-      extraOutgoings.splice(extraOutgoingIndex, 1)
-
-    } else {
-
-      ToastDanger(error)
-    }
-  }
-
-  const addExtraOutgoing = async (e) => {
+  const addExtraOutgoingSubmit = async (e) => {
 
     const conceptInput = document.getElementById('extraOutgoingConcept')
     const amountInput = document.getElementById('extraOutgoingAmount')
@@ -386,40 +325,23 @@ export default function ControlSupervisor() {
 
     e.preventDefault()
 
-
     setLoading(true)
 
     try {
 
-      const res = await fetch('/api/outgoing/extra-outgoing/create', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          ...extraOutgoingFormData,
-          employee: currentUser._id,
-          company: company._id,
-          createdAt: date
-        })
-      })
+      const { amount, concept } = extraOutgoingFormData
 
-      const data = await res.json()
-
-      if (data.success === false) {
-
-        setError(data.message)
-        setLoading(false)
-        return
+      const extraOutgoing = {
+        amount: parseFloat(amount),
+        concept,
+        employee: currentUser,
+        company: company._id,
+        createdAt: date
       }
 
-      ToastSuccess('Nuevo gasto registrado')
-      data.extraOutgoing.employee = currentUser
+      addExtraOutgoing({ extraOutgoing, pushExtraOutgoing, updateLastExtraOutgoingId })
 
       setError(null)
-      setExtraOutgoings([data.extraOutgoing, ...extraOutgoings])
-      setExtraOutgoingsTotal(extraOutgoingsTotal + parseFloat(data.extraOutgoing.amount))
-
       conceptInput.value = ''
       amountInput.value = ''
       setLoading(false)
@@ -429,31 +351,6 @@ export default function ControlSupervisor() {
       setError(error.message)
       setLoading(false)
 
-    }
-  }
-
-  const setExtraOutgoingsTotalFunction = (extraOutgoings) => {
-
-    let total = 0
-    extraOutgoings.forEach((extraOutgoing) => {
-      total += parseFloat(extraOutgoing.amount)
-    })
-
-    setExtraOutgoingsTotal(total)
-  }
-
-  const deleteExtraOutgoing = async (extraOutgoingId, index) => {
-
-    setLoading(true)
-
-    const { error } = await deleteExtraOutgoingFetch(extraOutgoingId)
-
-    setLoading(false)
-
-    if (error == null) {
-
-      setExtraOutgoingsTotal(extraOutgoingsTotal - parseFloat(extraOutgoings[index].amount))
-      extraOutgoings.splice(index, 1)
     }
   }
 
@@ -528,25 +425,9 @@ export default function ControlSupervisor() {
     }
   }
 
-  const setEmployeePaymentsTotalFunction = (employeePayments) => {
-
-    let total = 0
-
-    employeePayments.forEach((employeePayment) => {
-
-      total += parseFloat(employeePayment.amount)
-    })
-
-    setEmployeePaymentsTotal(total)
-  }
-
   useEffect(() => {
 
     setEmployeesDailyBalance([])
-    setEmployeePayments([])
-    setEmployeePaymentsTotal(0.0)
-    setExtraOutgoings([])
-    setExtraOutgoingsTotal(0.0)
     setTotalNetDifference(0.0)
     setNetDifference([])
     setIncomesIsOpen(false)
@@ -581,72 +462,6 @@ export default function ControlSupervisor() {
         setLoading(false)
       }
 
-    }
-
-    const fetchLoans = async () => {
-
-      const date = new Date(stringDatePickerValue).toISOString()
-
-      setLoading(true)
-
-      try {
-
-        const res = await fetch('/api/employee/get-employees-payments/' + company._id + '/' + date)
-        const data = await res.json()
-
-        if (data.success === false) {
-
-          setError(data.message)
-          setLoading(false)
-          return
-        }
-
-        setEmployeePayments(data.employeePayments)
-        setEmployeePaymentsTotalFunction(data.employeePayments)
-        setError(null)
-        setLoading(false)
-
-      } catch (error) {
-
-        setError(error.message)
-        setLoading(false)
-      }
-    }
-
-    const fetchExtraOutgoings = async () => {
-
-      const date = new Date(stringDatePickerValue).toISOString()
-
-      setLoading(true)
-
-      try {
-
-        const res = await fetch('/api/outgoing/get-extra-outgoings/' + company._id + '/' + date)
-        const data = await res.json()
-
-        if (data.success === false) {
-
-          setError(data.message)
-          setLoading(false)
-          return
-        }
-
-        data.extraOutgoings.sort((extraOutgoing, nextExtraOutgoing) => {
-
-          return extraOutgoing.createdAt - nextExtraOutgoing.createdAt
-        })
-
-
-        setExtraOutgoings(data.extraOutgoings)
-        setExtraOutgoingsTotalFunction(data.extraOutgoings)
-        setError(null)
-        setLoading(false)
-
-      } catch (error) {
-
-        setError(error.message)
-        setLoading(false)
-      }
     }
 
     const fetchNetDifference = async () => {
@@ -685,10 +500,8 @@ export default function ControlSupervisor() {
       }
     }
 
-    fetchExtraOutgoings()
     fetchEmployeesDailyBalances()
     fetchNetDifference()
-    fetchLoans()
 
   }, [company._id, stringDatePickerValue])
 
@@ -773,15 +586,15 @@ export default function ControlSupervisor() {
               </div>
               {roles && roles.managerRole && currentUser.role == roles.managerRole._id ?
 
-                <p className='font-bold text-lg text-red-700 text-center'>{extraOutgoingsTotal.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
+                <p className='font-bold text-lg text-red-700 text-center'>{stringToCurrency({ amount: totalExtraOutgoings })}</p>
 
                 : ''}
             </div>
 
-            <form id='extra-outgoing-form' onSubmit={addExtraOutgoing} className="grid grid-cols-3 items-center gap-2">
+            <form id='extra-outgoing-form' onSubmit={addExtraOutgoingSubmit} className="grid grid-cols-3 items-center gap-2">
 
-              <input type="text" name="extraOutgoingConcept" id="extraOutgoingConcept" placeholder='Concepto' className='border border-black p-3 rounded-lg' required onInput={extraOutgoingsButtonControl} onChange={handleExtraOutgoingInputsChange} />
-              <input type="number" name="extraOutgoingAmount" id="extraOutgoingAmount" placeholder='$0.00' step={0.01} className='border border-black p-3 rounded-lg' required onInput={extraOutgoingsButtonControl} onChange={handleExtraOutgoingInputsChange} />
+              <input type="text" name="concept" id="extraOutgoingConcept" placeholder='Concepto' className='border border-black p-3 rounded-lg' required onInput={extraOutgoingsButtonControl} onChange={handleExtraOutgoingInputsChange} />
+              <input type="number" name="amount" id="extraOutgoingAmount" placeholder='$0.00' step={0.01} className='border border-black p-3 rounded-lg' required onInput={extraOutgoingsButtonControl} onChange={handleExtraOutgoingInputsChange} />
               <button type='submit' id='extraOutgoingButton' disabled className='bg-slate-500 text-white font-semibold p-3 rounded-lg'>Agregar</button>
 
             </form>
@@ -795,13 +608,13 @@ export default function ControlSupervisor() {
               </div>
               {roles && roles.managerRole && currentUser.role == roles.managerRole._id ?
 
-                <p className='font-bold text-lg text-red-700 text-center'>{employeePaymentsTotal.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
+                <p className='font-bold text-lg text-red-700 text-center'>{totalEmployeesPayments.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
 
 
                 : ''}
             </div>
 
-            <form onSubmit={addEmployeePayment} className="grid grid-cols-1 items-center justify-between gap-3">
+            <form onSubmit={addEmployeePaymentSubmit} className="grid grid-cols-1 items-center justify-between gap-3">
 
               <div className=''>
 
@@ -843,8 +656,6 @@ export default function ControlSupervisor() {
 
         </div>
 
-
-
         {
           incomesIsOpen && incomes && incomes.length > 0 ?
 
@@ -867,7 +678,7 @@ export default function ControlSupervisor() {
                     <div key={income._id} className='grid grid-cols-12 items-center border border-black border-opacity-30 mt-2 shadow-m rounded-lg'>
 
                       <div id='list-element' className=' flex col-span-10 items-center justify-around pt-3 pb-3'>
-                        <p className='text-center text-xs w-3/12'>{`${income.branch.branch || income.branch.label || income.customer.name || income.customer.lastName}`}</p>
+                        <p className='text-center text-xs w-3/12'>{`${income.branch?.branch || income.branch?.label || income.customer?.name || income.customer?.lastName}`}</p>
                         <p className='text-center text-xs w-3/12'>{income.employee.name + ' ' + income.employee.lastName}</p>
                         <p className='text-center text-xs w-2/12'>{income.type.name || income.type.label}</p>
                         <p className='text-center text-xs w-3/12'>{income.amount.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
@@ -936,7 +747,7 @@ export default function ControlSupervisor() {
                     {extraOutgoings.length > 0 && extraOutgoings.map((extraOutgoing, index) => (
 
 
-                      <div key={extraOutgoing._id} className={(currentUser._id == extraOutgoing.employee || currentUser.role == roles.managerRole._id ? '' : 'py-3 ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
+                      <div key={extraOutgoing._id} className={(currentUser._id == extraOutgoing.employee._id || currentUser.role == roles.managerRole._id ? '' : 'py-3 ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
 
                         <div id='list-element' className='flex col-span-10 items-center justify-around'>
                           <p className='text-center text-sm w-3/12'>{extraOutgoing.employee.name ? extraOutgoing.employee.name : extraOutgoing.employee}</p>
@@ -961,7 +772,7 @@ export default function ControlSupervisor() {
                                   </div>
                                   <div className='flex gap-10'>
                                     <div>
-                                      <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteExtraOutgoing(extraOutgoing._id, index), setIsOpen(!isOpen) }}>Si</button>
+                                      <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteExtraOutgoing({extraOutgoing, spliceExtraOutgoing, index}), setIsOpen(!isOpen) }}>Si</button>
                                     </div>
                                     <div>
                                       <button className='rounded-lg border shadow-lg w-20 h-10' onClick={() => { setIsOpen(!isOpen) }}>No</button>
@@ -990,7 +801,7 @@ export default function ControlSupervisor() {
 
 
         {
-          employeePaymentsIsOpen && employeePayments && employeePayments.length > 0 ?
+          employeePaymentsIsOpen && employeesPayments && employeesPayments.length > 0 ?
             <div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center max-w-lg my-auto mx-auto z-10'>
               <div className=' bg-white p-5 rounded-lg justify-center items-center h-5/6 my-auto mx-auto w-11/12 overflow-y-scroll'>
                 <button className="" onClick={() => { setEmployeePaymentsIsOpen(false) }}><MdCancel className="h-7 w-7" /></button>
@@ -1000,22 +811,22 @@ export default function ControlSupervisor() {
 
                   <div>
 
-                    {employeePayments && employeePayments.length > 0 ?
+                    {employeesPayments && employeesPayments.length > 0 ?
                       <div id='header' className='grid grid-cols-11 gap-4 items-center justify-around font-semibold mt-4'>
                         <p className='p-3 rounded-lg col-span-3 text-center'>Supervisor</p>
                         <p className='p-3 rounded-lg col-span-3 text-center'>Trabajador</p>
                         <p className='p-3 rounded-lg col-span-3 text-center'>Monto</p>
                       </div>
                       : ''}
-                    {employeePayments && employeePayments.length > 0 && employeePayments.map((employeePayment, index) => (
+                    {employeesPayments && employeesPayments.length > 0 && employeesPayments.map((employeePayment, index) => (
 
 
-                      <div key={employeePayment._id} className={(currentUser._id == employeePayment.supervisor || currentUser.role == roles.managerRole._id ? '' : 'py-3 ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
+                      <div key={employeePayment._id} className={(currentUser._id == employeePayment.supervisor._id || currentUser.role == roles.managerRole._id ? '' : 'py-3 ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
 
                         <div id='list-element' className='flex col-span-10 items-center justify-around'>
-                          <p className='text-center text-sm w-3/12'>{employeePayment.supervisor.label ? employeePayment.supervisor.name : employeePayment.supervisor.name}</p>
-                          <p className='text-center text-sm w-3/12'>{employeePayment.employee.label ? employeePayment.employee.label : employeePayment.employee.name}</p>
-                          <p className='text-center text-sm w-3/12'>{employeePayment.amount.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
+                          <p className='text-center text-sm w-3/12'>{`${(employeePayment.supervisor?.name + employeePayment.supervisor?.lastName)}`}</p>
+                          <p className='text-center text-sm w-3/12'>{employeePayment.employee.label ?? employeePayment.employee.name}</p>
+                          <p className='text-center text-sm w-3/12'>{stringToCurrency({amount: employeePayment.amount})}</p>
                         </div>
 
                         {currentUser._id == employeePayment.supervisor._id || currentUser.role == roles.managerRole._id ?
@@ -1035,7 +846,7 @@ export default function ControlSupervisor() {
                                   </div>
                                   <div className='flex gap-10'>
                                     <div>
-                                      <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteEmployeePayment(employeePayment._id, employeePayment.income, employeePayment.extraOutgoing, index), setIsOpen(!isOpen) }}>Si</button>
+                                      <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteEmployeePayment({ employeePayment, spliceEmployeePayment, spliceIncomeById, spliceExtraOutgoingById, index }), setIsOpen(!isOpen) }}>Si</button>
                                     </div>
                                     <div>
                                       <button className='rounded-lg border shadow-lg w-20 h-10' onClick={() => { setIsOpen(!isOpen) }}>No</button>

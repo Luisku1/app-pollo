@@ -11,7 +11,7 @@ export const useCreateProviderInput = () => {
     setLoading(true)
 
     pushProviderInput({ providerInput })
-    ToastSuccess(`Se creó la entrada de ${providerInput.product.label}`)
+    ToastSuccess(`Se creó la entrada de ${ providerInput.product.name ?? providerInput.product.label}`)
 
     createProviderInputFetch({
       providerInput: {
@@ -36,7 +36,7 @@ export const useCreateProviderInput = () => {
 
       spliceProviderInput(0)
       console.log(error)
-      ToastDanger(error.message)
+      ToastDanger(`No se creó la entrada de ${ providerInput.product.name ?? providerInput.product.label}`)
     })
 
     setLoading(false)

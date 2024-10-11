@@ -6,7 +6,7 @@ import ProviderInput from '../models/providers/provider.input.model.js'
 import { updateReportInputs, updateReportOutputs } from '../utils/updateReport.js'
 import { getDayRange } from '../utils/formatDate.js'
 import mongoose, { Types } from 'mongoose'
-import { addRecordToBranchReportArrays, createDefaultBranchReport, fetchBranchReport, removeRecordFromBranchReport } from './branch.report.controller.js'
+import { createDefaultBranchReport, fetchBranchReport } from './branch.report.controller.js'
 import BranchReport from '../models/accounts/branch.report.model.js'
 import { updateEmployeeDailyBalancesBalance } from './employee.controller.js'
 
@@ -28,44 +28,67 @@ export const newBranchInput = async (req, res, next) => {
 
 export const newBranchInputAndUpdateBranchReport = async ({ weight, comment, pieces, company, product, employee, branch, amount, price, createdAt, specialPrice }) => {
 
-  const session = await mongoose.startSession()
-
-  session.startTransaction()
+  let branchReport = null
+  let input = null
+  let updatedEmployeeDailyBalance = null
+  let updatedBranchReport = null
 
   try {
 
-    let branchReport = await fetchBranchReport({ branchId: branch, date: createdAt, session })
+    branchReport = await fetchBranchReport({ branchId: branch, date: createdAt })
 
     if (!branchReport) {
 
-      branchReport = await createDefaultBranchReport({ branchId: branch, date: createdAt, companyId: company, session })
+      branchReport = await createDefaultBranchReport({ branchId: branch, date: createdAt, companyId: company })
     }
 
-    const input = await Input.create([{ weight, comment, pieces, company, product, employee, branch, amount, price, createdAt, specialPrice }], { session })
+    if (!branchReport) throw new Error("No se encontró ni se pudo crear el reporte");
 
-    await BranchReport.findByIdAndUpdate(branchReport._id, {
+    input = await Input.create({ weight, comment, pieces, company, product, employee, branch, amount, price, createdAt, specialPrice })
 
-      $push: { inputsArray: input[0]._id },
-      $inc: { inputs: input[0].amount, balance: -input[0].amount }
+    if (!input) throw new Error("No se logró crear la entrada a sucursal");
 
-    }, { session })
+    updatedBranchReport = await BranchReport.findByIdAndUpdate(branchReport._id, {
 
-    if (branchReport.employee) {
+      $push: { inputsArray: input._id },
+      $inc: { inputs: input.amount, balance: -input.amount }
 
-      await updateEmployeeDailyBalancesBalance({ branchReport: branchReport, session })
+    })
+
+    if (updatedBranchReport) {
+
+      if (updatedBranchReport.employee) {
+
+        updatedEmployeeDailyBalance = await updateEmployeeDailyBalancesBalance({ branchReport: updatedBranchReport })
+
+        if (!updatedEmployeeDailyBalance) throw new Error("No se pudo actualizar la cuenta del empleado");
+      }
+
+      return input
+
+    } else {
+
+      throw new Error("Hubo un problema encontrando el reporte a modificar");
     }
-
-    await session.commitTransaction()
-    return input[0]
 
   } catch (error) {
 
-    await session.abortTransaction()
+    if (input) {
+
+      await Input.findByIdAndDelete(input._id)
+    }
+
+    if (!updatedEmployeeDailyBalance && updatedBranchReport
+      && (branchReport.balance != updatedBranchReport.balance
+        ||
+        branchReport.inputsArray != updatedBranchReport.inputsArray
+        || branchReport.inputs != updatedBranchReport.inputs)) {
+
+      await BranchReport.findByIdAndUpdate(branchReport._id, { balance: branchReport.balance, inputsArray: branchReport.inputsArray, inputs: branchReport.inputs })
+    }
+
     throw error;
 
-  } finally {
-
-    session.endSession()
   }
 }
 
@@ -482,43 +505,64 @@ export const getBranchInputsAvg = async (req, res, next) => {
 export const deleteInput = async (req, res, next) => {
 
   const inputId = req.params.inputId
-  const session = await mongoose.startSession()
 
-  session.startTransaction()
+  let deletedInput = null
+  let branchReport = null
+  let updatedEmployeeDailyBalance = null
+  let updatedBranchReport = null
 
   try {
 
-    const deletedInput = await Input.findByIdAndDelete(inputId, { session })
+    deletedInput = await Input.findByIdAndDelete(inputId)
 
-    let branchReport = await fetchBranchReport({ branchId: deletedInput.branch, date: deletedInput.createdAt, session })
+    if (!deletedInput) throw new Error("No se eliminó el efectivo");
 
+    branchReport = await fetchBranchReport({ branchId: deletedInput.branch, date: deletedInput.createdAt })
 
-    await BranchReport.findByIdAndUpdate(branchReport._id, {
+    if (!branchReport) throw new Error("No se encontró el reporte para este movimiento");
+
+    updatedBranchReport = await BranchReport.findByIdAndUpdate(branchReport._id, {
 
       $pull: { inputsArray: deletedInput._id },
-      $inc: {
-        inputs: -deletedInput.amount,
-        balance: deletedInput.amount
+      $inc: { inputs: -deletedInput.amount, balance: deletedInput.amount }
+
+    }, { new: true })
+
+    if (updatedBranchReport) {
+
+      if (updatedBranchReport.employee) {
+
+        updatedEmployeeDailyBalance = await updateEmployeeDailyBalancesBalance({ branchReport: branchReport })
+
+        if (!updatedEmployeeDailyBalance) throw new Error("No se pudo actualizar la cuenta del empleado");
       }
 
-    }, { session })
+    } else {
 
-    if (branchReport.employee) {
+      throw new Error("No se pudo actualizar la cuenta, verifique el error");
 
-      await updateEmployeeDailyBalancesBalance({ branchReport: branchReport, session })
     }
 
-    await session.commitTransaction()
     res.status(200).json({ message: 'Input deleted correctly' })
 
   } catch (error) {
 
-    await session.abortTransaction()
+    if (deletedInput) {
+
+      await Input.create({ deletedInput })
+    }
+
+    if (!updatedEmployeeDailyBalance && updatedBranchReport
+      && (branchReport.balance != updatedBranchReport.balance
+        ||
+        branchReport.inputsArray != updatedBranchReport.inputsArray
+        || branchReport.inputs != updatedBranchReport.inputs)) {
+
+      await BranchReport.findByIdAndUpdate(branchReport._id, { balance: branchReport.balance, inputsArray: branchReport.inputsArray, inputs: branchReport.inputs })
+    }
+
     next(error);
 
-  } finally {
-
-    session.endSession()
   }
 }
 
@@ -541,42 +585,66 @@ export const newBranchOutput = async (req, res, next) => {
 
 export const newBranchOutputAndUpdateBranchReport = async ({ weight, comment, pieces, company, product, employee, branch, amount, price, createdAt, specialPrice }) => {
 
-
-  const session = await mongoose.startSession()
-
-  session.startTransaction()
+  let branchReport = null
+  let output = null
+  let updatedEmployeeDailyBalance = null
+  let updatedBranchReport = null
 
   try {
 
-    let branchReport = await fetchBranchReport({ branchId: branch, date: createdAt, session })
+    branchReport = await fetchBranchReport({ branchId: branch, date: createdAt })
 
     if (!branchReport) {
 
-      branchReport = await createDefaultBranchReport({ branchId: branch, date: createdAt, companyId: company, session })
+      branchReport = await createDefaultBranchReport({ branchId: branch, date: createdAt, companyId: company })
     }
 
-    const output = await Output.create([{ weight, comment, pieces, company, product, employee, branch, amount, price, createdAt, specialPrice }], { session })
+    if (!branchReport) throw new Error("No se encontró ni se pudo crear el reporte");
 
-    await BranchReport.findByIdAndUpdate(branchReport._id, {
+    output = await Output.create({ weight, comment, pieces, company, product, employee, branch, amount, price, createdAt, specialPrice })
 
-      $push: { outputsArray: output[0]._id },
-      $inc: {
-        outputs: output[0].amount,
-        balance: output[0].amount
-      },
+    if (!output) throw new Error("No se logró crear el registro");
 
-    }, { session })
+    updatedBranchReport = await BranchReport.findByIdAndUpdate(branchReport._id, {
 
-    await session.commitTransaction()
-    return output[0]
+      $push: { outputsArray: output._id },
+      $inc: { outputs: output.amount, balance: output.amount },
+    }, { new: true })
+
+    if (updatedBranchReport) {
+
+      if (updatedBranchReport.employee) {
+
+        updatedEmployeeDailyBalance = await updateEmployeeDailyBalancesBalance({ branchReport: updatedBranchReport })
+
+        if (!updatedEmployeeDailyBalance) throw new Error("No se pudo actualizar la cuenta del empleado");
+      }
+
+      return output
+
+    } else {
+
+      throw new Error("Hubo un problema encontrando el reporte a modificar");
+    }
+
   } catch (error) {
 
-    await session.abortTransaction()
+    if (output) {
+
+      await Output.findByIdAndDelete(income._id)
+    }
+
+    if (!updatedEmployeeDailyBalance && updatedBranchReport
+      && (branchReport.balance != updatedBranchReport.balance
+        ||
+        branchReport.outputsArray != updatedBranchReport.outputsArray
+        || branchReport.outputs != updatedBranchReport.outputs)) {
+
+      await BranchReport.findByIdAndUpdate(branchReport._id, { balance: branchReport.balance, outputsArray: branchReport.outputsArray, outputs: branchReport.outputs })
+    }
+
     throw error;
 
-  } finally {
-
-    session.endSession()
   }
 }
 
@@ -894,48 +962,66 @@ export const createBranchProviderInput = async (req, res, next) => {
 
 export const createBranchProviderInputAndUpdateBranchReport = async ({ weight, product, price, employee, branch, company, comment, pieces, amount, specialPrice, createdAt }) => {
 
-  const session = await mongoose.startSession()
-
-  session.startTransaction()
+  let branchReport = null
+  let providerInput = null
+  let updatedEmployeeDailyBalance = null
+  let updatedBranchReport = null
 
   try {
 
-    let branchReport = await fetchBranchReport({ branchId: branch, date: createdAt, session })
+    branchReport = await fetchBranchReport({ branchId: branch, date: createdAt })
 
     if (!branchReport) {
 
-      branchReport = await createDefaultBranchReport({ branchId: branch, date: createdAt, companyId: company, session })
+      branchReport = await createDefaultBranchReport({ branchId: branch, date: createdAt, companyId: company })
     }
 
-    const providerInput = await ProviderInput.create([{ weight, product, price, employee, branch, company, comment, pieces, amount, specialPrice, createdAt }], { session })
+    if (!branchReport) throw new Error("No se encontró ni se pudo crear el reporte");
 
-    await BranchReport.findByIdAndUpdate(branchReport._id, {
+    providerInput = await ProviderInput.create({ weight, product, price, employee, branch, company, comment, pieces, amount, specialPrice, createdAt })
 
-      $push: { providerInputsArray: providerInput[0]._id },
-      $inc: {
-        providerInputs: providerInput[0].amount,
-        balance: -providerInput[0].amount
+    if (!providerInput) throw new Error("No creó el registro");
+
+    updatedBranchReport = await BranchReport.findByIdAndUpdate(branchReport._id, {
+
+      $push: { providerInputsArray: providerInput._id },
+      $inc: { providerInputs: providerInput.amount, balance: -providerInput.amount }
+
+    }, { new: true })
+
+    if (updatedBranchReport) {
+
+      if (updatedBranchReport.employee) {
+
+        updatedEmployeeDailyBalance = await updateEmployeeDailyBalancesBalance({ branchReport: updatedBranchReport })
+
+        if (!updatedEmployeeDailyBalance) throw new Error("No se pudo actualizar la cuenta del empleado");
       }
 
-    }, { session })
+      return providerInput
 
-    await session.commitTransaction()
+    } else {
 
-    if (branchReport.employee) {
-
-      await updateEmployeeDailyBalancesBalance({ branchReport: branchReport, session })
+      throw new Error("Hubo un problema encontrando el reporte a modificar");
     }
-
-    return providerInput[0]
 
   } catch (error) {
 
-    await session.abortTransaction()
+    if (providerInput) {
+
+      await ProviderInput.findByIdAndDelete(providerInput._id)
+    }
+
+    if (!updatedEmployeeDailyBalance && updatedBranchReport &&
+      (branchReport.balance != updatedBranchReport.balance
+        ||
+        branchReport.providerInputsArray != updatedBranchReport.providerInputsArray
+        || branchReport.providerInputs != updatedBranchReport.providerInputs)) {
+
+      await BranchReport.findByIdAndUpdate(branchReport._id, { balance: branchReport.balance, providerInputsArray: branchReport.providerInputsArray, providerInputs: branchReport.providerInputs })
+    }
+
     throw error;
-
-  } finally {
-
-    session.endSession()
   }
 }
 
@@ -961,18 +1047,23 @@ export const createCustomerProviderInput = async (req, res, next) => {
 export const deleteProviderInput = async (req, res, next) => {
 
   const providerInputId = req.params.providerInputId
-  const session = await mongoose.startSession()
 
-  session.startTransaction()
+  let deletedProviderInput = null
+  let branchReport = null
+  let updatedEmployeeDailyBalance = null
+  let updatedBranchReport = null
 
   try {
 
-    const deletedProviderInput = await ProviderInput.findByIdAndDelete(providerInputId, { session })
+    deletedProviderInput = await ProviderInput.findByIdAndDelete(providerInputId)
 
-    let branchReport = await fetchBranchReport({ branchId: deletedProviderInput.branch, date: deletedProviderInput.createdAt, session })
+    if (!deletedProviderInput) throw new Error("No se eliminó el registro");
 
+    branchReport = await fetchBranchReport({ branchId: deletedProviderInput.branch, date: deletedProviderInput.createdAt })
 
-    await BranchReport.findByIdAndUpdate(branchReport._id, {
+    if (!branchReport) throw new Error("No se encontró ningún reporte ");
+
+    updatedBranchReport = await BranchReport.findByIdAndUpdate(branchReport._id, {
 
       $pull: { providerInputsArray: deletedProviderInput._id },
       $inc: {
@@ -980,63 +1071,104 @@ export const deleteProviderInput = async (req, res, next) => {
         balance: deletedProviderInput.amount
       }
 
-    }, { session })
+    }, { new: true })
 
-    if (branchReport.employee) {
+    if (updatedBranchReport) {
 
-      await updateEmployeeDailyBalancesBalance({ branchReport: branchReport, session })
+      if (updatedBranchReport.employee) {
+
+        updatedEmployeeDailyBalance = await updateEmployeeDailyBalancesBalance({ branchReport: branchReport })
+
+        if (!updatedEmployeeDailyBalance) throw new Error("No se pudo actualizar la cuenta del empleado");
+      }
+
+    } else {
+
+      throw new Error("No se pudo actualizar la cuenta, verifique el error");
+
     }
 
-    await session.commitTransaction()
-    res.status(200).json({ message: 'Provider input deleted correctly' })
+    res.status(200).json('Registro eliminado')
 
   } catch (error) {
 
-    await session.abortTransaction()
+    if (deletedProviderInput) {
+
+      await ProviderInput.create({ deletedProviderInput })
+    }
+
+    if (!updatedEmployeeDailyBalance && updatedBranchReport &&
+      (branchReport.balance != updatedBranchReport.balance
+        ||
+        branchReport.providerInputsArray != updatedBranchReport.providerInputsArray
+        || branchReport.providerInputs != updatedBranchReport.providerInputs)) {
+
+      await BranchReport.findByIdAndUpdate(branchReport._id, { balance: branchReport.balance, providerInputsArray: branchReport.providerInputsArray, providerInputs: branchReport.providerInputs })
+    }
+
     next(error);
 
-  } finally {
-
-    session.endSession()
   }
-
 }
 
 export const deleteOutput = async (req, res, next) => {
 
   const outputId = req.params.outputId
-  const session = await mongoose.startSession()
-  session.startTransaction()
+
+  let deletedOutput = null
+  let branchReport = null
+  let updatedEmployeeDailyBalance = null
+  let updatedBranchReport = null
 
   try {
 
+    deletedOutput = await Output.findByIdAndDelete(outputId)
 
-    const deletedOutput = await Output.findByIdAndDelete(outputId, { session })
+    if (!deletedOutput) throw new Error("No se eliminó el registro");
 
-    let branchReport = await fetchBranchReport({ branchId: deletedOutput.branch, date: deletedOutput.createdAt, session })
+    branchReport = await fetchBranchReport({ branchId: deletedOutput.branch, date: deletedOutput.createdAt })
 
-    await BranchReport.findByIdAndUpdate(branchReport._id, {
+    if (!branchReport) throw new Error("No se encontró ningún reporte ");
+
+    updatedBranchReport = await BranchReport.findByIdAndUpdate(branchReport._id, {
 
       $pull: { outputsArray: deletedOutput._id },
       $inc: { outputs: -deletedOutput.amount, balance: -deletedOutput.amount }
 
-    }, { session })
+    }, { new: true })
 
-    if (branchReport.employee) {
+    if (updatedBranchReport) {
 
-      await updateEmployeeDailyBalancesBalance({ branchReport: branchReport, session })
+      if (updatedBranchReport.employee) {
+
+        updatedEmployeeDailyBalance = await updateEmployeeDailyBalancesBalance({ branchReport: branchReport })
+
+        if (!updatedEmployeeDailyBalance) throw new Error("No se pudo actualizar la cuenta del empleado");
+      }
+
+    } else {
+
+      throw new Error("No se pudo actualizar la cuenta, verifique el error");
     }
 
-    await session.commitTransaction()
-    res.status(200).json({ message: 'Output deleted correctly' })
+    res.status(200).json('Registro eliminado')
 
   } catch (error) {
 
-    await session.abortTransaction()
+    if (deletedOutput) {
+
+      await Output.create({ deletedOutput })
+    }
+
+    if (!updatedEmployeeDailyBalance && updatedBranchReport
+      && (branchReport.balance != updatedBranchReport.balance
+        ||
+        branchReport.outputsArray != updatedBranchReport.outputsArray
+        || branchReport.outputs != updatedBranchReport.outputs)) {
+
+      await BranchReport.findByIdAndUpdate(branchReport._id, { balance: branchReport.balance, outputsArray: branchReport.outputsArray, outputs: branchReport.outputs })
+    }
+
     next(error);
-
-  } finally {
-
-    session.endSession()
   }
 }

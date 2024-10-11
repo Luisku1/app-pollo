@@ -3,7 +3,7 @@ import { getEmployeePayments } from "../../services/employees/employeePayments"
 
 export const useEmployeePayments = ({ employeeId, date }) => {
 
-  const [employeePayments, setEmployeePayments] = useState()
+  const [employeePayments, setEmployeePayments] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 

@@ -14,17 +14,25 @@ import Loading from "../../Loading"
 import { ToastDanger } from "../../../helpers/toastify"
 import { useBranchCustomerProductPrice } from "../../../hooks/Prices/useBranchCustomerProductPrice"
 import { useAddOutput } from "../../../hooks/Outputs/useAddOutput"
+import { priceShouldNotBeZero } from "../../../helpers/Functions"
 
 export default function Salidas({ branchAndCustomerSelectOptions, products, date, roles, selectedProduct, setSelectedProduct, setSelectedProductToNull }) {
 
   const { company, currentUser } = useSelector((state) => state.user)
-  const { outputs, totalWeight, pushOutput, spliceOutput, loading: outputLoading, updateLastOutputId } = useOutput({ companyId: company._id, date })
-  const [outputsIsOpen, setOutputsIsOpen] = useState(false)
   const [outputFormData, setOutputFormData] = useState({})
+  const {
+    outputs,
+    totalWeight,
+    pushOutput,
+    spliceOutput,
+    loading: outputLoading,
+    updateLastOutputId
+  } = useOutput({ companyId: company._id, date })
+  const { addOutput } = useAddOutput()
+  const [outputsIsOpen, setOutputsIsOpen] = useState(false)
   const [selectedCustomerBranchOption, setSelectedCustomerBranchOption] = useState(null)
   const [selectedGroup, setSelectedGroup] = useState('');
   const { price } = useBranchCustomerProductPrice({ branchCustomerId: selectedCustomerBranchOption ? selectedCustomerBranchOption.value : null, productId: selectedProduct ? selectedProduct.value : null, date, group: selectedGroup == '' ? null : selectedGroup })
-  const { addOutput } = useAddOutput()
   const [amount, setAmount] = useState('$0.00')
   const [loading, setLoading] = useState(false)
 
@@ -70,14 +78,6 @@ export default function Salidas({ branchAndCustomerSelectOptions, products, date
     }
   }
 
-  useEffect(() => {
-
-    generarMonto()
-
-  }, [price])
-
-  useEffect(outputButtonControl, [selectedProduct, selectedCustomerBranchOption, loading])
-
   const handleOutputInputsChange = (e) => {
 
     generarMonto()
@@ -91,6 +91,14 @@ export default function Salidas({ branchAndCustomerSelectOptions, products, date
 
   }
 
+  useEffect(() => {
+
+    generarMonto()
+
+  }, [price])
+
+  useEffect(outputButtonControl, [selectedProduct, selectedCustomerBranchOption, loading])
+
   const addOutputSubmitButton = async (e) => {
 
     const piecesInput = document.getElementById('output-pieces')
@@ -101,7 +109,15 @@ export default function Salidas({ branchAndCustomerSelectOptions, products, date
 
     e.preventDefault()
 
+    if (priceInput.value != '' ? priceInput.value == 0 : price == 0) {
+
+      priceShouldNotBeZero()
+      return
+    }
+
     setLoading(true)
+
+    const finalPrice = priceInput.value != '' ? priceInput.value : price
 
     try {
 
@@ -114,7 +130,7 @@ export default function Salidas({ branchAndCustomerSelectOptions, products, date
       if (group == 'branch') {
 
         output = {
-          price,
+          price: finalPrice,
           amount: parseFloat(amount.replace(/[$,]/g, '')),
           comment: commentInput.value == '' ? 'Todo bien' : commentInput.value,
           weight: parseFloat(weight),
@@ -130,7 +146,7 @@ export default function Salidas({ branchAndCustomerSelectOptions, products, date
       } else {
 
         output = {
-          price,
+          price: finalPrice,
           amount: parseFloat(amount.replace(/[$,]/g, '')),
           comment: commentInput.value == '' ? 'Todo bien' : commentInput.value,
           weight: parseFloat(weight),
@@ -182,9 +198,6 @@ export default function Salidas({ branchAndCustomerSelectOptions, products, date
     return <Loading></Loading>
 
   } else {
-
-
-
 
     return (
 
@@ -241,7 +254,7 @@ export default function Salidas({ branchAndCustomerSelectOptions, products, date
 
               <div className="relative">
                 <span className="absolute text-red-700 font-semibold left-3 top-3">$</span>
-                <input className='pl-6 w-full rounded-lg p-3 text-red-700 font-semibold border border-red-600' name='price' placeholder={price.toFixed(2)} id='output-price' step={0.01} type="number" onChange={handleOutputInputsChange} />
+                <input className='pl-6 w-full rounded-lg p-3 text-red-700 font-semibold border border-red-600' name='price' placeholder={price.toFixed(2)} id='output-price' step={0.01} type="number" onChange={(e) => { handleOutputInputsChange(e), generarMonto() }} />
                 <label htmlFor="compact-input" className="-translate-y-full px-1 absolute top-1/4 left-2 transform rounded-sm bg-white text-black text-sm font-semibold">
                   Precio
                 </label>

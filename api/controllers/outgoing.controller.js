@@ -31,45 +31,62 @@ export const newOutgoing = async (req, res, next) => {
 
 export const newOutgoingAndUpdateBranchReport = async ({ amount, concept, company, branch, employee, createdAt }) => {
 
-  const session = await mongoose.startSession()
-
-  session.startTransaction()
+  let updatedBranchReport = null
+  let branchReport = null
+  let updatedEmployeeDailyBalance = null
+  let outgoing = null
 
   try {
 
-    let branchReport = await fetchBranchReport({ branchId: branch, date: createdAt, session })
+    branchReport = await fetchBranchReport({ branchId: branch, date: createdAt })
 
     if (!branchReport) {
 
-      branchReport = await createDefaultBranchReport({ branchId: branch, date: createdAt, companyId: company, session })
+      branchReport = await createDefaultBranchReport({ branchId: branch, date: createdAt, companyId: company })
     }
 
-    const outgoing = await Outgoing.create([{ amount, concept, company, branch, employee, createdAt }], { session })
+    if (!branchReport) throw new Error("No se encontró ni se pudo crear el reporte");
 
-    await BranchReport.findByIdAndUpdate(branchReport._id, {
+    const outgoing = await Outgoing.create({ amount, concept, company, branch, employee, createdAt })
 
-      $push: { outgoingsArray: outgoing[0]._id },
-      $inc: { outgoings: outgoing[0].amount, balance: outgoing[0].amount }
+    if (!outgoing) throw new Error("No se logró crear el registro");
 
-    }, { session })
+    updatedBranchReport = await BranchReport.findByIdAndUpdate(branchReport._id, {
 
-    await session.commitTransaction()
+      $push: { outgoingsArray: outgoing._id },
+      $inc: { outgoings: outgoing.amount, balance: outgoing.amount }
 
-    if (branchReport.employee) {
+    }, { new: true })
 
-      await updateEmployeeDailyBalancesBalance({ branchReport: branchReport, session })
+    if (updatedBranchReport) {
+
+      if (updatedBranchReport.employee) {
+
+        updatedEmployeeDailyBalance = await updateEmployeeDailyBalancesBalance({ branchReport: updatedBranchReport })
+
+        if (!updatedEmployeeDailyBalance) throw new Error("No se pudo actualizar la cuenta del empleado");
+      }
+
+      return outgoing
+
+    } else {
+
+      throw new Error("Hubo un problema encontrando el reporte a modificar");
     }
-
-    return outgoing[0]
 
   } catch (error) {
 
-    await session.abortTransaction()
+    if (outgoing) {
+
+      await Outgoing.findByIdAndDelete(outgoing._id)
+    }
+
+    if (!updatedEmployeeDailyBalance && updatedBranchReport && (branchReport.balance != updatedBranchReport.balance || branchReport.outgoingsArray != updatedBranchReport.outgoingsArray || branchReport.outgoings != updatedBranchReport.outgoings)) {
+
+      await BranchReport.findByIdAndUpdate(branchReport._id, { balance: branchReport.balance, outgoingsArray: branchReport.outgoingsArray, outgoings: branchReport.outgoings })
+    }
+
     throw error;
-
-  } finally {
-
-    session.endSession()
   }
 }
 
@@ -124,11 +141,11 @@ export const getOutgoings = async (req, res, next) => {
 
 export const newExtraOutgoingQuery = async (req, res, next) => {
 
-  const { extraOutgoingAmount, extraOutgoingConcept, company, employee, createdAt } = req.body
+  const { amount, concept, company, employee, createdAt } = req.body
 
   try {
 
-    const extraOutgoing = await newExtraOutgoingFunction({ amount: extraOutgoingAmount, concept: extraOutgoingConcept, company, employee, createdAt })
+    const extraOutgoing = await newExtraOutgoingFunction({ amount, concept, company, employee, createdAt })
 
     res.status(201).json({ message: 'New extra outgoing created successfully', extraOutgoing: extraOutgoing })
 
@@ -240,7 +257,16 @@ export const getExtraOutgoings = async (req, res, next) => {
 
     } else {
 
-      res.status(200).json({ extraOutgoings: extraOutgoings })
+      extraOutgoings.sort((extraOutgoing, nextExtraOutgoing) => extraOutgoing.createdAt - nextExtraOutgoing.createdAt)
+
+      let total = 0
+
+      extraOutgoings.forEach((extraOutgoing) => {
+
+        total += extraOutgoing.amount
+      })
+
+      res.status(200).json({ extraOutgoings: extraOutgoings, totalExtraOutgoings: total })
     }
 
   } catch (error) {
@@ -344,40 +370,67 @@ export const deleteExtraOutgoing = async (req, res, next) => {
 export const deleteOutgoing = async (req, res, next) => {
 
   const outgoingId = req.params.outgoingId
-  const session = await mongoose.startSession()
 
-  session.startTransaction()
+  let deletedOutgoing = null
+  let branchReport = null
+  let updatedEmployeeDailyBalance = null
+  let updatedBranchReport = null
 
   try {
 
-    const deletedOutgoing = await Outgoing.findByIdAndDelete(outgoingId, { session })
+    deletedOutgoing = await Outgoing.findByIdAndDelete(outgoingId)
 
-    let branchReport = await fetchBranchReport({ branchId: deletedOutgoing.branch, date: deletedOutgoing.createdAt, session })
+    if (!deletedOutgoing) throw new Error("No se eliminó el registro");
 
-    await BranchReport.findByIdAndUpdate(branchReport._id, {
+    branchReport = await fetchBranchReport({ branchId: deletedOutgoing.branch, date: deletedOutgoing.createdAt })
+
+    if (!branchReport) throw new Error("No se encontró ningún reporte ");
+
+    updatedBranchReport = await BranchReport.findByIdAndUpdate(branchReport._id, {
 
       $pull: { outgoingsArray: deletedOutgoing._id },
       $inc: { outgoings: -deletedOutgoing.amount, balance: -deletedOutgoing.amount }
 
-    }, { session })
+    }, { new: true })
 
-    await session.commitTransaction()
+    if (updatedBranchReport) {
 
-    if (branchReport.employee) {
+      if (updatedBranchReport.employee) {
 
-      await updateEmployeeDailyBalancesBalance({ branchReport: branchReport, session })
+        updatedEmployeeDailyBalance = await updateEmployeeDailyBalancesBalance({ branchReport: updatedBranchReport })
+
+        if (!updatedEmployeeDailyBalance) throw new Error("No se pudo actualizar la cuenta del empleado");
+      }
+
+    } else {
+
+      throw new Error("No se pudo actualizar la cuenta, verifique el error");
+
     }
 
-    res.status(200).json('Outgoing deleted successfully')
+    res.status(200).json('Registro eliminado')
 
   } catch (error) {
 
-    await session.abortTransaction()
+    if (deletedOutgoing) {
+
+      await Outgoing.create({ deletedOutgoing })
+    }
+
+    if (!updatedEmployeeDailyBalance && updatedBranchReport
+      && (branchReport.balance != updatedBranchReport.balance
+        || branchReport.outgoingsArray != updatedBranchReport.outgoingsArray
+        || branchReport.outgoings != updatedBranchReport.outgoings)) {
+
+      await BranchReport.findByIdAndUpdate(branchReport._id, {
+        balance: branchReport.balance,
+        outgoingsArray: branchReport.outgoingsArray,
+        outgoings: branchReport.outgoings
+      })
+    }
+
     next(error);
 
-  } finally {
-
-    session.endSession()
   }
 }
 
