@@ -240,8 +240,6 @@ export const cleanBranchReportReferences = async (branchReport) => {
     const validInitialStock = await Stock.find({_id: {$in: branchReport.initialStockArray}})
     branchReport.initialStockArray = validInitialStock.map(stock => stock._id)
 
-    const branchPrices = await pricesAggregate(branchReport.branch, branchReport.dateSent)
-
     // Guardar los cambios en el BranchReport
     await branchReport.save();
     await recalculateBranchReport({ branchId: branchReport.branch, date: branchReport.createdAt })
@@ -285,7 +283,7 @@ export const recalculateBranchReport = async ({ branchReport: paramsBranchReport
     paramsBranchReport.finalStock = finalStock
 
 
-    const initialStock = await getInitialStockValue(paramsBranchReport.createdAt, paramsBranchReport.branch, 1, paramsBranchReport.createdAt)
+    const initialStock = await getInitialStockValue({branchId: paramsBranchReport.branchId, date: paramsBranchReport.dateSent ? paramsBranchReport.dateSent : paramsBranchReport.createdAt})
 
     console.log(outgoings, finalStock, outputs, incomes, initialStock, inputs, providerInputs)
 

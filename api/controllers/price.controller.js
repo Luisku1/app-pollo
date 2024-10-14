@@ -155,8 +155,6 @@ const getPrices = async (branchId, date) => {
 
   const productsPrice = await pricesAggregate(branchId, finalDate)
 
-  console.log(productsPrice)
-
   return productsPrice
 }
 

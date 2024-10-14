@@ -138,16 +138,10 @@ export const getInitialStock = async (req, res, next) => {
 
   const date = new Date(req.params.date)
   const branchId = req.params.branchId
-  const dateMinusOne = new Date(date)
-  dateMinusOne.setDate(dateMinusOne.getDate() - 1)
-  const { topDate } = getDayRange(date)
 
   try {
 
-    const todayBranchReport = await fetchBranchReport({ branchId, date })
-    const pricesDate = todayBranchReport.dateSent ? todayBranchReport.dateSent : topDate
-
-    const initialStock = await getInitialStockValue({ branchId, finalStockDate: dateMinusOne, newPricesDate: pricesDate })
+    const initialStock = await getInitialStockValue({ branchId, date })
 
     if (initialStock) {
 
@@ -164,17 +158,25 @@ export const getInitialStock = async (req, res, next) => {
   }
 }
 
-export const getInitialStockValue = async ({ branchId, finalStockDate, newPricesDate }) => {
+export const getInitialStockValue = async ({ branchId, date }) => {
 
-  const { bottomDate, topDate } = getDayRange(finalStockDate)
+  const dateMinusOne = new Date(date)
+  dateMinusOne.setDate(dateMinusOne.getDate() - 1)
+
+  const { topDate} = getDayRange(date)
+  const { bottomDate: yesterdayBottomDate, topDate: yesterdayTopDate } = getDayRange(dateMinusOne)
+
+  const todayBranchReport = await fetchBranchReport({ branchId, date })
+
+  const pricesDate = todayBranchReport.dateSent ? todayBranchReport.dateSent : topDate
 
   const initialStock = await Stock.find({
 
-    createdAt: { $lt: topDate, $gte: bottomDate },
+    createdAt: { $lt: yesterdayTopDate, $gte: yesterdayBottomDate },
     branch: branchId
   })
 
-  const branchPrices = await pricesAggregate(branchId, newPricesDate)
+  const branchPrices = await pricesAggregate(branchId, pricesDate)
 
   if (!branchPrices || !initialStock) return 0.0
 
