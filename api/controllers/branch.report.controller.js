@@ -4,9 +4,7 @@ import ReportData from '../models/accounts/report.data.model.js'
 import EmployeeDailyBalance from '../models/employees/employee.daily.balance.js'
 import { errorHandler } from '../utils/error.js'
 import { getDayRange } from '../utils/formatDate.js'
-import { getStockValue } from './stock.controller.js'
-import { getBranchInputs, getBranchOutputs, getBranchProviderInputs } from './input.output.controller.js'
-import { getBranchOutgoings } from './outgoing.controller.js'
+import { getInitialStockValue } from './stock.controller.js'
 import { getBranchIncomes } from './income.controller.js'
 import Stock from '../models/accounts/stock.model.js'
 import Input from '../models/accounts/input.model.js'
@@ -287,7 +285,7 @@ export const recalculateBranchReport = async ({ branchReport: paramsBranchReport
     paramsBranchReport.finalStock = finalStock
 
 
-    const initialStock = await getStockValue(paramsBranchReport.createdAt, paramsBranchReport.branch, 1, paramsBranchReport.createdAt)
+    const initialStock = await getInitialStockValue(paramsBranchReport.createdAt, paramsBranchReport.branch, 1, paramsBranchReport.createdAt)
 
     console.log(outgoings, finalStock, outputs, incomes, initialStock, inputs, providerInputs)
 

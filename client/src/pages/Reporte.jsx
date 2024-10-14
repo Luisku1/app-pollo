@@ -482,7 +482,7 @@ export default function Reporte() {
                         <p className="text-lg">Depósitos: {stringToCurrency({ amount: supervisorInfo.supervisor.totalDeposits })}</p>
                         <p className="text-lg">Efectivo: {stringToCurrency({ amount: supervisorInfo.supervisor.totalCash })}</p>
                         <p className="text-lg">Gastos: {stringToCurrency({ amount: supervisorInfo.supervisor.totalExtraOutgoings })}</p>
-                        <p className="text-lg">Ingresos netos: {((supervisorInfo.supervisor.totalDeposits + supervisorInfo.supervisor.totalCash) - supervisorInfo.supervisor.totalExtraOutgoings).toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
+                        <p className="text-lg">Efectivo neto: {(supervisorInfo.supervisor.totalCash - supervisorInfo.supervisor.totalExtraOutgoings).toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
                       </div>
                     </div>
 

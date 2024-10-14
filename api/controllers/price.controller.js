@@ -124,7 +124,7 @@ export const getBranchCurrentPrices = async (req, res, next) => {
 
     if (currentPrices) {
 
-      res.status(200).json({ data: currentPrices })
+      res.status(200).json({ branchPrices: currentPrices })
 
     } else {
 
@@ -143,7 +143,7 @@ const getPrices = async (branchId, date) => {
 
   const branchReport = await fetchBranchReport({ branchId, date })
 
-  if (branchReport && Object.getOwnPropertyNames(branchReport).length > 0 && branchReport.dateSent) {
+  if (branchReport && branchReport.dateSent) {
 
     finalDate = new Date(branchReport.dateSent)
 
@@ -155,7 +155,9 @@ const getPrices = async (branchId, date) => {
 
   const productsPrice = await pricesAggregate(branchId, finalDate)
 
-  return productsPrice.data
+  console.log(productsPrice)
+
+  return productsPrice
 }
 
 
@@ -491,18 +493,11 @@ export const pricesAggregate = async (branchId, topDate) => {
       }
     ])
 
-    if (prices) {
-
-      return { error: null, data: prices[0] }
-
-    } else {
-
-      return { error: -1, data: null }
-    }
+    return prices[0].prices ?? null
 
   } catch (error) {
 
-    return { error: error, data: null }
+    throw error
   }
 
 }

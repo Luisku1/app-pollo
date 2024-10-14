@@ -5,12 +5,14 @@ export const fetchPrices = async (branchId, date) => {
     const res = await fetch('/api/product/price/get-branch-prices/' + branchId + '/' + date)
     const data = await res.json()
 
+    console.log(data.data)
+
     if (data.success === false) {
 
       return { error: data.message, data: null }
     }
 
-    if (!data.data.prices.length == 0) {
+    if (data.data) {
 
       return { error: null, data: data.data }
 

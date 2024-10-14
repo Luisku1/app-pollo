@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
-import { fetchPrices, fetchProducts } from '../helpers/FetchFunctions';
+import { fetchProducts } from '../helpers/FetchFunctions';
 import { FaTrash } from 'react-icons/fa';
 import { useParams, useNavigate } from 'react-router-dom';
 import { MdKeyboardArrowDown, MdKeyboardArrowRight } from 'react-icons/md';
@@ -21,6 +21,8 @@ import { useStock } from '../hooks/Stock/useStock';
 import { useDeleteStock } from '../hooks/Stock/useDeleteStock';
 import { useAddStock } from '../hooks/Stock/useAddStock';
 import { useDeleteOutgoing } from '../hooks/Outgoings/useDeleteOutgoing';
+import { useInitialStock } from '../hooks/Stock/useInitialStock';
+import { useBranchPrices } from '../hooks/Prices/useBranchPrices';
 
 export default function RegistroCuentaDiaria() {
 
@@ -43,13 +45,14 @@ export default function RegistroCuentaDiaria() {
   const { deleteStock } = useDeleteStock()
   const { addStock } = useAddStock()
   const { deleteOutgoing } = useDeleteOutgoing()
+  const { initialStock } = useInitialStock({ branchId, date: stringDatePickerValue })
+  const { branchPrices } = useBranchPrices({ branchId, date: stringDatePickerValue })
   const [outputs, setOutputs] = useState([])
   const [outputsTotal, setOutputsTotal] = useState(0.0)
   const [inputs, setInputs] = useState([])
   const [inputsTotal, setInputsTotal] = useState(0.0)
   const [incomes, setIncomes] = useState([])
   const [incomesTotal, setIncomesTotal] = useState(0.0)
-  const [initialStock, setInitialStock] = useState(0.0)
   const [providerInputs, setProviderInputs] = useState([])
   const [providerInputsTotal, setProviderInputsTotal] = useState(0.0)
   const [inputsIsOpen, setInputsIsOpen] = useState(false)
@@ -57,7 +60,6 @@ export default function RegistroCuentaDiaria() {
   const [incomesIsOpen, setIncomesIsOpen] = useState(false)
   const [providerInputsIsOpen, setProviderInputsIsOpen] = useState(false)
   const [products, setProducts] = useState([])
-  const [branchPrices, setPrices] = useState([])
   const [isOpen, setIsOpen] = useState(false)
   const [buttonId, setButtonId] = useState(null)
   const [selectedEmployee, setSelectedEmployee] = useState()
@@ -716,34 +718,6 @@ export default function RegistroCuentaDiaria() {
 
   useEffect(() => {
 
-    if (!branchId || !employees || !stringDatePickerValue) return
-
-    const setPricesFunction = async () => {
-
-      setLoading(true)
-
-      const { error, data } = await fetchPrices(branchId, stringDatePickerValue)
-
-
-      if (error == null) {
-        setPrices(data)
-        setError(null)
-
-      } else {
-
-        setError(error)
-      }
-      setLoading(false)
-    }
-
-    setPricesFunction()
-
-  }, [branchId, employees, stringDatePickerValue])
-
-
-
-  useEffect(() => {
-
 
     if (!employees.length > 0 || !branchReport) return
 
@@ -791,46 +765,6 @@ export default function RegistroCuentaDiaria() {
       }
     })
   }, [branchId, branches])
-
-  useEffect(() => {
-
-    const fetchInitialStock = async () => {
-
-      const date = new Date(stringDatePickerValue).toISOString()
-      const branchReportExists = branchReport.createdAt ? 1 : 0
-
-      setLoading(true)
-      setInitialStock(0.0)
-
-      try {
-
-        const res = await fetch('/api/stock/initial-stock/' + branchId + '/' + date + '/' + branchReportExists + '/' + branchReport.createdAt)
-        const data = await res.json()
-
-        if (data.success === false) {
-
-          setError(data.message)
-          setLoading(false)
-          return
-        }
-
-        setInitialStock(data.initialStock)
-        setError(null)
-        setLoading(false)
-
-      } catch (error) {
-
-        setError(error.message)
-        setLoading(false)
-      }
-    }
-
-    if (branchReport && branchId && stringDatePickerValue) {
-
-      fetchInitialStock()
-    }
-
-  }, [branchReport, branchId, stringDatePickerValue])
 
   useEffect(() => {
 
@@ -941,11 +875,11 @@ export default function RegistroCuentaDiaria() {
       </div>
 
       <div className='grid grid-cols-5'>
-        {branchPrices && branchPrices.prices && branchPrices.prices.length > 0 ? <p className='col-span-2 my-auto'>Precios:</p> : ''}
+        {branchPrices && branchPrices.length > 0 ? <p className='col-span-2 my-auto'>Precios:</p> : ''}
 
         <div className='col-span-3'>
 
-          {branchPrices && branchPrices.prices && branchPrices.prices.length > 0 && branchPrices.prices.map((price) => (
+          {branchPrices && branchPrices.length > 0 && branchPrices.map((price) => (
 
             <div key={price.priceId} className='grid grid-cols-2 bg-white gap-2 p-1 mt-1 shadow-sm'>
 
@@ -1026,7 +960,7 @@ export default function RegistroCuentaDiaria() {
                             </div>
                             <div className='flex gap-10'>
                               <div>
-                                <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteOutgoing({outgoing, spliceOutgoing, pushOutgoing, index}), setIsOpen(isOpen ? false : true) }}>Si</button>
+                                <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteOutgoing({ outgoing, spliceOutgoing, pushOutgoing, index }), setIsOpen(isOpen ? false : true) }}>Si</button>
                               </div>
                               <div>
                                 <button className='rounded-lg border shadow-lg w-20 h-10' onClick={() => { setIsOpen(isOpen ? false : true) }}>No</button>

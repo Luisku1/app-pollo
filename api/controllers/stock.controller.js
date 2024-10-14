@@ -4,7 +4,7 @@ import Price from "../models/accounts/price.model.js";
 import Stock from "../models/accounts/stock.model.js";
 import Branch from "../models/branch.model.js";
 import { errorHandler, runTransactionWithRetry } from "../utils/error.js";
-import { getDayRange } from "../utils/formatDate.js";
+import { getDayRange, today } from "../utils/formatDate.js";
 import { updateReportStock } from "../utils/updateReport.js";
 import { createDefaultBranchReport, fetchBranchReport, removeRecordFromBranchReport } from "./branch.report.controller.js";
 import { getProductPrice, pricesAggregate } from "./price.controller.js";
@@ -138,12 +138,16 @@ export const getInitialStock = async (req, res, next) => {
 
   const date = new Date(req.params.date)
   const branchId = req.params.branchId
-  const reportExists = req.params.reportExists
-  const reportDate = req.params.reportDate
+  const dateMinusOne = new Date(date)
+  dateMinusOne.setDate(dateMinusOne.getDate() - 1)
+  const { topDate } = getDayRange(date)
 
   try {
 
-    const initialStock = await getStockValue(date, branchId, reportExists, reportDate)
+    const todayBranchReport = await fetchBranchReport({ branchId, date })
+    const pricesDate = todayBranchReport.dateSent ? todayBranchReport.dateSent : topDate
+
+    const initialStock = await getInitialStockValue({ branchId, finalStockDate: dateMinusOne, newPricesDate: pricesDate })
 
     if (initialStock) {
 
@@ -151,7 +155,7 @@ export const getInitialStock = async (req, res, next) => {
 
     } else {
 
-      errorHandler(404, 'Error Ocurred')
+      errorHandler(404, 'Error al consultar el sobrante inicial')
     }
 
   } catch (error) {
@@ -160,23 +164,9 @@ export const getInitialStock = async (req, res, next) => {
   }
 }
 
-export const getStockValue = async (date, branchId, reportExists, reportDate) => {
+export const getInitialStockValue = async ({ branchId, finalStockDate, newPricesDate }) => {
 
-  let pricesDate
-  const dateMinusOne = new Date(date)
-  dateMinusOne.setDate(dateMinusOne.getDate() - 1)
-
-  const { bottomDate, topDate } = getDayRange(dateMinusOne)
-
-  if (reportExists == 1) {
-
-    pricesDate = new Date(reportDate)
-
-  } else {
-
-    const { topDate } = getDayRange(date)
-    pricesDate = topDate
-  }
+  const { bottomDate, topDate } = getDayRange(finalStockDate)
 
   const initialStock = await Stock.find({
 
@@ -184,34 +174,27 @@ export const getStockValue = async (date, branchId, reportExists, reportDate) =>
     branch: branchId
   })
 
-  const branchPrices = await pricesAggregate(branchId, pricesDate)
+  const branchPrices = await pricesAggregate(branchId, newPricesDate)
 
+  if (!branchPrices || !initialStock) return 0.0
 
   return calculateInitialStock({ branchPrices, stock: initialStock })
 }
 
 export const calculateInitialStock = ({ branchPrices, stock }) => {
 
-  if (stock) {
 
-    let total = 0.0
+  let total = 0.0
 
-    if (branchPrices.error == null) {
+  stock.forEach((stock) => {
 
-      stock.forEach((stock) => {
+    const priceIndex = branchPrices.findIndex((price) => (price.productId.toString() == stock.product.toString()))
 
-        const priceIndex = branchPrices.data.prices.findIndex((price) => (price.productId.toString() == stock.product.toString()))
+    total += parseFloat(branchPrices[priceIndex].latestPrice * stock.weight)
 
-        total += parseFloat(branchPrices.data.prices[priceIndex].latestPrice * stock.weight)
+  })
 
-      })
-
-      return total
-    }
-  } else {
-
-    return 0.0
-  }
+  return total
 }
 
 export const getBranchDayStock = async (req, res, next) => {
