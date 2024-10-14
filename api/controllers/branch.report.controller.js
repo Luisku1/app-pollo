@@ -237,7 +237,7 @@ export const cleanBranchReportReferences = async (branchReport) => {
     const validOutgoings = await Outgoing.find({ _id: { $in: branchReport.outgoingsArray } });
     branchReport.outgoingsArray = validOutgoings.map(outgoing => outgoing._id);
 
-    const validInitialStock = await Stock.find({_id: {$in: branchReport.initialStockArray}})
+    const validInitialStock = await Stock.find({ _id: { $in: branchReport.initialStockArray } })
     branchReport.initialStockArray = validInitialStock.map(stock => stock._id)
 
     // Guardar los cambios en el BranchReport
@@ -282,10 +282,9 @@ export const recalculateBranchReport = async ({ branchReport: paramsBranchReport
       : 0
     paramsBranchReport.finalStock = finalStock
 
+    const initialStock = await getInitialStockValue({ branchId: paramsBranchReport.branch, date: paramsBranchReport.createdAt })
 
-    const initialStock = await getInitialStockValue({branchId: paramsBranchReport.branchId, date: paramsBranchReport.dateSent ? paramsBranchReport.dateSent : paramsBranchReport.createdAt})
-
-    console.log(outgoings, finalStock, outputs, incomes, initialStock, inputs, providerInputs)
+    console.log(initialStock)
 
     const newBalance = ((outgoings + finalStock + outputs + incomes) - (initialStock + inputs + providerInputs))
 

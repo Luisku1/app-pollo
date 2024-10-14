@@ -120,8 +120,8 @@ export default function RegistroCuentaDiaria() {
 
   const getProductPrice = (productId) => {
 
-    const priceIndex = branchPrices.prices.findIndex((price) => (price.productId == productId))
-    return branchPrices.prices[priceIndex].latestPrice
+    const priceIndex = branchPrices.findIndex((price) => (price.productId == productId))
+    return branchPrices[priceIndex].latestPrice
   }
 
   const handleOutgoingInputsChange = (e) => {
