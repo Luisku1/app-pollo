@@ -51,9 +51,9 @@ export const useIncomes = ({ companyId, date }) => {
       setIncomes(response.incomes)
       setIncomesTotal(response.total)
 
-    }).catch(() => {
+    }).catch((error) => {
 
-      console.log('No se encontraron efectivos')
+      console.log(error)
     })
 
     setLoading(false)

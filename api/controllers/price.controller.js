@@ -142,23 +142,14 @@ const getPrices = async (branchId, date) => {
   let finalDate
 
   const branchReport = await fetchBranchReport({ branchId, date })
+  const { topDate } = getDayRange(date)
 
-  if (branchReport && branchReport.dateSent) {
-
-    finalDate = new Date(branchReport.dateSent)
-
-  } else {
-
-    const { topDate } = getDayRange(new Date(date))
-    finalDate = today(date) ? new Date() : new Date(topDate)
-  }
+  finalDate = branchReport.dateSent ? branchReport.dateSent : topDate
 
   const productsPrice = await pricesAggregate(branchId, finalDate)
 
   return productsPrice
 }
-
-
 
 export const getAllBranchPrices = async (req, res, next) => {
 

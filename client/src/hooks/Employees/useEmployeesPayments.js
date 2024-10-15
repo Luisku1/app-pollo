@@ -10,8 +10,6 @@ export const useEmployeesPayments = ({ companyId, date }) => {
 
   const pushEmployeePayment = ({ employeePayment }) => {
 
-    console.log(employeePayment)
-
     setEmployeesPayments((prevEmployeesPayments) => [employeePayment, ...prevEmployeesPayments])
     setTotalEmployeesPayments((prevTotal) => prevTotal + employeePayment.amount)
   }

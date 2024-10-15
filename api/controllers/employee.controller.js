@@ -421,8 +421,6 @@ export const deleteEmployeePaymentQuery = async (req, res, next) => {
 
 	const { paymentId, incomeId, extraOutgoingId } = req.params
 
-	console.log(req.params)
-
 	let deletedIncome = null
 	let deletedExtraOutgoing = null
 	let deletedPayment = null

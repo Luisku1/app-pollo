@@ -403,7 +403,7 @@ export default function Reporte() {
                     <tr className={'border-x ' + (index + 1 != branchReports.length ? "border-b " : '') + 'border-black border-opacity-40'}>
                       <td className="group">
                         <Link className='' to={'/formato/' + branchReport.createdAt + '/' + branchReport.branch._id}>
-                          <p className=" text-sm">{branchReport.branch.branch}</p>
+                          <p className= {`${branchReport.employee ? 'text-gray-700' : 'text-red-600'} text-sm`}>{branchReport.branch.branch}</p>
                           <div className="hidden group-hover:block group-hover:fixed group-hover:overflow-hidden group-hover:mt-2 ml-24 bg-slate-600 text-white shadow-2xl rounded-md p-2">
                             <p>{branchReport.employee != null ? branchReport.employee.name + ' ' + branchReport.employee.lastName : 'Sin empleado'}</p>
                             {branchReport.assistant != null ?

@@ -138,7 +138,6 @@ export const addRecordToBranchReportArrays = async ({ branchId, company, record,
 
   await branchReport.save()
   await cleanBranchReportReferences(branchReport)
-  console.log('Actualizado correctamente')
 }
 
 export const removeRecordFromBranchReport = async ({ recordId, recordType }) => {
@@ -211,8 +210,6 @@ export const removeRecordFromBranchReport = async ({ recordId, recordType }) => 
   }
 
   await cleanBranchReportReferences(branchReport)
-
-  console.log('Eliminado del registro')
 }
 
 export const cleanBranchReportReferences = async (branchReport) => {
@@ -284,8 +281,6 @@ export const recalculateBranchReport = async ({ branchReport: paramsBranchReport
 
     const initialStock = await getInitialStockValue({ branchId: paramsBranchReport.branch, date: paramsBranchReport.createdAt })
 
-    console.log(initialStock)
-
     const newBalance = ((outgoings + finalStock + outputs + incomes) - (initialStock + inputs + providerInputs))
 
 
@@ -301,18 +296,36 @@ export const recalculateBranchReport = async ({ branchReport: paramsBranchReport
 export const updateBranchReport = async (req, res, next) => {
 
   const { branchReport, employee, assistant } = req.body
+  let updatedBranchReport = null
+  const { topDate: branchReportSentDay } = getDayRange(branchReport.sentDate ? branchReport.sentDate : new Date())
+  const { topDate: branchReportCreatedDay } = getDayRange(branchReport.createdAt)
 
   try {
-
 
     if (branchReport.employee && branchReport.employee != employee) {
 
       await updateEmployeeDailyBalancesBalance({ branchReport: branchReport, changedEmployee: true })
     }
 
-    const updatedBranchReport = await BranchReport.findByIdAndUpdate(branchReport._id, {
-      $set: { employee: employee, assistant: assistant, dateSent: new Date() }
-    })
+    if (branchReportSentDay != branchReportCreatedDay) {
+
+      updatedBranchReport = await BranchReport.findByIdAndUpdate(branchReport._id, {
+        $set: { dateSent: branchReport.createdAt }
+      })
+    }
+
+    if (branchReport.dateSent) {
+
+      updatedBranchReport = await BranchReport.findByIdAndUpdate(branchReport._id, {
+        $set: { employee: employee, assistant: assistant }
+      })
+
+    } else {
+
+      updatedBranchReport = await BranchReport.findByIdAndUpdate(branchReport._id, {
+        $set: { employee: employee, assistant: assistant, dateSent: new Date() }
+      })
+    }
 
     if (updatedBranchReport) {
 
@@ -437,8 +450,6 @@ export const refactorBranchReports = async (req, res, next) => {
     if (branchReports.length > 0) {
 
       branchReports.forEach((branchReport, index) => {
-
-        console.log(`${index + 1} de ${branchReports.length}`)
 
         refactorBranchReport({ branchReport })
       });
