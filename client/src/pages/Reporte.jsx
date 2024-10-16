@@ -9,6 +9,7 @@ import TarjetaCuenta from "../components/TarjetaCuenta"
 import Sobrante from "../pages/Sobrante"
 import { useBranchReports } from "../hooks/BranchReports.js/useBranchReports";
 import { stringToCurrency } from "../helpers/Functions";
+import PieChart from "../components/Charts/PieChart";
 
 export default function Reporte() {
 
@@ -17,6 +18,7 @@ export default function Reporte() {
   let datePickerValue = (paramsDate ? new Date(paramsDate) : new Date())
   let stringDatePickerValue = formatDate(datePickerValue)
   const [supervisorsInfo, setSupervisorsInfo] = useState([])
+  const [generalInfo, setGeneralInfo] = useState(null)
   const [error, setError] = useState(null)
   const [extraOutgoingsIsOpen, setExtraOutgoingsIsOpen] = useState(false)
   const [cashIsOpen, setCashIsOpen] = useState(false)
@@ -42,6 +44,47 @@ export default function Reporte() {
 
   } = useBranchReports({ companyId: company._id, date: stringDatePickerValue })
   const navigate = useNavigate()
+  const [pieChartInfo, setPieChartInfo] = useState([])
+
+  useEffect(() => {
+
+    if (!supervisorsInfo.length > 0 || !generalInfo) return
+
+    const cashInfo = {
+      label: 'Efectivo neto',
+      value: generalInfo.totalCash,
+      bgColor: '#4CAF50',
+      borderColor: '#206e09',
+      hoverBgColor: '#24d111'
+    }
+
+    const depositsInfo = {
+      label: 'Depósitos',
+      value: generalInfo.totalDeposits,
+      bgColor: '#56a0db',
+      borderColor: '#0c4e82',
+      hoverBgColor: '#0091ff'
+    }
+
+    const extraOutgoingsInfo = {
+      label: 'Gastos fuera de cuentas',
+      value: generalInfo.totalExtraOutgoings,
+      bgColor: '#f0e795',
+      borderColor: '#736809',
+      hoverBgColor: '#ffe600'
+    }
+
+    const missingAmount = {
+      label: 'Falta de reportar',
+      value: generalInfo.totalMissingIncomes,
+      bgColor: '#a85959',
+      borderColor: '#801313',
+      hoverBgColor: '#ff0000'
+    }
+
+    setPieChartInfo([cashInfo, depositsInfo, extraOutgoingsInfo, missingAmount])
+
+  }, [supervisorsInfo, generalInfo])
 
   const changeDatePickerValue = (e) => {
 
@@ -276,6 +319,7 @@ export default function Reporte() {
         }
 
         setSupervisorsInfo(data.supervisors)
+        setGeneralInfo(data.generalInfo)
         setLoading(false)
         setError(null)
 
@@ -403,7 +447,7 @@ export default function Reporte() {
                     <tr className={'border-x ' + (index + 1 != branchReports.length ? "border-b " : '') + 'border-black border-opacity-40'}>
                       <td className="group">
                         <Link className='' to={'/formato/' + branchReport.createdAt + '/' + branchReport.branch._id}>
-                          <p className= {`${branchReport.employee ? 'text-gray-700' : 'text-red-600'} text-sm`}>{branchReport.branch.branch}</p>
+                          <p className={`${branchReport.employee ? 'text-gray-700' : 'text-red-600'} text-sm`}>{branchReport.branch.branch}</p>
                           <div className="hidden group-hover:block group-hover:fixed group-hover:overflow-hidden group-hover:mt-2 ml-24 bg-slate-600 text-white shadow-2xl rounded-md p-2">
                             <p>{branchReport.employee != null ? branchReport.employee.name + ' ' + branchReport.employee.lastName : 'Sin empleado'}</p>
                             {branchReport.assistant != null ?
@@ -448,7 +492,16 @@ export default function Reporte() {
         : ''}
 
       {supervisorsInfo && showTable && supervisorsInfo.length > 0 ?
-        <div className="bg-white mt-3 absolute max-w-lg">
+        <div className="absolute max-w-lg">
+
+          <div className="my-2 mx-auto">
+
+            <h3 className="text-3xl font-bold">Ingresos obtenidos por pollerías</h3>
+            <h4 className="text-2xl font-bold">Brutos: {stringToCurrency({ amount: generalInfo.totalIncomes })}</h4>
+            <h4 className="text-2xl font-bold mb-3">Netos: {stringToCurrency({ amount: (generalInfo.totalIncomes - generalInfo.totalExtraOutgoings) })}</h4>
+
+            <PieChart chartInfo={pieChartInfo}></PieChart>
+          </div>
 
           <div className="my-1 border border-slate-500 border-spacing-4 p-2 m-auto sticky top-0 bg-white z-5">
             <div id="filterBySupervisor" className="flex flex-wrap gap-1 justify-evenly">
@@ -601,6 +654,7 @@ export default function Reporte() {
           }
 
         </div>
+
         : ''}
     </main >
   )

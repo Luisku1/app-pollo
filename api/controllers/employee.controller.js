@@ -432,7 +432,7 @@ export const deleteEmployeePaymentQuery = async (req, res, next) => {
 
 		if (incomeId) {
 
-			deletedIncome = await deleteIncome({incomeId})
+			deletedIncome = await deleteIncome({ incomeId })
 			if (!deletedIncome) throw new Error("No se pudo eliminar el ingreso");
 		}
 
@@ -554,6 +554,37 @@ export const updateEmployeeDailyBalance = async (req, res, next) => {
 export const updateEmployeeDailyBalancesBalance = async ({ branchReport, changedEmployee = false }) => {
 
 	return await updateDailyBalancesBalance(branchReport, changedEmployee)
+}
+
+export const updateSupervisorDailyBalance = async ({ record, date, employee, recordType }) => {
+
+	const { bottomDate, topDate } = getDayRange(date)
+	let dailyBalance = null
+	let updatedDailyBalance = null
+
+	dailyBalance = await EmployeeDailyBalance.findOne({
+		createdAt: { $lt: topDate, $gte: bottomDate },
+		employee: new Types.ObjectId(employee)
+	})
+
+	if (!dailyBalance) throw new Error("No se encontró el balance del empleado.");
+
+	if (recordType == 'incomes') {
+
+		updatedDailyBalance = await EmployeeDailyBalance.findByIdAndUpdate(dailyBalance._id, {
+
+			supervisorBalance: 0
+
+		}, { new: true })
+
+	} else {
+
+		updatedDailyBalance = await EmployeeDailyBalance.findByIdAndUpdate(dailyBalance._id, { supervisorBalance: 0})
+	}
+
+	if (!updatedDailyBalance) throw new Error("No se actualizó el balance del empleado");
+
+	return updatedDailyBalance
 }
 
 export const updateDailyBalancesBalance = async (branchReport, changedEmployee = false) => {

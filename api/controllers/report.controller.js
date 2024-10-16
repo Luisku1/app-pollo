@@ -176,7 +176,9 @@ export const getSupervisorsInfo = async (req, res, next) => {
 
     if (supervisorsInfo) {
 
-      res.status(200).json({ supervisors: supervisorsInfo.supervisors, totalExtraOutgoings: supervisorsInfo.totalExtraOutgoings, totalIncomes: supervisorsInfo.totalCash + supervisorsInfo.totalDeposits, totalCash: supervisorsInfo.totalCash, totalDeposits: supervisorsInfo.totalDeposits })
+      console.log(supervisorsInfo)
+
+      res.status(200).json({ supervisors: supervisorsInfo.supervisors, generalInfo: { totalExtraOutgoings: supervisorsInfo.totalExtraOutgoings, totalIncomes: supervisorsInfo.totalCash + supervisorsInfo.totalDeposits, totalCash: supervisorsInfo.totalCash - supervisorsInfo.totalExtraOutgoings - supervisorsInfo.totalMissingIncomes, totalDeposits: supervisorsInfo.totalDeposits, missingIncomes: supervisorsInfo.totalMissingIncomes } })
 
     } else {
 
@@ -422,11 +424,17 @@ export const supervisorsInfoQuery = async (companyId, topDate, bottomDate, next)
         }
       },
       {
+        $unwind: {
+          path: '$dailyBalance',
+        }
+      },
+      {
         $addFields: {
 
           totalExtraOutgoings: { $sum: '$extraOutgoings.amount' },
           totalCash: { $sum: '$cash.amount' },
           totalDeposits: { $sum: '$deposits.amount' },
+          missingIncomes: '$dailyBalance.supervisorBalance'
         }
       },
       {
@@ -448,7 +456,8 @@ export const supervisorsInfoQuery = async (companyId, topDate, bottomDate, next)
           },
           totalExtraOutgoings: { $sum: '$totalExtraOutgoings' },
           totalCash: { $sum: '$totalCash' },
-          totalDeposits: { $sum: '$totalDeposits' }
+          totalDeposits: { $sum: '$totalDeposits' },
+          totalMissingIncomes: { $sum: '$missingIncomes' }
         }
       }
     ])
