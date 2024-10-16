@@ -492,7 +492,7 @@ export default function Reporte() {
         : ''}
 
       {supervisorsInfo && showTable && supervisorsInfo.length > 0 ?
-        <div className="absolute max-w-lg">
+        <div className="absolute max-w-lg overflow-hidden items-center">
 
           <div className="my-2 mx-auto">
 
