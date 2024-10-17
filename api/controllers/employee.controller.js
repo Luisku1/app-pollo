@@ -577,7 +577,7 @@ export const addSupervisorMoneyDelivery = async (req, res, next) => {
 
 		updatedSupervisorReport = await SupervisorReport.findByIdAndUpdate(supervisorReport._id, {
 			moneyDelivered: amount,
-			$inc: { balance: amount }
+			$inc: { balance: (amount - supervisorReport.moneyDelivered) }
 		}, { new: true })
 
 		if (!updatedSupervisorReport) throw new Error("No se editó el reporte de supervisor");

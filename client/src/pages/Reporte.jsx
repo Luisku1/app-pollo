@@ -44,8 +44,14 @@ export default function Reporte() {
     totalBalance,
 
   } = useBranchReports({ companyId: company._id, date: stringDatePickerValue })
+  const [reportedIncomes, setReportedIncomes] = useState(0)
   const navigate = useNavigate()
   const [pieChartInfo, setPieChartInfo] = useState([])
+
+  const updateReportedIncomes = ({reportedIncome, prevReportedIncome}) => {
+
+    setReportedIncomes(prev => prev + (reportedIncome - prevReportedIncome))
+  }
 
   useEffect(() => {
 
@@ -53,7 +59,7 @@ export default function Reporte() {
 
     const cashInfo = {
       label: 'Efectivo neto',
-      value: generalInfo.totalCash,
+      value: generalInfo.totalCash + reportedIncomes,
       bgColor: '#4CAF50',
       borderColor: '#206e09',
       hoverBgColor: '#24d111'
@@ -77,17 +83,15 @@ export default function Reporte() {
 
     const missingAmount = {
       label: 'Falta de reportar',
-      value: generalInfo.missingIncomes,
+      value: -generalInfo.missingIncomes - reportedIncomes,
       bgColor: '#a85959',
       borderColor: '#801313',
       hoverBgColor: '#ff0000'
     }
 
-    console.log(missingAmount)
-
     setPieChartInfo([cashInfo, depositsInfo, extraOutgoingsInfo, missingAmount])
 
-  }, [supervisorsInfo, generalInfo])
+  }, [supervisorsInfo, generalInfo, reportedIncomes])
 
   const changeDatePickerValue = (e) => {
 
@@ -539,7 +543,7 @@ export default function Reporte() {
                         <p className="text-lg"><span className="font-bold">Efectivo: </span>{stringToCurrency({ amount: supervisorInfo.supervisor.totalCash })}</p>
                         <p className="text-lg"><span className="font-bold">Gastos: </span>{stringToCurrency({ amount: supervisorInfo.supervisor.totalExtraOutgoings })}</p>
                         <p className="text-lg"><span className="font-bold">Efectivo neto: </span>{(supervisorInfo.supervisor.totalCash - supervisorInfo.supervisor.totalExtraOutgoings).toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
-                        <RegistrarDineroReportado supervisorId={supervisorInfo.supervisor._id} date={stringDatePickerValue}></RegistrarDineroReportado>
+                        <RegistrarDineroReportado updateReportedIncomes={updateReportedIncomes}supervisorId={supervisorInfo.supervisor._id} date={stringDatePickerValue}></RegistrarDineroReportado>
                       </div>
                     </div>
 

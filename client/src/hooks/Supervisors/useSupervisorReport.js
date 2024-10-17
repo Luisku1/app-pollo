@@ -6,6 +6,16 @@ export const useSupervisorReport = ({ supervisorId, date }) => {
   const [supervisorReport, setSupervisorReport] = useState(null)
   const [loading, setLoading] = useState(false)
 
+  const updateSupervisorReport = ({ updatedSupervisorReport }) => {
+
+    if (supervisorReport != updatedSupervisorReport || supervisorReport.balance != updatedSupervisorReport.balance) {
+
+      console.log(updatedSupervisorReport)
+
+      setSupervisorReport(updatedSupervisorReport)
+    }
+  }
+
   const getSupervisorReport = ({ supervisorId, date }) => {
 
     setLoading(true)
@@ -41,5 +51,5 @@ export const useSupervisorReport = ({ supervisorId, date }) => {
 
   }, [supervisorId, date])
 
-  return {supervisorReport, getSupervisorReport, loading}
+  return { supervisorReport, getSupervisorReport, updateSupervisorReport, loading }
 }

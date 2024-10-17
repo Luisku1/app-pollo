@@ -1,6 +1,6 @@
 export const addMoneyDeliveredFetch = async ({ supervisorId, companyId, amount, date }) => {
 
-  const res = await fetch('/api/supervisor-report/add-money-delivered', {
+  const res = await fetch('/api/report/supervisor-report/add-money-delivered', {
 
     method: 'PUT',
     headers: {
