@@ -6,7 +6,7 @@ import { getDayRange } from "../utils/formatDate.js";
 import { updateReportIncomes } from "../utils/updateReport.js";
 import { addRecordToBranchReportArrays, createDefaultBranchReport, fetchBranchReport, removeRecordFromBranchReport } from "./branch.report.controller.js";
 import BranchReport from "../models/accounts/branch.report.model.js";
-import { updateDailyBalancesBalance, updateEmployeeDailyBalancesBalance } from "./employee.controller.js";
+import { addSupervisorReportIncome, deleteSupervisorReportIncome, updateDailyBalancesBalance, updateEmployeeDailyBalancesBalance } from "./employee.controller.js";
 
 export const newBranchIncomeQuery = async (req, res, next) => {
 
@@ -61,6 +61,10 @@ export const newBranchIncomeFunction = async ({ amount, company, branch, employe
 
         if (!updatedEmployeeDailyBalance) throw new Error("No se pudo actualizar la cuenta del empleado");
       }
+
+      const { bottomDate, topDate } = getDayRange(updatedBranchReport.createdAt)
+
+      await addSupervisorReportIncome({ income, day: { bottomDate, topDate } })
 
       return income
 
@@ -294,6 +298,10 @@ export const deleteIncome = async ({ incomeId }) => {
 
         if (!updatedEmployeeDailyBalance) throw new Error("No se pudo actualizar la cuenta del empleado");
       }
+
+      const { bottomDate, topDate } = getDayRange(updatedBranchReport.createdAt)
+
+      await deleteSupervisorReportIncome({ income: deletedIncome, day: { bottomDate, topDate } })
 
       return deletedIncome
 

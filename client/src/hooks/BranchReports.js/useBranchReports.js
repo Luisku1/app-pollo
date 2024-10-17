@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { getBranchReportsFetch } from "../../services/BranchReports/getBranchReports"
 
 export const useBranchReports = ({ companyId, date }) => {

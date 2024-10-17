@@ -539,7 +539,7 @@ export default function ControlSupervisor() {
               <button className="w-full h-full" onClick={() => { setIncomesIsOpen(true) }}><FaListAlt className="h-full w-full text-red-600" />
               </button>
             </div>
-            {roles.managerRole && currentUser.role == roles.managerRole._id ?
+            {roles && roles.managerRole && currentUser.role == roles.managerRole._id ?
               <p className='font-bold text-lg text-red-700 text-center'>{incomesTotal.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
               : ''}
           </div>

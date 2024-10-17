@@ -55,7 +55,7 @@ const employeeDailyBalanceSchema = mongoose.Schema({
 })
 
 
-employeeDailyBalanceSchema.index({createdAt: 1, employee: 1}, {unique: true})
+employeeDailyBalanceSchema.index({createdAt: -1, employee: 1}, {unique: true})
 const EmployeeDailyBalance = mongoose.model('EmployeeDailyBalance', employeeDailyBalanceSchema)
 
 export default EmployeeDailyBalance

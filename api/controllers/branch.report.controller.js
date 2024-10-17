@@ -13,7 +13,8 @@ import Output from '../models/accounts/output.model.js'
 import Outgoing from '../models/accounts/outgoings/outgoing.model.js'
 import IncomeCollected from '../models/accounts/incomes/income.collected.model.js'
 import { updateEmployeeDailyBalancesBalance } from './employee.controller.js'
-import { pricesAggregate } from './price.controller.js'
+import SupervisorReport from '../models/accounts/supervisor.report.model.js'
+import { supervisorsInfoQuery } from './report.controller.js'
 
 export const createBranchReport = async (req, res, next) => {
 
@@ -456,6 +457,59 @@ export const refactorBranchReports = async (req, res, next) => {
 
       res.status(200).json({ totalBranchReports: branchReports.length, branchReports })
     }
+
+  } catch (error) {
+
+    next(error)
+  }
+}
+
+export const refactorSupervisorReports = async (req, res, next) => {
+
+  const companyId = req.params.companyId
+  const date = new Date()
+
+  date.setDate(date.getDate() - 30)
+
+  try {
+
+    while (date < new Date()) {
+
+      const { bottomDate, topDate } = getDayRange(date)
+
+      const supervisorsInfo = await supervisorsInfoQuery(companyId, topDate, bottomDate)
+
+      supervisorsInfo.supervisors.forEach(async (supervisor) => {
+
+        if (supervisor) {
+
+          let supervisorReport = await SupervisorReport.findOne({
+            createdAt: { $lt: topDate, $gte: bottomDate },
+            supervisor: new Types.ObjectId(supervisor.supervisor._id)
+          })
+
+          if (!supervisorReport) {
+
+            supervisorReport = await SupervisorReport.create({ company: companyId, supervisor: supervisor.supervisor._id, createdAt: bottomDate })
+          }
+
+          if (supervisorReport) {
+
+            await SupervisorReport.findByIdAndUpdate(supervisorReport._id, {
+
+              extraOutgoings: supervisor.supervisor.totalExtraOutgoings,
+              incomes: supervisor.supervisor.totalCash + supervisor.supervisor.totalDeposits,
+              moneyDelivered: supervisor.supervisor.totalCash + supervisor.supervisor.totalDeposits - supervisor.supervisor.totalExtraOutgoings,
+              balance: supervisor.supervisor.totalCash + supervisor.supervisor.totalDeposits - supervisor.supervisor.totalExtraOutgoings - (supervisor.supervisor.totalCash + supervisor.supervisor.totalDeposits - supervisor.supervisor.totalExtraOutgoings)
+            })
+          }
+        }
+      })
+
+      date.setDate(date.getDate() + 1)
+    }
+
+    res.status(200).json('Se terminó la refactorización')
 
   } catch (error) {
 

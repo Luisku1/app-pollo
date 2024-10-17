@@ -10,6 +10,7 @@ import Sobrante from "../pages/Sobrante"
 import { useBranchReports } from "../hooks/BranchReports.js/useBranchReports";
 import { stringToCurrency } from "../helpers/Functions";
 import PieChart from "../components/Charts/PieChart";
+import RegistrarDineroReportado from "../components/RegistrarDineroReportado";
 
 export default function Reporte() {
 
@@ -76,11 +77,13 @@ export default function Reporte() {
 
     const missingAmount = {
       label: 'Falta de reportar',
-      value: generalInfo.totalMissingIncomes,
+      value: generalInfo.missingIncomes,
       bgColor: '#a85959',
       borderColor: '#801313',
       hoverBgColor: '#ff0000'
     }
+
+    console.log(missingAmount)
 
     setPieChartInfo([cashInfo, depositsInfo, extraOutgoingsInfo, missingAmount])
 
@@ -527,15 +530,16 @@ export default function Reporte() {
                   {error ? <p>{error}</p> : ''}
                   <div className="">
 
-                    <div className="flex gap-4">
+                    <div className="grid grid-cols-1">
 
-                      <p className="text-2xl font-semibold">{supervisorInfo.supervisor.name + ' ' + supervisorInfo.supervisor.lastName}</p>
+                      <p className="text-2xl font-semibold my-4 col-span-1">{supervisorInfo.supervisor.name + ' ' + supervisorInfo.supervisor.lastName}</p>
 
-                      <div className="grid grid-rows-1">
-                        <p className="text-lg">Depósitos: {stringToCurrency({ amount: supervisorInfo.supervisor.totalDeposits })}</p>
-                        <p className="text-lg">Efectivo: {stringToCurrency({ amount: supervisorInfo.supervisor.totalCash })}</p>
-                        <p className="text-lg">Gastos: {stringToCurrency({ amount: supervisorInfo.supervisor.totalExtraOutgoings })}</p>
-                        <p className="text-lg">Efectivo neto: {(supervisorInfo.supervisor.totalCash - supervisorInfo.supervisor.totalExtraOutgoings).toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
+                      <div className="">
+                        <p className="text-lg"><span className="font-bold">Depósitos: </span>{stringToCurrency({ amount: supervisorInfo.supervisor.totalDeposits })}</p>
+                        <p className="text-lg"><span className="font-bold">Efectivo: </span>{stringToCurrency({ amount: supervisorInfo.supervisor.totalCash })}</p>
+                        <p className="text-lg"><span className="font-bold">Gastos: </span>{stringToCurrency({ amount: supervisorInfo.supervisor.totalExtraOutgoings })}</p>
+                        <p className="text-lg"><span className="font-bold">Efectivo neto: </span>{(supervisorInfo.supervisor.totalCash - supervisorInfo.supervisor.totalExtraOutgoings).toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
+                        <RegistrarDineroReportado supervisorId={supervisorInfo.supervisor._id} date={stringDatePickerValue}></RegistrarDineroReportado>
                       </div>
                     </div>
 

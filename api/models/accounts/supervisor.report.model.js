@@ -7,6 +7,11 @@ const supervisorReportSchema = mongoose.Schema({
     default: 0
   },
 
+  moneyDelivered: {
+    type: Number,
+    default: 0
+  },
+
   incomes: {
     type: Number,
     default: 0
@@ -27,14 +32,19 @@ const supervisorReportSchema = mongoose.Schema({
     default: []
   },
 
-  employee: {
+  supervisor: {
     type: Schema.Types.ObjectId, ref: 'Employee',
     required: true
-  }
+  },
+
+  company: {
+    type: Schema.Types.ObjectId, ref: 'Company',
+    required: true
+  },
 
 }, { timestamps: { createdAt: true, updatedAt: false } })
 
-supervisorReportSchema.index({ createdAt: 1, employee: 1 })
+supervisorReportSchema.index({ createdAt: -1, employee: 1 })
 
 const SupervisorReport = mongoose.model('SupervisorReport', supervisorReportSchema)
 

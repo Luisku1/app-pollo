@@ -23,6 +23,7 @@ import { useAddStock } from '../hooks/Stock/useAddStock';
 import { useDeleteOutgoing } from '../hooks/Outgoings/useDeleteOutgoing';
 import { useInitialStock } from '../hooks/Stock/useInitialStock';
 import { useBranchPrices } from '../hooks/Prices/useBranchPrices';
+import { useRoles } from '../hooks/useRoles';
 
 export default function RegistroCuentaDiaria() {
 
@@ -47,6 +48,7 @@ export default function RegistroCuentaDiaria() {
   const { deleteOutgoing } = useDeleteOutgoing()
   const { initialStock } = useInitialStock({ branchId, date: stringDatePickerValue })
   const { branchPrices } = useBranchPrices({ branchId, date: stringDatePickerValue })
+  const { roles } = useRoles()
   const [outputs, setOutputs] = useState([])
   const [outputsTotal, setOutputsTotal] = useState(0.0)
   const [inputs, setInputs] = useState([])
@@ -71,6 +73,8 @@ export default function RegistroCuentaDiaria() {
   const { branchReport, loading: repLoading } = useBranchReport({ branchId, date: stringDatePickerValue })
 
   const isLoading = useLoading(repLoading, loading, outgoingLoading)
+
+  console.log(roles)
 
   const handleEmployeeSelectChange = (employee) => {
 
@@ -1396,13 +1400,18 @@ export default function RegistroCuentaDiaria() {
 
         <div className='flex flex-col gap-4 mt-4'>
 
-          {branchReport && branchReport._id ?
+          {roles && branchReport ?
 
             <div>
 
-              <button disabled={loading} className='bg-slate-600 text-white p-3 rounded-lg uppercase hover:opacity-95 disabled:opacity-80 w-full' onClick={() => handleUpdate()}>Enviar formato</button>
+              {!branchReport.dateSent || currentUser.role == roles.managerRole._id ?
+
+                <button disabled={loading} className='bg-slate-600 text-white p-3 rounded-lg uppercase hover:opacity-95 disabled:opacity-80 w-full' onClick={() => handleUpdate()}>Enviar formato</button>
+
+                : ''}
 
             </div>
+
             :
 
             <button disabled={loading} className='bg-slate-600 text-white p-3 rounded-lg uppercase hover:opacity-95 disabled:opacity-80' onClick={() => handleSubmit()}>Enviar formato</button>

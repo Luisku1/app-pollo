@@ -3,7 +3,7 @@ import { getRoles } from "../services/Roles/getRoles"
 
 export const useRoles = () => {
 
-  const [roles, setRoles] = useState({})
+  const [roles, setRoles] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
@@ -13,6 +13,7 @@ export const useRoles = () => {
 
     getRoles().then((response) => {
 
+      console.log(response)
       setRoles(response)
 
     }).catch((error) =>  {

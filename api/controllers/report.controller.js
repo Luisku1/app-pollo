@@ -172,13 +172,13 @@ export const getSupervisorsInfo = async (req, res, next) => {
 
   try {
 
-    const supervisorsInfo = await supervisorsInfoQuery(companyId, topDate, bottomDate, next)
+    const supervisorsInfo = await supervisorsInfoQuery(companyId, topDate, bottomDate)
 
     if (supervisorsInfo) {
 
       console.log(supervisorsInfo)
 
-      res.status(200).json({ supervisors: supervisorsInfo.supervisors, generalInfo: { totalExtraOutgoings: supervisorsInfo.totalExtraOutgoings, totalIncomes: supervisorsInfo.totalCash + supervisorsInfo.totalDeposits, totalCash: supervisorsInfo.totalCash - supervisorsInfo.totalExtraOutgoings - supervisorsInfo.totalMissingIncomes, totalDeposits: supervisorsInfo.totalDeposits, missingIncomes: supervisorsInfo.totalMissingIncomes } })
+      res.status(200).json({ supervisors: supervisorsInfo.supervisors, generalInfo: { totalExtraOutgoings: supervisorsInfo.totalExtraOutgoings, totalIncomes: supervisorsInfo.totalCash + supervisorsInfo.totalDeposits, totalCash: supervisorsInfo.totalCash - supervisorsInfo.totalExtraOutgoings + supervisorsInfo.totalMissingIncomes, totalDeposits: supervisorsInfo.totalDeposits, missingIncomes: supervisorsInfo.totalMissingIncomes } })
 
     } else {
 
@@ -269,7 +269,7 @@ export const getSupervisorInfo = async (req, res, next) => {
   }
 }
 
-export const supervisorsInfoQuery = async (companyId, topDate, bottomDate, next) => {
+export const supervisorsInfoQuery = async (companyId, topDate, bottomDate) => {
 
   try {
 
@@ -474,7 +474,7 @@ export const supervisorsInfoQuery = async (companyId, topDate, bottomDate, next)
 
   } catch (error) {
 
-    next(error)
+    throw error
   }
 }
 
