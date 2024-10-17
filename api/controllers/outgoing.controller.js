@@ -150,7 +150,7 @@ export const newExtraOutgoingQuery = async (req, res, next) => {
 
     if (extraOutgoing) {
 
-      const { bottomDate, topDate } = getDayRange(updatedBranchReport.createdAt)
+      const { bottomDate, topDate } = getDayRange(extraOutgoing.createdAt)
       await addSupervisorReportExtraOutgoing({ extraOutgoing, day: { bottomDate, topDate } })
 
       res.status(201).json({ message: 'Se creó el nuevo gasto fuera de cuentas', extraOutgoing: extraOutgoing })
