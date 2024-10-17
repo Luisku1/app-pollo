@@ -176,8 +176,6 @@ export const getSupervisorsInfo = async (req, res, next) => {
 
     if (supervisorsInfo) {
 
-      console.log(supervisorsInfo)
-
       res.status(200).json({ supervisors: supervisorsInfo.supervisors, generalInfo: { totalExtraOutgoings: supervisorsInfo.totalExtraOutgoings, totalIncomes: supervisorsInfo.totalCash + supervisorsInfo.totalDeposits, totalCash: supervisorsInfo.totalCash - supervisorsInfo.totalExtraOutgoings + supervisorsInfo.totalMissingIncomes, totalDeposits: supervisorsInfo.totalDeposits, missingIncomes: supervisorsInfo.totalMissingIncomes } })
 
     } else {

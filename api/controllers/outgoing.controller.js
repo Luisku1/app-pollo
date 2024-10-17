@@ -368,7 +368,7 @@ export const deleteExtraOutgoing = async (req, res, next) => {
 
     if (deletedExtraOutgoing) {
 
-      const { bottomDate, topDate } = getDayRange(updatedBranchReport.createdAt)
+      const { bottomDate, topDate } = getDayRange(deletedExtraOutgoing.createdAt)
       await deleteSupervisorExtraOutgoing({ extraOutgoing: deletedExtraOutgoing, day: { bottomDate, topDate } })
 
       res.status(200).json('Extra outgoing deleted successfully')
