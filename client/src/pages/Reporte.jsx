@@ -58,20 +58,20 @@ export default function Reporte() {
     if (!supervisorsInfo.length > 0 || !generalInfo) return
 
     const cashInfo = {
-      label: 'Efectivo neto',
-      value: generalInfo.totalCash + reportedIncomes,
+      label: 'Ingreso neto',
+      value: (generalInfo.totalCash + generalInfo.totalDeposits + reportedIncomes),
       bgColor: '#4CAF50',
       borderColor: '#206e09',
       hoverBgColor: '#24d111'
     }
 
-    const depositsInfo = {
-      label: 'Depósitos',
-      value: generalInfo.totalDeposits,
-      bgColor: '#56a0db',
-      borderColor: '#0c4e82',
-      hoverBgColor: '#0091ff'
-    }
+    // const depositsInfo = {
+    //   label: 'Depósitos',
+    //   value: generalInfo.totalDeposits,
+    //   bgColor: '#56a0db',
+    //   borderColor: '#0c4e82',
+    //   hoverBgColor: '#0091ff'
+    // }
 
     const extraOutgoingsInfo = {
       label: 'Gastos fuera de cuentas',
@@ -89,7 +89,7 @@ export default function Reporte() {
       hoverBgColor: '#ff0000'
     }
 
-    setPieChartInfo([cashInfo, depositsInfo, extraOutgoingsInfo, missingAmount])
+    setPieChartInfo([cashInfo, extraOutgoingsInfo, missingAmount])
 
   }, [supervisorsInfo, generalInfo, reportedIncomes])
 
