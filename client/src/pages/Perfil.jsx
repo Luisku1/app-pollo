@@ -237,7 +237,7 @@ export default function Perfil() {
                 : ''
               }
 
-              {supervisorReports && supervisorReports.length > 0 && currentUser._id == employeeId || roles.managerRole._id == currentUser.role ?
+              {supervisorReports && supervisorReports.length > 0 && (currentUser._id == employeeId || roles.managerRole._id == currentUser.role) ?
 
                 <div className='flex gap-4 mt-4 items-center'>
 
