@@ -10,10 +10,10 @@ import { useSignOut } from '../hooks/Auth/useSignOut'
 import { useSupervisorReport } from '../hooks/Supervisors/useSupervisorReport'
 import { formatDate } from '../helpers/DatePickerFunctions'
 import { useRoles } from '../hooks/useRoles'
-import { stringToCurrency } from '../helpers/Functions'
 import ShowListButton from '../components/Buttons/ShowListButton'
 import { useSupervisorReports } from '../hooks/Supervisors/useSupervisorReports'
 import SupervisorReports from '../components/SupervisorReports'
+import SupervisorReport from '../components/SupervisorReport'
 
 export default function Perfil() {
 
@@ -21,7 +21,7 @@ export default function Perfil() {
   const { employeeId } = useParams()
   const [employee, setEmployee] = useState(null)
   const [employeeDayInfo, setEmployeeDayInfo] = useState(null)
-  const { currentSupervisorReport } = useSupervisorReport({ supervisorId: employeeId, date: formatDate(new Date()) })
+  const { supervisorReport } = useSupervisorReport({ supervisorId: employeeId, date: formatDate(new Date()) })
   const [employeeBranchReports, setEmployeeBranchReports] = useState([])
   const { supervisorReports } = useSupervisorReports({ supervisorId: employeeId })
   const [fetchError, setFetchError] = useState(null)
@@ -180,26 +180,10 @@ export default function Perfil() {
 
               {roles.sellerRole._id != employee.role._id ?
                 <div className=''>
-                  {currentSupervisorReport ?
-                    <div>
-                      <h2 className='text-2xl font-semibold'>Supervisión</h2>
-
-                      <div className='p-3 text-lg'>
-                        <div className='flex gap-2'>
-                          <p>Efectivo y depósitos recogidos: </p>
-                          <p>{parseFloat(currentSupervisorReport.incomes).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>
-                        </div>
-
-                        <div className='flex gap-2'>
-                          <p>Gastos: </p>
-                          <p>{stringToCurrency({ amount: parseFloat(currentSupervisorReport.outgoings) })}</p>
-                        </div>
-
-                        <div className='flex gap-2'>
-                          <p>Dinero a entregar: </p>
-                          <p>{parseFloat(currentSupervisorReport.incomes - currentSupervisorReport.outgoings).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>
-                        </div>
-                      </div>
+                  {supervisorReport ?
+                    <div className='border border-black p-3'>
+                      <p className='text-lg font-bold text-center'>Cuenta de supervisor actual</p>
+                      <SupervisorReport supervisorReport={supervisorReport} />
                     </div>
                     : ''}
                 </div>
@@ -234,18 +218,6 @@ export default function Perfil() {
 
               </div>
 
-
-              {
-                employeeId == currentUser._id ?
-                  <div className='mt-8 grid grid-1'>
-                    <button className='border shadow-lg rounded-full p-3 flex-col-reverse justify-self-end'>
-                      <span onClick={handleSignOut} className='text-red-700 cursor-pointer'>Sign out</span>
-                    </button>
-                    <span>{error ? ' Error al fetch' : ''}</span>
-                  </div>
-                  : ''
-              }
-
               {employeeBranchReports && employeeBranchReports.length > 0 ?
 
                 <div className='flex gap-4 mt-4 items-center'>
@@ -259,15 +231,25 @@ export default function Perfil() {
                 : ''
               }
 
-              {supervisorReports && supervisorReports.length > 0 &&  currentUser._id == employeeId || roles.managerRole._id == currentUser.role?
+              {supervisorReports && supervisorReports.length > 0 && currentUser._id == employeeId || roles.managerRole._id == currentUser.role ?
 
                 <div className='flex gap-4 mt-4 items-center'>
 
                   <h3 className='text-2xl font-bold'>Cuentas de supervisor</h3>
                   <div>
-                    <ShowListButton ListComponent={<SupervisorReports supervisorReports={supervisorReports}/>}>
+                    <ShowListButton ListComponent={<SupervisorReports supervisorReports={supervisorReports} />}>
                     </ShowListButton>
                   </div>
+                </div>
+                : ''
+              }
+
+              {employeeId == currentUser._id ?
+                <div className='mt-8 grid grid-1'>
+                  <button className='border shadow-lg rounded-full p-3 flex-col-reverse justify-self-end'>
+                    <span onClick={handleSignOut} className='text-red-700 cursor-pointer font-semibold text-lg'>Cerrar Sesión</span>
+                  </button>
+                  <span>{error ? ' Error al fetch' : ''}</span>
                 </div>
                 : ''
               }
