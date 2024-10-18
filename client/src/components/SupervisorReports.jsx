@@ -1,4 +1,4 @@
-import SupervisorReport from "@/SupervisorReport"
+import SupervisorReport from "./SupervisorReportComp";
 
 /* eslint-disable react/prop-types */
 export default function SupervisorReports({ supervisorReports }) {
