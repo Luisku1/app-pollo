@@ -309,7 +309,7 @@ export const supervisorsInfoQuery = async (companyId, topDate, bottomDate) => {
           from: 'extraoutgoings',
           localField: '_id',
           foreignField: 'employee',
-          as: 'extraOutgoings',
+          as: 'extraOutgoingsArray',
           pipeline: [
             {
               $match: {
@@ -324,7 +324,7 @@ export const supervisorsInfoQuery = async (companyId, topDate, bottomDate) => {
           from: 'incomecollecteds',
           localField: '_id',
           foreignField: 'employee',
-          as: 'deposits',
+          as: 'depositsArray',
           pipeline: [
             {
               $match: {
@@ -370,7 +370,7 @@ export const supervisorsInfoQuery = async (companyId, topDate, bottomDate) => {
           from: 'incomecollecteds',
           localField: '_id',
           foreignField: 'employee',
-          as: 'cash',
+          as: 'cashArray',
           pipeline: [
             {
               $match: {
@@ -436,9 +436,9 @@ export const supervisorsInfoQuery = async (companyId, topDate, bottomDate) => {
       {
         $addFields: {
 
-          extraOutgoings: { $sum: '$extraOutgoings.amount' },
-          cash: { $sum: '$cash.amount' },
-          deposits: { $sum: '$deposits.amount' },
+          extraOutgoings: { $sum: '$extraOutgoingsArray.amount' },
+          cash: { $sum: '$cashArray.amount' },
+          deposits: { $sum: '$depositsArray.amount' },
           missingIncomes: '$dailyBalance.supervisorBalance'
         }
       },

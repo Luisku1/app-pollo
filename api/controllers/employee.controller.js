@@ -412,7 +412,6 @@ export const newEmployeePaymentFunction = async ({ amount, detail, employee, sup
 export const getEmployeePayments = async (req, res, next) => {
 
 	const employeeId = req.params.employeeId
-	console.log(req.params)
 	const { bottomDate, topDate } = getDayRange(new Date(req.params.date))
 	const bottomDateDay = (new Date(bottomDate)).getDay()
 

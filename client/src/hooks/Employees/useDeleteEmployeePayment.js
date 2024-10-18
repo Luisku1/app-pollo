@@ -11,8 +11,6 @@ export const useDeleteEmployeePayment = () => {
 
     setLoading(true)
 
-    console.log(employeePayment)
-
     spliceEmployeePayment({ index })
     ToastSuccess(`Se borró el pago a ${employeePayment.employee.label ?? employeePayment.employee.name + ' ' + employeePayment.employee.lastName} por ${stringToCurrency({ amount: employeePayment.amount })}`)
 

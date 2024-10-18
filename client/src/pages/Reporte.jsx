@@ -568,13 +568,13 @@ export default function Reporte() {
 
                       <div className="flex justify-between p-3 gap-4">
 
-                        <button className="m-auto border border-black border-opacity-20 shadow-lg rounded-3xl w-10/12 p-3" onClick={() => { cashIsOpenFunctionControl(supervisorInfo.supervisor.cash.length, supervisorInfo.supervisor._id) }}>
+                        <button className="m-auto border border-black border-opacity-20 shadow-lg rounded-3xl w-10/12 p-3" onClick={() => { cashIsOpenFunctionControl(supervisorInfo.supervisor.cashArray.length, supervisorInfo.supervisor._id) }}>
 
                           <p className="text-lg">Efectivo bruto</p>
                           <p>{stringToCurrency({ amount: supervisorInfo.supervisor.cash })}</p>
                         </button>
 
-                        <button className="m-auto border border-black border-opacity-20 shadow-lg rounded-3xl w-10/12 p-3" onClick={() => { depositsIsOpenFunctionControl(supervisorInfo.supervisor.deposits.length, supervisorInfo.supervisor._id) }}>
+                        <button className="m-auto border border-black border-opacity-20 shadow-lg rounded-3xl w-10/12 p-3" onClick={() => { depositsIsOpenFunctionControl(supervisorInfo.supervisor.depositsArray.length, supervisorInfo.supervisor._id) }}>
 
                           <p className="text-lg">Depósitos</p>
                           <p>{stringToCurrency({ amount: supervisorInfo.supervisor.deposits })}</p>
@@ -590,14 +590,14 @@ export default function Reporte() {
 
                         <div className={extraOutgoingsIsOpen ? '' : 'hidden'}>
 
-                          {supervisorInfo.supervisor && supervisorInfo.supervisor.extraOutgoings && supervisorInfo.supervisor.extraOutgoings.length > 0 ?
+                          {supervisorInfo.supervisor && supervisorInfo.supervisor.extraOutgoingsArray && supervisorInfo.supervisor.extraOutgoingsArray.length > 0 ?
                             <div id='header' className='grid grid-cols-12 items-center justify-around font-semibold mt-4'>
                               <p className='p-3 rounded-lg col-span-5 text-center bg-white'>Concepto</p>
                               <p className='p-3 rounded-lg col-span-5 text-center bg-white'>Monto</p>
                             </div>
                             : ''}
 
-                          {supervisorInfo.supervisor && supervisorInfo.supervisor.extraOutgoings && supervisorInfo.supervisor.extraOutgoings.length > 0 && supervisorInfo.supervisor.extraOutgoings.map((extraOutgoing) => (
+                          {supervisorInfo.supervisor && supervisorInfo.supervisor.extraOutgoingsArray && supervisorInfo.supervisor.extraOutgoingsArray.length > 0 && supervisorInfo.supervisor.extraOutgoingsArray.map((extraOutgoing) => (
 
                             <div key={extraOutgoing._id} >
                               <div className={'py-3 grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
@@ -613,16 +613,11 @@ export default function Reporte() {
                                       <FaCheck className='text-green-700 m-auto' />
                                     </span>
                                   </button>
-
                                 </div>
-
                               </div>
                             </div>
-
                           ))}
-
                         </div>
-
                         : ''}
 
 
@@ -637,7 +632,7 @@ export default function Reporte() {
                             <p className='col-span-4 text-center'>Monto</p>
                           </div>
 
-                          {supervisorInfo.supervisor && cashIsOpen && supervisorInfo.supervisor.cash.length > 0 && supervisorInfo.supervisor.cash.map((income) => (
+                          {supervisorInfo.supervisor && cashIsOpen && supervisorInfo.supervisor.cashArray.length > 0 && supervisorInfo.supervisor.cashArray.map((income) => (
 
                             <div key={income._id} className='grid grid-cols-12 items-center border border-black border-opacity-30 mt-2 shadow-m rounded-lg'>
 
@@ -651,7 +646,7 @@ export default function Reporte() {
 
                           ))}
 
-                          {supervisorInfo.supervisor && depositsIsOpen && supervisorInfo.supervisor.deposits.length > 0 && supervisorInfo.supervisor.deposits.map((income) => (
+                          {supervisorInfo.supervisor && depositsIsOpen && supervisorInfo.supervisor.depositsArray.length > 0 && supervisorInfo.supervisor.depositsArray.map((income) => (
 
                             <div key={income._id} className='grid grid-cols-12 items-center border border-black border-opacity-30 mt-2 shadow-m rounded-lg'>
 
