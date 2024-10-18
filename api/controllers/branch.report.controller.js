@@ -469,11 +469,11 @@ export const refactorSupervisorReports = async (req, res, next) => {
   const companyId = req.params.companyId
   const date = new Date()
 
-  date.setDate(date.getDate() - 30)
+  date.setDate(date.getDate() - 1)
 
   try {
 
-    while (date < new Date()) {
+    while (date <= new Date()) {
 
       const { bottomDate, topDate } = getDayRange(date)
 
@@ -495,13 +495,26 @@ export const refactorSupervisorReports = async (req, res, next) => {
 
           if (supervisorReport) {
 
-            await SupervisorReport.findByIdAndUpdate(supervisorReport._id, {
+            const updatedSupervisorReport = await SupervisorReport.findByIdAndUpdate(supervisorReport._id, {
 
               extraOutgoings: supervisor.supervisor.totalExtraOutgoings,
               incomes: supervisor.supervisor.totalCash + supervisor.supervisor.totalDeposits,
               moneyDelivered: supervisor.supervisor.totalCash + supervisor.supervisor.totalDeposits - supervisor.supervisor.totalExtraOutgoings,
               balance: supervisor.supervisor.totalCash + supervisor.supervisor.totalDeposits - supervisor.supervisor.totalExtraOutgoings - (supervisor.supervisor.totalCash + supervisor.supervisor.totalDeposits - supervisor.supervisor.totalExtraOutgoings)
+            }, { new: true })
+
+            const dailyBalance = await EmployeeDailyBalance.findOne({
+              createdAt: { $lt: topDate, $gte: bottomDate },
+              employee: new Types.ObjectId(supervisor.supervisor._id)
             })
+
+            if (!dailyBalance) throw new Error("No se encontró el balance del empleado.");
+
+            const updatedDailyBalance = await EmployeeDailyBalance.findByIdAndUpdate(dailyBalance._id, {
+              supervisorBalance: updatedSupervisorReport.balance
+            }, { new: true })
+
+            if (!updatedDailyBalance) throw new Error("No se editó el balance del supervisor");
           }
         }
       })

@@ -176,7 +176,14 @@ export const getSupervisorsInfo = async (req, res, next) => {
 
     if (supervisorsInfo) {
 
-      res.status(200).json({ supervisors: supervisorsInfo.supervisors, generalInfo: { totalExtraOutgoings: supervisorsInfo.totalExtraOutgoings, totalIncomes: supervisorsInfo.totalCash + supervisorsInfo.totalDeposits, totalCash: supervisorsInfo.totalCash - supervisorsInfo.totalExtraOutgoings + supervisorsInfo.totalMissingIncomes, totalDeposits: supervisorsInfo.totalDeposits, missingIncomes: supervisorsInfo.totalMissingIncomes } })
+      const extraOutgoings = supervisorsInfo.extraOutgoings
+      const grossCashIncomes = supervisorsInfo.cash
+      const deposits = supervisorsInfo.deposits
+      const netIncomes = supervisorsInfo.cash + deposits - supervisorsInfo.extraOutgoings
+      const missingIncomes = -supervisorsInfo.missingIncomes
+      const reportedIncomes = netIncomes + missingIncomes
+
+      res.status(200).json({ supervisors: supervisorsInfo.supervisors, generalInfo: { extraOutgoings, grossCashIncomes, netIncomes: netIncomes, deposits, netIncomes,  missingIncomes, reportedIncomes }})
 
     } else {
 
@@ -429,18 +436,18 @@ export const supervisorsInfoQuery = async (companyId, topDate, bottomDate) => {
       {
         $addFields: {
 
-          totalExtraOutgoings: { $sum: '$extraOutgoings.amount' },
-          totalCash: { $sum: '$cash.amount' },
-          totalDeposits: { $sum: '$deposits.amount' },
+          extraOutgoings: { $sum: '$extraOutgoings.amount' },
+          cash: { $sum: '$cash.amount' },
+          deposits: { $sum: '$deposits.amount' },
           missingIncomes: '$dailyBalance.supervisorBalance'
         }
       },
       {
         $match: {
           $or: [
-            { totalExtraOutgoings: { $gt: 0 } },
-            { totalCash: { $gt: 0 } },
-            { totalDeposits: { $gt: 0 } }
+            { extraOutgoings: { $gt: 0 } },
+            { cash: { $gt: 0 } },
+            { deposits: { $gt: 0 } }
           ]
         }
       },
@@ -452,10 +459,10 @@ export const supervisorsInfoQuery = async (companyId, topDate, bottomDate) => {
               supervisor: '$$ROOT'
             }
           },
-          totalExtraOutgoings: { $sum: '$totalExtraOutgoings' },
-          totalCash: { $sum: '$totalCash' },
-          totalDeposits: { $sum: '$totalDeposits' },
-          totalMissingIncomes: { $sum: '$missingIncomes' }
+          extraOutgoings: { $sum: '$extraOutgoings' },
+          cash: { $sum: '$cash' },
+          deposits: { $sum: '$deposits' },
+          missingIncomes: { $sum: '$missingIncomes' }
         }
       }
     ])

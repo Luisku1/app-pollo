@@ -64,9 +64,15 @@ export default function PieChart({ chartInfo }) {
           label: function (tooltipItem) {
             const label = data.labels[tooltipItem.dataIndex] || '';
             const value = data.datasets[0].data[tooltipItem.dataIndex] || 0;
-            return `${label}: ${stringToCurrency({amount: value})}`; // Muestra el label y el valor en el tooltip
+            return `${label}: ${stringToCurrency({ amount: value })}`; // Muestra el label y el valor en el tooltip
           },
         },
+      },
+      onClick: (event, elements) => {
+        if (elements.length > 0) {
+          const { index } = elements[0];
+          console.log(elements, index)
+        }
       },
     },
   };

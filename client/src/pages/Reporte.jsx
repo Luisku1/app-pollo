@@ -44,13 +44,22 @@ export default function Reporte() {
     totalBalance,
 
   } = useBranchReports({ companyId: company._id, date: stringDatePickerValue })
-  const [reportedIncomes, setReportedIncomes] = useState(0)
   const navigate = useNavigate()
   const [pieChartInfo, setPieChartInfo] = useState([])
 
   const updateReportedIncomes = ({ reportedIncome, prevReportedIncome }) => {
 
-    setReportedIncomes(prev => prev + (reportedIncome - prevReportedIncome))
+    setGeneralInfo((prev) => {
+
+      return {
+        reportedIncomes: prev.reportedIncomes + (reportedIncome - prevReportedIncome),
+        missingIncomes: prev.missingIncomes - (reportedIncome - prevReportedIncome),
+        deposits: prev.deposits,
+        extraOutgoings: prev.extraOutgoings,
+        grossCashIncomes: prev.grossCashIncomes,
+        netIncomes: prev.netIncomes
+      }
+    })
   }
 
   useEffect(() => {
@@ -59,23 +68,23 @@ export default function Reporte() {
 
     const cashInfo = {
       label: 'Ingresos netos reportados',
-      value: (generalInfo.totalCash + generalInfo.totalDeposits + reportedIncomes),
+      value: generalInfo.reportedIncomes >= generalInfo.deposits ? generalInfo.reportedIncomes - generalInfo.deposits : 0,
       bgColor: '#4CAF50',
       borderColor: '#206e09',
       hoverBgColor: '#24d111'
     }
 
-    // const depositsInfo = {
-    //   label: 'Depósitos',
-    //   value: generalInfo.totalDeposits,
-    //   bgColor: '#56a0db',
-    //   borderColor: '#0c4e82',
-    //   hoverBgColor: '#0091ff'
-    // }
+    const depositsInfo = {
+      label: 'Depósitos',
+      value: generalInfo.reportedIncomes < generalInfo.deposits ? generalInfo.reportedIncomes : generalInfo.deposits,
+      bgColor: '#56a0db',
+      borderColor: '#0c4e82',
+      hoverBgColor: '#0091ff'
+    }
 
     const extraOutgoingsInfo = {
       label: 'Gastos fuera de cuentas',
-      value: generalInfo.totalExtraOutgoings,
+      value: generalInfo.extraOutgoings,
       bgColor: '#f0e795',
       borderColor: '#736809',
       hoverBgColor: '#ffe600'
@@ -83,15 +92,15 @@ export default function Reporte() {
 
     const missingAmount = {
       label: 'Ingresos sin reportar',
-      value: -generalInfo.missingIncomes - reportedIncomes,
+      value: generalInfo.missingIncomes,
       bgColor: '#a85959',
       borderColor: '#801313',
       hoverBgColor: '#ff0000'
     }
 
-    setPieChartInfo([cashInfo, extraOutgoingsInfo, missingAmount])
+    setPieChartInfo([cashInfo, depositsInfo, extraOutgoingsInfo, missingAmount])
 
-  }, [supervisorsInfo, generalInfo, reportedIncomes])
+  }, [supervisorsInfo, generalInfo])
 
   const changeDatePickerValue = (e) => {
 
@@ -505,13 +514,13 @@ export default function Reporte() {
 
             <h3 className="text-3xl font-bold">Ingresos obtenidos por pollerías</h3>
             <div>
-              <h4 className="text-2xl font-bold">Brutos: {stringToCurrency({ amount: generalInfo.totalIncomes })}</h4>
+              <h4 className="text-2xl font-bold">Brutos: {stringToCurrency({ amount: generalInfo.grossCashIncomes + generalInfo.deposits })}</h4>
               <div className="flex gap-3">
-                <p className="font-bold">Efectivo: <span style={{ color: '#206e09' }}>{`${stringToCurrency({ amount: generalInfo.totalIncomes - generalInfo.totalDeposits })}`} </span></p>
-                <p className="font-bold">Depósitos: <span style={{ color: '#0c4e82' }}>{`${stringToCurrency({ amount: generalInfo.totalDeposits })}`}</span></p>
+                <p className="font-bold">Efectivo: <span style={{ color: '#206e09' }}>{`${stringToCurrency({ amount: generalInfo.grossCashIncomes })}`} </span></p>
+                <p className="font-bold">Depósitos: <span style={{ color: '#0c4e82' }}>{`${stringToCurrency({ amount: generalInfo.deposits })}`}</span></p>
               </div>
             </div>
-            <h4 className="text-2xl font-bold mb-3">Netos: {stringToCurrency({ amount: (generalInfo.totalIncomes - generalInfo.totalExtraOutgoings) })}</h4>
+            <h4 className="text-2xl font-bold mb-3">Netos: {stringToCurrency({ amount: (generalInfo.netIncomes) })}</h4>
 
             <PieChart chartInfo={pieChartInfo}></PieChart>
           </div>
@@ -545,10 +554,10 @@ export default function Reporte() {
                       <p className="text-2xl font-semibold my-4 col-span-1">{supervisorInfo.supervisor.name + ' ' + supervisorInfo.supervisor.lastName}</p>
 
                       <div className="">
-                        <p className="text-lg"><span className="font-bold">Depósitos: </span>{stringToCurrency({ amount: supervisorInfo.supervisor.totalDeposits })}</p>
-                        <p className="text-lg"><span className="font-bold">Efectivo: </span>{stringToCurrency({ amount: supervisorInfo.supervisor.totalCash })}</p>
-                        <p className="text-lg"><span className="font-bold">Gastos: </span>{stringToCurrency({ amount: supervisorInfo.supervisor.totalExtraOutgoings })}</p>
-                        <p className="text-lg"><span className="font-bold">Efectivo neto: </span>{(supervisorInfo.supervisor.totalCash - supervisorInfo.supervisor.totalExtraOutgoings).toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
+                        <p className="text-lg"><span className="font-bold">Depósitos: </span>{stringToCurrency({ amount: supervisorInfo.supervisor.deposits })}</p>
+                        <p className="text-lg"><span className="font-bold">Efectivo: </span>{stringToCurrency({ amount: supervisorInfo.supervisor.cash })}</p>
+                        <p className="text-lg"><span className="font-bold">Gastos: </span>{stringToCurrency({ amount: supervisorInfo.supervisor.extraOutgoings })}</p>
+                        <p className="text-lg"><span className="font-bold">Efectivo neto: </span>{(supervisorInfo.supervisor.cash - supervisorInfo.supervisor.extraOutgoings).toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
                         <RegistrarDineroReportado updateReportedIncomes={updateReportedIncomes} supervisorId={supervisorInfo.supervisor._id} date={stringDatePickerValue}></RegistrarDineroReportado>
                       </div>
                     </div>
@@ -560,18 +569,18 @@ export default function Reporte() {
                         <button className="m-auto border border-black border-opacity-20 shadow-lg rounded-3xl w-10/12 p-3" onClick={() => { cashIsOpenFunctionControl(supervisorInfo.supervisor.cash.length, supervisorInfo.supervisor._id) }}>
 
                           <p className="text-lg">Efectivo bruto</p>
-                          <p>{stringToCurrency({ amount: supervisorInfo.supervisor.totalCash })}</p>
+                          <p>{stringToCurrency({ amount: supervisorInfo.supervisor.cash })}</p>
                         </button>
 
                         <button className="m-auto border border-black border-opacity-20 shadow-lg rounded-3xl w-10/12 p-3" onClick={() => { depositsIsOpenFunctionControl(supervisorInfo.supervisor.deposits.length, supervisorInfo.supervisor._id) }}>
 
                           <p className="text-lg">Depósitos</p>
-                          <p>{stringToCurrency({ amount: supervisorInfo.supervisor.totalDeposits })}</p>
+                          <p>{stringToCurrency({ amount: supervisorInfo.supervisor.deposits })}</p>
                         </button>
 
                         <button className="m-auto border border-black border-opacity-20 shadow-lg rounded-3xl p-3 w-10/12" onClick={() => { extraOutgoingsIsOpenFunctionControl(supervisorInfo.supervisor.extraOutgoings.length, supervisorInfo.supervisor._id) }}>
                           <p className="text-lg">Gastos</p>
-                          <p>{stringToCurrency({ amount: supervisorInfo.supervisor.totalExtraOutgoings })}</p>
+                          <p>{stringToCurrency({ amount: supervisorInfo.supervisor.extraOutgoings })}</p>
                         </button>
                       </div>
 
