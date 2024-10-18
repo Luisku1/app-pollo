@@ -48,7 +48,7 @@ export default function Reporte() {
   const navigate = useNavigate()
   const [pieChartInfo, setPieChartInfo] = useState([])
 
-  const updateReportedIncomes = ({reportedIncome, prevReportedIncome}) => {
+  const updateReportedIncomes = ({ reportedIncome, prevReportedIncome }) => {
 
     setReportedIncomes(prev => prev + (reportedIncome - prevReportedIncome))
   }
@@ -58,7 +58,7 @@ export default function Reporte() {
     if (!supervisorsInfo.length > 0 || !generalInfo) return
 
     const cashInfo = {
-      label: 'Ingreso neto',
+      label: 'Ingresos netos reportados',
       value: (generalInfo.totalCash + generalInfo.totalDeposits + reportedIncomes),
       bgColor: '#4CAF50',
       borderColor: '#206e09',
@@ -82,7 +82,7 @@ export default function Reporte() {
     }
 
     const missingAmount = {
-      label: 'Falta de reportar',
+      label: 'Ingresos sin reportar',
       value: -generalInfo.missingIncomes - reportedIncomes,
       bgColor: '#a85959',
       borderColor: '#801313',
@@ -504,7 +504,13 @@ export default function Reporte() {
           <div className="my-2 mx-auto">
 
             <h3 className="text-3xl font-bold">Ingresos obtenidos por pollerías</h3>
-            <h4 className="text-2xl font-bold">Brutos: {stringToCurrency({ amount: generalInfo.totalIncomes })}</h4>
+            <div>
+              <h4 className="text-2xl font-bold">Brutos: {stringToCurrency({ amount: generalInfo.totalIncomes })}</h4>
+              <div className="flex gap-3">
+                <p className="font-bold">Efectivo: <span style={{ color: '#206e09' }}>{`${stringToCurrency({ amount: generalInfo.totalIncomes - generalInfo.totalDeposits })}`} </span></p>
+                <p className="font-bold">Depósitos: <span style={{ color: '#0c4e82' }}>{`${stringToCurrency({ amount: generalInfo.totalDeposits })}`}</span></p>
+              </div>
+            </div>
             <h4 className="text-2xl font-bold mb-3">Netos: {stringToCurrency({ amount: (generalInfo.totalIncomes - generalInfo.totalExtraOutgoings) })}</h4>
 
             <PieChart chartInfo={pieChartInfo}></PieChart>
@@ -543,7 +549,7 @@ export default function Reporte() {
                         <p className="text-lg"><span className="font-bold">Efectivo: </span>{stringToCurrency({ amount: supervisorInfo.supervisor.totalCash })}</p>
                         <p className="text-lg"><span className="font-bold">Gastos: </span>{stringToCurrency({ amount: supervisorInfo.supervisor.totalExtraOutgoings })}</p>
                         <p className="text-lg"><span className="font-bold">Efectivo neto: </span>{(supervisorInfo.supervisor.totalCash - supervisorInfo.supervisor.totalExtraOutgoings).toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
-                        <RegistrarDineroReportado updateReportedIncomes={updateReportedIncomes}supervisorId={supervisorInfo.supervisor._id} date={stringDatePickerValue}></RegistrarDineroReportado>
+                        <RegistrarDineroReportado updateReportedIncomes={updateReportedIncomes} supervisorId={supervisorInfo.supervisor._id} date={stringDatePickerValue}></RegistrarDineroReportado>
                       </div>
                     </div>
 
