@@ -51,9 +51,11 @@ export default function Reporte() {
 
     setGeneralInfo((prev) => {
 
+      const newReportedIncomes = prev.reportedIncomes + (reportedIncome - prevReportedIncome)
+
       return {
-        reportedIncomes: prev.reportedIncomes + (reportedIncome - prevReportedIncome),
-        missingIncomes: prev.missingIncomes - (reportedIncome - prevReportedIncome),
+        reportedIncomes: newReportedIncomes,
+        missingIncomes: prev.missingIncomes + (reportedIncome - prevReportedIncome),
         deposits: prev.deposits,
         extraOutgoings: prev.extraOutgoings,
         grossCashIncomes: prev.grossCashIncomes,
@@ -68,7 +70,7 @@ export default function Reporte() {
 
     const cashInfo = {
       label: 'Ingresos netos reportados',
-      value: generalInfo.reportedIncomes >= generalInfo.deposits ? generalInfo.reportedIncomes - generalInfo.deposits : 0,
+      value: generalInfo.reportedIncomes <= generalInfo.deposits ? 0 : generalInfo.reportedIncomes - generalInfo.deposits,
       bgColor: '#4CAF50',
       borderColor: '#206e09',
       hoverBgColor: '#24d111'
@@ -76,7 +78,7 @@ export default function Reporte() {
 
     const depositsInfo = {
       label: 'Depósitos',
-      value: generalInfo.reportedIncomes < generalInfo.deposits ? generalInfo.reportedIncomes : generalInfo.deposits,
+      value: generalInfo.reportedIncomes <= generalInfo.deposits ? generalInfo.reportedIncomes : generalInfo.deposits,
       bgColor: '#56a0db',
       borderColor: '#0c4e82',
       hoverBgColor: '#0091ff'

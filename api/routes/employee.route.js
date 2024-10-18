@@ -1,6 +1,6 @@
 import express from 'express'
 import { getEmployees, deleteEmployee, getEmployeesDailyBalances, updateEmployeeDailyBalance, getEmployee, getEmployeeReports, getEmployeeDayInfo, getEmployeePayroll, deleteDuplicatedEmployeeDailyBalances, newEmployeePaymentQuery, getEmployeesPaymentsQuery, deleteEmployeePaymentQuery, getEmployeePayments, getAllEmployees, changeEmployeeActiveStatus, addSupervisorMoneyDelivery } from '../controllers/employee.controller.js'
-import { getSupervisorReport } from '../controllers/supervisor.report.js'
+import { getSupervisorReport, getSupervisorReports } from '../controllers/supervisor.report.js'
 
 const router = express.Router()
 
@@ -9,6 +9,7 @@ router.put('/change-active-status/:employeeId', changeEmployeeActiveStatus)
 router.put('/supervisor-report/add-money-delivered', addSupervisorMoneyDelivery)
 router.post('/employee-payment/create', newEmployeePaymentQuery)
 router.get('/get-supervisor-report/:supervisorId/:date', getSupervisorReport)
+router.get('/get-supervisor-reports/:supervisorId', getSupervisorReports)
 router.get('/get-employees-payments/:companyId/:date', getEmployeesPaymentsQuery)
 router.get('/get-employee-payments/:employeeId/:date', getEmployeePayments)
 router.get('/get/:companyId', getEmployees)
@@ -17,7 +18,7 @@ router.get('/get-employee/:employeeId', getEmployee)
 router.get('/get-employees-payroll/:companyId/:date', getEmployeePayroll)
 router.put('/get-duplicated-employee-balances', deleteDuplicatedEmployeeDailyBalances)
 router.get('/get-employee-day-information/:employeeId', getEmployeeDayInfo)
-router.get('/get-employee-reports/:employeeId', getEmployeeReports)
+router.get('/get-employee-reports/:employeeId/:consultantRole?', getEmployeeReports)
 router.get('/get-employees-daily-balances/:companyId/:date', getEmployeesDailyBalances)
 router.delete('/delete/:employeeId', deleteEmployee)
 router.delete('/delete-employee-payment/:paymentId/:incomeId/:extraOutgoingId', deleteEmployeePaymentQuery)

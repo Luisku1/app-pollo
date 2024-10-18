@@ -17,7 +17,6 @@ function ToastWarning(message) {
 }
 
 function ToastInfo(message) {
-
   toast.info(message)
 }
 
@@ -26,6 +25,7 @@ function ToastContainerComponent() {
   return <ToastContainer
     draggable={true}
     position='top-center'
+    limit={2}
 
   ></ToastContainer>;
 }

@@ -181,7 +181,7 @@ export const getSupervisorsInfo = async (req, res, next) => {
       const deposits = supervisorsInfo.deposits
       const netIncomes = supervisorsInfo.cash + deposits - supervisorsInfo.extraOutgoings
       const missingIncomes = -supervisorsInfo.missingIncomes
-      const reportedIncomes = netIncomes + missingIncomes
+      const reportedIncomes = netIncomes - missingIncomes
 
       res.status(200).json({ supervisors: supervisorsInfo.supervisors, generalInfo: { extraOutgoings, grossCashIncomes, netIncomes: netIncomes, deposits, netIncomes,  missingIncomes, reportedIncomes }})
 

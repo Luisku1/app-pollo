@@ -11,6 +11,7 @@ import ExtraOutgoing from "../models/accounts/outgoings/extra.outgoing.model.js"
 import IncomeCollected from "../models/accounts/incomes/income.collected.model.js"
 import { fetchBranchReport, fetchBranchReportById } from "./branch.report.controller.js"
 import SupervisorReport from "../models/accounts/supervisor.report.model.js"
+import { fetchRolesFromDB } from "./role.controller.js"
 
 export const getEmployees = async (req, res, next) => {
 
@@ -72,32 +73,121 @@ export const getEmployee = async (req, res, next) => {
 
 export const getEmployeeReports = async (req, res, next) => {
 
-	const employeeId = req.params.employeeId
+	const { employeeId, consultantRole } = req.params
 	const { bottomDate, topDate } = getDayRange(new Date())
 
 	try {
+
+		const roles = await fetchRolesFromDB()
+		const consultantRoleObject = roles.find((role) => role._id == consultantRole)
+
+		const isNotSeller = consultantRoleObject.name != 'Vendedor'
 
 		const employeeWeekDays = await getEmployeeWorkedDays(bottomDate, employeeId)
 		const firstWeekDay = new Date(bottomDate)
 		firstWeekDay.setDate(firstWeekDay.getDate() - employeeWeekDays)
 
-		const employeeReports = await BranchReport.find({
-			$or: [
-				{
-					employee: employeeId
-				},
-				{
-					assistant: employeeId
+		const employeeObjectId = new Types.ObjectId(employeeId)
+
+		const employeeReports = await BranchReport.aggregate([
+			{
+				$match: {
+					'createdAt': { $gte: new Date(firstWeekDay), $lt: new Date(topDate) },
+
+					$or: [
+						// Coincidir con employee o assistant
+						{
+							$or: [
+								{ 'employee': employeeObjectId },
+								{ 'assistant': employeeObjectId },
+							]
+						},
+						// Coincidir con sender y el rol no ser "Vendedor"
+						{
+							'sender': employeeObjectId,
+							$expr: { $eq: [isNotSeller, true] } // Verifica que el rol no sea "Vendedor"
+						}
+					]
 				}
-			],
-			createdAt: {
-				$gte: firstWeekDay, $lt: new Date(topDate)
+			},
+			{
+				$lookup: {
+					from: 'employees',
+					localField: 'employee',
+					foreignField: '_id',
+					as: 'employee'
+				}
+			},
+			{
+				$lookup: {
+					from: 'employees',
+					localField: 'assistant',
+					foreignField: '_id',
+					as: 'assistant'
+				}
+			},
+			{
+				$lookup: {
+					from: 'employees',
+					localField: 'sender',
+					foreignField: '_id',
+					as: 'sender'
+				}
+			},
+			{
+				$lookup: {
+					from: 'branches',
+					localField: 'branch',
+					foreignField: '_id',
+					as: 'branch'
+				}
+			},
+			{
+				$unwind: { path: '$branch', preserveNullAndEmptyArrays: true }
+			},
+			{
+				$unwind: { path: '$sender', preserveNullAndEmptyArrays: true }
+			},
+			{
+				$unwind: { path: '$assistant', preserveNullAndEmptyArrays: true }
+			},
+			{
+				$unwind: { path: '$employee', preserveNullAndEmptyArrays: true }
+			},
+			{
+				$sort: { 'createdAt': -1 }
+			},
+			{
+				$project: {
+					_id: 1,
+                createdAt: 1,
+                initialStock: 1,
+                initialStockArray: 1,
+                finalStock: 1,
+                finalStockArray: 1,
+                inputs: 1,
+                inputsArray: 1,
+                providerInputs: 1,
+                providerInputsArray: 1,
+                outputs: 1,
+                outputsArray: 1,
+                outgoings: 1,
+                outgoingsArray: 1,
+                incomes: 1,
+                incomesArray: 1,
+                balance: 1,
+                branch: 1,
+                employee: 1,
+                assistant: 1,
+                reportData: 1
+				}
+
 			}
-		}).sort({ createdAt: -1 }).populate({ path: 'branch', select: 'branch' })
+		])
 
 		if (employeeReports.length > 0) {
 
-			res.status(200).json({ employeeReports: employeeReports })
+			res.status(200).json({ employeeBranchReports: employeeReports })
 
 		} else {
 
@@ -110,7 +200,7 @@ export const getEmployeeReports = async (req, res, next) => {
 	}
 }
 
-const getEmployeeWorkedDays = async (bottomDate, employeeId) => {
+export const getEmployeeWorkedDays = async (bottomDate, employeeId) => {
 
 	const bottomDateDay = (new Date(bottomDate)).getDay()
 	const employeePayDay = (await Employee.findById(employeeId)).payDay
@@ -322,12 +412,16 @@ export const newEmployeePaymentFunction = async ({ amount, detail, employee, sup
 export const getEmployeePayments = async (req, res, next) => {
 
 	const employeeId = req.params.employeeId
+	console.log(req.params)
 	const { bottomDate, topDate } = getDayRange(new Date(req.params.date))
 	const bottomDateDay = (new Date(bottomDate)).getDay()
 
 	try {
 
 		const employeePayDay = (await Employee.findById(employeeId)).payDay
+
+		if(!employeePayDay) throw new Error("El empleado no tiene día de pago");
+
 		let weekDaysWorked = 0
 
 		if (bottomDateDay == employeePayDay) {
@@ -380,7 +474,7 @@ export const getEmployeePayments = async (req, res, next) => {
 
 	} catch (error) {
 
-		console.log(error)
+		next(error)
 	}
 }
 

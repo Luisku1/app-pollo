@@ -6,6 +6,13 @@ export const formatDate = (date) => {
 
 }
 
+export const formatInformationDate = (date) => {
+
+  const pivotDate = new Date(date)
+
+  return `${pivotDate.toLocaleDateString('es-mx', { weekday: 'long', year: 'numeric', month: '2-digit', day: '2-digit' })}`
+}
+
 export const today = (date) => {
 
   return formatDate(date) == formatDate((new Date())) ? true : false

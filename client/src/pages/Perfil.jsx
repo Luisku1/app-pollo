@@ -5,6 +5,15 @@ import { useEffect, useState } from 'react'
 import { weekDays } from '../helpers/Constants'
 import TarjetaCuenta from '../components/TarjetaCuenta'
 import ShowEmployeePayments from '../components/ShowEmployeePayments'
+import { useLoading } from '../hooks/loading'
+import { useSignOut } from '../hooks/Auth/useSignOut'
+import { useSupervisorReport } from '../hooks/Supervisors/useSupervisorReport'
+import { formatDate } from '../helpers/DatePickerFunctions'
+import { useRoles } from '../hooks/useRoles'
+import { stringToCurrency } from '../helpers/Functions'
+import ShowListButton from '../components/Buttons/ShowListButton'
+import { useSupervisorReports } from '../hooks/Supervisors/useSupervisorReports'
+import SupervisorReports from '../components/SupervisorReports'
 
 export default function Perfil() {
 
@@ -12,12 +21,14 @@ export default function Perfil() {
   const { employeeId } = useParams()
   const [employee, setEmployee] = useState(null)
   const [employeeDayInfo, setEmployeeDayInfo] = useState(null)
-  const [supervisorInfo, setSupervisorInfo] = useState({})
-  const [employeeReports, setEmployeeReports] = useState([])
+  const { currentSupervisorReport } = useSupervisorReport({ supervisorId: employeeId, date: formatDate(new Date()) })
+  const [employeeBranchReports, setEmployeeBranchReports] = useState([])
+  const { supervisorReports } = useSupervisorReports({ supervisorId: employeeId })
   const [fetchError, setFetchError] = useState(null)
   const [loading, setLoading] = useState(false)
-  const [managerRole, setManagerRole] = useState({})
-  const [access, setAccess] = useState(true)
+  const { roles } = useRoles()
+  const { isLoading } = useLoading(loading)
+  const { signOut } = useSignOut()
   const dispatch = useDispatch()
 
   const handleSignOut = async () => {
@@ -26,62 +37,19 @@ export default function Perfil() {
 
       dispatch(signOutStart())
 
-      const res = await fetch('/api/auth/sign-out')
-
-      const data = await res.json()
-
-      if (data.success === false) {
-
-        dispatch(signOutFailiure(data.message))
-        return
-      }
+      signOut()
 
       dispatch(signOutSuccess())
 
     } catch (error) {
 
-      dispatch(signOutFailiure(error.message))
+      dispatch(signOutFailiure())
     }
-
   }
 
   useEffect(() => {
 
-    const setManagerRoleFunction = (roles) => {
-
-      const managerRole = roles.find((elemento) => elemento.name == 'Gerente')
-      setManagerRole(managerRole)
-
-    }
-
-    const fetchRoles = async () => {
-
-      try {
-
-        const res = await fetch('/api/role/get')
-        const data = await res.json()
-
-        if (data.success === false) {
-          setFetchError(data.message)
-          return
-        }
-        await setManagerRoleFunction(data.roles)
-        setFetchError(null)
-
-      } catch (error) {
-
-        setFetchError(error.message)
-
-      }
-    }
-
-    fetchRoles()
-
-  }, [])
-
-  useEffect(() => {
-
-    setEmployeeReports([])
+    setEmployeeBranchReports([])
 
     const fetchEmployee = async () => {
 
@@ -136,7 +104,7 @@ export default function Perfil() {
 
       try {
 
-        const res = await fetch('/api/employee/get-employee-reports/' + employeeId)
+        const res = await fetch('/api/employee/get-employee-reports/' + employeeId + '/' + currentUser.role)
         const data = await res.json()
 
         if (data.success === false) {
@@ -145,7 +113,7 @@ export default function Perfil() {
           return
         }
 
-        setEmployeeReports(data.employeeReports)
+        setEmployeeBranchReports(data.employeeBranchReports)
         setFetchError(null)
 
       } catch (error) {
@@ -154,51 +122,12 @@ export default function Perfil() {
       }
     }
 
-    if ((managerRole && managerRole._id == currentUser.role) || (currentUser._id == employeeId)) {
-
-      setAccess(true)
-      fetchEmployee()
-      fetchEmployeeDayInformation()
-      fetchEmployeeReports()
-
-    } else {
-
-      setAccess(false)
-    }
-
-  }, [employeeId, currentUser, managerRole])
-
-  useEffect(() => {
-
-    const fetchSupervisorDayInfo = async () => {
-
-      try {
-
-        const res = await fetch('/api/report/get-supervisor-info/' + employeeId)
-        const data = await res.json()
-
-        if (data.success === false) {
-
-          setFetchError(data.message)
-          return
-        }
-        setSupervisorInfo(data.supervisorInfo)
-
-      } catch (error) {
-
-        setFetchError(error)
-      }
-    }
+    fetchEmployee()
+    fetchEmployeeDayInformation()
+    fetchEmployeeReports()
 
 
-    if (employee) {
-
-      if (employee.role.name == 'Supervisor' || employee.role.name == 'Gerente') {
-
-        fetchSupervisorDayInfo()
-      }
-    }
-  }, [employee, employeeId])
+  }, [employeeId, currentUser])
 
   useEffect(() => {
 
@@ -208,8 +137,6 @@ export default function Perfil() {
     }
   }, [employee])
 
-
-
   return (
 
     <main className="p-3 max-w-lg mx-auto">
@@ -217,26 +144,25 @@ export default function Perfil() {
       {error ? <p>{error}</p> : ''}
       {fetchError ? <p>{fetchError}</p> : ''}
 
-      {access ?
+      {!isLoading ?
 
         <div>
 
 
 
-          {employee ?
+          {employee && roles ?
 
             <div id='personal-info' className="my-4 bg-white p-4" key={employee._id}>
-
               <h1 className="text-3xl font-bold">{employee.name + ' ' + employee.lastName}</h1>
 
-              <div className='p-3'>
-
-                <div className='flex flex-row-reverse gap-2 items-center'>
-                  <ShowEmployeePayments employeeId={employee._id} employeeName={employee.name} date={(new Date()).toISOString()}></ShowEmployeePayments>
-                  <p className='text-center text-lg'>Pagos: </p>
+              {roles.managerRole._id == currentUser.role || currentUser._id == employee._id ?
+                <div className='p-3'>
+                  <div className='flex flex-row-reverse gap-2 items-center'>
+                    <ShowEmployeePayments date={(new Date()).toISOString()} employeeId={employee._id} employeeName={employee.name}></ShowEmployeePayments>
+                    <p className='text-center text-lg'>Pagos: </p>
+                  </div>
                 </div>
-              </div>
-
+                : ''}
               <div className="p-3">
                 <div className="flex gap-2">
                   <p className="text-lg">Balance: </p>
@@ -252,31 +178,31 @@ export default function Perfil() {
                 <p className="text-lg">Teléfono: {employee.phoneNumber ? employee.phoneNumber.replace(/(\d{2})(\d{4})(\d{4})/, '$1-$2-$3') : ''}</p>
               </div>
 
-              {(employee.role.name == 'Supervisor' || employee.role.name == 'Gerente') ?
-
+              {roles.sellerRole._id != employee.role._id ?
                 <div className=''>
-                  <h2 className='text-2xl font-semibold'>Supervisión</h2>
+                  {currentSupervisorReport ?
+                    <div>
+                      <h2 className='text-2xl font-semibold'>Supervisión</h2>
 
-                  <div className='p-3 text-lg'>
+                      <div className='p-3 text-lg'>
+                        <div className='flex gap-2'>
+                          <p>Efectivo y depósitos recogidos: </p>
+                          <p>{parseFloat(currentSupervisorReport.incomes).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>
+                        </div>
 
-                    <div className='flex gap-2'>
-                      <p>Efectivo y depósitos: </p>
-                      <p>{parseFloat(supervisorInfo.incomes).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>
+                        <div className='flex gap-2'>
+                          <p>Gastos: </p>
+                          <p>{stringToCurrency({ amount: parseFloat(currentSupervisorReport.outgoings) })}</p>
+                        </div>
+
+                        <div className='flex gap-2'>
+                          <p>Dinero a entregar: </p>
+                          <p>{parseFloat(currentSupervisorReport.incomes - currentSupervisorReport.outgoings).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>
+                        </div>
+                      </div>
                     </div>
-
-                    <div className='flex gap-2'>
-                      <p>Gastos: </p>
-                      <p>{parseFloat(supervisorInfo.outgoings).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>
-                    </div>
-
-                    <div className='flex gap-2'>
-                      <p>Efectivo Neto: </p>
-                      <p>{parseFloat(supervisorInfo.incomes - supervisorInfo.outgoings).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>
-                    </div>
-                  </div>
-
+                    : ''}
                 </div>
-
                 : ''}
 
               <div className='border bg-white shadow-lg p-3 mt-4'>
@@ -320,18 +246,31 @@ export default function Perfil() {
                   : ''
               }
 
-              {employeeReports && employeeReports.length > 0 ?
+              {employeeBranchReports && employeeBranchReports.length > 0 ?
 
-                <div className='mt-4'>
+                <div className='flex gap-4 mt-4 items-center'>
 
-                  <h3 className='text-2xl font-bold'>Cuentas</h3>
-
-                  <TarjetaCuenta reportArray={employeeReports} managerRole={managerRole} currentUser={currentUser} />
-
+                  <h3 className='text-2xl font-bold'>Cuentas en pollería</h3>
+                  <div>
+                    <ShowListButton ListComponent={<TarjetaCuenta reportArray={employeeBranchReports} managerRole={roles.managerRole} currentUser={currentUser} />}>
+                    </ShowListButton>
+                  </div>
                 </div>
                 : ''
               }
 
+              {supervisorReports && supervisorReports.length > 0 &&  currentUser._id == employeeId || roles.managerRole._id == currentUser.role?
+
+                <div className='flex gap-4 mt-4 items-center'>
+
+                  <h3 className='text-2xl font-bold'>Cuentas de supervisor</h3>
+                  <div>
+                    <ShowListButton ListComponent={<SupervisorReports supervisorReports={supervisorReports}/>}>
+                    </ShowListButton>
+                  </div>
+                </div>
+                : ''
+              }
             </div >
             : ''}
         </div>

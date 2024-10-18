@@ -5,6 +5,7 @@ export const useSupervisorReport = ({ supervisorId, date }) => {
 
   const [supervisorReport, setSupervisorReport] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
 
   const updateSupervisorReport = ({ updatedSupervisorReport }) => {
 
@@ -26,7 +27,7 @@ export const useSupervisorReport = ({ supervisorId, date }) => {
 
     }).catch((error) => {
 
-      console.log(error)
+      setError(error)
     })
 
     setLoading(false)
@@ -44,12 +45,12 @@ export const useSupervisorReport = ({ supervisorId, date }) => {
 
     }).catch((error) => {
 
-      console.log(error)
+      setError(error)
     })
 
     setLoading(false)
 
   }, [supervisorId, date])
 
-  return { supervisorReport, getSupervisorReport, updateSupervisorReport, loading }
+  return { supervisorReport, getSupervisorReport, updateSupervisorReport, loading, error }
 }

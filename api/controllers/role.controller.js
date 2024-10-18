@@ -3,30 +3,35 @@ import { errorHandler } from '../utils/error.js'
 
 export const newRole = async (req, res, next) => {
 
-    const name = req.body.name
+	const name = req.body.name
 
-    const newRole = new Role({ name })
+	const newRole = new Role({ name })
 
-    try {
+	try {
 
-        await newRole.save()
-        res.status(201).json('Role created successfully')
+		await newRole.save()
+		res.status(201).json('Role created successfully')
 
-    } catch (error) {
+	} catch (error) {
 
-        next(error)
-    }
+		next(error)
+	}
 }
 
 export const getRoles = async (req, res, next) => {
 
-    try {
+	try {
 
-        const roles = await Role.find({})
-        res.status(200).json({ roles })
+		const roles = await fetchRolesFromDB()
+		res.status(200).json({ roles })
 
-    } catch (error) {
+	} catch (error) {
 
-        return next(errorHandler(401, "Undefined error"))
-    }
+		next(errorHandler(500, error.message || "Error al obtener roles"))
+	}
+}
+
+export const fetchRolesFromDB = async () => {
+
+	return await Role.find({})
 }

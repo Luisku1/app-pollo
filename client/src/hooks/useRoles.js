@@ -13,7 +13,6 @@ export const useRoles = () => {
 
     getRoles().then((response) => {
 
-      console.log(response)
       setRoles(response)
 
     }).catch((error) =>  {

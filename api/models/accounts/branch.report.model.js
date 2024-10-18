@@ -95,6 +95,10 @@ const branchReportSchema = mongoose.Schema({
     type: Schema.Types.ObjectId, ref: 'Employee'
   },
 
+  sender: {
+    type: Schema.Types.ObjectId, ref: 'Employee'
+  },
+
   dateSent: {
     type: Date
   }
