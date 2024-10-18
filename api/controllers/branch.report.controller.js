@@ -401,10 +401,8 @@ export const fetchBranchReport = async ({ branchId, date, populate = false, sess
 
   } catch (error) {
 
-    console.log(error)
+    throw error
   }
-
-  return null
 }
 
 export const fetchBranchReportById = async ({ branchReportId, populate = false, session = null }) => {

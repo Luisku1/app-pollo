@@ -580,7 +580,7 @@ export default function Reporte() {
                           <p>{stringToCurrency({ amount: supervisorInfo.supervisor.deposits })}</p>
                         </button>
 
-                        <button className="m-auto border border-black border-opacity-20 shadow-lg rounded-3xl p-3 w-10/12" onClick={() => { extraOutgoingsIsOpenFunctionControl(supervisorInfo.supervisor.extraOutgoings.length, supervisorInfo.supervisor._id) }}>
+                        <button className="m-auto border border-black border-opacity-20 shadow-lg rounded-3xl p-3 w-10/12" onClick={() => { extraOutgoingsIsOpenFunctionControl(supervisorInfo.supervisor.extraOutgoingsArray.length, supervisorInfo.supervisor._id) }}>
                           <p className="text-lg">Gastos</p>
                           <p>{stringToCurrency({ amount: supervisorInfo.supervisor.extraOutgoings })}</p>
                         </button>
