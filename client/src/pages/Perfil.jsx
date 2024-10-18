@@ -13,7 +13,7 @@ import { useRoles } from '../hooks/useRoles'
 import ShowListButton from '../components/Buttons/ShowListButton'
 import { useSupervisorReports } from '../hooks/Supervisors/useSupervisorReports'
 import SupervisorReports from '../components/SupervisorReports'
-import SupervisorReport from '../components/SupervisorReport'
+import { stringToCurrency } from '../helpers/Functions'
 
 export default function Perfil() {
 
@@ -181,9 +181,15 @@ export default function Perfil() {
               {roles.sellerRole._id != employee.role._id ?
                 <div className=''>
                   {supervisorReport ?
-                    <div className='border border-black p-3'>
+                    <div className=''>
                       <p className='text-lg font-bold text-center'>Cuenta de supervisor actual</p>
-                      <SupervisorReport supervisorReport={supervisorReport} />
+                      <div key={supervisorReport._id} className="rounded-lg mt-4 border border-black shadow-md">
+                        <p className="p-2"><span className="font-bold">Dinero a entregar: </span>{stringToCurrency({ amount: supervisorReport.incomes - supervisorReport.extraOutgoings })}</p>
+                        <p className="p-2">
+                          <span className="font-bold">Dinero entregado: </span>{stringToCurrency({ amount: supervisorReport.moneyDelivered })}
+                        </p>
+                        <p className="p-2 font-bold">Balance: <span className={`${supervisorReport.balance < 0 ? 'text-red-700' : ''}`}>{stringToCurrency({ amount: supervisorReport.balance })}</span></p>
+                      </div>
                     </div>
                     : ''}
                 </div>
@@ -246,8 +252,8 @@ export default function Perfil() {
 
               {employeeId == currentUser._id ?
                 <div className='mt-8 grid grid-1'>
-                  <button className='border shadow-lg rounded-full p-3 flex-col-reverse justify-self-end'>
-                    <span onClick={handleSignOut} className='text-red-700 cursor-pointer font-semibold text-lg'>Cerrar Sesión</span>
+                  <button className='shadow-lg rounded-full p-3 flex-col-reverse justify-self-end border border-black bg-red-700'>
+                    <span onClick={handleSignOut} className='text-white cursor-pointer font-semibold text-lg'>Cerrar Sesión</span>
                   </button>
                   <span>{error ? ' Error al fetch' : ''}</span>
                 </div>

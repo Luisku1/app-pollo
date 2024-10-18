@@ -86,18 +86,17 @@ export default function ShowEmployeePayments({ employeeId, employeeName, date })
               <SectionHeader label={'Pagos a ' + employeeName} />
 
               <div id='header' className='grid grid-cols-12 items-center justify-around font-semibold mt-4'>
-                <p className='col-span-3 text-center'>Fecha</p>
-                <p className='col-span-2 text-center'>Detalle</p>
-                <p className='col-span-3 text-center'>Monto</p>
+                <p className='col-span-4 text-center'>Fecha</p>
+                <p className='col-span-4 text-center'>Detalle</p>
+                <p className='col-span-4 text-center'>Monto</p>
               </div>
 
               {employeePayments.employeePayments.map((employeePayment, index) => (
 
                 <div key={employeePayment._id} className='grid grid-cols-12 items-center border border-black border-opacity-30 mt-2 shadow-m rounded-lg'>
 
-                  <div id='list-element' className=' flex col-span-10 items-center justify-around pt-3 pb-3'>
+                  <div id='list-element' className=' flex col-span-12 items-center justify-around pt-3 pb-3'>
                     <div className='grid grid-cols-1 text-center text-xs w-4/12'>
-
                       <p>{(new Date(employeePayment.createdAt)).toLocaleDateString('es-Mx')}</p>
                       <p>{(new Date(employeePayment.createdAt).toLocaleTimeString())}</p>
                     </div>
