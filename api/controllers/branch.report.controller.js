@@ -368,8 +368,6 @@ export const getBranchReport = async (req, res, next) => {
 
 export const fetchBranchReport = async ({ branchId, date, populate = false, session = null }) => {
 
-  console.log(branchId)
-
   const { bottomDate, topDate } = getDayRange(new Date(date))
 
   try {
