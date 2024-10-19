@@ -4,7 +4,7 @@ import EmployeeDailyBalance from "../models/employees/employee.daily.balance.js"
 import Employee from "../models/employees/employee.model.js"
 import { errorHandler } from "../utils/error.js"
 import { getDayRange } from "../utils/formatDate.js"
-import { newExtraOutgoingFunction } from "./outgoing.controller.js"
+import { deleteExtraOutgoingFunction, newExtraOutgoingFunction } from "./outgoing.controller.js"
 import { deleteIncome, getIncomeTypeId, newBranchIncomeFunction } from "./income.controller.js"
 import EmployeePayment from "../models/employees/employee.payment.model.js"
 import ExtraOutgoing from "../models/accounts/outgoings/extra.outgoing.model.js"
@@ -521,7 +521,7 @@ export const deleteEmployeePaymentQuery = async (req, res, next) => {
 
 	try {
 
-		deletedExtraOutgoing = await ExtraOutgoing.findByIdAndDelete(extraOutgoingId)
+		deletedExtraOutgoing = await deleteExtraOutgoingFunction({extraOutgoingId})
 		if (!deletedExtraOutgoing) throw new Error("No se eliminó el gasto fuera de cuentas");
 
 		if (incomeId) {
@@ -947,7 +947,7 @@ export const updateSupervisorDailyBalance = async ({ record, date, employee, rec
 		employee: new Types.ObjectId(employee)
 	})
 
-	if (!dailyBalance) throw new Error("No se encontró el balance del empleado.");
+	if (!dailyBalance) throw new Error("No se encontró el balance del empleado.")
 
 	if (recordType == 'incomes') {
 
@@ -962,7 +962,7 @@ export const updateSupervisorDailyBalance = async ({ record, date, employee, rec
 		updatedDailyBalance = await EmployeeDailyBalance.findByIdAndUpdate(dailyBalance._id, { supervisorBalance: 0 })
 	}
 
-	if (!updatedDailyBalance) throw new Error("No se actualizó el balance del empleado");
+	if (!updatedDailyBalance) throw new Error("No se actualizó el balance del empleado")
 
 	return updatedDailyBalance
 }

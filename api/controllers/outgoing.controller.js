@@ -150,11 +150,28 @@ export const newExtraOutgoingQuery = async (req, res, next) => {
 
     if (extraOutgoing) {
 
-      const { bottomDate, topDate } = getDayRange(extraOutgoing.createdAt)
-      await addSupervisorReportExtraOutgoing({ extraOutgoing, day: { bottomDate, topDate } })
-
       res.status(201).json({ message: 'Se creó el nuevo gasto fuera de cuentas', extraOutgoing: extraOutgoing })
     }
+
+  } catch (error) {
+
+    next(error)
+  }
+}
+
+export const newExtraOutgoingFunction = async ({ amount, concept, company, employee, createdAt, partOfAPayment = false }) => {
+
+  let extraOutgoing = null
+
+  try {
+
+    extraOutgoing = new ExtraOutgoing({ amount, concept, company, employee, createdAt, partOfAPayment })
+    await extraOutgoing.save()
+
+    const { bottomDate, topDate } = getDayRange(extraOutgoing.createdAt)
+    await addSupervisorReportExtraOutgoing({ extraOutgoing, day: { bottomDate, topDate } })
+
+    return extraOutgoing || null
 
   } catch (error) {
 
@@ -163,16 +180,8 @@ export const newExtraOutgoingQuery = async (req, res, next) => {
       await ExtraOutgoing.findByIdAndDelete(extraOutgoing._id)
     }
 
-    next(error)
+    throw error
   }
-}
-
-export const newExtraOutgoingFunction = async ({ amount, concept, company, employee, createdAt, partOfAPayment = false }) => {
-
-  const extraOutgoing = new ExtraOutgoing({ amount, concept, company, employee, createdAt, partOfAPayment })
-  await extraOutgoing.save()
-
-  return extraOutgoing
 }
 
 export const getBranchOutgoingsRequest = async (req, res, next) => {
@@ -364,14 +373,34 @@ export const deleteExtraOutgoing = async (req, res, next) => {
 
   try {
 
+    deletedExtraOutgoing = await deleteExtraOutgoingFunction({extraOutgoingId})
+
+    if (deletedExtraOutgoing) {
+
+      res.status(200).json('Extra outgoing deleted successfully')
+    }
+
+  } catch (error) {
+
+    next(error)
+  }
+}
+
+export const deleteExtraOutgoingFunction = async ({extraOutgoingId}) => {
+
+  let deletedExtraOutgoing = null
+
+  try {
+
     deletedExtraOutgoing = await ExtraOutgoing.findByIdAndDelete(extraOutgoingId)
+
 
     if (deletedExtraOutgoing) {
 
       const { bottomDate, topDate } = getDayRange(deletedExtraOutgoing.createdAt)
       await deleteSupervisorExtraOutgoing({ extraOutgoing: deletedExtraOutgoing, day: { bottomDate, topDate } })
 
-      res.status(200).json('Extra outgoing deleted successfully')
+      return deletedExtraOutgoing || null
     }
 
   } catch (error) {
@@ -381,7 +410,7 @@ export const deleteExtraOutgoing = async (req, res, next) => {
       await ExtraOutgoing.create({ deletedExtraOutgoing })
     }
 
-    next(error)
+    throw error
   }
 }
 
