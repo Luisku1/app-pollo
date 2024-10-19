@@ -101,6 +101,10 @@ export const newCustomerIncomeQuery = async (req, res, next) => {
 
     const newIncome = await newCustomerIncomeFunction({ amount, company, customer, employee, type, createdAt })
 
+    const { bottomDate, topDate } = getDayRange(newIncome.createdAt)
+
+    await addSupervisorReportIncome({ income: newIncome, day: { bottomDate, topDate } })
+
     res.status(201).json({ message: 'New income created successfully', income: newIncome })
 
   } catch (error) {

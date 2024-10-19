@@ -11,7 +11,7 @@ export default function ShowListButton({ ListComponent }) {
   return (
     <div>
 
-      <div className="h-10 w-10 shadow-lg justify-self-end">
+      <div className="h-10 w-10 shadow-lg">
         <button className="w-full h-full" onClick={() => { setListIsOpen(true) }}><FaListAlt className="h-full w-full text-red-600" />
         </button>
       </div>

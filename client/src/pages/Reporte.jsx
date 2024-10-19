@@ -55,7 +55,7 @@ export default function Reporte() {
 
       return {
         reportedIncomes: newReportedIncomes,
-        missingIncomes: prev.missingIncomes + (reportedIncome - prevReportedIncome),
+        missingIncomes: prev.missingIncomes - (reportedIncome - prevReportedIncome),
         deposits: prev.deposits,
         extraOutgoings: prev.extraOutgoings,
         grossCashIncomes: prev.grossCashIncomes,
@@ -70,10 +70,19 @@ export default function Reporte() {
 
     const cashInfo = {
       label: 'Ingresos netos reportados',
-      value: generalInfo.reportedIncomes <= generalInfo.deposits ? 0 : generalInfo.reportedIncomes - generalInfo.deposits,
+      value: generalInfo.reportedIncomes <= generalInfo.deposits ? 0 : generalInfo.reportedIncomes <= generalInfo.netIncomes ? generalInfo.reportedIncomes - generalInfo.deposits : generalInfo.netIncomes - generalInfo.deposits,
       bgColor: '#4CAF50',
       borderColor: '#206e09',
       hoverBgColor: '#24d111'
+    }
+
+    const extraCash = {
+
+      label: 'Ingresos sobrantes',
+      value: generalInfo.reportedIncomes > generalInfo.netIncomes ? generalInfo.reportedIncomes - generalInfo.netIncomes : 0,
+      bgColor: '#FFF',
+      borderColor: '#000',
+      hoverBgColor: '#fff'
     }
 
     const depositsInfo = {
@@ -94,13 +103,13 @@ export default function Reporte() {
 
     const missingAmount = {
       label: 'Ingresos sin reportar',
-      value: generalInfo.missingIncomes,
+      value: generalInfo.missingIncomes < 0 ? 0 : generalInfo.missingIncomes,
       bgColor: '#a85959',
       borderColor: '#801313',
       hoverBgColor: '#ff0000'
     }
 
-    setPieChartInfo([cashInfo, depositsInfo, extraOutgoingsInfo, missingAmount])
+    setPieChartInfo([cashInfo, extraCash, depositsInfo, extraOutgoingsInfo, missingAmount])
 
   }, [supervisorsInfo, generalInfo])
 

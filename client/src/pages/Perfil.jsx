@@ -153,7 +153,7 @@ export default function Perfil() {
           {employee && roles ?
 
             <div id='personal-info' className="my-4 bg-white p-4" key={employee._id}>
-              <h1 className="text-3xl font-bold">{employee.name + ' ' + employee.lastName}</h1>
+              <h1 className="text-3xl font-bold text-center">{employee.name + ' ' + employee.lastName}</h1>
 
               {roles.managerRole._id == currentUser.role || currentUser._id == employee._id ?
                 <div className='p-3'>
@@ -226,10 +226,10 @@ export default function Perfil() {
 
               {employeeBranchReports && employeeBranchReports.length > 0 ?
 
-                <div className='flex gap-4 mt-4 items-center'>
+                <div className='flex gap-4 mt-4 items-center justify-self-start'>
 
                   <h3 className='text-2xl font-bold'>Cuentas en pollería</h3>
-                  <div>
+                  <div className=''>
                     <ShowListButton ListComponent={<TarjetaCuenta reportArray={employeeBranchReports} managerRole={roles.managerRole} currentUser={currentUser} />}>
                     </ShowListButton>
                   </div>
