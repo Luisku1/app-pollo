@@ -160,26 +160,26 @@ export const getEmployeeReports = async (req, res, next) => {
 			{
 				$project: {
 					_id: 1,
-                createdAt: 1,
-                initialStock: 1,
-                initialStockArray: 1,
-                finalStock: 1,
-                finalStockArray: 1,
-                inputs: 1,
-                inputsArray: 1,
-                providerInputs: 1,
-                providerInputsArray: 1,
-                outputs: 1,
-                outputsArray: 1,
-                outgoings: 1,
-                outgoingsArray: 1,
-                incomes: 1,
-                incomesArray: 1,
-                balance: 1,
-                branch: 1,
-                employee: 1,
-                assistant: 1,
-                reportData: 1
+					createdAt: 1,
+					initialStock: 1,
+					initialStockArray: 1,
+					finalStock: 1,
+					finalStockArray: 1,
+					inputs: 1,
+					inputsArray: 1,
+					providerInputs: 1,
+					providerInputsArray: 1,
+					outputs: 1,
+					outputsArray: 1,
+					outgoings: 1,
+					outgoingsArray: 1,
+					incomes: 1,
+					incomesArray: 1,
+					balance: 1,
+					branch: 1,
+					employee: 1,
+					assistant: 1,
+					reportData: 1
 				}
 
 			}
@@ -419,7 +419,7 @@ export const getEmployeePayments = async (req, res, next) => {
 
 		const employeePayDay = (await Employee.findById(employeeId)).payDay
 
-		if(!employeePayDay) throw new Error("El empleado no tiene día de pago");
+		if (!employeePayDay) throw new Error("El empleado no tiene día de pago");
 
 		let weekDaysWorked = 0
 
@@ -521,7 +521,7 @@ export const deleteEmployeePaymentQuery = async (req, res, next) => {
 
 	try {
 
-		deletedExtraOutgoing = await deleteExtraOutgoingFunction({extraOutgoingId})
+		deletedExtraOutgoing = await deleteExtraOutgoingFunction({ extraOutgoingId })
 		if (!deletedExtraOutgoing) throw new Error("No se eliminó el gasto fuera de cuentas");
 
 		if (incomeId) {
@@ -759,8 +759,7 @@ export const addSupervisorReportIncome = async ({ income, day }) => {
 
 			await SupervisorReport.findByIdAndUpdate(supervisorReport._id, { incomes: supervisorReport.incomes, incomesArray: supervisorReport.incomesArray, balance: supervisorReport.balance })
 		}
-
-		next(error)
+		throw error
 	}
 }
 
@@ -814,8 +813,7 @@ export const deleteSupervisorReportIncome = async ({ income, day }) => {
 
 			await SupervisorReport.findByIdAndUpdate(supervisorReport._id, { incomes: supervisorReport.incomes, incomesArray: supervisorReport.incomesArray, balance: supervisorReport.balance })
 		}
-
-		next(error)
+		throw error
 	}
 }
 
@@ -869,7 +867,7 @@ export const deleteSupervisorExtraOutgoing = async ({ extraOutgoing, day }) => {
 			await SupervisorReport.findByIdAndUpdate(supervisorReport._id, { incomesArray: supervisorReport.extraOutgoings, extraOutgoingsArray: supervisorReport.extraOutgoingsArray, balance: supervisorReport.balance })
 		}
 
-		next(error)
+		throw error
 	}
 }
 
@@ -890,7 +888,7 @@ export const addSupervisorReportExtraOutgoing = async ({ extraOutgoing, day }) =
 
 		if (!supervisorReport) {
 
-			supervisorReport = await SupervisorReport.create({ supervisor: extraOutgoing.employee })
+			supervisorReport = await SupervisorReport.create({ supervisor: extraOutgoing.employee, company: extraOutgoing.company })
 
 			if (!supervisorReport) throw new Error("No se pudo crear el reporte del supervisor");
 		}
@@ -899,6 +897,7 @@ export const addSupervisorReportExtraOutgoing = async ({ extraOutgoing, day }) =
 
 			$push: { extraOutgoingsArray: extraOutgoing._id },
 			$inc: { extraOutgoings: extraOutgoing.amount, balance: extraOutgoing.amount }
+
 		}, { new: true })
 
 		if (!updatedSupervisorReport) throw new Error("No se editó el reporte de supervisor");
@@ -927,7 +926,7 @@ export const addSupervisorReportExtraOutgoing = async ({ extraOutgoing, day }) =
 			await SupervisorReport.findByIdAndUpdate(supervisorReport._id, { incomes: supervisorReport.incomes, incomesArray: supervisorReport.incomesArray, balance: supervisorReport.balance })
 		}
 
-		next(error)
+		throw error
 	}
 }
 
