@@ -976,11 +976,16 @@ export const updateDailyBalancesBalance = async (branchReport, changedEmployee =
 		employee: new Types.ObjectId(branchReport.employee)
 	})
 
-	if (!dailyBalance) throw new Error("No se encontró el balance del empleado.");
+	if(!dailyBalance) {
 
-	const updatedDailyBalance = await EmployeeDailyBalance.findByIdAndUpdate(dailyBalance._id, { accountBalance: changedEmployee ? 0 : branchReport.balance })
+		dailyBalance = EmployeeDailyBalance.create({company: branchReport.company, employee: branchReport.employee, createdAt: branchReport.createdAt})
+	}
 
-	if (!updatedDailyBalance) throw new Error("No se actualizó el balance del empleado");
+	if (!dailyBalance) throw new Error("No se encontró el balance del empleado.")
+
+	const updatedDailyBalance = await EmployeeDailyBalance.findByIdAndUpdate(dailyBalance._id, { accountBalance: changedEmployee ? 0 : branchReport.balance }, {new: true})
+
+	if (!updatedDailyBalance) throw new Error("No se actualizó el balance del empleado")
 
 	return updatedDailyBalance
 }

@@ -6,6 +6,7 @@ import { updateReportStock } from "../utils/updateReport.js";
 import { createDefaultBranchReport, fetchBranchReport } from "./branch.report.controller.js";
 import { pricesAggregate } from "./price.controller.js";
 import { updateEmployeeDailyBalancesBalance } from "./employee.controller.js";
+import { Types } from "mongoose";
 
 export const createStock = async (req, res, next) => {
 
@@ -160,7 +161,7 @@ export const getInitialStockValue = async ({ branchId, date }) => {
   const dateMinusOne = new Date(date)
   dateMinusOne.setDate(dateMinusOne.getDate() - 1)
 
-  const { topDate} = getDayRange(date)
+  const { topDate } = getDayRange(date)
   const { bottomDate: yesterdayBottomDate, topDate: yesterdayTopDate } = getDayRange(dateMinusOne)
 
   const todayBranchReport = await fetchBranchReport({ branchId, date })
@@ -313,10 +314,11 @@ export const deleteStock = async (req, res, next) => {
   let updatedEmployeeDailyBalance = null
   let updatedBranchReport = null
   let updatedNextBranchReport = null
+  console.log(stockId)
 
   try {
 
-    deletedStock = await Stock.findByIdAndDelete(stockId)
+    deletedStock = await Stock.findByIdAndDelete(new Types.ObjectId(stockId))
 
     if (!deletedStock) throw new Error("No se logró crear el registro")
 
@@ -386,7 +388,7 @@ export const deleteStock = async (req, res, next) => {
 
     if (deletedStock) {
 
-      await Stock.create({ deletedStock })
+      await Stock.create(deletedStock)
     }
 
     if (!updatedEmployeeDailyBalance && updatedBranchReport && (branchReport.balance != updatedBranchReport.balance || branchReport.finalStockArray != updatedBranchReport.finalStockArray)) {
