@@ -522,7 +522,8 @@ export const deleteEmployeePaymentQuery = async (req, res, next) => {
 	try {
 
 		deletedExtraOutgoing = await deleteExtraOutgoingFunction({ extraOutgoingId })
-		if (!deletedExtraOutgoing) throw new Error("No se eliminó el gasto fuera de cuentas");
+
+		if (!deletedExtraOutgoing) throw new Error("No se eliminó el gasto fuera de cuentas")
 
 		if (incomeId) {
 
@@ -890,7 +891,7 @@ export const addSupervisorReportExtraOutgoing = async ({ extraOutgoing, day }) =
 
 			supervisorReport = await SupervisorReport.create({ supervisor: extraOutgoing.employee, company: extraOutgoing.company })
 
-			if (!supervisorReport) throw new Error("No se pudo crear el reporte del supervisor");
+			if (!supervisorReport) throw new Error("No se pudo crear el reporte del supervisor")
 		}
 
 		updatedSupervisorReport = await SupervisorReport.findByIdAndUpdate(supervisorReport._id, {
@@ -907,14 +908,14 @@ export const addSupervisorReportExtraOutgoing = async ({ extraOutgoing, day }) =
 			employee: new Types.ObjectId(extraOutgoing.employee)
 		})
 
-		if (!dailyBalance) throw new Error("No se encontró el balance del empleado.");
+		if (!dailyBalance) throw new Error("No se encontró el balance del empleado.")
 
 		updatedDailyBalance = await EmployeeDailyBalance.findByIdAndUpdate(dailyBalance._id, {
 
 			supervisorBalance: updatedSupervisorReport.balance
 		}, { new: true })
 
-		if (!updatedDailyBalance) throw new Error("No se editó el balance del supervisor");
+		if (!updatedDailyBalance) throw new Error("No se editó el balance del supervisor")
 
 	} catch (error) {
 

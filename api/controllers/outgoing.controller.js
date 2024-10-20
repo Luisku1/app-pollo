@@ -394,6 +394,7 @@ export const deleteExtraOutgoingFunction = async ({extraOutgoingId}) => {
 
     deletedExtraOutgoing = await ExtraOutgoing.findByIdAndDelete(extraOutgoingId)
 
+    console.log(deletedExtraOutgoing)
 
     if (deletedExtraOutgoing) {
 
@@ -409,6 +410,8 @@ export const deleteExtraOutgoingFunction = async ({extraOutgoingId}) => {
 
       await ExtraOutgoing.create({ deletedExtraOutgoing })
     }
+
+    console.log(error)
 
     throw error
   }
