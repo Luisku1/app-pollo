@@ -42,7 +42,7 @@ export default function TarjetaCuenta({ reportArray, managerRole, currentUser })
 
   return (
 
-    <div>
+    <div className="">
       {reports.map((reportData, index) => (
 
         <div key={reportData._id} className="bg-white p-5 mb-4 mt-4 rounded-3xl shadow-lg border" >

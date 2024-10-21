@@ -9,9 +9,9 @@ import { deleteIncome, getIncomeTypeId, newBranchIncomeFunction } from "./income
 import EmployeePayment from "../models/employees/employee.payment.model.js"
 import ExtraOutgoing from "../models/accounts/outgoings/extra.outgoing.model.js"
 import IncomeCollected from "../models/accounts/incomes/income.collected.model.js"
-import { fetchBranchReport, fetchBranchReportById } from "./branch.report.controller.js"
 import SupervisorReport from "../models/accounts/supervisor.report.model.js"
 import { fetchRolesFromDB } from "./role.controller.js"
+import EmployeeWeeklyBalance from "../models/employees/employee.weekly.balance.model.js"
 
 export const getEmployees = async (req, res, next) => {
 
@@ -248,6 +248,39 @@ export const getEmployeeDayInfo = async (req, res, next) => {
 	} catch (error) {
 
 	}
+}
+
+export const createEmployeeWeeklyBalance = async ({ employeeId, companyId }) => {
+
+
+
+	await EmployeeWeeklyBalance.create({previousWeekBalance: 0, employee: employeeId, company: companyId })
+
+	return
+}
+
+export const fetchEmployeeWeeklyBalance = async ({ employeeId, weekRange }) => {
+
+	try {
+
+		const { bottomDate, topDate } = weekRange
+
+		let weeklyBalance = await EmployeeWeeklyBalance.findOne({
+			createdAt: { $gte: bottomDate, $lt: topDate },
+			employee: employeeId
+		})
+
+		return weeklyBalance || null
+
+	} catch (error) {
+
+		throw new Error('No se obtuvo el balance semanal del empleado')
+	}
+}
+
+export const fetchEmployeeWeeklyBalanceById = ({ weeklyBalanceId }) => {
+
+	return EmployeeWeeklyBalance.findById(weeklyBalanceId)
 }
 
 export const deleteDuplicatedEmployeeDailyBalances = async (req, res, next) => {
@@ -976,14 +1009,14 @@ export const updateDailyBalancesBalance = async (branchReport, changedEmployee =
 		employee: new Types.ObjectId(branchReport.employee)
 	})
 
-	if(!dailyBalance) {
+	if (!dailyBalance) {
 
-		dailyBalance = EmployeeDailyBalance.create({company: branchReport.company, employee: branchReport.employee, createdAt: branchReport.createdAt})
+		dailyBalance = EmployeeDailyBalance.create({ company: branchReport.company, employee: branchReport.employee, createdAt: branchReport.createdAt })
 	}
 
 	if (!dailyBalance) throw new Error("No se encontró el balance del empleado.")
 
-	const updatedDailyBalance = await EmployeeDailyBalance.findByIdAndUpdate(dailyBalance._id, { accountBalance: changedEmployee ? 0 : branchReport.balance }, {new: true})
+	const updatedDailyBalance = await EmployeeDailyBalance.findByIdAndUpdate(dailyBalance._id, { accountBalance: changedEmployee ? 0 : branchReport.balance }, { new: true })
 
 	if (!updatedDailyBalance) throw new Error("No se actualizó el balance del empleado")
 

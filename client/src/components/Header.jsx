@@ -5,45 +5,16 @@ import { useEffect, useRef, useState } from 'react'
 import DropdownItem from './DropdownItem'
 import { MdOutlineMenu } from "react-icons/md";
 import '../assets/dropdown.css'
+import { useRoles } from '../hooks/useRoles'
 
 export default function Header() {
 
-  const [error, setError] = useState(null)
-  const [roles, setRoles] = useState([])
   const { currentUser, company } = useSelector((state) => state.user)
   const [open, setOpen] = useState(false);
+  const { roles } = useRoles()
   let menuRef = useRef();
-  let supervisorRole
-  let managerRole
 
   useEffect(() => {
-
-    const fetchRoles = async () => {
-
-      try {
-
-        const res = await fetch('/api/role/get')
-        const data = await res.json()
-
-        if (data.success === false) {
-          setError(data.message)
-          return
-        }
-
-        setRoles(data.roles)
-        setError(null)
-
-      } catch (error) {
-
-        setError(error.message)
-
-      }
-    }
-
-    if (currentUser) {
-
-      fetchRoles()
-    }
 
     let handler = (e) => {
       if (!menuRef.current.contains(e.target)) {
@@ -59,14 +30,6 @@ export default function Header() {
     }
 
   }, [currentUser, company])
-
-
-
-  if (roles && error == null) {
-    supervisorRole = roles.find((role) => (role.name == "Supervisor"))
-    managerRole = roles.find((role) => (role.name == "Gerente"))
-
-  }
 
   return (
 
@@ -89,7 +52,7 @@ export default function Header() {
 
             <ul>
 
-              {currentUser ? (
+              {currentUser && roles ? (
 
                 <div>
 
@@ -97,7 +60,7 @@ export default function Header() {
 
                   <DropdownItem text={"Crear formato"} link={'/formato'} onClick={() => { setOpen(!open) }} />
 
-                  {supervisorRole && managerRole && (currentUser.role == supervisorRole._id || currentUser.role == managerRole._id) ? (
+                  {(currentUser.role == roles.supervisorRole._id || currentUser.role == roles.managerRole._id) ? (
 
                     <div>
 
@@ -117,7 +80,7 @@ export default function Header() {
                   )}
 
 
-                  {managerRole && (currentUser.role == managerRole._id) ? (
+                  {(currentUser.role == roles.managerRole._id) ? (
 
                     <div>
 

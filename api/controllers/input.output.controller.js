@@ -255,12 +255,12 @@ const groupAndSumFunction = (items) => {
 
       if (result[employee._id].productsMovement[product]) {
 
-        result[employee._id].productsMovement[product].weight += weight / element.branch.p
+        result[employee._id].productsMovement[product].weight += weight / (element.branch?.p || 0)
 
       } else {
 
         result[employee._id].productsMovement[product] = {
-          weight: weight / element.branch.p,
+          weight: weight / (element.branch?.p || 0),
           name: productName
         }
       }
@@ -268,7 +268,7 @@ const groupAndSumFunction = (items) => {
     } else {
 
       result[employee._id].productsMovement[product] = {
-        weight: weight / element.branch.p,
+        weight: weight / (element.branch?.p || 0),
         name: productName
       }
     }

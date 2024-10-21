@@ -23,7 +23,7 @@ export const today = (date) => {
 
 export const getDayRange = (date) => {
 
-  const formatedDate = formatDate((new Date(date)).toUTCString() ?? (new Date()).toUTCString())
+  const formatedDate = formatDate(new Date(date || new Date()).toUTCString());
   const principalDate = new Date(formatedDate)
   const datePlusOne = new Date(principalDate.toISOString())
   datePlusOne.setDate(datePlusOne.getDate() + 1)
@@ -35,6 +35,34 @@ export const getDayRange = (date) => {
   }
 
   return { bottomDate: principalDate.toISOString(), topDate: datePlusOne.toISOString() }
+}
+
+export const getWeekRange = (date, startWeekDay, shiftWeeks) => {
+
+  const formatedDate = formatDate(new Date(date || new Date()).toUTCString());
+  const principalDate = new Date(formatedDate)
+  const currentDayOfWeek = principalDate.getDay()
+
+  const difference = (currentDayOfWeek >= startWeekDay)
+    ? currentDayOfWeek - startWeekDay
+    : 7 - (startWeekDay - currentDayOfWeek)
+
+  principalDate.setDate(principalDate.getDate() - difference)
+  principalDate.setDate(principalDate.getDate() + shiftWeeks * 7)
+
+  const topDate = new Date(principalDate.toISOString())
+  topDate.setDate(topDate.getDate() + 7)
+
+  if (principalDate.getUTCHours() == 0) {
+
+    principalDate.setHours(6, 0, 0)
+    topDate.setHours(6, 0, 0)
+  }
+
+  return {
+    bottomDate: principalDate.toISOString(),
+    topDate: topDate.toISOString()
+  }
 }
 
 export const getMonthRange = (date) => {

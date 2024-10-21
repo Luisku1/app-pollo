@@ -38,11 +38,7 @@ const afternoonStockSchema = new Mongoose.Schema({
     required: true
   },
 
-  createdAt: {
-    type: Date,
-    required: true
-  }
-})
+}, { timestamps: true })
 
 const AfternoonStock = mongoose.model('AfternoonReport', afternoonStockSchema)
 

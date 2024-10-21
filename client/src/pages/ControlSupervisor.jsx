@@ -509,6 +509,7 @@ export default function ControlSupervisor() {
   useEffect(() => {
 
     document.title = 'Supervisión (' + new Date(stringDatePickerValue).toLocaleDateString() + ')'
+
   }, [stringDatePickerValue])
 
   if (isLoading) {
@@ -601,7 +602,7 @@ export default function ControlSupervisor() {
           </div>
           <div className='border bg-white p-3 mt-4'>
             <div className='grid grid-cols-3 items-center'>
-              <SectionHeader label={'Pago a Empleados'} />
+              <SectionHeader label={'Pago a Empleados y Rentas'} />
               <div className="h-10 w-10 shadow-lg justify-self-end">
                 <button className="w-full h-full" onClick={() => { setEmployeePaymentsIsOpen(true) }}><FaListAlt className="h-full w-full text-red-600" />
                 </button>
