@@ -7,8 +7,6 @@ export default function EmployeeMultiSelect({ employees, setSelectedEmployees })
 
   const [selectedOptions, setSelectedOptions] = useState([])
 
-  console.log(employees)
-
   const handleSelectChange = (options) => {
 
     setSelectedOptions(options)
