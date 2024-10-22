@@ -23,7 +23,15 @@ export const useAddEmployeeRest = () => {
 
     }).catch((error) => {
 
-      ToastDanger('No se registró el descanso')
+      if(error.message.includes('duplicate')) {
+
+        ToastDanger('Este empleado ya tiene un descanso para esa fecha')
+
+      } else {
+
+        ToastDanger('No se pudo registrar el descanso, inténtalo de nuevo.')
+      }
+
       splicePendingEmployeeRest({ index: 0 })
       console.log(error)
     })

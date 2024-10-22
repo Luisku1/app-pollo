@@ -6,21 +6,24 @@ import { useSelector } from 'react-redux'
 import SectionHeader from './SectionHeader'
 import ShowListButton from './Buttons/ShowListButton'
 import RestsList from './RestsList'
-import { formatDate } from '../helpers/DatePickerFunctions'
+import { formatDate } from '../../../api/utils/formatDate'
 
 export default function CreateRest({ employees, pushPendingEmployeeRest, splicePendingEmployeeRest, updateLastEmployeeRestId, pendingEmployeesRests }) {
 
   const [datePickerValue, setDatePickerValue] = useState('')
+  const [replacements, setReplacements] = useState(employees)
   const { company } = useSelector((state) => state.user)
   const [selectedEmployee, setSelectedEmployee] = useState(null)
   const [selectedReplacement, setSelectedReplacement] = useState(null)
   const { addEmployeeRest } = useAddEmployeeRest()
 
-  console.log(pendingEmployeesRests)
-
   const handleEmployeeSelectChange = (selectedEmployee) => {
 
     setSelectedEmployee(selectedEmployee)
+    setReplacements((prev) => prev.map((replacement) =>
+
+      replacement.value == selectedEmployee.value ? { ...replacement, isDisabled: true } : { ...replacement, isDisabled: false }
+    ))
   }
 
   const handleReplacementSelectChange = (selectedReplacement) => {
@@ -59,8 +62,12 @@ export default function CreateRest({ employees, pushPendingEmployeeRest, spliceP
       employee: selectedEmployee,
       replacement: selectedReplacement,
       companyId: company._id,
-      date: datePickerValue
+      date: datePickerValue + 'T06:00:00.000Z'
     }
+
+    setSelectedEmployee(null)
+    setSelectedReplacement(null)
+    setReplacements(employees)
 
     addEmployeeRest({ employeeRest, pushPendingEmployeeRest, splicePendingEmployeeRest, updateLastEmployeeRestId })
   }
@@ -78,7 +85,7 @@ export default function CreateRest({ employees, pushPendingEmployeeRest, spliceP
       <form action="submit" className='' onSubmit={handleSubmit}>
         <EmployeesSelect employees={employees} selectedEmployee={selectedEmployee} defaultLabel={'¿Quién descansa?'} handleEmployeeSelectChange={handleEmployeeSelectChange}></EmployeesSelect>
         <input className="p-3 border border-black rounded-lg w-full" type="date" name="date" id="date" onChange={changeDatePickerValue} defaultValue={datePickerValue} />
-        <EmployeesSelect employees={employees} selectedEmployee={selectedReplacement} defaultLabel={'Remplazos'} handleEmployeeSelectChange={handleReplacementSelectChange}></EmployeesSelect>
+        <EmployeesSelect employees={replacements} selectedEmployee={selectedReplacement} defaultLabel={'Remplazos'} handleEmployeeSelectChange={handleReplacementSelectChange}></EmployeesSelect>
         <button type='submit' id='create-rest' disabled className='bg-slate-500 text-white p-3 rounded-lg w-full mt-8'>Agregar</button>
       </form >
     </div>

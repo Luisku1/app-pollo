@@ -12,7 +12,7 @@ export const addEmployeeRestFetch = async ({ employeeId, replacementId, date, co
 
   if (data.success === false) {
 
-    throw new Error(data.success);
+    throw new Error(data.message);
   }
 
   return { newEmployeeRest: data.newEmployeeRest }

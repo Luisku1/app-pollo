@@ -68,12 +68,10 @@ export default function PieChart({ chartInfo }) {
           },
         },
       },
-      onClick: (event, elements) => {
-        if (elements.length > 0) {
-          const { index } = elements[0];
-          console.log(elements, index)
-        }
-      },
+
+    },
+    onClick: (event, elements) => {
+      console.log(event, elements[0].index)
     },
   };
 

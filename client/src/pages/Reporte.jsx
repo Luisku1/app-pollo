@@ -11,6 +11,7 @@ import { useBranchReports } from "../hooks/BranchReports.js/useBranchReports";
 import { stringToCurrency } from "../helpers/Functions";
 import PieChart from "../components/Charts/PieChart";
 import RegistrarDineroReportado from "../components/RegistrarDineroReportado";
+import EmployeeMultiSelect from "../components/Select/EmployeeMultiSelect";
 
 export default function Reporte() {
 
@@ -32,8 +33,8 @@ export default function Reporte() {
   const [showStock, setShowStock] = useState(false)
   const [showOutgoings, setShowOutgoings] = useState(false)
   const [showEarnings, setShowEarnings] = useState(false)
-  const [filteredIds, setFilteredIds] = useState([])
-  const [all, setAll] = useState(true)
+  const [selectedSupervisors, setSelectedSupervisors] = useState([])
+  const [employees, setEmployees] = useState([])
   const {
 
     branchReports,
@@ -113,6 +114,17 @@ export default function Reporte() {
 
   }, [supervisorsInfo, generalInfo])
 
+  useEffect(() => {
+
+    if (!supervisorsInfo || !supervisorsInfo.length > 0) return
+
+    setEmployees(supervisorsInfo.map((supervisorInfo) => ({
+      value: supervisorInfo.supervisor._id,
+      label: `${supervisorInfo.supervisor.name} ${supervisorInfo.supervisor.lastName}`
+    })))
+
+  }, [supervisorsInfo])
+
   const changeDatePickerValue = (e) => {
 
     stringDatePickerValue = (e.target.value + 'T06:00:00.000Z')
@@ -125,56 +137,6 @@ export default function Reporte() {
     navigate('/reporte/' + date)
 
   }
-
-  const selectAllSupervisorsCheckbox = () => {
-
-    setAll((prev) => !prev)
-
-    filteredIds.forEach((supervisorId) => {
-
-      const checkbox = document.getElementById(supervisorId)
-
-      checkbox.checked = !checkbox.checked
-    })
-  }
-
-  const supervisorFilter = (e) => {
-
-    const allCheckbox = document.getElementById('all')
-
-    if (!e.target.checked) {
-
-      if (filteredIds.length == 1) {
-
-        allCheckbox.checked = !allCheckbox.checked
-        setAll(prev => !prev)
-        setFilteredIds([])
-
-      } else {
-
-        const newFilteredIdsArray = filteredIds.map((supervisorId) => {
-
-          if (supervisorId != e.target.value) {
-
-            return supervisorId
-          }
-        })
-
-        setFilteredIds(newFilteredIdsArray)
-
-      }
-    } else {
-
-      setFilteredIds([e.target.value, ...filteredIds])
-      allCheckbox.checked = false
-      setAll(false)
-    }
-  }
-
-  useEffect(() => {
-
-
-  }, [filteredIds, supervisorsInfo])
 
   const handleShowCardsButton = () => {
 
@@ -324,8 +286,7 @@ export default function Reporte() {
   useEffect(() => {
 
     setSupervisorsInfo([])
-    setAll(true)
-    setFilteredIds([])
+    setSelectedSupervisors([])
 
     const fetchSupervisorsInfo = async () => {
 
@@ -536,25 +497,18 @@ export default function Reporte() {
             <PieChart chartInfo={pieChartInfo}></PieChart>
           </div>
 
-          <div className="my-1 border border-slate-500 border-spacing-4 p-2 m-auto sticky top-0 bg-white z-5">
-            <div id="filterBySupervisor" className="flex flex-wrap gap-1 justify-evenly">
-              <div className="grid grid-cols-1 ">
-                <p className="font-bold text-red-500">{'Todos'}</p>
-                <input type="checkbox" name={'all'} id={'all'} value={'all'} defaultChecked={true} onChange={selectAllSupervisorsCheckbox} />
-              </div>
-              {supervisorsInfo.map((supervisorReport) => (
-                <div key={supervisorReport.supervisor._id} className="grid grid-cols-1">
-                  <p className="font-bold">{supervisorReport.supervisor.name}</p>
-                  <input type="checkbox" name={supervisorReport.supervisor._id} id={supervisorReport.supervisor._id} value={supervisorReport.supervisor._id} onChange={supervisorFilter} />
-                </div>
-              ))}
+          <div className="my-1 border border-slate-500 border-spacing-4 p-2 sticky top-0 bg-white z-5">
+            <div id="filterBySupervisor" className="w-full">
+
+              <EmployeeMultiSelect employees={employees} setSelectedEmployees={setSelectedSupervisors}></EmployeeMultiSelect>
+
             </div>
           </div>
 
-          {filteredIds && supervisorsInfo.map((supervisorInfo) => (
+          {selectedSupervisors && supervisorsInfo.map((supervisorInfo) => (
             <div key={supervisorInfo.supervisor._id}>
 
-              {filteredIds && filteredIds.includes(supervisorInfo.supervisor._id) || all ?
+              {selectedSupervisors.some(supervisor => supervisor.value === supervisorInfo.supervisor._id) || selectedSupervisors.length == 0 ?
                 <div className='border bg-white p-3 mt-4'>
 
                   {error ? <p>{error}</p> : ''}
