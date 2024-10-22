@@ -1,6 +1,6 @@
 import mongoose, { Schema } from 'mongoose'
 
-const restsSchema = mongoose.Schema({
+const employeeRestSchema = mongoose.Schema({
 
   date: {
     type: Date,
@@ -21,3 +21,9 @@ const restsSchema = mongoose.Schema({
     required: true
   }
 }, {timestamps: {createdAt: true, updatedAt: false}})
+
+employeeRestSchema.index({date: 1}, {unique: true})
+
+const EmployeeRest = mongoose.model('EmployeeRest', employeeRestSchema)
+
+export default EmployeeRest

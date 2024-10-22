@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { FaListAlt } from 'react-icons/fa'
 import Modal from '../Modals/Modal'
 
-export default function ShowListButton({ ListComponent }) {
+export default function ShowListButton({ ListComponent, listTitle }) {
 
   const [listIsOpen, setListIsOpen] = useState(false)
 
@@ -21,7 +21,7 @@ export default function ShowListButton({ ListComponent }) {
       </div>
 
       {listIsOpen && (
-        <Modal  content={ListComponent} closeModal={changeListIsOpen}></Modal>
+        <Modal title={listTitle} content={ListComponent} closeModal={changeListIsOpen}></Modal>
       )}
 
     </div>

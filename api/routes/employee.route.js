@@ -1,5 +1,5 @@
 import express from 'express'
-import { getEmployees, deleteEmployee, getEmployeesDailyBalances, updateEmployeeDailyBalance, getEmployee, getEmployeeReports, getEmployeeDayInfo, getEmployeePayroll, deleteDuplicatedEmployeeDailyBalances, newEmployeePaymentQuery, getEmployeesPaymentsQuery, deleteEmployeePaymentQuery, getEmployeePayments, getAllEmployees, changeEmployeeActiveStatus, addSupervisorMoneyDelivery } from '../controllers/employee.controller.js'
+import { getEmployees, deleteEmployee, getEmployeesDailyBalances, updateEmployeeDailyBalance, getEmployee, getEmployeeReports, getEmployeeDayInfo, getEmployeePayroll, deleteDuplicatedEmployeeDailyBalances, newEmployeePaymentQuery, getEmployeesPaymentsQuery, deleteEmployeePaymentQuery, getEmployeePayments, getAllEmployees, changeEmployeeActiveStatus, addSupervisorMoneyDelivery, createEmployeeRest, getPendingEmployeesRests, deleteEmployeeRest } from '../controllers/employee.controller.js'
 import { getSupervisorReport, getSupervisorReports } from '../controllers/supervisor.report.js'
 
 const router = express.Router()
@@ -7,6 +7,8 @@ const router = express.Router()
 router.put('/update-daily-balance/:balanceId', updateEmployeeDailyBalance)
 router.put('/change-active-status/:employeeId', changeEmployeeActiveStatus)
 router.put('/supervisor-report/add-money-delivered', addSupervisorMoneyDelivery)
+router.post('/create-employee-rest', createEmployeeRest)
+router.get('/get-pending-employees-rests/:companyId', getPendingEmployeesRests)
 router.post('/employee-payment/create', newEmployeePaymentQuery)
 router.get('/get-supervisor-report/:supervisorId/:date', getSupervisorReport)
 router.get('/get-supervisor-reports/:supervisorId', getSupervisorReports)
@@ -22,6 +24,7 @@ router.get('/get-employee-reports/:employeeId/:consultantRole?', getEmployeeRepo
 router.get('/get-employees-daily-balances/:companyId/:date', getEmployeesDailyBalances)
 router.delete('/delete/:employeeId', deleteEmployee)
 router.delete('/delete-employee-payment/:paymentId/:incomeId/:extraOutgoingId', deleteEmployeePaymentQuery)
+router.delete('/delete-employee-rest/:employeeRestId', deleteEmployeeRest)
 // router.post('/update/:id', verifyToken, update)
 
 export default router

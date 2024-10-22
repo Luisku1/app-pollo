@@ -12,6 +12,7 @@ import IncomeCollected from "../models/accounts/incomes/income.collected.model.j
 import SupervisorReport from "../models/accounts/supervisor.report.model.js"
 import { fetchRolesFromDB } from "./role.controller.js"
 import EmployeeWeeklyBalance from "../models/employees/employee.weekly.balance.model.js"
+import EmployeeRest from "../models/employees/employee.rest.model.js"
 
 export const getEmployees = async (req, res, next) => {
 
@@ -254,7 +255,7 @@ export const createEmployeeWeeklyBalance = async ({ employeeId, companyId }) => 
 
 
 
-	await EmployeeWeeklyBalance.create({previousWeekBalance: 0, employee: employeeId, company: companyId })
+	await EmployeeWeeklyBalance.create({ previousWeekBalance: 0, employee: employeeId, company: companyId })
 
 	return
 }
@@ -292,6 +293,77 @@ export const deleteDuplicatedEmployeeDailyBalances = async (req, res, next) => {
 
 
 		res.status(200).json(inserted)
+	} catch (error) {
+
+		next(error)
+	}
+}
+
+export const createEmployeeRest = async (req, res, next) => {
+
+	const { employeeId, replacementId, companyId, date } = req.body
+	const { bottomDate } = getDayRange(date)
+
+	try {
+
+		const newEmployeeRest = await EmployeeRest.create({ date: bottomDate, replacement: replacementId, employee: employeeId, company: companyId })
+
+		if (!newEmployeeRest) next(errorHandler(404, 'No se pudo crear el descanso'))
+
+		res.status(200).json({ newEmployeeRest })
+
+	} catch (error) {
+
+		next(error)
+	}
+}
+
+export const getPendingEmployeesRests = async (req, res, next) => {
+
+	const companyId = req.params.companyId
+	const { bottomDate } = getDayRange(new Date())
+
+
+	try {
+
+		const pendingEmployeesRests = await EmployeeRest.find({
+
+			date: { $gte: bottomDate },
+			company: companyId
+		}).populate({ path: 'replacement', select: 'name lastName' }).populate({ path: 'employee', select: 'name lastName' })
+
+		if (pendingEmployeesRests.length < 1) {
+
+			next(errorHandler(404, 'No se encontraron descansos pendientes'))
+
+		} else {
+
+			res.status(200).json({ pendingEmployeesRests })
+		}
+
+	} catch (error) {
+
+		next(error)
+	}
+}
+
+export const deleteEmployeeRest = async (req, res, next) => {
+
+	const employeeRestId = req.params.employeeRestId
+
+	try {
+
+		const deletedEmployeeRest = await EmployeeRest.findByIdAndDelete(employeeRestId)
+
+		if(!deletedEmployeeRest) {
+
+			throw new Error("No se encontró el descanso");
+
+		} else {
+
+			res.status(200).json({deletedEmployeeRest})
+		}
+
 	} catch (error) {
 
 		next(error)

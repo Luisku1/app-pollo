@@ -33,6 +33,8 @@ import { useDayExtraOutgoings } from '../hooks/ExtraOutgoings.js/useDayExtraOutg
 import { useDeleteExtraOutgoing } from '../hooks/ExtraOutgoings.js/useDeleteExtraOutgoing';
 import { useAddExtraOutgoing } from '../hooks/ExtraOutgoings.js/useAddExtraOutgoing';
 import { stringToCurrency } from '../helpers/Functions';
+import CreateRest from '../components/CreateRest';
+import { usePendingEmployeesRests } from '../hooks/Employees/useEmployesRests';
 
 export default function ControlSupervisor() {
 
@@ -75,6 +77,7 @@ export default function ControlSupervisor() {
   const [selectedIncomeGroup, setSelectedIncomeGroup] = useState('')
   const navigate = useNavigate()
   const [branchAndCustomerSelectOptions, setBranchAndCustomerSelectOptions] = useState([])
+  const {pendingRests, pushPendingEmployeeRest, splicePendingEmployeeRest, updateLastEmployeeRestId} = usePendingEmployeesRests({companyId: company._id})
   const ref = useRef(null)
 
   useEffect(() => {
@@ -656,6 +659,8 @@ export default function ControlSupervisor() {
           </div>
 
         </div>
+
+        <CreateRest updateLastEmployeeRestId={updateLastEmployeeRestId} employees={employees} pushPendingEmployeeRest={pushPendingEmployeeRest} splicePendingEmployeeRest={splicePendingEmployeeRest} pendingEmployeesRests={pendingRests}></CreateRest>
 
         {
           incomesIsOpen && incomes && incomes.length > 0 ?

@@ -46,6 +46,6 @@ const employeeWeeklyBalanceSchema = mongoose.Schema({
 
 employeeWeeklyBalanceSchema.index({ weekStart: -1, employee: 1 }, { unique: true })
 
-const EmployeeWeeklyBalance = mongoose.model('EmployeeWeeiklyBalance', employeeWeeklyBalanceSchema)
+const EmployeeWeeklyBalance = mongoose.model('EmployeeWeeklyBalance', employeeWeeklyBalanceSchema)
 
 export default EmployeeWeeklyBalance
