@@ -25,6 +25,7 @@ export default function EmployeeMultiSelect({ employees, setSelectedEmployees })
         name="employees"
         options={employees}
         onChange={handleSelectChange}
+        placeholder={'Selección de empleados'}
         className="basic-multi-select"
         classNamePrefix="select"
       />

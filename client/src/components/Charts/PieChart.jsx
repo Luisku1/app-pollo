@@ -55,6 +55,8 @@ export default function PieChart({ chartInfo }) {
   }, [chartInfo])
 
   const options = {
+    mantainAspectRatio: false,
+    responsive: true,
     plugins: {
       legend: {
         position: 'top', // Posición de la leyenda

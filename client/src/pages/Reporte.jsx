@@ -480,7 +480,7 @@ export default function Reporte() {
         : ''}
 
       {supervisorsInfo && showTable && supervisorsInfo.length > 0 ?
-        <div className="absolute max-w-lg overflow-hidden items-center">
+        <div className="items-center">
 
           <div className="my-2 mx-auto">
 
@@ -497,145 +497,136 @@ export default function Reporte() {
             <PieChart chartInfo={pieChartInfo}></PieChart>
           </div>
 
-          <div className="my-1 border border-slate-500 border-spacing-4 p-2 sticky top-0 bg-white z-5">
-            <div id="filterBySupervisor" className="w-full">
 
+          <div className="my-1 border border-slate-500 border-spacing-4 p-2 mt-0 sticky top-0 bg-white z-5 rounded-lg mb-5">
+            <div id="filterBySupervisor" className="w-full">
+              <p className="text-lg font-semibold p-3 text-red-600">Filtro de Supervisores</p>
               <EmployeeMultiSelect employees={employees} setSelectedEmployees={setSelectedSupervisors}></EmployeeMultiSelect>
 
             </div>
-          </div>
 
-          {selectedSupervisors && supervisorsInfo.map((supervisorInfo) => (
-            <div key={supervisorInfo.supervisor._id}>
+            {selectedSupervisors && supervisorsInfo.map((supervisorInfo) => (
+              <div key={supervisorInfo.supervisor._id}>
 
-              {selectedSupervisors.some(supervisor => supervisor.value === supervisorInfo.supervisor._id) || selectedSupervisors.length == 0 ?
-                <div className='border bg-white p-3 mt-4'>
+                {selectedSupervisors.some(supervisor => supervisor.value === supervisorInfo.supervisor._id) || selectedSupervisors.length == 0 ?
+                  <div className='border bg-white p-3 mt-4 rounded-lg border-black'>
 
-                  {error ? <p>{error}</p> : ''}
-                  <div className="">
+                    {error ? <p>{error}</p> : ''}
+                    <div className="">
 
-                    <div className="grid grid-cols-1">
+                      <div className="grid grid-cols-1">
 
-                      <p className="text-2xl font-semibold my-4 col-span-1">{supervisorInfo.supervisor.name + ' ' + supervisorInfo.supervisor.lastName}</p>
+                        <p className="text-2xl font-semibold my-4 col-span-1">{supervisorInfo.supervisor.name + ' ' + supervisorInfo.supervisor.lastName}</p>
 
-                      <div className="">
-                        <p className="text-lg"><span className="font-bold">Depósitos: </span>{stringToCurrency({ amount: supervisorInfo.supervisor.deposits })}</p>
-                        <p className="text-lg"><span className="font-bold">Efectivo: </span>{stringToCurrency({ amount: supervisorInfo.supervisor.cash })}</p>
-                        <p className="text-lg"><span className="font-bold">Gastos: </span>{stringToCurrency({ amount: supervisorInfo.supervisor.extraOutgoings })}</p>
-                        <p className="text-lg"><span className="font-bold">Efectivo neto: </span>{(supervisorInfo.supervisor.cash - supervisorInfo.supervisor.extraOutgoings).toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
-                        <RegistrarDineroReportado updateReportedIncomes={updateReportedIncomes} supervisorId={supervisorInfo.supervisor._id} date={stringDatePickerValue}></RegistrarDineroReportado>
-                      </div>
-                    </div>
-
-                    <div className="p-3 mt-6">
-
-                      <div className="flex justify-between p-3 gap-4">
-
-                        <button className="m-auto border border-black border-opacity-20 shadow-lg rounded-3xl w-10/12 p-3" onClick={() => { cashIsOpenFunctionControl(supervisorInfo.supervisor.cashArray.length, supervisorInfo.supervisor._id) }}>
-
-                          <p className="text-lg">Efectivo bruto</p>
-                          <p>{stringToCurrency({ amount: supervisorInfo.supervisor.cash })}</p>
-                        </button>
-
-                        <button className="m-auto border border-black border-opacity-20 shadow-lg rounded-3xl w-10/12 p-3" onClick={() => { depositsIsOpenFunctionControl(supervisorInfo.supervisor.depositsArray.length, supervisorInfo.supervisor._id) }}>
-
-                          <p className="text-lg">Depósitos</p>
-                          <p>{stringToCurrency({ amount: supervisorInfo.supervisor.deposits })}</p>
-                        </button>
-
-                        <button className="m-auto border border-black border-opacity-20 shadow-lg rounded-3xl p-3 w-10/12" onClick={() => { extraOutgoingsIsOpenFunctionControl(supervisorInfo.supervisor.extraOutgoingsArray.length, supervisorInfo.supervisor._id) }}>
-                          <p className="text-lg">Gastos</p>
-                          <p>{stringToCurrency({ amount: supervisorInfo.supervisor.extraOutgoings })}</p>
-                        </button>
+                        <div className="">
+                          <p className="text-lg"><span className="font-bold">Depósitos: </span>{stringToCurrency({ amount: supervisorInfo.supervisor.deposits })}</p>
+                          <p className="text-lg"><span className="font-bold">Efectivo: </span>{stringToCurrency({ amount: supervisorInfo.supervisor.cash })}</p>
+                          <p className="text-lg"><span className="font-bold">Gastos: </span>{stringToCurrency({ amount: supervisorInfo.supervisor.extraOutgoings })}</p>
+                          <p className="text-lg"><span className="font-bold">Efectivo neto: </span>{(supervisorInfo.supervisor.cash - supervisorInfo.supervisor.extraOutgoings).toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
+                          <RegistrarDineroReportado updateReportedIncomes={updateReportedIncomes} supervisorId={supervisorInfo.supervisor._id} date={stringDatePickerValue}></RegistrarDineroReportado>
+                        </div>
                       </div>
 
-                      {supervisorInfo.supervisor && extraOutgoingsIsOpen && supervisorInfo.supervisor._id == selectedSupervisor ?
+                      <div className="p-3 mt-6">
 
-                        <div className={extraOutgoingsIsOpen ? '' : 'hidden'}>
+                        <div className="flex justify-between p-3 gap-4">
 
-                          {supervisorInfo.supervisor && supervisorInfo.supervisor.extraOutgoingsArray && supervisorInfo.supervisor.extraOutgoingsArray.length > 0 ?
-                            <div id='header' className='grid grid-cols-12 items-center justify-around font-semibold mt-4'>
-                              <p className='p-3 rounded-lg col-span-5 text-center bg-white'>Concepto</p>
-                              <p className='p-3 rounded-lg col-span-5 text-center bg-white'>Monto</p>
-                            </div>
-                            : ''}
+                          <button className="m-auto border border-black border-opacity-20 shadow-lg rounded-3xl w-10/12 p-3" onClick={() => { cashIsOpenFunctionControl(supervisorInfo.supervisor.cashArray.length, supervisorInfo.supervisor._id) }}>
 
-                          {supervisorInfo.supervisor && supervisorInfo.supervisor.extraOutgoingsArray && supervisorInfo.supervisor.extraOutgoingsArray.length > 0 && supervisorInfo.supervisor.extraOutgoingsArray.map((extraOutgoing) => (
+                            <p className="text-lg">Efectivo bruto</p>
+                            <p>{stringToCurrency({ amount: supervisorInfo.supervisor.cash })}</p>
+                          </button>
 
-                            <div key={extraOutgoing._id} >
-                              <div className={'py-3 grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
+                          <button className="m-auto border border-black border-opacity-20 shadow-lg rounded-3xl w-10/12 p-3" onClick={() => { depositsIsOpenFunctionControl(supervisorInfo.supervisor.depositsArray.length, supervisorInfo.supervisor._id) }}>
 
-                                <div id='list-element' className='flex col-span-10 items-center justify-around'>
-                                  <p className='text-center text-sm w-5/12'>{extraOutgoing.concept}</p>
-                                  <p className='text-center text-sm w-5/12'>{extraOutgoing.amount.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
-                                </div>
+                            <p className="text-lg">Depósitos</p>
+                            <p>{stringToCurrency({ amount: supervisorInfo.supervisor.deposits })}</p>
+                          </button>
 
-                                <div>
-                                  <button id={extraOutgoing._id} disabled={loading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
-                                    <span>
-                                      <FaCheck className='text-green-700 m-auto' />
-                                    </span>
-                                  </button>
+                          <button className="m-auto border border-black border-opacity-20 shadow-lg rounded-3xl p-3 w-10/12" onClick={() => { extraOutgoingsIsOpenFunctionControl(supervisorInfo.supervisor.extraOutgoingsArray.length, supervisorInfo.supervisor._id) }}>
+                            <p className="text-lg">Gastos</p>
+                            <p>{stringToCurrency({ amount: supervisorInfo.supervisor.extraOutgoings })}</p>
+                          </button>
+                        </div>
+
+                        {supervisorInfo.supervisor && extraOutgoingsIsOpen && supervisorInfo.supervisor._id == selectedSupervisor ?
+
+                          <div className={extraOutgoingsIsOpen ? '' : 'hidden'}>
+
+                            {supervisorInfo.supervisor && supervisorInfo.supervisor.extraOutgoingsArray && supervisorInfo.supervisor.extraOutgoingsArray.length > 0 ?
+                              <div id='header' className='grid grid-cols-12 items-center justify-around font-semibold mt-4'>
+                                <p className='p-3 rounded-lg col-span-5 text-center bg-white'>Concepto</p>
+                                <p className='p-3 rounded-lg col-span-5 text-center bg-white'>Monto</p>
+                              </div>
+                              : ''}
+
+                            {supervisorInfo.supervisor && supervisorInfo.supervisor.extraOutgoingsArray && supervisorInfo.supervisor.extraOutgoingsArray.length > 0 && supervisorInfo.supervisor.extraOutgoingsArray.map((extraOutgoing) => (
+
+                              <div key={extraOutgoing._id} >
+                                <div className={'py-3 grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
+
+                                  <div id='list-element' className='flex col-span-10 items-center justify-around'>
+                                    <p className='text-center text-sm w-5/12'>{extraOutgoing.concept}</p>
+                                    <p className='text-center text-sm w-5/12'>{extraOutgoing.amount.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
+                                  </div>
+
+                                  <div>
+                                    <button id={extraOutgoing._id} disabled={loading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
+                                      <span>
+                                        <FaCheck className='text-green-700 m-auto' />
+                                      </span>
+                                    </button>
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          ))}
-                        </div>
-                        : ''}
-
-
-                      {supervisorInfo.supervisor && (cashIsOpen || depositsIsOpen) && supervisorInfo.supervisor._id == selectedSupervisor ?
-
-                        <div className={(cashIsOpen || depositsIsOpen) ? '' : 'hidden'} >
-
-
-                          <div id='header' className='grid grid-cols-12 items-center justify-around font-semibold mt-4'>
-                            <p className='col-span-4 text-center'>Sucursal</p>
-                            <p className='col-span-4 text-center'>Tipo</p>
-                            <p className='col-span-4 text-center'>Monto</p>
+                            ))}
                           </div>
+                          : ''}
 
-                          {supervisorInfo.supervisor && cashIsOpen && supervisorInfo.supervisor.cashArray.length > 0 && supervisorInfo.supervisor.cashArray.map((income) => (
 
-                            <div key={income._id} className='grid grid-cols-12 items-center border border-black border-opacity-30 mt-2 shadow-m rounded-lg'>
+                        {supervisorInfo.supervisor && (cashIsOpen || depositsIsOpen) && supervisorInfo.supervisor._id == selectedSupervisor ?
 
-                              <div id='list-element' className=' flex col-span-12 items-center justify-around pt-3 pb-3'>
-                                <p className='text-center text-xs w-4/12'>{income.branch.branch ? income.branch.branch : income.branch}</p>
-                                <p className='text-center text-xs w-4/12'>{income.type.name ? income.type.name : income.type}</p>
-                                <p className='text-center text-xs w-4/12'>{income.amount.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
-                              </div>
+                          <div className={(cashIsOpen || depositsIsOpen) ? '' : 'hidden'} >
 
+
+                            <div id='header' className='grid grid-cols-12 items-center justify-around font-semibold mt-4'>
+                              <p className='col-span-4 text-center'>Sucursal</p>
+                              <p className='col-span-4 text-center'>Tipo</p>
+                              <p className='col-span-4 text-center'>Monto</p>
                             </div>
 
-                          ))}
-
-                          {supervisorInfo.supervisor && depositsIsOpen && supervisorInfo.supervisor.depositsArray.length > 0 && supervisorInfo.supervisor.depositsArray.map((income) => (
-
-                            <div key={income._id} className='grid grid-cols-12 items-center border border-black border-opacity-30 mt-2 shadow-m rounded-lg'>
-
-                              <div id='list-element' className=' flex col-span-12 items-center justify-around pt-3 pb-3'>
-                                <p className='text-center text-xs w-4/12'>{income.branch.branch ? income.branch.branch : income.branch}</p>
-                                <p className='text-center text-xs w-4/12'>{income.type.name ? income.type.name : income.type}</p>
-                                <p className='text-center text-xs w-4/12'>{income.amount.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
+                            {supervisorInfo.supervisor && cashIsOpen && supervisorInfo.supervisor.cashArray.length > 0 && supervisorInfo.supervisor.cashArray.map((income) => (
+                              <div key={income._id} className='grid grid-cols-12 items-center border border-black border-opacity-30 mt-2 shadow-m rounded-lg'>
+                                <div id='list-element' className=' flex col-span-12 items-center justify-around pt-3 pb-3'>
+                                  <p className='text-center text-xs w-4/12'>{income.branch.branch ? income.branch.branch : income.branch}</p>
+                                  <p className='text-center text-xs w-4/12'>{income.type.name ? income.type.name : income.type}</p>
+                                  <p className='text-center text-xs w-4/12'>{income.amount.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
+                                </div>
                               </div>
+                            ))}
+                            {supervisorInfo.supervisor && depositsIsOpen && supervisorInfo.supervisor.depositsArray.length > 0 && supervisorInfo.supervisor.depositsArray.map((income) => (
+                              <div key={income._id} className='grid grid-cols-12 items-center border border-black border-opacity-30 mt-2 shadow-m rounded-lg'>
+                                <div id='list-element' className=' flex col-span-12 items-center justify-around pt-3 pb-3'>
+                                  <p className='text-center text-xs w-4/12'>{income.branch.branch ? income.branch.branch : income.branch}</p>
+                                  <p className='text-center text-xs w-4/12'>{income.type.name ? income.type.name : income.type}</p>
+                                  <p className='text-center text-xs w-4/12'>{income.amount.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                          : ''}
+                      </div>
 
-                            </div>
-
-                          ))}
-
-
-                        </div>
-                        : ''}
                     </div>
-
                   </div>
-                </div>
-                : ''}
-            </div>
+                  : ''}
+              </div>
 
-          ))
-          }
+            ))
+            }
 
+
+          </div>
         </div>
 
         : ''}
