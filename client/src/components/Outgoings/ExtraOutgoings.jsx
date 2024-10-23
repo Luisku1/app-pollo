@@ -15,7 +15,7 @@ import { useDayExtraOutgoings } from '../../hooks/ExtraOutgoings.js/useDayExtraO
 import { customSelectStyles } from '../../helpers/Constants'
 import { MdCancel } from 'react-icons/md'
 
-export default function ExtraOutgoings({ currentUser, companyId, date, pushIncome, roles, employees, branches, spliceIncomeById}) {
+export default function ExtraOutgoings({ currentUser, companyId, date, pushIncome, roles, employees, branches, spliceIncomeById }) {
 
   const [extraOutgoingFormData, setExtraOutgoingFormData] = useState({})
   const [outgoingsIsOpen, setOutgoingsIsOpen] = useState(false)
@@ -55,13 +55,11 @@ export default function ExtraOutgoings({ currentUser, companyId, date, pushIncom
     }
   }
 
-  useEffect(paymentsButtonControl, [selectedEmployee, selectedBranch])
-
   const addExtraOutgoingSubmit = async (e) => {
 
     const conceptInput = document.getElementById('extraOutgoingConcept')
     const amountInput = document.getElementById('extraOutgoingAmount')
-    const date = today(date) ? new Date().toISOString() : new Date(date).toISOString()
+    const createdAt = today(date) ? new Date().toISOString() : new Date(date).toISOString()
 
     e.preventDefault()
 
@@ -74,9 +72,9 @@ export default function ExtraOutgoings({ currentUser, companyId, date, pushIncom
         concept,
         employee: currentUser,
         company: companyId,
-        createdAt: date
+        createdAt
       }
-
+      console.log(extraOutgoing)
       addExtraOutgoing({ extraOutgoing, pushExtraOutgoing, updateLastExtraOutgoingId })
 
       conceptInput.value = ''
@@ -172,6 +170,8 @@ export default function ExtraOutgoings({ currentUser, companyId, date, pushIncom
     }
   }
 
+
+  useEffect(paymentsButtonControl, [selectedEmployee, selectedBranch])
 
 
   return (
@@ -288,7 +288,7 @@ export default function ExtraOutgoings({ currentUser, companyId, date, pushIncom
                     {((currentUser._id == extraOutgoing.employee._id || currentUser.role == roles.managerRole._id) && !extraOutgoing.partOfAPayment) ?
 
                       <div>
-                        <button id={extraOutgoing._id} onClick={() => { setIsOpen(!isOpen), setButtonId(extraOutgoing._id) }}className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
+                        <button id={extraOutgoing._id} onClick={() => { setIsOpen(!isOpen), setButtonId(extraOutgoing._id) }} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
                           <span>
                             <FaTrash className='text-red-700 m-auto' />
                           </span>
@@ -359,7 +359,7 @@ export default function ExtraOutgoings({ currentUser, companyId, date, pushIncom
                     {currentUser._id == employeePayment.supervisor._id || currentUser.role == roles.managerRole._id ?
 
                       <div>
-                        <button id={employeePayment._id} onClick={() => { setIsOpen(!isOpen), setButtonId(employeePayment._id) }}className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
+                        <button id={employeePayment._id} onClick={() => { setIsOpen(!isOpen), setButtonId(employeePayment._id) }} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
                           <span>
                             <FaTrash className='text-red-700 m-auto' />
                           </span>

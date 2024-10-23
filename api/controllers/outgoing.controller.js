@@ -143,10 +143,10 @@ export const newExtraOutgoingQuery = async (req, res, next) => {
 
   const { amount, concept, company, employee, createdAt } = req.body
   let extraOutgoing = null
-
   try {
 
     extraOutgoing = await newExtraOutgoingFunction({ amount, concept, company, employee, createdAt })
+
 
     if (extraOutgoing) {
 
