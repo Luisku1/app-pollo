@@ -7,7 +7,7 @@ export const useDeleteIncome = () => {
 
   const [loading, setLoading] = useState(false)
 
-  const deleteIncome = ({ income, spliceIncome, index }) => {
+  const deleteIncome = (income, index, spliceIncome) => {
 
     setLoading(true)
 
