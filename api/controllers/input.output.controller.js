@@ -104,7 +104,7 @@ export const newCustomerInput = async (req, res, next) => {
 
     // await recalculateCustomerNote
 
-    res.status(200).json({ input: newInput })
+    res.status(200).json({ input: newCustomerInput })
 
   } catch (error) {
 
@@ -415,7 +415,7 @@ export const getInputs = async (req, res, next) => {
       {
         company: companyId
       }]
-    }).populate({ path: 'employee', select: 'name lastName' }).populate({ path: 'product', select: 'name' }).populate({ path: 'branch', select: 'branch position' })
+    }).populate({ path: 'employee', select: 'name lastName' }).populate({ path: 'product', select: 'name' }).populate({ path: 'branch', select: 'branch position' }).populate({path: 'customer', select: 'name lastName'})
 
     if (inputs.length == 0) {
 
@@ -515,7 +515,7 @@ export const deleteInput = async (req, res, next) => {
 
     deletedInput = await Input.findByIdAndDelete(inputId)
 
-    if (!deletedInput) throw new Error("No se eliminó el efectivo");
+    if (!deletedInput) throw new Error("No se eliminó la entrada");
 
     branchReport = await fetchBranchReport({ branchId: deletedInput.branch, date: deletedInput.createdAt })
 

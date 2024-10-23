@@ -39,7 +39,7 @@ export default function ListaEntradas({ inputs, spliceInput, changeInputsIsOpenV
                 </div>
                 <div className={"grid grid-cols-2 p-3 shadow-lg rounded-lg mb-4 gap-2 items-center"}>
                   <p className="font-bold text-lg">{'Destino:'}</p>
-                  <p>{input.branch?.branch ?? input.branch?.label}</p>
+                  <p>{(input.branch?.branch ?? input.branch?.label) ?? (input.customer?.label ?? input.customer?.name)}</p>
                 </div>
                 <div className={"grid grid-cols-2 p-3 shadow-lg rounded-lg mb-4 gap-2 items-center"}>
                   <p className="font-bold text-lg">{'Encargado:'}</p>
