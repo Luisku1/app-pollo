@@ -12,7 +12,7 @@ import { useBranches } from '../hooks/Branches/useBranches';
 import { useCustomers } from '../hooks/Customers/useCustomers';
 import Loading from '../components/Loading';
 import { useRoles } from '../hooks/useRoles';
-import Employees from '../components/SupervisorSections/employees';
+import Employees from '../components/SupervisorSections/Employees';
 import IncomesAndOutgoings from '../components/SupervisorSections/IncomesAndOutgoings';
 import InputsAndOutputs from '../components/SupervisorSections/InputsAndOutputs';
 import SectionsMenu from '../components/SectionsMenu';
@@ -77,7 +77,6 @@ export default function ControlSupervisor() {
 
       <main id='supervisor-main' className={"p-3 max-w-lg mx-auto"} >
         <div>
-
           {roles && roles.managerRole && roles.managerRole._id == currentUser.role ?
 
             <FechaDePagina changeDay={changeDay} stringDatePickerValue={stringDatePickerValue} changeDatePickerValue={changeDatePickerValue} ></FechaDePagina>
