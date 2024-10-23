@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { FaTrash } from "react-icons/fa"
 import { Link } from "react-router-dom"
+import { today } from "../helpers/DatePickerFunctions"
 
 /* eslint-disable react/prop-types */
 export default function TarjetaCuenta({ reportArray, managerRole, currentUser }) {
@@ -50,7 +51,7 @@ export default function TarjetaCuenta({ reportArray, managerRole, currentUser })
           <div className='flex justify-around'>
             <div className='flex justify-center my-auto gap-1'>
               <p className="text-center text-lg font-semibold text-red-500 mb-3">Fecha:</p>
-              <p className="text-center text-lg font-semibold text-black mb-3">{(new Date(reportData.createdAt)).toLocaleDateString()}</p>
+              <p className="text-center text-lg font-semibold text-black mb-3">{`${today(reportData.createdAt) ? 'hoy ' : ''}` + (new Date(reportData.createdAt)).toLocaleDateString()}</p>
             </div>
             <div className='flex my-auto gap-1'>
               <p className="text-center text-lg font-semibold text-red-500 mb-3">{reportData.branch.branch}</p>
@@ -62,7 +63,7 @@ export default function TarjetaCuenta({ reportArray, managerRole, currentUser })
             <Link className='col-span-10' to={'/formato/' + reportData.createdAt + '/' + reportData.branch._id}>
 
               <div className=''>
-                {index != 0 || (new Date()).toISOString().slice(0, 10) >= new Date(reportData.createdAt).toISOString().slice(0, 10) ?
+                {!today(reportData.createdAt) || managerRole._id == currentUser.role || reportData.balance < 0 ?
                   <div className="flex gap-2">
                     <p className="text-lg">Faltante: </p>
                     <p className={reportData.balance < 0 ? 'text-red-700 font-bold' : '' + 'text-lg font-bold'}>{reportData.balance > 0 ? managerRole._id == currentUser.role ? parseFloat(reportData.balance).toLocaleString("es-MX", { style: 'currency', currency: 'MXN' }) : '$0.00' : parseFloat(reportData.balance).toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>

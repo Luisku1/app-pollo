@@ -94,7 +94,7 @@ export const newBranchInputAndUpdateBranchReport = async ({ weight, comment, pie
 
 export const newCustomerInput = async (req, res, next) => {
 
-  const { weight, price, pieces, amount, employee, comment, product, company, branchCustomer: customer, createdAt } = req.body
+  const { weight, price, pieces, amount, employee, comment, product, company, customer, createdAt } = req.body
 
   try {
 

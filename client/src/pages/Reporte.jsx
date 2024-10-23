@@ -516,7 +516,7 @@ export default function Reporte() {
 
                       <div className="grid grid-cols-1">
 
-                        <p className="text-2xl font-semibold my-4 col-span-1">{supervisorInfo.supervisor.name + ' ' + supervisorInfo.supervisor.lastName}</p>
+                        <button className="text-2xl font-semibold my-4 col-span-1 w-fit p-2 shadow-sm rounded-sm text-slate-700"  onClick={() => {navigate(`/perfil/${supervisorInfo.supervisor._id}`)}}>{supervisorInfo.supervisor.name + ' ' + supervisorInfo.supervisor.lastName}</button>
 
                         <div className="">
                           <p className="text-lg"><span className="font-bold">Depósitos: </span>{stringToCurrency({ amount: supervisorInfo.supervisor.deposits })}</p>

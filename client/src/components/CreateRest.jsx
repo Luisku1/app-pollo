@@ -17,12 +17,19 @@ export default function CreateRest({ employees, pushPendingEmployeeRest, spliceP
   const [selectedReplacement, setSelectedReplacement] = useState(null)
   const { addEmployeeRest } = useAddEmployeeRest()
 
+  useEffect(() => {
+
+    setReplacements(employees)
+
+  }, [employees])
+
   const handleEmployeeSelectChange = (selectedEmployee) => {
 
     setSelectedEmployee(selectedEmployee)
+
     setReplacements((prev) => prev.map((replacement) =>
 
-      replacement.value == selectedEmployee.value ? { ...replacement, isDisabled: true } : { ...replacement, isDisabled: false }
+      (selectedEmployee && replacement.value == selectedEmployee.value) ? { ...replacement, isDisabled: true } : { ...replacement, isDisabled: false }
     ))
   }
 
@@ -41,7 +48,7 @@ export default function CreateRest({ employees, pushPendingEmployeeRest, spliceP
 
     let button = null
 
-    if (!selectedEmployee || !selectedReplacement || !datePickerValue || formatDate(datePickerValue) < formatDate(new Date)) {
+    if (!selectedEmployee || !datePickerValue || formatDate(datePickerValue) < formatDate(new Date)) {
 
       button = document.getElementById('create-rest')
       button.disabled = true
@@ -52,7 +59,7 @@ export default function CreateRest({ employees, pushPendingEmployeeRest, spliceP
       button.disabled = false
     }
 
-  }, [selectedEmployee, selectedReplacement, datePickerValue])
+  }, [selectedEmployee, datePickerValue])
 
   const handleSubmit = (e) => {
 

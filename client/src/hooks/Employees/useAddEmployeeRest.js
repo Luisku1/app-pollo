@@ -1,6 +1,7 @@
 import { useState } from "react"
-import { ToastDanger } from "../../helpers/toastify"
+import { ToastDanger, ToastInfo, ToastSuccess } from "../../helpers/toastify"
 import { addEmployeeRestFetch } from "../../services/employees/addEmployeeRest"
+import { formatInformationDate } from "../../helpers/DatePickerFunctions"
 
 export const useAddEmployeeRest = () => {
 
@@ -10,11 +11,18 @@ export const useAddEmployeeRest = () => {
 
     setLoading(true)
 
+    ToastSuccess(`Se registró el descanso para ${employeeRest.employee.label} el día ${formatInformationDate(employeeRest.date)}`)
+
+    if(employeeRest.replacement == null) {
+
+      ToastInfo('El descanso no tiene a un reemplazo')
+    }
+
     pushPendingEmployeeRest({ employeeRest })
 
     addEmployeeRestFetch({
       employeeId: employeeRest.employee.value,
-      replacementId: employeeRest.replacement.value,
+      replacementId: employeeRest.replacement?.value,
       date: employeeRest.date,
       companyId: employeeRest.companyId
     }).then((response) => {

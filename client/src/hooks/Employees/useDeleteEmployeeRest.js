@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { deleteEmployeeRestFetch } from "../../services/employees/deleteEmployeeRest"
-import { ToastDanger } from "../../helpers/toastify"
+import { ToastDanger, ToastSuccess } from "../../helpers/toastify"
 
 export const useDeleteEmployeeRest = () => {
 
@@ -10,6 +10,7 @@ export const useDeleteEmployeeRest = () => {
 
     setLoading(true)
 
+    ToastSuccess('Descanso cancelado')
     spliceEmployeeRest({ index })
 
     deleteEmployeeRestFetch({ employeeRestId: employeeRest._id }).catch((error) => {

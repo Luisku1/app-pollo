@@ -19,8 +19,8 @@ export default function RestsList({ rests, spliceEmployeeRest }) {
       {rests && rests.length != 0 && rests.map((rest, index) => (
 
         <div key={rest._id} className='grid grid-cols-12 mt-4 border border-black rounded-lg shadow-lg p-3 gap-2'>
-          <p className='col-span-3'>{rest.employee.name ? `${rest.employee.name} ${rest.employee.lastName}` : rest.employee.label}</p>
-          <p className='col-span-3'>{rest.replacement.name ? `${rest.replacement.name} ${rest.replacement.lastName}` : rest.replacement.label}</p>
+          <p className='col-span-3'>{rest.employee?.name ? `${rest.employee.name} ${rest.employee.lastName}` : rest.employee.label}</p>
+          <p className='col-span-3'>{(rest.replacement?.name ? `${rest.replacement.name} ${rest.replacement.lastName}` : rest.replacement?.label) || 'Sin remplazo'}</p>
           <p className='col-span-3'>{`${formatInformationDate(rest.date)}`}</p>
 
           <div>

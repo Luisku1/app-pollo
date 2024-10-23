@@ -5,6 +5,7 @@ import { MdCancel } from 'react-icons/md'
 import SectionHeader from '../../SectionHeader'
 import { FaTrash } from 'react-icons/fa'
 import { useDeleteInput } from '../../../hooks/Inputs/useDeleteInput'
+import { formatDateAndTime } from '../../../helpers/DatePickerFunctions'
 
 export default function ListaEntradas({ inputs, spliceInput, changeInputsIsOpenValue, inputsIsOpen, roles }) {
 
@@ -34,7 +35,7 @@ export default function ListaEntradas({ inputs, spliceInput, changeInputsIsOpenV
               <div className='h-5/6 overflow-y-scroll'>
                 <div className={"grid grid-cols-2 p-3 shadow-lg rounded-lg mb-4 gap-2 items-center"}>
                   <p className="font-bold text-lg">{'Hora:'}</p>
-                  <p>{(new Date(input.createdAt)).toLocaleTimeString('es-Mx')}</p>
+                  <p>{formatDateAndTime(input.createdAt)}</p>
                 </div>
                 <div className={"grid grid-cols-2 p-3 shadow-lg rounded-lg mb-4 gap-2 items-center"}>
                   <p className="font-bold text-lg">{'Destino:'}</p>
