@@ -2,10 +2,11 @@ import Price from '../models/accounts/price.model.js'
 import Branch from '../models/branch.model.js'
 import Product from '../models/product.model.js'
 import { errorHandler } from '../utils/error.js'
+import { getDayRange } from '../utils/formatDate.js'
 
 export const newProduct = async (req, res, next) => {
 
-	const {name, company} = req.body
+	const { name, company, price } = req.body
 	const createdAt = new Date().toISOString()
 	let bulkOps = []
 
@@ -15,26 +16,25 @@ export const newProduct = async (req, res, next) => {
 
 		await newProduct.save()
 
-		const branches = await Branch.find({company}, ['_id'])
+		const branches = await Branch.find({ company }, ['_id'])
+
+		const {bottomDate} = getDayRange(new Date())
 
 		branches.forEach(branch => {
 
-			const createdAt = new Date().toISOString()
-
 			let document = {
-				price: 0,
+				price: price || 0,
 				product: newProduct._id,
 				branch: branch._id,
 				company: company,
-				createdAt: createdAt
+				createdAt: bottomDate
 			}
-
-			bulkOps.push({ "insertOne": {"document": document}})
+			bulkOps.push({ "insertOne": { "document": document } })
 		});
 
 		Price.bulkWrite(bulkOps)
 
-		res.status(201).json({product: newProduct})
+		res.status(201).json({ product: newProduct })
 
 	} catch (error) {
 
@@ -48,9 +48,9 @@ export const deleteProduct = async (req, res, next) => {
 
 	try {
 
-		const deleted = await Product.deleteOne({_id: productId})
+		const deleted = await Product.deleteOne({ _id: productId })
 
-		if(!deleted.deletedCount == 0) {
+		if (!deleted.deletedCount == 0) {
 
 			res.status(200).json('Product deleted successfully')
 
@@ -71,11 +71,11 @@ export const getProducts = async (req, res, next) => {
 
 	try {
 
-		const products = await Product.find({company: companyId})
+		const products = await Product.find({ company: companyId })
 
-		if(products.length > 0) {
+		if (products.length > 0) {
 
-			res.status(200).json({products: products})
+			res.status(200).json({ products: products })
 
 		} else {
 

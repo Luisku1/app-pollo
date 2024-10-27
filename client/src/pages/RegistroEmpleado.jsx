@@ -88,7 +88,7 @@ export default function RegistroEmpleadoNuevo({ employee }) {
 
             <p>Rol del empleado:</p>
             <select name="role" id="role" className='border p-3 rounded-lg'>
-              {roles != {} && Object.values(roles) && Object.values(roles).length > 0 && Object.values(roles).map((role) => (
+              {roles && Object.values(roles).length > 0 && Object.values(roles).map((role) => (
 
                 <option selected={role.name == 'Vendedor' ? 'selected' : ""} key={role._id} value={role._id}>{role.name}</option>
               ))}
@@ -128,7 +128,6 @@ export default function RegistroEmpleadoNuevo({ employee }) {
 
           <button disabled={loading} className="bg-slate-700 text-white p-3 rounded-lg uppercase hover:opacity-95 disabled:opacity-80">
             {loading ? 'Cargando...' : !employee ? 'Registrar' : 'Actualizar Información'}
-            En fin de año le voy a regalar algo y Miriam
           </button>
         </form>
 

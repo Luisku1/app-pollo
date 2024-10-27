@@ -4,7 +4,7 @@ import SectionHeader from '../SectionHeader'
 import EmployeesSelect from '../Select/EmployeesSelect'
 import Select from 'react-select'
 import { stringToCurrency } from '../../helpers/Functions'
-import { today } from '../../helpers/DatePickerFunctions'
+import { isToday } from '../../helpers/DatePickerFunctions'
 import { useEffect, useState } from 'react'
 import { useDeleteExtraOutgoing } from '../../hooks/ExtraOutgoings.js/useDeleteExtraOutgoing'
 import { useAddExtraOutgoing } from '../../hooks/ExtraOutgoings.js/useAddExtraOutgoing'
@@ -59,7 +59,7 @@ export default function ExtraOutgoings({ currentUser, companyId, date, pushIncom
 
     const conceptInput = document.getElementById('extraOutgoingConcept')
     const amountInput = document.getElementById('extraOutgoingAmount')
-    const createdAt = today(date) ? new Date().toISOString() : new Date(date).toISOString()
+    const createdAt = isToday(date) ? new Date().toISOString() : new Date(date).toISOString()
 
     e.preventDefault()
 
@@ -91,7 +91,7 @@ export default function ExtraOutgoings({ currentUser, companyId, date, pushIncom
 
     const amount = document.getElementById('paymentAmount')
     const detail = document.getElementById('paymentDetail')
-    const createdAt = today(date) ? new Date().toISOString() : new Date(date).toISOString()
+    const createdAt = isToday(date) ? new Date().toISOString() : new Date(date).toISOString()
 
     e.preventDefault()
 

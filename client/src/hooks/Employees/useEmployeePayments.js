@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react"
 import { getEmployeePayments } from "../../services/employees/employeePayments"
+import { useEmployeesPaymentsArray } from "./useEmployeesPaymentsArray"
 
 export const useEmployeePayments = ({ employeeId, date }) => {
 
-  const [employeePayments, setEmployeePayments] = useState([])
+  const { payments, setPayments, total, setTotal, pushEmployeePayment, spliceEmployeePayment, updateLastEmployeePayment } = useEmployeesPaymentsArray()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
@@ -15,7 +16,8 @@ export const useEmployeePayments = ({ employeeId, date }) => {
 
     getEmployeePayments({ employeeId, date }).then((response) => {
 
-      setEmployeePayments(response)
+      setPayments(response.employeePayments)
+      setTotal(response.total)
 
     }).catch((error) => {
 
@@ -24,7 +26,7 @@ export const useEmployeePayments = ({ employeeId, date }) => {
 
     setLoading(false)
 
-  }, [employeeId, date])
+  }, [employeeId, date, setPayments, setTotal])
 
-  return { employeePayments, loading, error }
+  return { payments, total, pushEmployeePayment, spliceEmployeePayment, updateLastEmployeePayment, loading, error }
 }

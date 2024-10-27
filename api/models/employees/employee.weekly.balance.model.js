@@ -12,14 +12,9 @@ const employeeWeeklyBalanceSchema = mongoose.Schema({
     default: 0.0
   },
 
-  branchReportsBalance: {
-    type: Number,
-    default: 0.0
-  },
-
-  supervisorReportsBalance: {
-    type: Number,
-    default: 0.0
+  employeeDailyBalances: {
+    type: [{ type: Schema.Types.ObjectId, ref: 'EmployeeDailyBalance' }],
+    default: []
   },
 
   weekStart: {

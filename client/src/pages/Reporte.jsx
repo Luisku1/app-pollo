@@ -21,7 +21,6 @@ export default function Reporte() {
   let stringDatePickerValue = formatDate(datePickerValue)
   const [supervisorsInfo, setSupervisorsInfo] = useState([])
   const [generalInfo, setGeneralInfo] = useState(null)
-  const [error, setError] = useState(null)
   const [extraOutgoingsIsOpen, setExtraOutgoingsIsOpen] = useState(false)
   const [cashIsOpen, setCashIsOpen] = useState(false)
   const [depositsIsOpen, setDepositsIsOpen] = useState(false)
@@ -301,7 +300,7 @@ export default function Reporte() {
 
         if (data.success === false) {
 
-          setError(data.message)
+          console.log(data.message)
           setLoading(false)
           return
         }
@@ -309,12 +308,11 @@ export default function Reporte() {
         setSupervisorsInfo(data.supervisors)
         setGeneralInfo(data.generalInfo)
         setLoading(false)
-        setError(null)
 
       } catch (error) {
 
         setLoading(false)
-        setError(error.message)
+        console.log(error.message)
       }
     }
 
@@ -340,15 +338,14 @@ export default function Reporte() {
         const data = await res.json()
 
         if (data.success === false) {
-          setError(data.message)
+          console.log(data.message)
           return
         }
         setManagerRoleFunction(data.roles)
-        setError(null)
 
       } catch (error) {
 
-        setError(error.message)
+        console.log(error.message)
 
 
       }
@@ -511,12 +508,11 @@ export default function Reporte() {
                 {selectedSupervisors.some(supervisor => supervisor.value === supervisorInfo.supervisor._id) || selectedSupervisors.length == 0 ?
                   <div className='border bg-white p-3 mt-4 rounded-lg border-black'>
 
-                    {error ? <p>{error}</p> : ''}
                     <div className="">
 
                       <div className="grid grid-cols-1">
 
-                        <button className="text-2xl font-semibold my-4 col-span-1 w-fit p-2 shadow-sm rounded-sm text-slate-700"  onClick={() => {navigate(`/perfil/${supervisorInfo.supervisor._id}`)}}>{supervisorInfo.supervisor.name + ' ' + supervisorInfo.supervisor.lastName}</button>
+                        <button className="text-2xl font-semibold my-4 p-2 shadow-sm text-white rounded-lg w-fit bg-slate-500 flex" onClick={() => { navigate(`/perfil/${supervisorInfo.supervisor._id}`) }}>{`${supervisorInfo.supervisor.name} ${supervisorInfo.supervisor.lastName}`}</button>
 
                         <div className="">
                           <p className="text-lg"><span className="font-bold">Depósitos: </span>{stringToCurrency({ amount: supervisorInfo.supervisor.deposits })}</p>
@@ -598,7 +594,7 @@ export default function Reporte() {
                             {supervisorInfo.supervisor && cashIsOpen && supervisorInfo.supervisor.cashArray.length > 0 && supervisorInfo.supervisor.cashArray.map((income) => (
                               <div key={income._id} className='grid grid-cols-12 items-center border border-black border-opacity-30 mt-2 shadow-m rounded-lg'>
                                 <div id='list-element' className=' flex col-span-12 items-center justify-around pt-3 pb-3'>
-                                  <p className='text-center text-xs w-4/12'>{income.branch.branch ? income.branch.branch : income.branch}</p>
+                                  <p className='text-center text-xs w-4/12'>{(income.branch?.branch || income.branch) || income.customer.name}</p>
                                   <p className='text-center text-xs w-4/12'>{income.type.name ? income.type.name : income.type}</p>
                                   <p className='text-center text-xs w-4/12'>{income.amount.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
                                 </div>

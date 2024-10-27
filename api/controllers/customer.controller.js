@@ -49,3 +49,30 @@ export const getCustomers = async (req, res, next) => {
     next(error)
   }
 }
+
+export const pushOrPullCustomerReportRecord = async ({
+  customerId,
+  date,
+  record,
+  affectsBalancePositively,
+  operation,
+  arrayField,
+  amountField
+}) => {
+
+  if (!['$push', '$pull'].includes(operation)) throw new Error("Invalid . Expected '$push' or '$pull'.")
+
+  const customerReport = await fetchOrCreateBranchReport({ branchId, companyId: record.company, date });
+
+  const adjustedBalance = affectsBalancePositively ? record.amount : -record.amount
+
+  const updatedFields = {
+    [operation]: { [arrayField]: record._id },
+    $inc: { [amountField]: operation === '$push' ? record.amount : -record.amount, balance: operation === '$push' ? adjustedBalance : -adjustedBalance }
+  }
+
+  return updateReportsAndBalancesAccounts({
+    branchReport,
+    updatedFields
+  })
+}

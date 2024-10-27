@@ -3,7 +3,7 @@ import BranchReport from "../models/accounts/branch.report.model.js"
 import EmployeeDailyBalance from "../models/employees/employee.daily.balance.js"
 import Employee from "../models/employees/employee.model.js"
 import { errorHandler } from "../utils/error.js"
-import { getDayRange } from "../utils/formatDate.js"
+import { getDayRange, getWeekRange } from "../utils/formatDate.js"
 import { deleteExtraOutgoingFunction, newExtraOutgoingFunction } from "./outgoing.controller.js"
 import { deleteIncome, getIncomeTypeId, newBranchIncomeFunction } from "./income.controller.js"
 import EmployeePayment from "../models/employees/employee.payment.model.js"
@@ -251,31 +251,365 @@ export const getEmployeeDayInfo = async (req, res, next) => {
 	}
 }
 
-export const createEmployeeWeeklyBalance = async ({ employeeId, companyId }) => {
-
-
-
-	await EmployeeWeeklyBalance.create({ previousWeekBalance: 0, employee: employeeId, company: companyId })
-
-	return
-}
-
-export const fetchEmployeeWeeklyBalance = async ({ employeeId, weekRange }) => {
+export const refactorEmployeesWeeklyBalances = async ({ companyId }) => {
 
 	try {
 
-		const { bottomDate, topDate } = weekRange
+		const date = new Date()
+		date.setDate(date.getDate() - 7)
 
-		let weeklyBalance = await EmployeeWeeklyBalance.findOne({
-			createdAt: { $gte: bottomDate, $lt: topDate },
+		const bottomRange = new Date(date)
+		bottomRange.setDate(bottomRange.getDate() - 30)
+		const { bottomDate } = getDayRange(date)
+
+		const activeEmployees = await Employee.find({
+			company: companyId,
+		}, '_id payDay')
+
+		activeEmployees.forEach(async (employee) => {
+
+			const { weekStart } = getWeekRange(bottomDate, employee.payDay || 0)
+
+			const employeeDailyBalances = await EmployeeDailyBalance.find({
+				employee: employee._id,
+				createdAt: { $gte: bottomRange.toISOString(), $lt: bottomDate }
+			})
+
+			employeeDailyBalances.forEach(async (dailyBalance) => {
+
+				await addDailyBalanceInWeeklyBalance({ dailyBalance })
+			})
+
+		})
+
+	} catch (error) {
+
+		console.log('Error en la refactorización', error)
+		throw error
+	}
+}
+
+export const getEmployeePayDay = async ({ employeeId }) => {
+
+	const employee = await Employee.findById(employeeId, 'payDay')
+
+	return employee.payDay || 0
+}
+
+export const addDailyBalanceInWeeklyBalance = async ({ dailyBalance }) => {
+
+	try {
+
+		if (!dailyBalance) return
+
+		const payDay = await getEmployeePayDay({ employeeId: dailyBalance.employee })
+
+		let employeeWeeklyBalance = await fetchEmployeeWeeklyBalance({ employeeId: dailyBalance.employee, date: dailyBalance.createdAt, payDay })
+
+		if (!employeeWeeklyBalance) {
+
+			employeeWeeklyBalance = await createEmployeeWeeklyBalance({ employeeId: dailyBalance.employee, employeePayDay: payDay, companyId: dailyBalance.company, date: dailyBalance.createdAt })
+		}
+
+		if (!employeeWeeklyBalance) throw new Error("No se encontró un balance semanal y no se pudo crear")
+
+		const alreadyExists = employeeWeeklyBalance.employeeDailyBalances.includes(dailyBalance._id)
+
+		if (alreadyExists) return
+
+		await EmployeeWeeklyBalance.findByIdAndUpdate(employeeWeeklyBalance._id, {
+			$addToSet: { employeeDailyBalances: dailyBalance._id }
+		})
+
+	} catch (error) {
+
+		throw error
+	}
+}
+
+export const createEmployeeWeeklyBalance = async ({ employeeId, employeePayDay, companyId, date }) => {
+
+	const { weekStart, weekEnd } = getWeekRange(date, employeePayDay)
+
+	const lastEmployeeWeeklyBalance = await EmployeeWeeklyBalance.findOne({
+		weekStart: { $lt: weekStart },
+		employee: employeeId
+	})
+
+	const lastWeekBalance = lastEmployeeWeeklyBalance?.balance || 0
+
+	return await EmployeeWeeklyBalance.create({ previousWeekBalance: lastWeekBalance, balance: lastWeekBalance, employee: employeeId, company: companyId, weekStart, weekEnd })
+}
+
+export const fetchEmployeeWeeklyBalance = async ({ employeeId, date, payDay }) => {
+
+	try {
+
+		const { weekStart, weekEnd } = getWeekRange(date, payDay)
+
+		const employeeWeeklyBalance = await EmployeeWeeklyBalance.findOne({
+			weekStart: { $gte: weekStart, $lt: weekEnd },
 			employee: employeeId
 		})
+
+		return employeeWeeklyBalance || null
+
+	} catch (error) {
+
+		throw error
+	}
+}
+
+export const fetchEmployeePayroll = async ({ employeeId, weekRange }) => {
+
+	try {
+
+		const { weekStart, weekEnd } = weekRange
+		const payDay = await getEmployeePayDay({ employeeId })
+
+		const weeklyBalance = await EmployeeWeeklyBalance.aggregate([
+			{
+				$match: {
+					'weekStart': { $gte: bottomDate, $lt: topDate },
+					'employee': new Types.ObjectId(employeeId)
+				}
+			},
+			{
+				$lookup: {
+					from: 'employeeweeklybalances',
+					localField: 'employeeDailyBalances',
+					foreignField: '_id',
+					as: 'employeeDailyBalances',
+				}
+			},
+			{
+				$lookup: {
+					from: 'employeepayments',
+					localField: 'employee',
+					foreignField: 'employee',
+					as: 'employeePaymentsArray',
+					pipeline: [
+						{ $match: { createdAt: { $gte: bottomDate, $lt: topDate } } }
+					]
+				}
+			},
+			{
+				$addFields: {
+					accountBalance: { $sum: '$employeeDailyBalances.accountBalance' },
+					supervisorsBalance: { $sum: '$employeeDailyBalances.supervisorBalance' },
+					employeePayments: { $sum: '$employeePaymentsArray.amount' },
+					missingWorkDiscount: {
+						$multiply: [
+							{ $size: { $filter: { input: '$employeeDailyBalances', as: 'balance', cond: { $eq: ['$$balance.missingWork', true] } } } },
+							60,
+						],
+					},
+
+				}
+			}
+		])
+
+		console.log(weeklyBalance)
 
 		return weeklyBalance || null
 
 	} catch (error) {
 
+		console.log(error)
 		throw new Error('No se obtuvo el balance semanal del empleado')
+	}
+}
+
+export const fetchEmployeesPayroll = async ({ companyId, date }) => {
+
+	try {
+
+		const day = new Date(date).getDay()
+
+		const employeesId = await Employee.find({
+
+			company: companyId,
+			active: true,
+			payDay: day
+
+		}, '_id')
+
+		const { weekStart, weekEnd } = getWeekRange(date, day, -1)
+
+		const weeklyBalances = await EmployeeWeeklyBalance.aggregate([
+			{
+				$match: {
+					'company': new Types.ObjectId(companyId),
+					'employee': { $in: employeesId.map(id => new Types.ObjectId(id)) },
+					'weekStart': { $gte: new Date(weekStart), $lt: new Date(weekEnd) },
+				}
+			},
+			{
+				$lookup: {
+					from: 'branchreports',
+					localField: 'employee',
+					foreignField: 'employee',
+					as: 'branchReports',
+					pipeline: [
+						{
+							$match: { createdAt: { $gte: new Date(weekStart), $lt: new Date(weekEnd) } }
+						},
+						{
+							$lookup: {
+								from: 'providerinputs',
+								localField: 'providerInputsArray',
+								foreignField: '_id',
+								as: 'providerInputsArray'
+							}
+						},
+						{
+							$lookup: {
+								from: 'incomecollecteds',
+								localField: 'incomesArray',
+								foreignField: '_id',
+								as: 'incomesArray' // Poblamos con documentos completos
+							}
+						},
+						{
+							$lookup: {
+								from: 'outgoings',
+								localField: 'outgoingsArray',
+								foreignField: '_id',
+								as: 'outgoingsArray' // Poblamos con documentos completos
+							}
+						},
+						{
+							$lookup: {
+								from: 'stocks',
+								localField: 'finalStockArray',
+								foreignField: '_id',
+								as: 'finalStockArray' // Poblamos con documentos completos
+							}
+						},
+						{
+							$lookup: {
+								from: 'branches',
+								localField: 'branch',
+								foreignField: '_id',
+								as: 'branch'
+							}
+						},
+						{
+							$unwind: { path: '$branch' }
+						},
+						{
+							$lookup: {
+								from: 'employees',
+								localField: 'employee',
+								foreignField: '_id',
+								as: 'employee'
+							}
+						},
+						{
+							$unwind: { path: '$employee' }
+						},
+						{
+							$lookup: {
+								from: 'employees',
+								localField: 'assistant',
+								foreignField: '_id',
+								as: 'assistant'
+							}
+						},
+						{
+							$unwind: { path: '$assistant', preserveNullAndEmptyArrays: true }
+						}
+					]
+				}
+			},
+			{
+				$lookup: {
+					from: 'employeepayments',
+					localField: 'employee',
+					foreignField: 'employee',
+					as: 'employeePaymentsArray',
+					pipeline: [
+						{ $match: { createdAt: { $gte: new Date(weekStart), $lt: new Date(weekEnd) } } }
+					]
+				}
+			},
+			{
+				$lookup: {
+					from: 'employees',
+					localField: 'employee',
+					foreignField: '_id',
+					as: 'employee',
+					pipeline: [
+						{
+							$lookup: {
+								from: 'roles',
+								localField: 'role',
+								foreignField: '_id',
+								as: 'role'
+							}
+						},
+						{
+							$unwind: { path: '$role' }
+						},
+					]
+				}
+			},
+			{
+				$unwind: { path: '$employee' }
+			},
+			{
+				$lookup: {
+					from: 'employeedailybalances',
+					localField: 'employeeDailyBalances',
+					foreignField: '_id',
+					as: 'employeeDailyBalancesArray',
+					pipeline: [
+						{
+							$match: { createdAt: { $gte: new Date(weekStart), $lt: new Date(weekEnd) } }
+						}
+					]
+				}
+			},
+			{
+				$addFields: {
+					accountBalance: { $sum: '$employeeDailyBalancesArray.accountBalance' },
+					supervisorBalance: { $sum: '$employeeDailyBalancesArray.supervisorBalance' },
+					employeePaymentsAmount: { $sum: '$employeePaymentsArray.amount' },
+					missingWorkDiscount: {
+						$multiply: [
+							{ $size: { $filter: { input: '$employeeDailyBalancesArray', as: 'balance', cond: { $eq: ['$$balance.dayDiscount', true] } } } },
+							{ $divide: ['$employee.salary', -7] },
+						],
+					},
+					foodDiscount: {
+						$multiply: [
+							{ $size: { $filter: { input: '$employeeDailyBalancesArray', as: 'balance', cond: { $eq: ['$$balance.foodDiscount', true] } } } },
+							-60,
+						],
+					},
+
+				}
+			},
+			{
+				$addFields: {
+					balance: {
+						$add: [
+							{ $ifNull: ['$supervisorBalance', 0] },
+							{ $ifNull: ['$accountBalance', 0] },
+							{ $ifNull: ['$missingWorkDiscount', 0] },
+							{ $ifNull: ['$foodDiscount', 0] }
+						]
+					}
+				}
+			}
+		])
+
+		return weeklyBalances || null
+
+	} catch (error) {
+
+		console.log(error)
+		throw error
 	}
 }
 
@@ -355,13 +689,13 @@ export const deleteEmployeeRest = async (req, res, next) => {
 
 		const deletedEmployeeRest = await EmployeeRest.findByIdAndDelete(employeeRestId)
 
-		if(!deletedEmployeeRest) {
+		if (!deletedEmployeeRest) {
 
 			throw new Error("No se encontró el descanso");
 
 		} else {
 
-			res.status(200).json({deletedEmployeeRest})
+			res.status(200).json({ deletedEmployeeRest })
 		}
 
 	} catch (error) {
@@ -431,6 +765,11 @@ export const getEmployeesDailyBalances = async (req, res, next) => {
 					const castedInsertedIds = Object.values(result.insertedIds).map((id) => new Types.ObjectId(id))
 
 					employeesDailyBalances = await EmployeeDailyBalance.find({ _id: { $in: castedInsertedIds } }).populate({ path: 'employee', select: 'name lastName' })
+
+					employeesDailyBalances.forEach(async (dailyBalance) => {
+
+						await addDailyBalanceInWeeklyBalance({ dailyBalance })
+					})
 
 					res.status(200).json(employeesDailyBalances)
 				})
@@ -665,55 +1004,16 @@ export const deleteEmployeePaymentQuery = async (req, res, next) => {
 export const getEmployeePayroll = async (req, res, next) => {
 
 	const companyId = req.params.companyId
-	const { bottomDate } = getDayRange(req.params.date)
-	const day = (new Date(bottomDate)).getDay()
 
 	try {
 
-		const employeesPayroll = await Employee.aggregate([
+		const employeesPayroll = await fetchEmployeesPayroll({ companyId, date: req.params.date })
 
-			{
-				$match: {
-					'company': new Types.ObjectId(companyId),
-					'payDay': day,
-					'active': true
-				}
-			},
-
-			{
-				$lookup: {
-					from: 'employeedailybalances',
-					localField: '_id',
-					foreignField: 'employee',
-					as: 'dailyBalances',
-					pipeline: [
-						{ $match: { createdAt: { $lt: new Date(bottomDate) } } },
-						{ $sort: { createdAt: -1 } },
-						{ $limit: 7 }
-					]
-				}
-			},
-
-			{
-				$project: {
-					_id: 1,
-					name: 1,
-					lastName: 1,
-					balance: 1,
-					salary: 1,
-					dailyBalances: 1
-				}
-			}
-		])
+		// await refactorEmployeesWeeklyBalances({companyId})
 
 		if (employeesPayroll.length > 0) {
 
-			employeesPayroll.forEach(payroll => {
-
-				payroll.dailyBalances.sort((prev, next) => prev.createdAt - next.createdAt)
-			})
-
-			res.status(200).json({ employeesPayroll: employeesPayroll })
+			res.status(200).json({ employeesPayroll })
 
 		} else {
 
@@ -809,9 +1109,9 @@ export const addSupervisorMoneyDelivery = async (req, res, next) => {
 	}
 }
 
-export const addSupervisorReportIncome = async ({ income, day }) => {
+export const addSupervisorReportIncome = async ({ income, date }) => {
 
-	const { bottomDate, topDate } = day
+	const { bottomDate, topDate } = getDayRange(date)
 
 	let dailyBalance = null
 	let updatedDailyBalance = null
@@ -830,11 +1130,9 @@ export const addSupervisorReportIncome = async ({ income, day }) => {
 			supervisorReport = await SupervisorReport.create({ supervisor: income.employee, company: income.company })
 
 			if (!supervisorReport) throw new Error("No se pudo crear el reporte del supervisor");
-
 		}
 
 		updatedSupervisorReport = await SupervisorReport.findByIdAndUpdate(supervisorReport._id, {
-
 			$push: { incomesArray: income._id },
 			$inc: { incomes: income.amount, balance: -income.amount }
 		}, { new: true })
@@ -855,6 +1153,8 @@ export const addSupervisorReportIncome = async ({ income, day }) => {
 
 		if (!updatedDailyBalance) throw new Error("No se editó el balance del supervisor")
 
+		return updatedSupervisorReport
+
 	} catch (error) {
 
 		if (!updatedDailyBalance && updatedSupervisorReport
@@ -869,9 +1169,9 @@ export const addSupervisorReportIncome = async ({ income, day }) => {
 	}
 }
 
-export const deleteSupervisorReportIncome = async ({ income, day }) => {
+export const deleteSupervisorReportIncome = async ({ income, date }) => {
 
-	const { bottomDate, topDate } = day
+	const { bottomDate, topDate } = getDayRange(date)
 
 	let dailyBalance = null
 	let updatedDailyBalance = null
@@ -888,7 +1188,6 @@ export const deleteSupervisorReportIncome = async ({ income, day }) => {
 		if (!supervisorReport) throw new Error("No encontró el reporte")
 
 		updatedSupervisorReport = await SupervisorReport.findByIdAndUpdate(supervisorReport._id, {
-
 			$pull: { incomesArray: income._id },
 			$inc: { incomes: -income.amount, balance: income.amount }
 		}, { new: true })
@@ -923,9 +1222,9 @@ export const deleteSupervisorReportIncome = async ({ income, day }) => {
 	}
 }
 
-export const deleteSupervisorExtraOutgoing = async ({ extraOutgoing, day }) => {
+export const deleteSupervisorExtraOutgoing = async ({ extraOutgoing, date }) => {
 
-	const { bottomDate, topDate } = day
+	const { bottomDate, topDate } = getDayRange(date)
 
 	let dailyBalance = null
 	let updatedDailyBalance = null
@@ -977,8 +1276,8 @@ export const deleteSupervisorExtraOutgoing = async ({ extraOutgoing, day }) => {
 	}
 }
 
-export const addSupervisorReportExtraOutgoing = async ({ extraOutgoing, day }) => {
-	const { bottomDate, topDate } = day
+export const addSupervisorReportExtraOutgoing = async ({ extraOutgoing, date }) => {
+	const { bottomDate, topDate } = getDayRange(date)
 
 	let dailyBalance = null
 	let updatedDailyBalance = null
@@ -1095,25 +1394,60 @@ export const updateDailyBalancesBalance = async (branchReport, changedEmployee =
 	return updatedDailyBalance
 }
 
+export const createNewDailyBalance = async ({ employeeId, companyId }) => {
+
+	try {
+
+		const { bottomDate } = getDayRange(new Date())
+
+		const dailyBalanceExists = await EmployeeDailyBalance.findOne({
+			employee: employeeId,
+			createdAt: bottomDate
+		})
+
+		if (dailyBalanceExists) return
+
+		return await EmployeeDailyBalance.create({ employee: employeeId, createdAt: bottomDate, company: companyId })
+
+	} catch (error) {
+
+		console.log(error)
+		throw error
+	}
+}
+
 export const changeEmployeeActiveStatus = async (req, res, next) => {
 
 	const { newStatus } = req.body
 	const employeeId = req.params.employeeId
 
+	let updatedEmployee = null
+
 	try {
 
-		const updatedEmployee = await Employee.findOneAndUpdate({ _id: employeeId }, { active: newStatus }, { new: true }).populate({ path: 'role' })
+		updatedEmployee = await Employee.findByIdAndUpdate(employeeId, { active: newStatus }, { new: true }).populate({ path: 'role' })
 
-		if (Object.getOwnPropertyNames(updatedEmployee).length > 0) {
+		if (!updatedEmployee) throw new Error("No se actualizó el estado del empleado");
 
-			res.status(200).json({ updatedEmployee })
 
-		} else {
+		if (updatedEmployee.active === true) {
 
-			next(errorHandler(404, 'No se pudo actualizar el usuario'))
+			const newEmployeeDailyBalance = await createNewDailyBalance({ employeeId, companyId: updatedEmployee.company })
+
+			if (!newEmployeeDailyBalance) throw new Error("No sep udo crear el balance del empleado");
+
 		}
 
+		res.status(200).json({ updatedEmployee })
+
 	} catch (error) {
+
+		if (updatedEmployee) {
+
+			await Employee.findByIdAndUpdate(employeeId, {
+				active: !newStatus
+			})
+		}
 
 		next(error)
 	}

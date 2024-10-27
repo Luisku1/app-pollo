@@ -1,32 +1,12 @@
 import { useEffect, useState } from "react"
 import { getEmployeesPaymentsFetch } from "../../services/employees/employeesPayments"
+import { useEmployeesPaymentsArray } from "./useEmployeesPaymentsArray"
 
 export const useEmployeesPayments = ({ companyId, date }) => {
 
-  const [employeesPayments, setEmployeesPayments] = useState([])
-  const [totalEmployeesPayments, setTotalEmployeesPayments] = useState(0.0)
+  const { payments: employeesPayments, setPayments: setEmployeesPayments, total: totalEmployeesPayments, setTotal: setTotalEmployeesPayments, pushEmployeePayment, spliceEmployeePayment, updateLastEmployeePayment } = useEmployeesPaymentsArray()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
-
-  const pushEmployeePayment = ({ employeePayment }) => {
-
-    setEmployeesPayments((prevEmployeesPayments) => [employeePayment, ...prevEmployeesPayments])
-    setTotalEmployeesPayments((prevTotal) => prevTotal + employeePayment.amount)
-  }
-
-  const spliceEmployeePayment = ({ index }) => {
-
-    const removedEmployeePayment = employeesPayments.splice(index, 1)
-    setTotalEmployeesPayments((prevTotal) => prevTotal - removedEmployeePayment[0].amount)
-  }
-
-  const updateLastEmployeePayment = ({ createdEmployeePayment }) => {
-
-    setEmployeesPayments((prevEmployeesPayments) => prevEmployeesPayments.map((employeePayment, index) =>
-
-      index == 0 ? createdEmployeePayment : employeePayment
-    ))
-  }
 
   useEffect(() => {
 
@@ -49,7 +29,15 @@ export const useEmployeesPayments = ({ companyId, date }) => {
 
     setLoading(false)
 
-  }, [companyId, date])
+  }, [companyId, date, setEmployeesPayments, setTotalEmployeesPayments])
 
-  return { employeesPayments, totalEmployeesPayments, pushEmployeePayment, spliceEmployeePayment, updateLastEmployeePayment, loading, error }
+  return {
+    employeesPayments,
+    totalEmployeesPayments,
+    pushEmployeePayment,
+    spliceEmployeePayment,
+    updateLastEmployeePayment,
+    loading,
+    error
+  }
 }

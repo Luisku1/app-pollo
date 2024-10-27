@@ -6,7 +6,7 @@ import ListaEntradas from './ListaEntradas'
 import { useInputs } from '../../../hooks/Inputs/useInputs'
 import Select from 'react-select'
 import { useSelector } from 'react-redux'
-import { today } from '../../../helpers/DatePickerFunctions'
+import { isToday } from '../../../helpers/DatePickerFunctions'
 import { customSelectStyles } from '../../../helpers/Constants'
 import BranchAndCustomerSelect from '../../Select/BranchAndCustomerSelect'
 import { useLoading } from '../../../hooks/loading'
@@ -104,7 +104,7 @@ export default function Entradas({ branchAndCustomerSelectOptions, products, dat
     const weightInput = document.getElementById('input-weight')
     const commentInput = document.getElementById('input-comment')
     const priceInput = document.getElementById('input-price')
-    const createdAt = today(date) ? new Date().toISOString() : new Date(date).toISOString()
+    const createdAt = isToday(date) ? new Date().toISOString() : new Date(date).toISOString()
 
     if (priceInput.value != '' ? priceInput.value == 0 : price == 0) {
 

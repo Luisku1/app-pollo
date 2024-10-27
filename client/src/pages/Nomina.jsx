@@ -1,21 +1,28 @@
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
 import { useSelector } from 'react-redux'
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import FechaDePagina from "../components/FechaDePagina";
 import { formatDate } from "../helpers/DatePickerFunctions";
-import ShowEmployeePayments from "../components/ShowEmployeePayments";
+import { useEmployeesPayroll } from "../hooks/Employees/useEmployeesPayroll";
+import { useRoles } from "../hooks/useRoles";
+import { useDeleteEmployeePayment } from "../hooks/Employees/useDeleteEmployeePayment";
+import EmployeePaymentsList from "../components/EmployeePaymentsList";
+import ShowListButton from "../components/Buttons/ShowListButton";
+import { stringToCurrency } from "../helpers/Functions";
 
 
 export default function Nomina() {
 
   let paramsDate = useParams().date
-  const { company, currentUser } = useSelector((state) => state.user)
-  const [employeesPayroll, setEmployeesPayroll] = useState([])
-  const [error, setError] = useState(null)
-  const [managerRole, setManagerRole] = useState({})
   let datePickerValue = (paramsDate ? new Date(paramsDate) : new Date())
   let stringDatePickerValue = formatDate(datePickerValue)
+  const { company, currentUser } = useSelector((state) => state.user)
+  const { employeesPayroll } = useEmployeesPayroll({ companyId: company._id, date: stringDatePickerValue })
+  const { roles } = useRoles()
+  const { deleteEmployeePayment } = useDeleteEmployeePayment()
   const navigate = useNavigate()
+
+  console.log(employeesPayroll)
 
   const changeDatePickerValue = (e) => {
 
@@ -33,102 +40,6 @@ export default function Nomina() {
 
   useEffect(() => {
 
-    const setManagerRoleFunction = async (roles) => {
-
-      const managerRole = roles.find((elemento) => elemento.name == 'Gerente')
-      setManagerRole(managerRole)
-
-    }
-
-    const fetchRoles = async () => {
-
-      try {
-
-        const res = await fetch('/api/role/get')
-        const data = await res.json()
-
-        if (data.success === false) {
-          setError(data.message)
-          return
-        }
-        await setManagerRoleFunction(data.roles)
-        setError(null)
-
-      } catch (error) {
-
-        setError(error.message)
-
-      }
-    }
-
-    fetchRoles()
-
-  }, [])
-
-  useEffect(() => {
-
-    const fetchEmployeesPayroll = async () => {
-
-      const date = new Date(stringDatePickerValue).toISOString()
-
-      try {
-
-        const res = await fetch('/api/employee/get-employees-payroll/' + company._id + '/' + date)
-        const data = await res.json()
-
-        if (data.success === false) {
-
-          return
-        }
-
-        data.employeesPayroll.forEach((employeePayroll) => {
-
-          employeePayroll.totalDebt = 0.0
-          employeePayroll.totalAccountBalance = 0.0
-          employeePayroll.totalSupervisorBalance = 0.0
-          employeePayroll.totalFoodDiscount = 0.0
-          employeePayroll.totalDayDiscount = 0.0
-          employeePayroll.didEmployeeRest = 'No'
-
-          employeePayroll.dailyBalances.forEach((dailyBalance) => {
-
-            employeePayroll.totalAccountBalance += dailyBalance.accountBalance
-            employeePayroll.totalSupervisorBalance += dailyBalance.supervisorBalance
-
-            if (dailyBalance.dayDiscount) {
-
-              employeePayroll.totalDayDiscount -= employeePayroll.salary / 7
-            }
-
-            if (dailyBalance.foodDiscount) {
-
-              employeePayroll.totalFoodDiscount -= 60
-            }
-
-            if (dailyBalance.restDay) {
-
-              employeePayroll.didEmployeeRest = 'Si'
-            }
-
-          })
-
-          employeePayroll.totalDebt = employeePayroll.totalAccountBalance + employeePayroll.totalPayments + employeePayroll.totalFoodDiscount + employeePayroll.totalDayDiscount
-        })
-
-        setEmployeesPayroll(data.employeesPayroll)
-
-      } catch (error) {
-
-        console.log(error)
-      }
-    }
-
-    fetchEmployeesPayroll()
-
-  }, [company._id, stringDatePickerValue])
-
-  useEffect(() => {
-
     document.title = 'Nómina (' + new Date(stringDatePickerValue).toLocaleDateString() + ')'
   })
 
@@ -136,9 +47,7 @@ export default function Nomina() {
 
     <main className="p-3 max-w-lg mx-auto">
 
-      {error ? <p>{error}</p> : ''}
-
-      {managerRole._id == currentUser.role ?
+      {roles && roles.managerRole._id == currentUser.role ?
 
         <FechaDePagina changeDay={changeDay} stringDatePickerValue={stringDatePickerValue} changeDatePickerValue={changeDatePickerValue} ></FechaDePagina>
 
@@ -150,60 +59,68 @@ export default function Nomina() {
 
       <div className='border bg-white p-3 mt-4'>
 
-        {employeesPayroll && employeesPayroll.length > 0 && employeesPayroll.map((employeePayroll) => (
+        {roles && currentUser.role == roles.managerRole._id && employeesPayroll && employeesPayroll.length > 0 && employeesPayroll.map((employeePayroll) => (
 
-          <div key={employeePayroll._id} className='grid grid-cols-1 items-center border border-black rounded-lg shadow-sm my-2'>
-            <div id='list-element' className='grid grid-cols-12 py-3 my-2'>
-              <div id="header" className="col-span-12 mt-1 mb-4 border-b border-black shadow-sm text-center">
-                <div className="grid grid-cols-1">
-                  <div className="grid grid-cols-12 col-span-12">
-                    <Link className='text-lg col-span-5 pb-3 pl-3 pr-3 text-left font-bold my-auto' to={employeePayroll != null ? '/perfil/' + employeePayroll._id : ''}>
-                      <p className=''>{employeePayroll != null ? employeePayroll.name + ' ' + employeePayroll.lastName : 'Trabajador despedido'}</p>
-                    </Link>
+          <div key={employeePayroll._id} className='items-center border border-black rounded-lg shadow-sm my-2'>
+            <div id='list-element' className=' p-2'>
+              <div id="header" className="w-full mt-1 mb-2 border-b border-black shadow-sm text-center">
+                <div className="w-full">
+                  <div className="w-full">
+                    <button className="w-fit text-2xl font-semibold my-4 p-2 shadow-sm text-white rounded-lg bg-slate-500 flex" onClick={() => { navigate(`/perfil/${employeePayroll.employee._id}`) }}>{`${employeePayroll.employee.name} ${employeePayroll.employee.lastName}`}</button>
 
-                    <div className="grid grid-cols-7 col-span-7 grid-rows-2">
-                      <div className="col-span-7 row-span-1 mb-3">
-                        <div className="flex gap-2">
-                          <p>Salario: </p>
-                          <p className={(employeePayroll.salary < 0 ? 'text-red-500 ' : ' ') + 'text-xs my-auto'}>{employeePayroll.salary.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>
-                        </div>
-                        <div className="flex gap-2">
-                          <p>Balance anterior: </p>
-                          <p className={(employeePayroll.balance < 0 ? 'text-red-500 ' : ' ') + 'text-xs my-auto'}>{employeePayroll.balance.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>
-                        </div>
-                        <div className="flex gap-2">
-                          <p>Deuda total: </p>
-                          <p className={(employeePayroll.totalDebt < 0 ? 'text-red-500' : '') + ' text-xs my-auto'}>{employeePayroll.totalDebt.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>
+                    <div className="">
+                      <div className=" text-lg mx-4 my-2">
+                        <div className="flex gap-2 justify-self-end">
+                          <p className="font-semibold">Salario: </p>
+                          <p className={(employeePayroll.employee.salary < 0 ? 'text-red-500 ' : ' ') + ' my-auto'}>{employeePayroll.employee.salary.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>
                         </div>
                         <div className="flex gap-2 items-center">
-                          <p>Pagos recibidos: </p>
-                          <ShowEmployeePayments employeeName={employeePayroll.name} employeeId={employeePayroll._id} date={stringDatePickerValue}></ShowEmployeePayments>
-                          {/* <p className={(employeePayroll.employeePayments < 0 ? 'text-red-500' : '') + ' text-xs my-auto'}>{employeePayroll.totalDebt.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p> */}
+                          <p className="font-semibold">Pagos recibidos: </p>
+                          <p className="font-bold">{stringToCurrency({ amount: employeePayroll.employeePaymentsAmount })}</p>
+                          <ShowListButton
+                            listTitle={`Pagos a ${employeePayroll.employee.name} ${employeePayroll.employee.lastName}`}
+                            ListComponent={
+                              <EmployeePaymentsList
+                                roles={roles}
+                                deleteEmployeePayment={deleteEmployeePayment}
+                                employeePayments={employeePayroll.employeePaymentsArray}
+                              />
+                            }
+                          />
+                        </div>
+                        <div className="flex gap-2">
+                          <p className="font-semibold">Semana anterior: </p>
+                          <p className={(employeePayroll.previousWeekBalance < 0 ? 'text-red-500 ' : ' ') + ' my-auto font-bold'}>{employeePayroll.previousWeekBalance.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>
+                        </div>
+                        <div className="flex gap-2">
+                          <p className="font-semibold">Semana actual: </p>
+                          <p className={(employeePayroll.balance < 0 ? 'text-red-500' : '') + ' my-auto font-bold'}>{employeePayroll.balance.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>
                         </div>
                       </div>
 
-                      <div className="grid col-span-7 grid-cols-7 row-span-1 mt-3">
+                      <div className="grid grid-cols-12 row-span-1 mt-3 text-center border-black">
+                        <p className="col-span-5 font-semibold">Fecha</p>
                         <div className="col-span-2">
-                          <p className="text-xs">Cuenta</p>
-                          <p className={(employeePayroll.totalAccountBalance < 0 ? 'text-red-500' : '') + ' text-xs my-auto'}>{employeePayroll.totalAccountBalance.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>
+                          <p className="text-xs">Cuenta en pollería</p>
+                          <p className={(employeePayroll.accountBalance < 0 ? 'text-red-500' : '') + ' text-xs my-auto'}>{employeePayroll.accountBalance.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>
                         </div>
                         <div className="col-span-2 text-center">
                           <p className="text-xs  text-center">Cuenta</p>
                           <p className="text-xs truncate text-center">Supervisor</p>
 
-                          <p className={(employeePayroll.totalSupervisorBalance < 0 ? 'text-red-500' : '') + ' text-xs my-auto'}>{employeePayroll.totalSupervisorBalance.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>
+                          <p className={(employeePayroll.supervisorBalance < 0 ? 'text-red-500' : '') + ' text-xs my-auto'}>{employeePayroll.supervisorBalance.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>
                         </div>
                         <div className="col-span-1">
                           <p className="text-xs">R</p>
-                          <p className={(employeePayroll.totalFoodDiscount < 0 ? 'text-red-500 ' : ' ') + 'text-xs my-auto'}>{employeePayroll.totalFoodDiscount.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>
+                          <p className={(employeePayroll.foodDiscount < 0 ? 'text-red-500 ' : ' ') + 'text-xs my-auto'}>{employeePayroll.foodDiscount.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>
                         </div>
                         <div className="col-span-1">
                           <p className="text-xs">D</p>
-                          <p className="text-xs">{employeePayroll.didEmployeeRest}</p>
+                          <p className="text-xs">{employeePayroll.didEmployeeRest || 'No'}</p>
                         </div>
                         <div className="col-span-1">
                           <p className="text-xs">F</p>
-                          <p className={(employeePayroll.totalDayDiscount < 0 ? 'text-red-500' : '') + ' text-xs my-auto'}>{employeePayroll.totalDayDiscount.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>
+                          <p className={(employeePayroll.missingWorkDiscount < 0 ? 'text-red-500' : '') + ' text-xs my-auto'}>{employeePayroll.missingWorkDiscount.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>
                         </div>
                       </div>
                     </div>
@@ -211,7 +128,7 @@ export default function Nomina() {
                 </div>
               </div>
 
-              {employeePayroll.dailyBalances && employeePayroll.dailyBalances.length > 0 && employeePayroll.dailyBalances.map((dailyBalance) => (
+              {employeePayroll.employeeDailyBalancesArray && employeePayroll.employeeDailyBalancesArray.length > 0 && employeePayroll.employeeDailyBalancesArray.map((dailyBalance) => (
 
                 <div className="grid col-span-12 grid-cols-12 p-1" key={dailyBalance._id}>
 

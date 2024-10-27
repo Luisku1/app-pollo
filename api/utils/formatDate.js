@@ -37,7 +37,7 @@ export const getDayRange = (date) => {
   return { bottomDate: principalDate.toISOString(), topDate: datePlusOne.toISOString() }
 }
 
-export const getWeekRange = (date, startWeekDay, shiftWeeks) => {
+export const getWeekRange = (date, startWeekDay, shiftWeeks = 0) => {
 
   const formatedDate = formatDate(new Date(date || new Date()).toUTCString());
   const principalDate = new Date(formatedDate)
@@ -60,8 +60,8 @@ export const getWeekRange = (date, startWeekDay, shiftWeeks) => {
   }
 
   return {
-    bottomDate: principalDate.toISOString(),
-    topDate: topDate.toISOString()
+    weekStart: principalDate.toISOString(),
+    weekEnd: topDate.toISOString()
   }
 }
 

@@ -92,6 +92,117 @@ export const createBranchReport = async (req, res, next) => {
   }
 }
 
+export const pushOrPullBranchReportRecord = async ({
+  branchId,
+  date,
+  record,
+  affectsBalancePositively,
+  operation,
+  arrayField,
+  amountField
+}) => {
+
+  if (!['$push', '$pull'].includes(operation)) throw new Error("Invalid . Expected '$push' or '$pull'.")
+
+  const branchReport = await fetchOrCreateBranchReport({ branchId, companyId: record.company, date });
+
+  const adjustedBalance = affectsBalancePositively ? record.amount : -record.amount
+
+  const updatedFields = {
+    [operation]: { [arrayField]: record._id },
+    $inc: { [amountField]: operation === '$push' ? record.amount : -record.amount, balance: operation === '$push' ? adjustedBalance : -adjustedBalance }
+  }
+
+  return updateReportsAndBalancesAccounts({
+    branchReport,
+    updatedFields
+  })
+}
+
+export const addBranchReportIncomes = async ({ branchId, date, income }) => {
+
+  const branchReport = await fetchOrCreateBranchReport({ branchId, date })
+
+  return updateReportsAndBalancesAccounts({
+    branchReport: branchReport,
+    updatedFields: {
+      $push: { incomesArray: income._id },
+      $inc: { incomes: income.amount, balance: income.amount }
+    }
+  })
+}
+
+export const pullBranchReportIncomes = async ({ branchId, date, income }) => {
+
+  const branchReport = await fetchOrCreateBranchReport({ branchId, date })
+
+  return updateReportsAndBalancesAccounts({
+    branchReport: branchReport,
+    updatedFields: {
+      $pull: { incomesArray: income._id },
+      $inc: { incomes: -income.amount, balance: -income.amount }
+    }
+  })
+}
+
+export const fetchOrCreateBranchReport = async ({ branchId, companyId, date }) => {
+
+  let branchReport = null
+
+  try {
+
+    branchReport = await fetchBranchReport({ branchId, date })
+
+    if (!branchReport) {
+
+      branchReport = createDefaultBranchReport({ branchId, date, companyId })
+    }
+
+    if (!branchReport) throw new Error("No se encontró ni se pudo crear el reporte");
+
+    return branchReport
+
+  } catch (error) {
+
+    throw error
+  }
+}
+
+export const updateReportsAndBalancesAccounts = async ({ branchReport, updatedFields = {} }) => {
+
+  let updatedBranchReport = null
+  let updatedEmployeeDailyBalance = null
+
+  try {
+
+    updatedBranchReport = await BranchReport.findByIdAndUpdate(branchReport._id, { ...updatedFields }, { new: true })
+
+    if (!updatedBranchReport) throw new Error("No se pudo modificar el reporte");
+
+    if (updatedBranchReport.employee) {
+
+      updatedEmployeeDailyBalance = await updateEmployeeDailyBalancesBalance({ branchReport: updatedBranchReport })
+
+      if (!updatedEmployeeDailyBalance) throw new Error("No se pudo actualizar la cuenta del empleado");
+    }
+
+    return updatedBranchReport
+
+  } catch (error) {
+
+    if (!updatedEmployeeDailyBalance && updatedBranchReport
+      && (branchReport.balance != updatedBranchReport.balance
+        || branchReport.incomesArray != updatedBranchReport.incomesArray
+        || branchReport.incomes != updatedBranchReport.incomes
+      )) {
+
+      await BranchReport.findByIdAndUpdate(branchReport._id, { balance: branchReport.balance, incomes: branchReport.incomes, incomesArray: branchReport.incomesArray })
+    }
+
+    throw error
+  }
+}
+
 export const createDefaultBranchReport = async ({ branchId, date, companyId, session = null }) => {
 
   const { bottomDate } = getDayRange(date)

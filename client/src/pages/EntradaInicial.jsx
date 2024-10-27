@@ -153,7 +153,6 @@ export default function EntradaInicial({ date, branchAndCustomerSelectOptions, p
 
                   {providerInputs && providerInputs.length > 0 && providerInputs.map((providerInput, index) => (
 
-
                     <div key={providerInput._id} className={(currentUser._id == providerInput.employee || currentUser.role == roles.managerRole._id ? '' : 'py-3 ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
 
                       <div id='list-element' className='flex col-span-10 items-center justify-around'>

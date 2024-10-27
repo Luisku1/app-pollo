@@ -67,11 +67,11 @@ export default function SectionsMenu({ sections }) {
     <div>
       {currentSections.length > 0 && (
         <div>
-          <div className={`border bg-white border-black my-4 w-full rounded-lg font-bold grid grid-cols-${sections.length}`}>
+          <div className={`border bg-white my-4 w-full rounded-lg font-bold grid grid-cols-${sections.length}`}>
             {currentSections.map((section) => (
               <div key={section.label} className="col-span-1 border border-black rounded-lg h-full">
                 <div className="h-full">
-                  <button id={section.label} className={`text-center h-full w-full p-1 rounded-lg hover:shadow-xl ${(selectedSection.label == section.label ? 'bg-slate-500 text-white' : 'bg-white text-red-700')}`} onClick={() => { handleShowSections(section) }}>{section.label}</button>
+                  <button id={section.label} className={`text-center h-full w-full p-1 rounded-lg hover:shadow-xl ${(selectedSection.label == section.label ? 'bg-lime-600 text-white' : 'bg-white text-black')}`} onClick={() => { handleShowSections(section) }}>{section.label}</button>
                 </div>
               </div>
             ))}

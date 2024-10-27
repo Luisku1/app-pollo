@@ -5,6 +5,7 @@ import SectionHeader from '../../SectionHeader'
 import { useSelector } from 'react-redux'
 import { FaTrash } from 'react-icons/fa'
 import { useDeleteOutput } from '../../../hooks/Outputs/useDeleteOutput'
+import { formatTime } from '../../../helpers/DatePickerFunctions'
 
 export default function ListaSalidas({ outputs, changeOutputsIsOpenValue, outputsIsOpen, spliceOutput, roles }) {
 
@@ -30,7 +31,7 @@ export default function ListaSalidas({ outputs, changeOutputsIsOpenValue, output
           <div className='h-5/6 overflow-y-scroll'>
             <div className={"grid grid-cols-2 p-3 shadow-lg rounded-lg mb-4 gap-2 items-center"}>
               <p className="font-bold text-lg">{'Hora:'}</p>
-              <p>{(new Date(output.createdAt)).toLocaleTimeString('es-Mx')}</p>
+              <p>{formatTime(output.createdAt)}</p>
             </div>
             <div className={"grid grid-cols-2 p-3 shadow-lg rounded-lg mb-4 gap-2 items-center"}>
               <p className="font-bold text-lg">{'Origen:'}</p>

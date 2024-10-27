@@ -105,7 +105,7 @@ const branchReportSchema = mongoose.Schema({
 
 }, { timestamps: { createdAt: true, updatedAt: false } })
 
-branchReportSchema.index({ createdAt: -1, branch: 1, company: 1 });
+branchReportSchema.index({ createdAt: -1, branch: 1, employee: 1 }, { unique: true });
 
 const BranchReport = mongoose.model('BranchReport', branchReportSchema)
 

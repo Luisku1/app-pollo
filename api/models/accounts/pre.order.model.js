@@ -2,13 +2,14 @@ import mongoose, { Schema } from 'mongoose'
 
 const preOrderSchema = mongoose.Schema({
 
-  orderDate: {
+  deliverDate: {
     type: Date,
     required: true
   },
 
-  advancedMoney: {
-    type: Number
+  delivered: {
+    type: Boolean,
+    default: false
   },
 
   amount: {
@@ -16,13 +17,23 @@ const preOrderSchema = mongoose.Schema({
     required: true
   },
 
-  pendingAmount: {
+  weight: {
     type: Number,
     required: true
   },
 
-  company: {
-    type: Schema.Types.ObjectId, ref: 'Company',
+  price: {
+    type: Number,
+    required: true
+  },
+
+  advancedMoney: {
+    type: Number,
+    default: 0
+  },
+
+  pendingAmount: {
+    type: Number,
     required: true
   },
 
@@ -31,11 +42,27 @@ const preOrderSchema = mongoose.Schema({
     required: true
   },
 
-  createdAt: {
-    type: Date,
+  supervisor: {
+    type: Schema.Types.ObjectId, ref: 'Employee',
+    required: true
+  },
+
+  seller: {
+    type: Schema.Types.ObjectId, ref: 'Employee',
+  },
+
+  product: {
+    type: Schema.Types.ObjectId, ref: 'Product',
+    required: true
+  },
+
+  company: {
+    type: Schema.Types.ObjectId, ref: 'Company',
     required: true
   }
-})
+}, { timestamps: true })
+
+preOrderSchema.index({ deliverDate: -1, branch: 1 })
 
 const PreOrder = mongoose.model('PreOrder', preOrderSchema)
 

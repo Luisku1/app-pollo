@@ -5,6 +5,7 @@ import Role from '../models/role.model.js'
 import { errorHandler } from '../utils/error.js'
 import EmployeeDailyBalance from '../models/employees/employee.daily.balance.js'
 import { newCompanyFunction } from './company.controller.js'
+import { addDailyBalanceInWeeklyBalance } from './employee.controller.js'
 
 export const signUp = async (req, res, next) => {
 
@@ -36,6 +37,8 @@ export const signUp = async (req, res, next) => {
     const employeeDailyBalance = new EmployeeDailyBalance({ employee: newEmployee._id, company: newEmployee.company, createdAt: (new Date().toISOString()) })
     await newEmployee.save()
     await employeeDailyBalance.save()
+
+    await addDailyBalanceInWeeklyBalance(employeeDailyBalance)
 
     if (employeeDailyBalance && newEmployee) {
 

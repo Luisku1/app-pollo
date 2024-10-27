@@ -183,7 +183,7 @@ export const getSupervisorsInfo = async (req, res, next) => {
       const missingIncomes = -supervisorsInfo.missingIncomes
       const reportedIncomes = netIncomes - missingIncomes
 
-      res.status(200).json({ supervisors: supervisorsInfo.supervisors, generalInfo: { extraOutgoings, grossCashIncomes, netIncomes: netIncomes, deposits, netIncomes,  missingIncomes, reportedIncomes }})
+      res.status(200).json({ supervisors: supervisorsInfo.supervisors, generalInfo: { extraOutgoings, grossCashIncomes, netIncomes: netIncomes, deposits, netIncomes, missingIncomes, reportedIncomes } })
 
     } else {
 
@@ -333,10 +333,24 @@ export const supervisorsInfoQuery = async (companyId, topDate, bottomDate) => {
             },
             {
               $lookup: {
-                from: 'branches', // Colección donde se almacena la información de las sucursales
-                localField: 'branch', // Campo dentro de 'incomes' que contiene la referencia a la sucursal
-                foreignField: '_id', // Campo en 'branches' que es el ID de la sucursal
-                as: 'branch' // Alias para los datos de la sucursal
+                from: 'branches',
+                localField: 'branch',
+                foreignField: '_id',
+                as: 'branch'
+              }
+            },
+            {
+              $lookup: {
+                from: 'customers',
+                localField: 'customer',
+                foreignField: '_id',
+                as: 'customer'
+              }
+            },
+            {
+              $unwind: {
+                path: '$customer',
+                preserveNullAndEmptyArrays: true
               }
             },
             {
@@ -350,7 +364,7 @@ export const supervisorsInfoQuery = async (companyId, topDate, bottomDate) => {
             {
               $unwind: {
                 path: '$branch',
-                preserveNullAndEmptyArrays: true // Por si hay ingresos sin sucursal asociada
+                preserveNullAndEmptyArrays: true
               }
             },
             {
@@ -379,10 +393,10 @@ export const supervisorsInfoQuery = async (companyId, topDate, bottomDate) => {
             },
             {
               $lookup: {
-                from: 'branches', // Colección donde se almacena la información de las sucursales
-                localField: 'branch', // Campo dentro de 'incomes' que contiene la referencia a la sucursal
-                foreignField: '_id', // Campo en 'branches' que es el ID de la sucursal
-                as: 'branch' // Alias para los datos de la sucursal
+                from: 'branches',
+                localField: 'branch',
+                foreignField: '_id',
+                as: 'branch'
               }
             },
             {
@@ -392,6 +406,20 @@ export const supervisorsInfoQuery = async (companyId, topDate, bottomDate) => {
                 foreignField: '_id',
                 as: 'type',
 
+              }
+            },
+            {
+              $lookup: {
+                from: 'customers',
+                localField: 'customer',
+                foreignField: '_id',
+                as: 'customer'
+              }
+            },
+            {
+              $unwind: {
+                path: '$customer',
+                preserveNullAndEmptyArrays: true
               }
             },
             {

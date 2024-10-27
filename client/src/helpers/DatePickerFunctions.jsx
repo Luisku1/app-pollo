@@ -20,14 +20,21 @@ export const formatSimpleDate = (date) => {
   return pivotDate.toLocaleDateString('es-mx', {year: 'numeric', month: '2-digit', day: '2-digit'})
 }
 
-export const formatDateAndTime = (date) => {
+export const formatTime = (date) => {
 
   const pivotDate = new Date(date)
 
   return pivotDate.toLocaleTimeString('es-Mx')
 }
 
-export const today = (date) => {
+export const formatDateAndTime = (date) => {
+
+  const pivotDate = new Date(date)
+
+  return `${pivotDate.toLocaleDateString('es-mx', {dateStyle: 'short'})} ${pivotDate.toLocaleTimeString('es-mx')}`
+}
+
+export const isToday = (date) => {
 
   return formatDate(date) == formatDate((new Date())) ? true : false
 }

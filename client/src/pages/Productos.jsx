@@ -41,6 +41,7 @@ export default function Productos() {
   const addProduct = async (e) => {
 
     const nameInput = document.getElementById('name')
+    const priceInput = document.getElementById('price')
 
     e.preventDefault()
 
@@ -71,6 +72,7 @@ export default function Productos() {
       setProducts([...products, data.product])
 
       nameInput.value = ''
+      priceInput.value = ''
 
       setLoading(false)
 
@@ -159,9 +161,10 @@ export default function Productos() {
 
       {error ? <p>{error}</p> : ''}
 
-      <form id='productForm' onSubmit={addProduct} className="grid grid-cols-2 items-center justify-between">
+      <form id='productForm' onSubmit={addProduct} className="bg-white shadow-md grid grid-cols-1 items-center justify-between rounded-lg gap-2">
 
-        <input type="text" name="name" id="name" placeholder='Nombre' className='border p-3 rounded-lg' required onInput={productButtonControl} onChange={handleProductInputsChange} />
+        <input type="text" name="name" id="name" placeholder='Nombre del producto' className='border border-black p-3 rounded-lg' required onInput={productButtonControl} onChange={handleProductInputsChange} />
+        <input type="number" name="price" id="price" placeholder="Precio inicial" className="border border-black p-3 rounded-lg" onChange={handleProductInputsChange} />
         <button type='submit' id='product-button' disabled={loading} className='bg-slate-500 text-white p-3 rounded-lg'>Agregar</button>
 
       </form>

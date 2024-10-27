@@ -1,12 +1,9 @@
-import mongoose from "mongoose";
 import IncomeCollected from "../models/accounts/incomes/income.collected.model.js";
 import IncomeType from "../models/accounts/incomes/income.type.model.js";
 import { errorHandler } from "../utils/error.js";
 import { getDayRange } from "../utils/formatDate.js";
-import { updateReportIncomes } from "../utils/updateReport.js";
-import { addRecordToBranchReportArrays, createDefaultBranchReport, fetchBranchReport, removeRecordFromBranchReport } from "./branch.report.controller.js";
-import BranchReport from "../models/accounts/branch.report.model.js";
-import { addSupervisorReportIncome, deleteSupervisorReportIncome, updateDailyBalancesBalance, updateEmployeeDailyBalancesBalance } from "./employee.controller.js";
+import { pushOrPullBranchReportRecord } from "./branch.report.controller.js";
+import { addSupervisorReportIncome, deleteSupervisorReportIncome } from "./employee.controller.js";
 
 export const newBranchIncomeQuery = async (req, res, next) => {
 
@@ -26,52 +23,27 @@ export const newBranchIncomeQuery = async (req, res, next) => {
 
 export const newBranchIncomeFunction = async ({ amount, company, branch, employee, type, createdAt, partOfAPayment = false }) => {
 
-  let branchReport = null
   let income = null
-  let updatedEmployeeDailyBalance = null
-  let updatedBranchReport = null
 
   try {
-
-    branchReport = await fetchBranchReport({ branchId: branch, date: createdAt })
-
-    if (!branchReport) {
-
-      branchReport = createDefaultBranchReport({ branchId: branch, date: createdAt, companyId: company })
-    }
-
-    if (!branchReport) throw new Error("No se encontró ni se pudo crear el reporte");
 
     income = await IncomeCollected.create({ amount, company, branch, employee, type, createdAt, partOfAPayment })
 
     if (!income) throw new Error("No se logró crear el registro");
 
-    updatedBranchReport = await BranchReport.findByIdAndUpdate(branchReport._id, {
+    await pushOrPullBranchReportRecord({
+      branchId: income.branch,
+      date: income.createdAt,
+      record: income,
+      affectsBalancePositively: true,
+      operation: '$push',
+      arrayField: 'incomesArray',
+      amountField: 'incomes'
+    })
 
-      $push: { incomesArray: income._id },
-      $inc: { incomes: income.amount, balance: income.amount }
+    await addSupervisorReportIncome({ income, date: income.createdAt })
 
-    }, { new: true })
-
-    if (updatedBranchReport) {
-
-      if (updatedBranchReport.employee) {
-
-        updatedEmployeeDailyBalance = await updateEmployeeDailyBalancesBalance({ branchReport: updatedBranchReport })
-
-        if (!updatedEmployeeDailyBalance) throw new Error("No se pudo actualizar la cuenta del empleado");
-      }
-
-      const { bottomDate, topDate } = getDayRange(updatedBranchReport.createdAt)
-
-      await addSupervisorReportIncome({ income, day: { bottomDate, topDate } })
-
-      return income
-
-    } else {
-
-      throw new Error("Hubo un problema encontrando el reporte a modificar");
-    }
+    return income
 
   } catch (error) {
 
@@ -80,16 +52,29 @@ export const newBranchIncomeFunction = async ({ amount, company, branch, employe
       await IncomeCollected.findByIdAndDelete(income._id)
     }
 
-    if (!updatedEmployeeDailyBalance && updatedBranchReport
-      && (branchReport.balance != updatedBranchReport.balance
-        || branchReport.incomesArray != updatedBranchReport.incomesArray
-        || branchReport.incomes != updatedBranchReport.incomes
-      )) {
-
-      await BranchReport.findByIdAndUpdate(branchReport._id, { balance: branchReport.balance, incomes: branchReport.incomes, incomesArray: branchReport.incomesArray })
-    }
-
+    console.log(error)
     throw error;
+  }
+}
+
+export const newCustomerIncomeFunction = async ({ amount, company, customer, employee, type, createdAt, partOfAPayment = false }) => {
+
+  let income = null
+
+  try {
+
+    income = await IncomeCollected.create({ amount, company, customer, employee, type, createdAt, partOfAPayment })
+
+    await addSupervisorReportIncome({ income: income, date: income.createdAt})
+
+    return income
+
+  } catch (error) {
+
+    if (income) {
+
+      await IncomeCollected.findByIdAndDelete(income._id)
+    }
   }
 }
 
@@ -101,25 +86,12 @@ export const newCustomerIncomeQuery = async (req, res, next) => {
 
     const newIncome = await newCustomerIncomeFunction({ amount, company, customer, employee, type, createdAt })
 
-    const { bottomDate, topDate } = getDayRange(newIncome.createdAt)
-
-    await addSupervisorReportIncome({ income: newIncome, day: { bottomDate, topDate } })
-
     res.status(201).json({ message: 'New income created successfully', income: newIncome })
 
   } catch (error) {
 
     next(error)
   }
-}
-
-export const newCustomerIncomeFunction = async ({ amount, company, customer, employee, type, createdAt, partOfAPayment = false }) => {
-
-  const newIncome = new IncomeCollected({ amount, company, customer, employee, type, createdAt, partOfAPayment })
-  await newIncome.save()
-  await updateReportIncomes(branch, createdAt, amount)
-  return newIncome
-
 }
 
 export const newIncomeType = async (req, res, next) => {
@@ -141,7 +113,7 @@ export const newIncomeType = async (req, res, next) => {
 
 export const getIncomeTypeId = async ({ name }) => {
 
-  return await IncomeType.findOne({ name }, '_id')
+  return IncomeType.findOne({ name }, '_id')
 }
 
 export const getBranchIncomesRequest = async (req, res, next) => {
@@ -173,13 +145,12 @@ export const getBranchIncomes = async ({ branchId, date }) => {
 
   const { bottomDate, topDate } = getDayRange(new Date(date))
 
-  const branchIncomes = await IncomeCollected.find({
+  return IncomeCollected.find({
 
     createdAt: { $gte: bottomDate, $lt: topDate },
     branch: branchId
-  }).populate({ path: 'employee', select: 'name lastName' }).populate({ path: 'branch', select: 'branch' }).populate({ path: 'type', select: 'name' })
+  }).populate({ path: 'employee', select: 'name lastName' }).populate({ path: 'branch', select: 'branch' }).populate({ path: 'type', select: 'name' }).sort({ createdAt: -1 })
 
-  return branchIncomes.length > 0 ? branchIncomes : []
 }
 
 export const getIncomes = async (req, res, next) => {
@@ -194,7 +165,7 @@ export const getIncomes = async (req, res, next) => {
     const incomes = await IncomeCollected.find({
       createdAt: { $gte: bottomDate, $lt: topDate },
       company: companyId
-    }).populate({ path: 'employee', select: 'name lastName' }).populate({ path: 'branch', select: 'branch position' }).populate({ path: 'type', select: 'name' })
+    }).populate({ path: 'employee', select: 'name lastName' }).populate({ path: 'branch', select: 'branch position' }).populate({ path: 'type', select: 'name' }).populate({ path: 'customer', select: 'name lastName' })
 
     if (incomes.length > 0) {
 
@@ -273,9 +244,6 @@ export const deleteIncomeQuery = async (req, res, next) => {
 export const deleteIncome = async ({ incomeId }) => {
 
   let deletedIncome = null
-  let branchReport = null
-  let updatedEmployeeDailyBalance = null
-  let updatedBranchReport = null
 
   try {
 
@@ -283,52 +251,25 @@ export const deleteIncome = async ({ incomeId }) => {
 
     if (!deletedIncome) throw new Error("No se eliminó el registro");
 
-    branchReport = await fetchBranchReport({ branchId: deletedIncome.branch, date: deletedIncome.createdAt })
+    await pushOrPullBranchReportRecord({
+      branchId: deletedIncome.branch,
+      date: deletedIncome.createdAt,
+      record: deletedIncome,
+      affectsBalancePositively: true,
+      operation: '$pull',
+      arrayField: 'incomesArray',
+      amountField: 'incomes'
+    })
 
-    if (!branchReport) throw new Error("No se encontró ningún reporte ");
+    await deleteSupervisorReportIncome({ income: deletedIncome, date: deletedIncome.createdAt })
 
-    updatedBranchReport = await BranchReport.findByIdAndUpdate(branchReport._id, {
-
-      $pull: { incomesArray: deletedIncome._id },
-      $inc: { incomes: -deletedIncome.amount, balance: -deletedIncome.amount }
-
-    }, { new: true })
-
-    if (updatedBranchReport) {
-
-      if (updatedBranchReport.employee) {
-
-        updatedEmployeeDailyBalance = await updateEmployeeDailyBalancesBalance({ branchReport: updatedBranchReport })
-
-        if (!updatedEmployeeDailyBalance) throw new Error("No se pudo actualizar la cuenta del empleado");
-      }
-
-      const { bottomDate, topDate } = getDayRange(updatedBranchReport.createdAt)
-
-      await deleteSupervisorReportIncome({ income: deletedIncome, day: { bottomDate, topDate } })
-
-      return deletedIncome
-
-    } else {
-
-      throw new Error("No se pudo actualizar la cuenta, verifique el error");
-
-    }
+    return deletedIncome
 
   } catch (error) {
 
     if (deletedIncome) {
 
       await IncomeCollected.create({ deletedIncome })
-    }
-
-    if (!updatedEmployeeDailyBalance && updatedBranchReport
-      && (branchReport.balance != updatedBranchReport.balance
-        || branchReport.incomesArray != updatedBranchReport.incomesArray
-        || branchReport.incomes != updatedBranchReport.incomes
-      )) {
-
-      await BranchReport.findByIdAndUpdate(branchReport._id, { balance: branchReport.balance, incomes: branchReport.incomes, incomesArray: branchReport.incomesArray })
     }
 
     throw error

@@ -5,7 +5,8 @@ const employeePaymentSchema = new mongoose.Schema({
 
   amount: {
     type: Number,
-    required: true
+    required: true,
+    min: [1, 'El monto debe ser mayor a 0']
   },
 
   detail: {
@@ -37,12 +38,9 @@ const employeePaymentSchema = new mongoose.Schema({
     type: Schema.Types.ObjectId, ref: 'IncomeCollected'
   },
 
-  createdAt: {
-    type: Date,
-    required: true
-  }
+}, { timestamps: { createdAt: true, updatedAt: true } })
 
-}, { timestamps: { createdAt: false, updatedAt: true } })
+employeePaymentSchema.index({createdAt: -1, employee: 1}, {unique: true})
 
 const EmployeePayment = mongoose.model('EmployeePayment', employeePaymentSchema)
 

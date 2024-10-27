@@ -28,7 +28,6 @@ const employeeDailyBalanceSchema = mongoose.Schema({
   },
 
   restDay: {
-
     type: Boolean,
     default: false,
   },

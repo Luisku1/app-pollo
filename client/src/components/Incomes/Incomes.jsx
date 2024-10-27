@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { useAddIncome } from '../../hooks/Incomes/useAddIncome'
 import { useDeleteIncome } from '../../hooks/Incomes/useDeleteIncome'
 import { useIncomeTypes } from '../../hooks/Incomes/useIncomeTypes'
-import { today } from '../../helpers/DatePickerFunctions'
+import { isToday } from '../../helpers/DatePickerFunctions'
 import SectionHeader from '../SectionHeader'
 import { FaListAlt } from 'react-icons/fa'
 import { customSelectStyles } from '../../helpers/Constants'
@@ -35,7 +35,7 @@ export default function Incomes({ incomes, incomesTotal, pushIncome, spliceIncom
   const addIncomeSubmit = async (e) => {
 
     const amountInput = document.getElementById('income-amount')
-    const createdAt = today(date) ? new Date().toISOString() : new Date(date).toISOString()
+    const createdAt = isToday(date) ? new Date().toISOString() : new Date(date).toISOString()
 
     e.preventDefault()
 
@@ -177,7 +177,7 @@ export default function Incomes({ incomes, incomesTotal, pushIncome, spliceIncom
               <SectionHeader label={'Efectivos'} />
 
               <div id='header' className='grid grid-cols-12 items-center justify-around font-semibold mt-4'>
-                <p className='col-span-3 text-center'>Sucursal</p>
+                <p className='col-span-3 text-center'>Sucursal o Cliente</p>
                 <p className='col-span-2 text-center'>Encargado</p>
                 <p className='col-span-3 text-center'>Tipo</p>
                 <p className='col-span-1 text-center'>Monto</p>
@@ -188,7 +188,13 @@ export default function Incomes({ incomes, incomesTotal, pushIncome, spliceIncom
                 <div key={income._id} className='grid grid-cols-12 items-center border border-black border-opacity-30 mt-2 shadow-m rounded-lg'>
 
                   <div id='list-element' className=' flex col-span-10 items-center justify-around pt-3 pb-3'>
-                    <p className='text-center text-xs w-3/12'>{`${income.branch?.branch || income.branch?.label || income.customer?.name || income.customer?.lastName}`}</p>
+                    <p className='text-center text-xs w-3/12'>
+                      {(() => {
+                        const branchInfo = income.branch?.branch || income.branch?.label;
+                        const customerInfo = `${income.customer?.name || ''} ${income.customer?.lastName || ''}`.trim() || income.customer?.label;
+
+                        return branchInfo || customerInfo;
+                      })()}</p>
                     <p className='text-center text-xs w-3/12'>{income.employee.name + ' ' + income.employee.lastName}</p>
                     <p className='text-center text-xs w-2/12'>{income.type.name || income.type.label}</p>
                     <p className='text-center text-xs w-3/12'>{income.amount.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>

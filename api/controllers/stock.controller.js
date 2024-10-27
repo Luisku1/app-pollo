@@ -314,7 +314,6 @@ export const deleteStock = async (req, res, next) => {
   let updatedEmployeeDailyBalance = null
   let updatedBranchReport = null
   let updatedNextBranchReport = null
-  console.log(stockId)
 
   try {
 

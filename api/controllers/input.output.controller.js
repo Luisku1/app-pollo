@@ -53,7 +53,7 @@ export const newBranchInputAndUpdateBranchReport = async ({ weight, comment, pie
       $push: { inputsArray: input._id },
       $inc: { inputs: input.amount, balance: -input.amount }
 
-    })
+    }, {new: true})
 
     if (updatedBranchReport) {
 
@@ -570,8 +570,6 @@ export const newBranchOutput = async (req, res, next) => {
 
   const { weight, comment, amount, price, pieces, company, product, employee, branch: branch, specialPrice, createdAt } = req.body
 
-  console.log(req.body)
-
   try {
 
     const newOutput = await newBranchOutputAndUpdateBranchReport({ weight, comment, pieces, company, product, employee, branch, amount, price, createdAt, specialPrice })
@@ -867,7 +865,7 @@ export const getProviderProductInputs = async (req, res, next) => {
           company: companyId
         }
       ]
-    }).populate({ path: 'branch', select: 'branch position' }).populate({ path: 'employee', select: 'name lastName' })
+    }).populate({ path: 'branch', select: 'branch position' }).populate({ path: 'employee', select: 'name lastName' }).populate({path: 'product', select: 'name'})
 
     if (providerInputs.length > 0) {
 

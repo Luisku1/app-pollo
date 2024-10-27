@@ -4,16 +4,18 @@ import { Link, useParams } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { weekDays } from '../helpers/Constants'
 import TarjetaCuenta from '../components/TarjetaCuenta'
-import ShowEmployeePayments from '../components/ShowEmployeePayments'
 import { useLoading } from '../hooks/loading'
 import { useSignOut } from '../hooks/Auth/useSignOut'
-import { useSupervisorReport } from '../hooks/Supervisors/useSupervisorReport'
-import { formatDate, today } from '../helpers/DatePickerFunctions'
+import { formatDate, formatInformationDate, isToday } from '../helpers/DatePickerFunctions'
 import { useRoles } from '../hooks/useRoles'
 import ShowListButton from '../components/Buttons/ShowListButton'
 import { useSupervisorReports } from '../hooks/Supervisors/useSupervisorReports'
 import SupervisorReports from '../components/SupervisorReports'
 import SupervisorReport from '../components/SupervisorReportComp'
+import EmployeePaymentsList from '../components/EmployeePaymentsList'
+import { useEmployeePayments } from '../hooks/Employees/useEmployeePayments'
+import { useDeleteEmployeePayment } from '../hooks/Employees/useDeleteEmployeePayment'
+import { stringToCurrency } from '../helpers/Functions'
 
 export default function Perfil() {
 
@@ -21,12 +23,13 @@ export default function Perfil() {
   const { employeeId } = useParams()
   const [employee, setEmployee] = useState(null)
   const [employeeDayInfo, setEmployeeDayInfo] = useState(null)
-  const { supervisorReport } = useSupervisorReport({ supervisorId: employeeId, date: formatDate(new Date()) })
+  const [lastSupervisorReport, setLastSupervisorReport] = useState(null)
   const [employeeBranchReports, setEmployeeBranchReports] = useState([])
   const { supervisorReports } = useSupervisorReports({ supervisorId: employeeId })
   const [lastBranchReport, setLastBranchReport] = useState(null)
-  const [fetchError, setFetchError] = useState(null)
   const [loading, setLoading] = useState(false)
+  const { payments, total, spliceEmployeePayment } = useEmployeePayments({ employeeId, date: formatDate(new Date()) })
+  const { deleteEmployeePayment } = useDeleteEmployeePayment()
   const { roles } = useRoles()
   const { isLoading } = useLoading(loading)
   const { signOut } = useSignOut()
@@ -34,11 +37,19 @@ export default function Perfil() {
 
   useEffect(() => {
 
-    if (!employeeBranchReports || !employeeBranchReports.length > 0) return
+    if (!(employeeBranchReports && employeeBranchReports.length > 0)) return
 
     setLastBranchReport(employeeBranchReports[0])
 
   }, [employeeBranchReports])
+
+  useEffect(() => {
+
+    if (!(supervisorReports && supervisorReports.length > 0)) return
+
+    setLastSupervisorReport(supervisorReports[0])
+
+  }, [supervisorReports])
 
   const handleSignOut = async () => {
 
@@ -69,16 +80,14 @@ export default function Perfil() {
 
         if (data.success === false) {
 
-          setFetchError(data.message)
-          return
+          console.log(data.message)
         }
 
         setEmployee(data.employee)
-        setFetchError(null)
 
       } catch (error) {
 
-        setFetchError(error.message)
+        console.log(error)
       }
     }
 
@@ -93,19 +102,18 @@ export default function Perfil() {
 
         if (data.success === false) {
 
-          setFetchError(data.message)
+          console.log(data.message)
           setLoading(false)
           return
         }
 
         setEmployeeDayInfo(data.employeeDayInfo)
         setLoading(false)
-        setFetchError(null)
 
       } catch (error) {
 
         setLoading(false)
-        setFetchError(error.message)
+        console.log(error.message)
       }
     }
 
@@ -118,16 +126,15 @@ export default function Perfil() {
 
         if (data.success === false) {
 
-          setFetchError(data.message)
+          console.log(data.message)
           return
         }
 
         setEmployeeBranchReports(data.employeeBranchReports)
-        setFetchError(null)
 
       } catch (error) {
 
-        setFetchError(error.message)
+        console.log(error.message)
       }
     }
 
@@ -151,14 +158,10 @@ export default function Perfil() {
     <main className="p-3 max-w-lg mx-auto">
 
       {error ? <p>{error}</p> : ''}
-      {fetchError ? <p>{fetchError}</p> : ''}
 
-      {!isLoading ?
+      {!isLoading && (
 
         <div>
-
-
-
           {employee && roles ?
 
             <div id='personal-info' className="my-4 bg-white p-4" key={employee._id}>
@@ -167,8 +170,17 @@ export default function Perfil() {
               {roles.managerRole._id == currentUser.role || currentUser._id == employee._id ?
                 <div className='p-3'>
                   <div className='flex flex-row-reverse gap-2 items-center'>
-                    <ShowEmployeePayments date={(new Date()).toISOString()} employeeId={employee._id} employeeName={employee.name}></ShowEmployeePayments>
-                    <p className='text-center text-lg'>Pagos: </p>
+                    <ShowListButton
+                      ListComponent={
+                        <EmployeePaymentsList
+                          spliceEmployeePayment={spliceEmployeePayment}
+                          deleteEmployeePayment={deleteEmployeePayment}
+                          employeePayments={payments}
+                          roles={roles}
+                        />
+                      }
+                    />
+                    <p className='text-center text-lg'><span className='text-red-700 font-semibold'>Pagos: </span> {`${stringToCurrency({ amount: total })}`}</p>
                   </div>
                 </div>
                 : ''}
@@ -206,27 +218,27 @@ export default function Perfil() {
                   : ''}
               </div>
 
-              {roles.sellerRole._id != employee.role._id ?
+              {roles.sellerRole._id != employee.role._id && (employee._id == currentUser._id || currentUser.role == roles.managerRole._id) ?
                 <div className=''>
-                  {supervisorReport ?
+                  {lastSupervisorReport && (
                     <div>
-                      <p className='text-center text-lg '>Última cuenta de supervisión</p>
-                      <SupervisorReport supervisorReport={supervisorReport}></SupervisorReport>
+                      <p className='text-center text-lg font-semibold'>Última cuenta de supervisión</p>
+                      <SupervisorReport supervisorReport={lastSupervisorReport}></SupervisorReport>
                     </div>
-                    : ''}
+                  )}
                 </div>
                 : ''}
 
               {lastBranchReport && (
 
                 <div className='mt-4'>
-                  <p className='text-center text-lg '>Última cuenta de supervisión</p>
+                  <p className='text-center text-lg font-semibold'>Última cuenta de pollería</p>
                   <div key={lastBranchReport._id} className="bg-white p-5 mb-4 mt-4 rounded-3xl shadow-lg border" >
 
                     <div className='flex justify-around'>
                       <div className='flex justify-center my-auto gap-1'>
                         <p className="text-center text-lg font-semibold text-red-500 mb-3">Fecha:</p>
-                        <p className="text-center text-lg font-semibold text-black mb-3">{(new Date(lastBranchReport.createdAt)).toLocaleDateString()}</p>
+                        <p className="text-center text-lg font-semibold text-black mb-3">{formatInformationDate(lastBranchReport.createdAt)}</p>
                       </div>
                       <div className='flex my-auto gap-1'>
                         <p className="text-center text-lg font-semibold text-red-500 mb-3">{lastBranchReport.branch.branch}</p>
@@ -237,7 +249,7 @@ export default function Perfil() {
                       <Link className='col-span-10' to={'/formato/' + lastBranchReport.createdAt + '/' + lastBranchReport.branch._id}>
 
                         <div className=''>
-                          {!today(lastBranchReport.createdAt) || roles.managerRole._id == currentUser.role || lastBranchReport.balance < 0 ?
+                          {!isToday(lastBranchReport.createdAt) || roles.managerRole._id == currentUser.role || lastBranchReport.balance < 0 ?
                             <div className="flex gap-2">
                               <p className="text-lg">Faltante: </p>
                               <p className={lastBranchReport.balance < 0 ? 'text-red-700 font-bold' : '' + 'text-lg font-bold'}>{lastBranchReport.balance > 0 ? roles.managerRole._id == currentUser.role ? parseFloat(lastBranchReport.balance).toLocaleString("es-MX", { style: 'currency', currency: 'MXN' }) : '$0.00' : parseFloat(lastBranchReport.balance).toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
@@ -255,12 +267,14 @@ export default function Perfil() {
 
               {employeeBranchReports && employeeBranchReports.length > 0 ?
 
-                <div className='flex gap-4 mt-4 items-center justify-self-start'>
-
+                <div className='flex gap-4 mt-4 items-center justify-self-center'>
                   <h3 className='text-2xl font-bold'>Cuentas en pollería</h3>
                   <div className=''>
-                    <ShowListButton ListComponent={<TarjetaCuenta reportArray={employeeBranchReports} managerRole={roles.managerRole} currentUser={currentUser} />}>
-                    </ShowListButton>
+                    <ShowListButton
+                      ListComponent={
+                        <TarjetaCuenta reportArray={employeeBranchReports} managerRole={roles.managerRole} currentUser={currentUser} />
+                      }
+                    />
                   </div>
                 </div>
                 : ''
@@ -268,12 +282,15 @@ export default function Perfil() {
 
               {supervisorReports && supervisorReports.length > 0 && (currentUser._id == employeeId || roles.managerRole._id == currentUser.role) ?
 
-                <div className='flex gap-4 mt-4 items-center'>
+                <div className='flex gap-4 mt-4 items-center justify-self-center'>
 
                   <h3 className='text-2xl font-bold'>Cuentas de supervisor</h3>
-                  <div>
-                    <ShowListButton ListComponent={<SupervisorReports supervisorReports={supervisorReports} />}>
-                    </ShowListButton>
+                  <div className=''>
+                    <ShowListButton
+                      ListComponent={
+                        <SupervisorReports supervisorReports={supervisorReports} />
+                      }
+                    />
                   </div>
                 </div>
                 : ''
@@ -281,7 +298,7 @@ export default function Perfil() {
 
               {employeeId == currentUser._id ?
                 <div className='mt-8 grid grid-1'>
-                  <button className='shadow-lg rounded-full p-3 flex-col-reverse justify-self-end border border-black bg-red-700'>
+                  <button className='shadow-lg rounded-full p-2 flex-col-reverse justify-self-end border bg-red-700'>
                     <span onClick={handleSignOut} className='text-white cursor-pointer font-semibold text-lg'>Cerrar Sesión</span>
                   </button>
                   <span>{error ? ' Error al fetch' : ''}</span>
@@ -291,13 +308,7 @@ export default function Perfil() {
             </div >
             : ''}
         </div>
-        :
-        <div className="bg-white p-5 my-4 rounded-3xl shadow-lg text-lg font-semibold text-center">
-
-          <p>No tienes acceso a esta información</p>
-
-        </div>
-      }
+      )}
     </main >
   )
 }

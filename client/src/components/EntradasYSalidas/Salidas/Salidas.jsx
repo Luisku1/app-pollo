@@ -7,7 +7,7 @@ import { useOutput } from "../../../hooks/Outputs/useOutput"
 import { useSelector } from "react-redux"
 import Select from 'react-select'
 import { customSelectStyles } from "../../../helpers/Constants"
-import { today } from "../../../helpers/DatePickerFunctions"
+import { isToday } from "../../../helpers/DatePickerFunctions"
 import BranchAndCustomerSelect from "../../Select/BranchAndCustomerSelect"
 import { useLoading } from "../../../hooks/loading"
 import Loading from "../../Loading"
@@ -105,7 +105,7 @@ export default function Salidas({ branchAndCustomerSelectOptions, products, date
     const weightInput = document.getElementById('output-weight')
     const commentInput = document.getElementById('output-comment')
     const priceInput = document.getElementById('output-price')
-    const createdAt = today(date) ? new Date().toISOString() : new Date(date).toISOString()
+    const createdAt = isToday(date) ? new Date().toISOString() : new Date(date).toISOString()
 
     e.preventDefault()
 
