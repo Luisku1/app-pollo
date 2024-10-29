@@ -23,8 +23,7 @@ const customerSchema = mongoose.Schema({
   },
 
   location: {
-    type: String,
-    required: true
+    type: String
   },
 
   company: {

@@ -6,6 +6,7 @@ import { updateReportStock } from "../utils/updateReport.js";
 import { createDefaultBranchReport, fetchBranchReport } from "./branch.report.controller.js";
 import { pricesAggregate } from "./price.controller.js";
 import { updateEmployeeDailyBalancesBalance } from "./employee.controller.js";
+import { pushOrPullBranchReportRecord } from './branch.report.controller.js'
 import { Types } from "mongoose";
 
 export const createStock = async (req, res, next) => {
@@ -27,105 +28,44 @@ export const createStock = async (req, res, next) => {
 
 export const createStockAndUpdateBranchReport = async ({ pieces, price, employee, weight, amount, branch, product, company, createdAt }) => {
 
-  let branchReport = null
-  let nextBranchReport = null
   let stock = null
-  let updatedEmployeeDailyBalance = null
-  let updatedBranchReport = null
-  let updatedNextBranchReport = null
 
   try {
-
-    branchReport = await fetchBranchReport({ branchId: branch, date: createdAt })
-
-    if (!branchReport) {
-
-      branchReport = await createDefaultBranchReport({ branchId: branch, date: createdAt, companyId: company })
-    }
-
-    if (!branchReport) throw new Error("No se encontró ni se pudo crear el reporte");
 
     stock = await Stock.create({ pieces, price, employee, weight, amount, branch, product, company, createdAt })
 
     if (!stock) throw new Error("No se logró crear el registro");
 
-    updatedBranchReport = await BranchReport.findByIdAndUpdate(branchReport._id, {
-
-      $push: { finalStockArray: stock._id },
-      $inc: { finalStock: stock.amount, balance: stock.amount }
-
-    }, { new: true })
-
-    if (updatedBranchReport) {
-
-      if (updatedBranchReport.employee) {
-
-        updatedEmployeeDailyBalance = await updateEmployeeDailyBalancesBalance({ branchReport: updatedBranchReport })
-
-        if (!updatedEmployeeDailyBalance) throw new Error("No se pudo actualizar la cuenta del empleado");
-      }
-
-    } else {
-
-      throw new Error("Hubo un problema encontrando el reporte a modificar");
-    }
+    await pushOrPullBranchReportRecord({
+      branchId: branch,
+      date: createdAt,
+      record: stock,
+      affectsBalancePositively: true,
+      operation: '$push',
+      arrayField: 'finalStockArray',
+      amountField: 'finalStock'
+    })
 
     const nextBranchReportDate = new Date(createdAt)
     nextBranchReportDate.setDate(nextBranchReportDate.getDate() + 1)
 
-    nextBranchReport = await fetchBranchReport({ branchId: branch, date: nextBranchReportDate })
+    await pushOrPullBranchReportRecord({
+      branchId: branch,
+      date: nextBranchReportDate,
+      record: stock,
+      affectsBalancePositively: false,
+      operation: '$push',
+      arrayField: 'initialStockArray',
+      amountField: 'initialStock'
+    })
 
-    if (!nextBranchReport) {
-
-      nextBranchReport = await createDefaultBranchReport({ branchId: branch, date: nextBranchReportDate, companyId: company })
-    }
-
-    if (!nextBranchReport) throw new Error("No se encontró ni se pudo crear el reporte del día siguiente");
-
-    updatedNextBranchReport = await BranchReport.findByIdAndUpdate(nextBranchReport._id, {
-
-      $push: { initialStockArray: stock._id },
-      $inc: { initialStock: stock.amount, balance: -stock.amount }
-
-    }, { new: true })
-
-    if (updatedNextBranchReport) {
-
-      if (updatedNextBranchReport.employee) {
-
-        updatedEmployeeDailyBalance = await updateEmployeeDailyBalancesBalance({ branchReport: updatedNextBranchReport })
-
-        if (!updatedEmployeeDailyBalance) throw new Error("No se pudo actualizar la cuenta del empleado");
-      }
-
-      return stock
-
-    } else {
-
-      throw new Error("Hubo un problema encontrando el reporte a modificar");
-    }
+    return stock
 
   } catch (error) {
 
     if (stock) {
 
       await Stock.findByIdAndDelete(stock._id)
-    }
-
-    if (!updatedEmployeeDailyBalance && updatedBranchReport
-      && (branchReport.balance != updatedBranchReport.balance
-        || branchReport.finalStockArray != updatedBranchReport.finalStockArray
-        || branchReport.finalStock != updatedBranchReport.finalStock)) {
-
-      await BranchReport.findByIdAndUpdate(branchReport._id, { balance: branchReport.balance, finalStockArray: branchReport.finalStockArray, finalStock: branchReport.finalStock })
-    }
-
-    if (!updatedEmployeeDailyBalance && updatedNextBranchReport
-      && (nextBranchReport.balance != updatedNextBranchReport.balance
-        || updatedNextBranchReport.initialStockArray != nextBranchReport.initialStockArray
-        || nextBranchReport.initialStock != updatedNextBranchReport.initialStock)) {
-
-      await BranchReport.findByIdAndUpdate(nextBranchReport._id, { balance: nextBranchReport.balance, initialStockArray: nextBranchReport.initialStockArray, initialStock: nextBranchReport.initialStock })
     }
 
     throw error;
@@ -321,65 +261,28 @@ export const deleteStock = async (req, res, next) => {
 
     if (!deletedStock) throw new Error("No se logró crear el registro")
 
-    branchReport = await fetchBranchReport({ branchId: deletedStock.branch, date: deletedStock.createdAt })
-
-    if (!branchReport) throw new Error("No se encontró ni se pudo crear el reporte")
-    updatedBranchReport = await BranchReport.findByIdAndUpdate(branchReport._id, {
-
-      $pull: { finalStockArray: deletedStock._id },
-      $inc: { finalStock: -deletedStock.amount, balance: -deletedStock.amount }
-
-    }, { new: true })
-
-    if (updatedBranchReport) {
-
-      if (updatedBranchReport.employee) {
-
-        updatedEmployeeDailyBalance = await updateEmployeeDailyBalancesBalance({ branchReport: updatedBranchReport })
-
-        if (!updatedEmployeeDailyBalance) throw new Error("No se pudo actualizar la cuenta del empleado");
-      }
-
-    } else {
-
-      throw new Error("Hubo un problema encontrando el reporte a modificar");
-    }
+    await pushOrPullBranchReportRecord({
+      branchId: deletedStock.branch,
+      date: deletedStock.createdAt,
+      record: deletedStock,
+      affectsBalancePositively: true,
+      operation: '$pull',
+      arrayField: 'finalStockArray',
+      amountField: 'finalStock'
+    })
 
     const nextBranchReportDate = new Date(deletedStock.createdAt)
     nextBranchReportDate.setDate(nextBranchReportDate.getDate() + 1)
 
-    nextBranchReport = await fetchBranchReport({ branchId: deletedStock.branch, date: nextBranchReportDate })
-
-    if (!nextBranchReport) {
-
-      nextBranchReport = await createDefaultBranchReport({ branchId: deletedStock.branch, date: nextBranchReportDate, companyId: company })
-    }
-
-    if (!nextBranchReport) throw new Error("No se encontró ni se pudo crear el reporte")
-
-    updatedNextBranchReport = await BranchReport.findByIdAndUpdate(nextBranchReport._id, {
-
-      $pull: { initialStockArray: deletedStock._id },
-      $inc: {
-        initialStock: -deletedStock.amount,
-        balance: deletedStock.amount
-      },
-
-    }, { new: true })
-
-    if (updatedNextBranchReport) {
-
-      if (updatedNextBranchReport.employee) {
-
-        updatedEmployeeDailyBalance = await updateEmployeeDailyBalancesBalance({ branchReport: updatedNextBranchReport })
-
-        if (!updatedEmployeeDailyBalance) throw new Error("No se pudo actualizar la cuenta del empleado");
-      }
-
-    } else {
-
-      throw new Error("Hubo un problema encontrando el reporte a modificar");
-    }
+    await pushOrPullBranchReportRecord({
+      branchId: deletedStock.branch,
+      date: nextBranchReport.date,
+      record: deletedStock,
+      affectsBalancePositively: true,
+      operation: '$pull',
+      arrayField: 'initialStockArray',
+      amountField: 'initialStock'
+    })
 
     res.status(200).json({ message: 'Registro borrado correctamente' })
 
@@ -390,18 +293,7 @@ export const deleteStock = async (req, res, next) => {
       await Stock.create(deletedStock)
     }
 
-    if (!updatedEmployeeDailyBalance && updatedBranchReport && (branchReport.balance != updatedBranchReport.balance || branchReport.finalStockArray != updatedBranchReport.finalStockArray)) {
-
-      await BranchReport.findByIdAndUpdate(branchReport._id, { balance: branchReport.balance, finalStockArray: branchReport.finalStockArray })
-    }
-
-    if (!updatedEmployeeDailyBalance && updatedNextBranchReport && (nextBranchReport.balance != updatedNextBranchReport.balance || updatedNextBranchReport.initialStockArray != nextBranchReport.initialStockArray)) {
-
-      await BranchReport.findByIdAndUpdate(nextBranchReport._id, { balance: nextBranchReport.balance, initialStockArray: nextBranchReport.initialStockArray })
-    }
-
     next(error);
-
   }
 }
 
@@ -602,15 +494,12 @@ export const createAfternoonStock = async (req, res, next) => {
 
   try {
 
-    const newStock = new Stock({ pieces, employee, weight, amount, branch, product, company, createdAt })
-    await af.save()
+    const newStock = await Stock.create({ pieces, employee, weight, amount, branch, product, company, createdAt })
 
-    await updateReportStock(branch, createdAt, amount)
-    res.status(201).json({ message: 'New Afternoon Stock is created successfully', stock: newStock })
+    res.status(201).json({ stock: newStock })
 
   } catch (error) {
 
     next(error)
-
   }
 }

@@ -256,14 +256,14 @@ export const refactorEmployeesWeeklyBalances = async ({ companyId }) => {
 	try {
 
 		const date = new Date()
-		date.setDate(date.getDate() - 7)
 
 		const bottomRange = new Date(date)
-		bottomRange.setDate(bottomRange.getDate() - 30)
+		bottomRange.setDate(bottomRange.getDate() - 2)
 		const { bottomDate } = getDayRange(date)
 
 		const activeEmployees = await Employee.find({
 			company: companyId,
+			active: true
 		}, '_id payDay')
 
 		activeEmployees.forEach(async (employee) => {
@@ -279,7 +279,6 @@ export const refactorEmployeesWeeklyBalances = async ({ companyId }) => {
 
 				await addDailyBalanceInWeeklyBalance({ dailyBalance })
 			})
-
 		})
 
 	} catch (error) {
@@ -425,6 +424,8 @@ export const fetchEmployeesPayroll = async ({ companyId, date }) => {
 	try {
 
 		const day = new Date(date).getDay()
+
+		// await refactorEmployeesWeeklyBalances({companyId})
 
 		const employeesId = await Employee.find({
 

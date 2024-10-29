@@ -6,7 +6,7 @@ import { updateReportOutgoings } from "../utils/updateReport.js"
 import { getDayRange } from "../utils/formatDate.js"
 import mongoose, { Types } from "mongoose"
 import Branch from "../models/branch.model.js"
-import { addRecordToBranchReportArrays, createDefaultBranchReport, fetchBranchReport } from "./branch.report.controller.js"
+import { addRecordToBranchReportArrays, createDefaultBranchReport, fetchBranchReport, pushOrPullBranchReportRecord } from "./branch.report.controller.js"
 import BranchReport from "../models/accounts/branch.report.model.js"
 import { addSupervisorReportExtraOutgoing, deleteSupervisorExtraOutgoing, updateEmployeeDailyBalancesBalance } from "./employee.controller.js"
 
@@ -31,59 +31,32 @@ export const newOutgoing = async (req, res, next) => {
 
 export const newOutgoingAndUpdateBranchReport = async ({ amount, concept, company, branch, employee, createdAt }) => {
 
-  let updatedBranchReport = null
-  let branchReport = null
-  let updatedEmployeeDailyBalance = null
   let outgoing = null
 
   try {
 
-    branchReport = await fetchBranchReport({ branchId: branch, date: createdAt })
-
-    if (!branchReport) {
-
-      branchReport = await createDefaultBranchReport({ branchId: branch, date: createdAt, companyId: company })
-    }
-
-    if (!branchReport) throw new Error("No se encontró ni se pudo crear el reporte");
-
     const outgoing = await Outgoing.create({ amount, concept, company, branch, employee, createdAt })
 
-    if (!outgoing) throw new Error("No se logró crear el registro");
+    if (!outgoing) throw new Error("No se logró crear el registro")
 
-    updatedBranchReport = await BranchReport.findByIdAndUpdate(branchReport._id, {
+    await pushOrPullBranchReportRecord({
+      branchId: branch,
+      date: createdAt,
+      record: outgoing,
+      operation: '$push',
+      affectsBalancePositively: true,
+      amountField: 'outgoings',
+      arrayField: 'outgoingsArray'
+    })
 
-      $push: { outgoingsArray: outgoing._id },
-      $inc: { outgoings: outgoing.amount, balance: outgoing.amount }
+    return outgoing
 
-    }, { new: true })
-
-    if (updatedBranchReport) {
-
-      if (updatedBranchReport.employee) {
-
-        updatedEmployeeDailyBalance = await updateEmployeeDailyBalancesBalance({ branchReport: updatedBranchReport })
-
-        if (!updatedEmployeeDailyBalance) throw new Error("No se pudo actualizar la cuenta del empleado");
-      }
-
-      return outgoing
-
-    } else {
-
-      throw new Error("Hubo un problema encontrando el reporte a modificar");
-    }
 
   } catch (error) {
 
     if (outgoing) {
 
       await Outgoing.findByIdAndDelete(outgoing._id)
-    }
-
-    if (!updatedEmployeeDailyBalance && updatedBranchReport && (branchReport.balance != updatedBranchReport.balance || branchReport.outgoingsArray != updatedBranchReport.outgoingsArray || branchReport.outgoings != updatedBranchReport.outgoings)) {
-
-      await BranchReport.findByIdAndUpdate(branchReport._id, { balance: branchReport.balance, outgoingsArray: branchReport.outgoingsArray, outgoings: branchReport.outgoings })
     }
 
     throw error;
@@ -165,11 +138,9 @@ export const newExtraOutgoingFunction = async ({ amount, concept, company, emplo
 
   try {
 
-    extraOutgoing = new ExtraOutgoing({ amount, concept, company, employee, createdAt, partOfAPayment })
-    await extraOutgoing.save()
+    extraOutgoing = await ExtraOutgoing.create({ amount, concept, company, employee, createdAt, partOfAPayment })
 
-    const { bottomDate, topDate } = getDayRange(extraOutgoing.createdAt)
-    await addSupervisorReportExtraOutgoing({ extraOutgoing, day: { bottomDate, topDate } })
+    await addSupervisorReportExtraOutgoing({ extraOutgoing, date: extraOutgoing.createdAt })
 
     return extraOutgoing || null
 
@@ -373,7 +344,7 @@ export const deleteExtraOutgoing = async (req, res, next) => {
 
   try {
 
-    deletedExtraOutgoing = await deleteExtraOutgoingFunction({extraOutgoingId})
+    deletedExtraOutgoing = await deleteExtraOutgoingFunction({ extraOutgoingId })
 
     if (deletedExtraOutgoing) {
 
@@ -386,7 +357,7 @@ export const deleteExtraOutgoing = async (req, res, next) => {
   }
 }
 
-export const deleteExtraOutgoingFunction = async ({extraOutgoingId}) => {
+export const deleteExtraOutgoingFunction = async ({ extraOutgoingId }) => {
 
   let deletedExtraOutgoing = null
 
@@ -422,9 +393,6 @@ export const deleteOutgoing = async (req, res, next) => {
   const outgoingId = req.params.outgoingId
 
   let deletedOutgoing = null
-  let branchReport = null
-  let updatedEmployeeDailyBalance = null
-  let updatedBranchReport = null
 
   try {
 
@@ -432,31 +400,16 @@ export const deleteOutgoing = async (req, res, next) => {
 
     if (!deletedOutgoing) throw new Error("No se eliminó el registro");
 
-    branchReport = await fetchBranchReport({ branchId: deletedOutgoing.branch, date: deletedOutgoing.createdAt })
+    await pushOrPullBranchReportRecord({
+      branchId: deletedOutgoing.branch,
+      date: deletedOutgoing.createdAt,
+      record: deletedOutgoing,
+      operation: '$pull',
+      affectsBalancePositively: true,
+      amountField: 'outgoings',
+      arrayField: 'outgoingsArray',
 
-    if (!branchReport) throw new Error("No se encontró ningún reporte ");
-
-    updatedBranchReport = await BranchReport.findByIdAndUpdate(branchReport._id, {
-
-      $pull: { outgoingsArray: deletedOutgoing._id },
-      $inc: { outgoings: -deletedOutgoing.amount, balance: -deletedOutgoing.amount }
-
-    }, { new: true })
-
-    if (updatedBranchReport) {
-
-      if (updatedBranchReport.employee) {
-
-        updatedEmployeeDailyBalance = await updateEmployeeDailyBalancesBalance({ branchReport: updatedBranchReport })
-
-        if (!updatedEmployeeDailyBalance) throw new Error("No se pudo actualizar la cuenta del empleado");
-      }
-
-    } else {
-
-      throw new Error("No se pudo actualizar la cuenta, verifique el error");
-
-    }
+    })
 
     res.status(200).json('Registro eliminado')
 
@@ -465,18 +418,6 @@ export const deleteOutgoing = async (req, res, next) => {
     if (deletedOutgoing) {
 
       await Outgoing.create({ deletedOutgoing })
-    }
-
-    if (!updatedEmployeeDailyBalance && updatedBranchReport
-      && (branchReport.balance != updatedBranchReport.balance
-        || branchReport.outgoingsArray != updatedBranchReport.outgoingsArray
-        || branchReport.outgoings != updatedBranchReport.outgoings)) {
-
-      await BranchReport.findByIdAndUpdate(branchReport._id, {
-        balance: branchReport.balance,
-        outgoingsArray: branchReport.outgoingsArray,
-        outgoings: branchReport.outgoings
-      })
     }
 
     next(error);

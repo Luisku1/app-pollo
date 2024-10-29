@@ -32,16 +32,6 @@ const branchReportSchema = mongoose.Schema({
     default: []  // Permitir arrays vacíos
   },
 
-  providerInputs: {
-    type: Number,
-    default: 0
-  },
-
-  providerInputsArray: {
-    type: [{ type: Schema.Types.ObjectId, ref: 'ProviderInput' }],
-    default: []  // Permitir arrays vacíos
-  },
-
   outputs: {
     type: Number,
     default: 0
@@ -49,6 +39,16 @@ const branchReportSchema = mongoose.Schema({
 
   outputsArray: {
     type: [{ type: Schema.Types.ObjectId, ref: 'Output' }],
+    default: []  // Permitir arrays vacíos
+  },
+
+  providerInputs: {
+    type: Number,
+    default: 0
+  },
+
+  providerInputsArray: {
+    type: [{ type: Schema.Types.ObjectId, ref: 'ProviderInput' }],
     default: []  // Permitir arrays vacíos
   },
 

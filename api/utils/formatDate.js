@@ -21,10 +21,11 @@ export const today = (date) => {
   return formatDate(date) == formatDate((new Date())) ? true : false
 }
 
-export const getDayRange = (date) => {
+export const getDayRange = (date, shiftDays = 0) => {
 
   const formatedDate = formatDate(new Date(date || new Date()).toUTCString());
   const principalDate = new Date(formatedDate)
+  principalDate.setDate(principalDate.getDate() + shiftDays)
   const datePlusOne = new Date(principalDate.toISOString())
   datePlusOne.setDate(datePlusOne.getDate() + 1)
 

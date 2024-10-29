@@ -54,11 +54,7 @@ const inputSchema = mongoose.Schema({
     type: Schema.Types.ObjectId, ref: 'Customer'
   },
 
-  createdAt: {
-    type: Date,
-    required: true
-  }
-})
+}, { timestamps: true })
 
 const Input = mongoose.model('Input', inputSchema)
 

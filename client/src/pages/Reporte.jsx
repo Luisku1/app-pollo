@@ -481,7 +481,7 @@ export default function Reporte() {
 
           <div className="my-2 mx-auto">
 
-            <h3 className="text-3xl font-bold">Ingresos obtenidos por pollerías</h3>
+            <h3 className="text-3xl font-bold">Ingresos del día</h3>
             <div>
               <h4 className="text-2xl font-bold">Brutos: {stringToCurrency({ amount: generalInfo.grossCashIncomes + generalInfo.deposits })}</h4>
               <div className="flex gap-3">

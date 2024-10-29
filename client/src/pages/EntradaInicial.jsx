@@ -133,13 +133,9 @@ export default function EntradaInicial({ date, branchAndCustomerSelectOptions, p
               <button className="" onClick={hideProviderInputs}><MdCancel className="h-7 w-7" /></button>
               < div className='bg-white mt-4 mb-4'>
 
-
-
                 <SectionHeader label={'Entradas de proveedor'} />
 
-
                 <div>
-
                   {providerInputs && providerInputs.length > 0 ?
                     <div id='header' className='grid grid-cols-12 items-center justify-around font-semibold sticky top-0 bg-white'>
                       <p className='col-span-3 text-center'>Sucursal</p>
@@ -148,8 +144,6 @@ export default function EntradaInicial({ date, branchAndCustomerSelectOptions, p
                       <p className='col-span-1 text-center'>Kg</p>
                     </div>
                     : ''}
-
-
 
                   {providerInputs && providerInputs.length > 0 && providerInputs.map((providerInput, index) => (
 

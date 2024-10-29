@@ -45,6 +45,7 @@ export default function MenuSucursal({ branchAndCustomerSelectOptions, date, pus
 
     })
   }
+
   const handleBranchCustomerSelectChange = (option) => {
 
     const group = branchAndCustomerSelectOptions.find(g => g.options.some(opt => opt.value === option.value));
@@ -177,7 +178,7 @@ export default function MenuSucursal({ branchAndCustomerSelectOptions, date, pus
 
         <div className="relative">
           <span className="absolute text-red-700 font-semibold left-3 top-3">$</span>
-          <input className='pl-6 w-full rounded-lg p-3 text-red-700 font-semibold border border-red-600' name='price' placeholder={price.toFixed(2)} id='provider-input-price' step={0.01} type="number" />
+          <input className='pl-6 w-full rounded-lg p-3 text-red-700 font-semibold border border-red-600' name='price' placeholder={price.toFixed(2)} onChange={() => {generarMonto()}} id='provider-input-price' step={0.01} type="number" />
           <label htmlFor="compact-input" className="-translate-y-full px-1 absolute top-1/4 left-2 transform rounded-sm bg-white text-black text-sm font-semibold">
             Precio
           </label>

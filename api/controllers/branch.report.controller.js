@@ -92,6 +92,40 @@ export const createBranchReport = async (req, res, next) => {
   }
 }
 
+export const updateReportsAndBalancesAccounts = async ({ branchReport, updateInstructions = {}, updatedFields }) => {
+
+  let updatedBranchReport = null
+  let updatedEmployeeDailyBalance = null
+
+  try {
+
+    updatedBranchReport = await BranchReport.findByIdAndUpdate(branchReport._id, { ...updateInstructions }, { new: true })
+
+    if (!updatedBranchReport) throw new Error("No se pudo modificar el reporte");
+
+    if (updatedBranchReport.employee) {
+
+      updatedEmployeeDailyBalance = await updateEmployeeDailyBalancesBalance({ branchReport: updatedBranchReport })
+
+      if (!updatedEmployeeDailyBalance) throw new Error("No se pudo actualizar la cuenta del empleado");
+    }
+
+    return updatedBranchReport
+
+  } catch (error) {
+
+    const hasDifferences = updatedFields.some(field => branchReport[field] !== updatedBranchReport[field])
+
+    if (!updatedEmployeeDailyBalance && updatedBranchReport
+      && hasDifferences) {
+
+      await BranchReport.findByIdAndUpdate(branchReport._id, branchReport)
+    }
+
+    throw error
+  }
+}
+
 export const pushOrPullBranchReportRecord = async ({
   branchId,
   date,
@@ -102,46 +136,23 @@ export const pushOrPullBranchReportRecord = async ({
   amountField
 }) => {
 
-  if (!['$push', '$pull'].includes(operation)) throw new Error("Invalid . Expected '$push' or '$pull'.")
+  if (!['$push', '$pull'].includes(operation)) throw new Error("Parámetros inválidos, se espera '$push' o '$pull'")
+  if (!branchId || !date || !record || !arrayField || !amountField) throw new Error("Parámetros requeridos faltantes en pushOrPullBranchReportRecord")
 
   const branchReport = await fetchOrCreateBranchReport({ branchId, companyId: record.company, date });
+  const adjustedBalanceInc = affectsBalancePositively ? record.amount : -record.amount
+  const balanceAdjustment = operation === '$push' ? adjustedBalanceInc : -adjustedBalanceInc
+  const amountAdjustment = operation === '$push' ? record.amount : -record.amount
 
-  const adjustedBalance = affectsBalancePositively ? record.amount : -record.amount
-
-  const updatedFields = {
+  const updateInstructions = {
     [operation]: { [arrayField]: record._id },
-    $inc: { [amountField]: operation === '$push' ? record.amount : -record.amount, balance: operation === '$push' ? adjustedBalance : -adjustedBalance }
+    $inc: { [amountField]: amountAdjustment, balance: balanceAdjustment }
   }
 
-  return updateReportsAndBalancesAccounts({
+  return await updateReportsAndBalancesAccounts({
     branchReport,
-    updatedFields
-  })
-}
-
-export const addBranchReportIncomes = async ({ branchId, date, income }) => {
-
-  const branchReport = await fetchOrCreateBranchReport({ branchId, date })
-
-  return updateReportsAndBalancesAccounts({
-    branchReport: branchReport,
-    updatedFields: {
-      $push: { incomesArray: income._id },
-      $inc: { incomes: income.amount, balance: income.amount }
-    }
-  })
-}
-
-export const pullBranchReportIncomes = async ({ branchId, date, income }) => {
-
-  const branchReport = await fetchOrCreateBranchReport({ branchId, date })
-
-  return updateReportsAndBalancesAccounts({
-    branchReport: branchReport,
-    updatedFields: {
-      $pull: { incomesArray: income._id },
-      $inc: { incomes: -income.amount, balance: -income.amount }
-    }
+    updateInstructions,
+    updatedFields: [arrayField, amountField]
   })
 }
 
@@ -168,48 +179,13 @@ export const fetchOrCreateBranchReport = async ({ branchId, companyId, date }) =
   }
 }
 
-export const updateReportsAndBalancesAccounts = async ({ branchReport, updatedFields = {} }) => {
-
-  let updatedBranchReport = null
-  let updatedEmployeeDailyBalance = null
-
-  try {
-
-    updatedBranchReport = await BranchReport.findByIdAndUpdate(branchReport._id, { ...updatedFields }, { new: true })
-
-    if (!updatedBranchReport) throw new Error("No se pudo modificar el reporte");
-
-    if (updatedBranchReport.employee) {
-
-      updatedEmployeeDailyBalance = await updateEmployeeDailyBalancesBalance({ branchReport: updatedBranchReport })
-
-      if (!updatedEmployeeDailyBalance) throw new Error("No se pudo actualizar la cuenta del empleado");
-    }
-
-    return updatedBranchReport
-
-  } catch (error) {
-
-    if (!updatedEmployeeDailyBalance && updatedBranchReport
-      && (branchReport.balance != updatedBranchReport.balance
-        || branchReport.incomesArray != updatedBranchReport.incomesArray
-        || branchReport.incomes != updatedBranchReport.incomes
-      )) {
-
-      await BranchReport.findByIdAndUpdate(branchReport._id, { balance: branchReport.balance, incomes: branchReport.incomes, incomesArray: branchReport.incomesArray })
-    }
-
-    throw error
-  }
-}
-
-export const createDefaultBranchReport = async ({ branchId, date, companyId, session = null }) => {
+export const createDefaultBranchReport = async ({ branchId, date, companyId }) => {
 
   const { bottomDate } = getDayRange(date)
 
-  const newBranchReport = await BranchReport.create([{ branch: branchId, createdAt: bottomDate, company: companyId }], { session })
+  const newBranchReport = await BranchReport.create({ branch: branchId, createdAt: bottomDate, company: companyId })
 
-  return newBranchReport[0]
+  return newBranchReport
 }
 
 export const addRecordToBranchReportArrays = async ({ branchId, company, record, recordType }) => {
@@ -477,7 +453,7 @@ export const getBranchReport = async (req, res, next) => {
   }
 }
 
-export const fetchBranchReport = async ({ branchId, date, populate = false, session = null }) => {
+export const fetchBranchReport = async ({ branchId, date, populate = false }) => {
 
   const { bottomDate, topDate } = getDayRange(new Date(date))
 
@@ -496,14 +472,14 @@ export const fetchBranchReport = async ({ branchId, date, populate = false, sess
         .populate('providerInputsArray')
         .populate('outputsArray')
         .populate('outgoingsArray')
-        .populate('incomesArray').session(session)
+        .populate('incomesArray')
 
     } else {
 
       branchReport = await BranchReport.findOne({
         createdAt: { $lt: topDate, $gte: bottomDate },
         branch: new Types.ObjectId(branchId)
-      }).session(session)
+      })
     }
 
     return branchReport || null
@@ -514,7 +490,7 @@ export const fetchBranchReport = async ({ branchId, date, populate = false, sess
   }
 }
 
-export const fetchBranchReportById = async ({ branchReportId, populate = false, session = null }) => {
+export const fetchBranchReportById = async ({ branchReportId, populate = false }) => {
 
   try {
 
@@ -528,27 +504,19 @@ export const fetchBranchReportById = async ({ branchReportId, populate = false, 
         .populate('providerInputsArray')
         .populate('outputsArray')
         .populate('outgoingsArray')
-        .populate('incomesArray').session(session)
+        .populate('incomesArray')
 
     } else {
 
-      branchReport = await BranchReport.findById(branchReportId).session(session)
+      branchReport = await BranchReport.findById(branchReportId)
     }
 
-    if (branchReport != null && branchReport != undefined) {
-
-      if (Object.getOwnPropertyNames(branchReport).length > 0) {
-
-        return branchReport
-      }
-    }
+    return branchReport || null
 
   } catch (error) {
 
     console.log(error)
   }
-
-  return null
 }
 
 export const refactorBranchReports = async (req, res, next) => {

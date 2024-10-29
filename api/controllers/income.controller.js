@@ -3,6 +3,7 @@ import IncomeType from "../models/accounts/incomes/income.type.model.js";
 import { errorHandler } from "../utils/error.js";
 import { getDayRange } from "../utils/formatDate.js";
 import { pushOrPullBranchReportRecord } from "./branch.report.controller.js";
+import { pushOrPullCustomerReportRecord } from "./customer.controller.js";
 import { addSupervisorReportIncome, deleteSupervisorReportIncome } from "./employee.controller.js";
 
 export const newBranchIncomeQuery = async (req, res, next) => {
@@ -29,7 +30,7 @@ export const newBranchIncomeFunction = async ({ amount, company, branch, employe
 
     income = await IncomeCollected.create({ amount, company, branch, employee, type, createdAt, partOfAPayment })
 
-    if (!income) throw new Error("No se logró crear el registro");
+    if (!income) throw new Error("No se logró crear el registro")
 
     await pushOrPullBranchReportRecord({
       branchId: income.branch,
@@ -65,7 +66,19 @@ export const newCustomerIncomeFunction = async ({ amount, company, customer, emp
 
     income = await IncomeCollected.create({ amount, company, customer, employee, type, createdAt, partOfAPayment })
 
-    await addSupervisorReportIncome({ income: income, date: income.createdAt})
+    if (!income) throw new Error("No se logró crear el registro")
+
+    await pushOrPullCustomerReportRecord({
+      customerId: customer,
+      date: income.createdAt,
+      record: income,
+      affectsBalancePositively: true,
+      operation: '$push',
+      arrayField: 'customerPaymentsArray',
+      amountField: 'customerPayments'
+    })
+
+    await addSupervisorReportIncome({ income: income, date: income.createdAt })
 
     return income
 
@@ -249,17 +262,32 @@ export const deleteIncome = async ({ incomeId }) => {
 
     deletedIncome = await IncomeCollected.findByIdAndDelete(incomeId)
 
-    if (!deletedIncome) throw new Error("No se eliminó el registro");
+    if (!deletedIncome) throw new Error("No se eliminó el registro")
 
-    await pushOrPullBranchReportRecord({
-      branchId: deletedIncome.branch,
-      date: deletedIncome.createdAt,
-      record: deletedIncome,
-      affectsBalancePositively: true,
-      operation: '$pull',
-      arrayField: 'incomesArray',
-      amountField: 'incomes'
-    })
+    if (deletedIncome.branch) {
+
+      await pushOrPullBranchReportRecord({
+        branchId: deletedIncome.branch,
+        date: deletedIncome.createdAt,
+        record: deletedIncome,
+        affectsBalancePositively: true,
+        operation: '$pull',
+        arrayField: 'incomesArray',
+        amountField: 'incomes'
+      })
+
+    } else {
+
+      await pushOrPullCustomerReportRecord({
+        customerId: deletedIncome.customer,
+        date: deletedIncome.createdAt,
+        record: deletedIncome,
+        affectsBalancePositively: true,
+        operation: '$pull',
+        arrayField: 'customerPaymentsArray',
+        amountField: 'customerPayments'
+      })
+    }
 
     await deleteSupervisorReportIncome({ income: deletedIncome, date: deletedIncome.createdAt })
 
