@@ -14,9 +14,9 @@ export const addIncomeFetch = async ({ income, group }) => {
 
   if (data.success === false) {
 
-    throw new Error(`No se registró el efectivo de ${income.amount.toLocaleString('es-Mx', {style: 'currency', currency: 'MXN'})}`);
+    throw new Error(`No se registró el efectivo de ${income.amount.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}`);
 
   }
-
+  console.log(data)
   return data.income
 }

@@ -1128,13 +1128,13 @@ export const addSupervisorReportIncome = async ({ income, date }) => {
 
 		if (!supervisorReport) {
 
-			supervisorReport = await SupervisorReport.create({ supervisor: income.employee, company: income.company })
+			supervisorReport = await SupervisorReport.create({ supervisor: income.employee, company: income.company, createdAt: bottomDate })
 
 			if (!supervisorReport) throw new Error("No se pudo crear el reporte del supervisor");
 		}
 
 		updatedSupervisorReport = await SupervisorReport.findByIdAndUpdate(supervisorReport._id, {
-			$push: { incomesArray: income._id },
+			$addToSet: { incomesArray: income._id },
 			$inc: { incomes: income.amount, balance: -income.amount }
 		}, { new: true })
 
@@ -1301,7 +1301,7 @@ export const addSupervisorReportExtraOutgoing = async ({ extraOutgoing, date }) 
 
 		updatedSupervisorReport = await SupervisorReport.findByIdAndUpdate(supervisorReport._id, {
 
-			$push: { extraOutgoingsArray: extraOutgoing._id },
+			$addToSet: { extraOutgoingsArray: extraOutgoing._id },
 			$inc: { extraOutgoings: extraOutgoing.amount, balance: extraOutgoing.amount }
 
 		}, { new: true })

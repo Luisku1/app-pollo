@@ -41,7 +41,7 @@ export const createStockAndUpdateBranchReport = async ({ pieces, price, employee
       date: createdAt,
       record: stock,
       affectsBalancePositively: true,
-      operation: '$push',
+      operation: '$addToSet',
       arrayField: 'finalStockArray',
       amountField: 'finalStock'
     })
@@ -54,7 +54,7 @@ export const createStockAndUpdateBranchReport = async ({ pieces, price, employee
       date: nextBranchReportDate,
       record: stock,
       affectsBalancePositively: false,
-      operation: '$push',
+      operation: '$addToSet',
       arrayField: 'initialStockArray',
       amountField: 'initialStock'
     })

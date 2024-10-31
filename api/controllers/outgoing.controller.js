@@ -43,7 +43,7 @@ export const newOutgoingAndUpdateBranchReport = async ({ amount, concept, compan
       branchId: branch,
       date: createdAt,
       record: outgoing,
-      operation: '$push',
+      operation: '$addToSet',
       affectsBalancePositively: true,
       amountField: 'outgoings',
       arrayField: 'outgoingsArray'

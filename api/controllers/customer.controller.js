@@ -75,7 +75,7 @@ export const createDefaultCustomerReport = async ({ customerId, date, companyId 
     customer: customerId
   })
 
-  const previousBalance = lastCustomerReport.balance || 0
+  const previousBalance = lastCustomerReport?.balance || 0
 
   return await CustomerReport.create({ customer: customerId, previousBalance, createdAt: bottomDate, company: companyId })
 }
@@ -107,7 +107,7 @@ export const fetchOrCreateCustomerReport = async ({ customerId, companyId, date 
 
     if (!customerReport) {
 
-      customerReport = createDefaultCustomerReport({ customerId, date, companyId })
+      customerReport = await createDefaultCustomerReport({ customerId, date, companyId })
     }
 
     if (!customerReport) throw new Error("No se encontró ni se pudo crear el reporte");
@@ -130,13 +130,13 @@ export const pushOrPullCustomerReportRecord = async ({
   amountField
 }) => {
 
-  if (!['$push', '$pull'].includes(operation)) throw new Error("Parámetros inválidos, se espera '$push' o '$pull'")
+  if (!['$addToSet', '$pull'].includes(operation)) throw new Error("Parámetros inválidos, se espera '$addToSet' o '$pull'")
   if (!customerId || !date || !record || !arrayField || !amountField) throw new Error("Parámetros requeridos faltantes en pushOrPullCustomerReportRecord")
 
   const customerReport = await fetchOrCreateCustomerReport({ customerId, companyId: record.company, date });
   const adjustedBalanceInc = affectsBalancePositively ? record.amount : -record.amount
-  const balanceAdjustment = operation === '$push' ? adjustedBalanceInc : -adjustedBalanceInc
-  const amountAdjustment = operation === '$push' ? record.amount : -record.amount
+  const balanceAdjustment = operation === '$addToSet' ? adjustedBalanceInc : -adjustedBalanceInc
+  const amountAdjustment = operation === '$addToSet' ? record.amount : -record.amount
 
   const updateInstructions = {
     [operation]: { [arrayField]: record._id },

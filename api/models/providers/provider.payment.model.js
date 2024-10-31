@@ -3,7 +3,7 @@ import mongoose, { Schema } from 'mongoose'
 const providerPaymentSchema = mongoose.Schema({
 
   amount: {
-    type: Decimal128,
+    type: Number,
     required: true
   },
 
@@ -17,11 +17,7 @@ const providerPaymentSchema = mongoose.Schema({
     required: true
   },
 
-  createdAt: {
-    type: Date,
-    required: true
-  }
-})
+}, { timestamps: true })
 
 const ProviderPayment = mongoose.model('ProviderPayment', providerPaymentSchema)
 

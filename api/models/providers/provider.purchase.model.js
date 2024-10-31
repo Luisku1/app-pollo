@@ -17,6 +17,25 @@ const providerPurchaseSchema = mongoose.Schema({
     required: true
   },
 
+  pieces: {
+    type: Number,
+    required: true
+  },
+
+  comment: {
+    type: String,
+  },
+
+  specialPrice: {
+    type: Boolean,
+    default: false
+  },
+
+  product: {
+    type: Schema.Types.ObjectId, ref: 'Product',
+    required: true
+  },
+
   company: {
     type: Schema.Types.ObjectId, ref: 'Company',
     required: true
@@ -27,16 +46,12 @@ const providerPurchaseSchema = mongoose.Schema({
     required: true
   },
 
-  product: {
-    type: Schema.Types.ObjectId, ref: 'Product',
-    required: true
-  },
-
-  createdAt: {
-    type: Date,
+  provider: {
+    type: Schema.Types.ObjectId, ref: 'Provider',
     required: true
   }
-})
+
+}, { timestamps: true })
 
 const ProviderPurchase = mongoose.model('ProviderPurchase', providerPurchaseSchema)
 

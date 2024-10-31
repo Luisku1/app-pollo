@@ -40,7 +40,7 @@ export const newBranchInputAndUpdateBranchReport = async ({ weight, comment, pie
       affectsBalancePositively: false,
       amountField: 'inputs',
       arrayField: 'inputsArray',
-      operation: '$push'
+      operation: '$addToSet'
     })
 
     return input
@@ -69,7 +69,7 @@ export const newCustomerInput = async (req, res, next) => {
       date: createdAt,
       record: input,
       affectsBalancePositively: false,
-      amountField: 'reportsAmount',
+      amountField: 'salesAmount',
       arrayField: 'branchProducts'
     })
 
@@ -483,15 +483,30 @@ export const deleteInput = async (req, res, next) => {
 
     if (!deletedInput) throw new Error("No se eliminó la entrada");
 
-    await pushOrPullBranchReportRecord({
-      branchId: deletedInput.branch,
-      date: deletedInput.createdAt,
-      record: deletedInput,
-      affectsBalancePositively: false,
-      operation: '$pull',
-      arrayField: 'inputsArray',
-      amountField: 'inputs'
-    })
+    if (deletedInput.branch) {
+
+      await pushOrPullBranchReportRecord({
+        branchId: deletedInput.branch,
+        date: deletedInput.createdAt,
+        record: deletedInput,
+        affectsBalancePositively: false,
+        operation: '$pull',
+        arrayField: 'inputsArray',
+        amountField: 'inputs'
+      })
+
+    } else {
+
+      await pushOrPullCustomerReportRecord({
+        customerId: deleteInput.customer,
+        date: deletedInput.createdAt,
+        record: deletedInput,
+        affectsBalancePositively: false,
+        operation: '$pull',
+        arrayField: 'branchProducts',
+        amountField: 'salesAmount'
+      })
+    }
 
     res.status(200).json({ message: 'Input deleted correctly' })
 
@@ -536,7 +551,7 @@ export const newBranchOutputAndUpdateBranchReport = async ({ weight, comment, pi
       date: createdAt,
       record: output,
       affectsBalancePositively: true,
-      operation: '$push',
+      operation: '$addToSet',
       arrayField: 'outputsArray',
       amountField: 'outputs'
     })
@@ -567,7 +582,7 @@ export const newCustomerOutput = async (req, res, next) => {
       date: createdAt,
       record: output,
       affectsBalancePositively: true,
-      operation: '$push',
+      operation: '$addToSet',
       amountField: 'returnsAmount',
       arrayField: 'returnsArray'
     })
@@ -888,7 +903,7 @@ export const createBranchProviderInputAndUpdateBranchReport = async ({ weight, p
       date: createdAt,
       record: providerInput,
       affectsBalancePositively: false,
-      operation: '$push',
+      operation: '$addToSet',
       arrayField: 'providerInputsArray',
       amountField: 'providerInputs',
     })
@@ -919,7 +934,7 @@ export const createCustomerProviderInput = async (req, res, next) => {
       date: createdAt,
       record: providerInput,
       affectsBalancePositively: false,
-      operation: '$push',
+      operation: '$addToSet',
       arrayField: 'providerInputsArray',
       amountField: 'providerInputs'
     })
@@ -945,17 +960,32 @@ export const deleteProviderInput = async (req, res, next) => {
 
     if (!deletedProviderInput) throw new Error("No se eliminó el registro");
 
-    await pushOrPullBranchReportRecord({
-      branchId: deletedProviderInput.branch,
-      date: deletedProviderInput.createdAt,
-      record: deletedProviderInput,
-      affectsBalancePositively: false,
-      operation: '$pull',
-      arrayField: 'inputsArray',
-      amountField: 'inputs'
-    })
+    if(deletedProviderInput.branch) {
 
-    res.status(200).json('Registro eliminado')
+      await pushOrPullBranchReportRecord({
+        branchId: deletedProviderInput.branch,
+        date: deletedProviderInput.createdAt,
+        record: deletedProviderInput,
+        affectsBalancePositively: false,
+        operation: '$pull',
+        arrayField: 'inputsArray',
+        amountField: 'inputs'
+      })
+
+    } else {
+
+      await pushOrPullCustomerReportRecord({
+        customerId: deletedProviderInput.customer,
+        date: deletedProviderInput.createdAt,
+        record: deleteProviderInput,
+        affectsBalancePositively: false,
+        operation: '$pull',
+        arrayField: 'providerProducts',
+        amountField: 'salesAmount'
+      })
+    }
+
+      res.status(200).json('Registro eliminado')
 
   } catch (error) {
 
@@ -965,7 +995,6 @@ export const deleteProviderInput = async (req, res, next) => {
     }
 
     next(error);
-
   }
 }
 
@@ -981,15 +1010,30 @@ export const deleteOutput = async (req, res, next) => {
 
     if (!deletedOutput) throw new Error("No se eliminó el registro");
 
-    await pushOrPullBranchReportRecord({
-      branchId: deletedOutput.branch,
-      date: deletedOutput.createdAt,
-      record: deletedOutput,
-      affectsBalancePositively: true,
-      operation: '$pull',
-      arrayField: 'outputsArray',
-      amountField: 'outputs'
-    })
+    if(deletedOutput.branch) {
+
+      await pushOrPullBranchReportRecord({
+        branchId: deletedOutput.branch,
+        date: deletedOutput.createdAt,
+        record: deletedOutput,
+        affectsBalancePositively: true,
+        operation: '$pull',
+        arrayField: 'outputsArray',
+        amountField: 'outputs'
+      })
+
+    } else {
+
+      await pushOrPullCustomerReportRecord({
+        customerId: deletedOutput.customer,
+        date: deletedOutput.createdAt,
+        record: deletedOutput,
+        affectsBalancePositively: true,
+        operation: '$pull',
+        arrayField: 'returnsArray',
+        amountField: 'returnsAmount'
+      })
+    }
 
     res.status(200).json('Registro eliminado')
 

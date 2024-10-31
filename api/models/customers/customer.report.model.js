@@ -12,7 +12,17 @@ const customerReportSchema = Schema({
     default: 0
   },
 
-  reportsAmount: {
+  returnsAmount: {
+    type: Number,
+    default: 0
+  },
+
+  salesAmount: {
+    type: Number,
+    default: 0
+  },
+
+  paymentsAmount: {
     type: Number,
     default: 0
   },
@@ -27,19 +37,9 @@ const customerReportSchema = Schema({
     default: []
   },
 
-  returnsAmount: {
-    type: Number,
-    required: true
-  },
-
   returnsArray: {
     type: [{ type: Schema.Types.ObjectId, ref: 'Output' }],
     default: []
-  },
-
-  payments: {
-    type: Number,
-    default: 0
   },
 
   paymentsArray: {

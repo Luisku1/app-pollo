@@ -27,13 +27,14 @@ import RegistroProveedor from './pages/RegistroProveedor'
 import { ToastContainerComponent } from './helpers/toastify'
 // import 'bootstrap/dist/css/bootstrap.min.css'
 import './index.css'
+import ControlProveedor from './pages/ControlProveedor'
 
 
 export default function App() {
   return (
     <BrowserRouter>
       <Header />
-        <ToastContainerComponent/>
+      <ToastContainerComponent />
       <Routes>
         <Route path="/inicio-sesion" element={<InicioSesion />} />
         <Route path="/registro" element={<RegistroDueño />} />
@@ -73,7 +74,8 @@ export default function App() {
           <Route path="/reporte/:date" element={<Reporte />} />
           <Route path="/graficos/" element={<Graficos />} />
           <Route path="/graficos/:date" element={<Graficos />} />
-
+          <Route path="/proveedores/:date" element={<ControlProveedor />} />
+          <Route path="/proveedores" element={<ControlProveedor />} />
         </Route>
 
       </Routes>

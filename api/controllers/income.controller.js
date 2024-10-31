@@ -37,7 +37,7 @@ export const newBranchIncomeFunction = async ({ amount, company, branch, employe
       date: income.createdAt,
       record: income,
       affectsBalancePositively: true,
-      operation: '$push',
+      operation: '$addToSet',
       arrayField: 'incomesArray',
       amountField: 'incomes'
     })
@@ -53,7 +53,6 @@ export const newBranchIncomeFunction = async ({ amount, company, branch, employe
       await IncomeCollected.findByIdAndDelete(income._id)
     }
 
-    console.log(error)
     throw error;
   }
 }
@@ -73,9 +72,9 @@ export const newCustomerIncomeFunction = async ({ amount, company, customer, emp
       date: income.createdAt,
       record: income,
       affectsBalancePositively: true,
-      operation: '$push',
-      arrayField: 'customerPaymentsArray',
-      amountField: 'customerPayments'
+      operation: '$addToSet',
+      arrayField: 'paymentsArray',
+      amountField: 'paymentsAmount'
     })
 
     await addSupervisorReportIncome({ income: income, date: income.createdAt })
@@ -88,6 +87,8 @@ export const newCustomerIncomeFunction = async ({ amount, company, customer, emp
 
       await IncomeCollected.findByIdAndDelete(income._id)
     }
+
+    throw error
   }
 }
 
@@ -99,10 +100,13 @@ export const newCustomerIncomeQuery = async (req, res, next) => {
 
     const newIncome = await newCustomerIncomeFunction({ amount, company, customer, employee, type, createdAt })
 
-    res.status(201).json({ message: 'New income created successfully', income: newIncome })
+    res.status(201).json({
+      message: 'New income created successfully',
+      income: newIncome
+    })
 
   } catch (error) {
-
+    console.log(error)
     next(error)
   }
 }
@@ -284,8 +288,8 @@ export const deleteIncome = async ({ incomeId }) => {
         record: deletedIncome,
         affectsBalancePositively: true,
         operation: '$pull',
-        arrayField: 'customerPaymentsArray',
-        amountField: 'customerPayments'
+        arrayField: 'paymentsArray',
+        amountField: 'paymentsAmount'
       })
     }
 
@@ -297,7 +301,7 @@ export const deleteIncome = async ({ incomeId }) => {
 
     if (deletedIncome) {
 
-      await IncomeCollected.create({ deletedIncome })
+      await IncomeCollected.create(deletedIncome)
     }
 
     throw error

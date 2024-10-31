@@ -136,13 +136,13 @@ export const pushOrPullBranchReportRecord = async ({
   amountField
 }) => {
 
-  if (!['$push', '$pull'].includes(operation)) throw new Error("Parámetros inválidos, se espera '$push' o '$pull'")
+  if (!['$addToSet', '$pull'].includes(operation)) throw new Error("Parámetros inválidos, se espera '$addToSet' o '$pull'")
   if (!branchId || !date || !record || !arrayField || !amountField) throw new Error("Parámetros requeridos faltantes en pushOrPullBranchReportRecord")
 
   const branchReport = await fetchOrCreateBranchReport({ branchId, companyId: record.company, date });
   const adjustedBalanceInc = affectsBalancePositively ? record.amount : -record.amount
-  const balanceAdjustment = operation === '$push' ? adjustedBalanceInc : -adjustedBalanceInc
-  const amountAdjustment = operation === '$push' ? record.amount : -record.amount
+  const balanceAdjustment = operation === '$addToSet' ? adjustedBalanceInc : -adjustedBalanceInc
+  const amountAdjustment = operation === '$addToSet' ? record.amount : -record.amount
 
   const updateInstructions = {
     [operation]: { [arrayField]: record._id },
@@ -166,7 +166,7 @@ export const fetchOrCreateBranchReport = async ({ branchId, companyId, date }) =
 
     if (!branchReport) {
 
-      branchReport = createDefaultBranchReport({ branchId, date, companyId })
+      branchReport = await createDefaultBranchReport({ branchId, date, companyId })
     }
 
     if (!branchReport) throw new Error("No se encontró ni se pudo crear el reporte");
