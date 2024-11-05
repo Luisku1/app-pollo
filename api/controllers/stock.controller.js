@@ -247,17 +247,12 @@ export const getCompanyDayStock = async (req, res, next) => {
 export const deleteStock = async (req, res, next) => {
 
   const stockId = req.params.stockId
-
-  let branchReport = null
   let nextBranchReport = null
   let deletedStock = null
-  let updatedEmployeeDailyBalance = null
-  let updatedBranchReport = null
-  let updatedNextBranchReport = null
 
   try {
 
-    deletedStock = await Stock.findByIdAndDelete(new Types.ObjectId(stockId))
+    deletedStock = await Stock.findByIdAndDelete(stockId)
 
     if (!deletedStock) throw new Error("No se logró crear el registro")
 
@@ -276,7 +271,7 @@ export const deleteStock = async (req, res, next) => {
 
     await pushOrPullBranchReportRecord({
       branchId: deletedStock.branch,
-      date: nextBranchReport.date,
+      date: nextBranchReportDate,
       record: deletedStock,
       affectsBalancePositively: true,
       operation: '$pull',
