@@ -247,7 +247,6 @@ export const getCompanyDayStock = async (req, res, next) => {
 export const deleteStock = async (req, res, next) => {
 
   const stockId = req.params.stockId
-  let nextBranchReport = null
   let deletedStock = null
 
   try {
