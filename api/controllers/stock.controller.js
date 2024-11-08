@@ -272,7 +272,7 @@ export const deleteStock = async (req, res, next) => {
       branchId: deletedStock.branch,
       date: nextBranchReportDate,
       record: deletedStock,
-      affectsBalancePositively: true,
+      affectsBalancePositively: false,
       operation: '$pull',
       arrayField: 'initialStockArray',
       amountField: 'initialStock'
