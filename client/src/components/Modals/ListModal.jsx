@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import Modal from '../Modals/Modal'
 
-export default function ListModal({ ListComponent, listTitle, changeStatus, listIsOpen }) {
+export default function ListModal({ ListComponent, listTitle, changeStatus, listIsOpen, extraInformation = null }) {
 
   const changeListIsOpen = () => {
 
@@ -11,7 +11,7 @@ export default function ListModal({ ListComponent, listTitle, changeStatus, list
   return (
     <div>
       {listIsOpen && (
-        <Modal title={listTitle} content={ListComponent} closeModal={changeListIsOpen}></Modal>
+        <Modal title={listTitle} extraInformation={extraInformation} content={ListComponent} closeModal={changeListIsOpen}></Modal>
       )}
     </div>
   )

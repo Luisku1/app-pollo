@@ -9,7 +9,7 @@ import ShowOrderedIncomesButton from '../Incomes/ShowOrderedIncomesButton';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
-export default function PieChart({ verifiedIncomes, totalIncomes, chartInfo }) {
+export default function PieChart({ verifiedIncomes = null, totalIncomes = null, chartInfo }) {
 
   const [showIncomes, setShowIncomes] = useState(false)
   const [showExtraOutgoings, setExtraOutgoings] = useState(false)
@@ -39,20 +39,20 @@ export default function PieChart({ verifiedIncomes, totalIncomes, chartInfo }) {
       case 'Efectivos netos verificados':
         setShowIncomes(true)
         setListTitle('Efectivos')
-        break;
+        break
       case 'Terminal':
         setShowIncomes(true)
         setListTitle('Ingresos con Terminal')
-        break;
+        break
       case 'Depósitos':
         setShowIncomes(true)
         setListTitle('Depósitos')
-        break;
+        break
       case 'Gastos fuera de cuentas':
         setListTitle('Gastos externos')
-        break;
+        break
       default:
-        break;
+        break
     }
   }
 
@@ -60,18 +60,18 @@ export default function PieChart({ verifiedIncomes, totalIncomes, chartInfo }) {
 
     if (!chartInfo) return
 
-    const updatedLabels = [];
-    const updatedData = [];
-    const updatedBackgroundColors = [];
-    const updatedHoverBackgroundColors = [];
-    const updatedBorderColors = [];
+    const updatedLabels = []
+    const updatedData = []
+    const updatedBackgroundColors = []
+    const updatedHoverBackgroundColors = []
+    const updatedBorderColors = []
 
     chartInfo.forEach((chartNode) => {
-      updatedLabels.push(chartNode.label || ''); // Verifica que el label exista
-      updatedData.push(chartNode.value || 0); // Asegúrate de tener valores de data
-      updatedBackgroundColors.push(chartNode.bgColor || '#fff'); // Colores de fondo por defecto
-      updatedBorderColors.push(chartNode.borderColor || '#000'); // Colores borde por defecto
-      updatedHoverBackgroundColors.push(chartNode.hoverBgColor || '#ddd'); // Colores hover por defecto
+      updatedLabels.push(chartNode.label || '') // Verifica que el label exista
+      updatedData.push(chartNode.value || 0) // Asegúrate de tener valores de data
+      updatedBackgroundColors.push(chartNode.bgColor || '#fff') // Colores de fondo por defecto
+      updatedBorderColors.push(chartNode.borderColor || '#000') // Colores borde por defecto
+      updatedHoverBackgroundColors.push(chartNode.hoverBgColor || '#ddd') // Colores hover por defecto
     });
 
     setData({
@@ -90,6 +90,16 @@ export default function PieChart({ verifiedIncomes, totalIncomes, chartInfo }) {
 
   }, [chartInfo])
 
+  const renderStatistics = () => {
+    return (
+      <div className='w-full'>
+        {verifiedIncomes && totalIncomes && (
+          <p className='text-lg'>Ingresos reportados <br></br> <span className={`${verifiedIncomes < totalIncomes ? 'text-red-600' : 'text-green-600'}`}>{stringToCurrency({amount: verifiedIncomes})}</span> / <span className='text-green-600'>{stringToCurrency({amount: totalIncomes})}</span></p>
+        )}
+      </div>
+    )
+  }
+
   const options = {
     mantainAspectRatio: false,
     responsive: true,
@@ -101,8 +111,8 @@ export default function PieChart({ verifiedIncomes, totalIncomes, chartInfo }) {
         callbacks: {
           label: function (tooltipItem) {
             const label = data.labels[tooltipItem.dataIndex] || '';
-            const value = data.datasets[0].data[tooltipItem.dataIndex] || 0;
-            return `${label}: ${stringToCurrency({ amount: value })}`; // Muestra el label y el valor en el tooltip
+            const value = data.datasets[0].data[tooltipItem.dataIndex] || 0
+            return `${label}: ${stringToCurrency({ amount: value })}` // Muestra el label y el valor en el tooltip
           },
         },
       },
@@ -113,17 +123,18 @@ export default function PieChart({ verifiedIncomes, totalIncomes, chartInfo }) {
       console.log(event)
       handleChartClick(index)
     },
-  };
+  }
 
   return (
     <div>
       <Pie data={data} options={options}></Pie>
       {showIncomes && list.length > 0 && (
         <ListModal //Mejor llamar a un componenete que controle al botón y dentro de ese
-          ListComponent={<IncomesList incomesData={list}/>}
+          ListComponent={<IncomesList incomesData={list} />}
           changeStatus={() => setShowIncomes((prev) => !prev)}
           listIsOpen={showIncomes}
           listTitle={listTitle}
+          extraInformation={renderStatistics()}
         />
       )}
       {/* {showExtraOutgoings && list.length > 0 && (

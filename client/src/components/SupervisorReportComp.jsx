@@ -10,10 +10,10 @@ export default function SupervisorReport({supervisorReport}) {
         <p className="p-2"><span className="font-bold">Dinero recogido: </span>{stringToCurrency({ amount: supervisorReport.incomes })}</p>
         <p className="p-2"><span className="font-bold">Gastos: </span>{stringToCurrency({ amount: supervisorReport.extraOutgoings })}</p>
         <p className="p-2">
-          <span className="font-bold">Efectivo verificado: </span>{stringToCurrency({ amount: supervisorReport.verifiedCash })}
+          <span className="font-bold">Efectivo verificado: </span>{stringToCurrency({ amount: supervisorReport.verifiedCash || 0 })}
         </p>
         <p className="p-2">
-          <span className="font-bold">Depósitos verificados: </span>{stringToCurrency({ amount: supervisorReport.verifiedDeposits })}
+          <span className="font-bold">Depósitos verificados: </span>{stringToCurrency({ amount: supervisorReport.verifiedDeposits || 0 })}
         </p>
         <p className="p-2 font-bold">Balance: <span className={`${supervisorReport.balance < 0 ? 'text-red-700' : ''}`}>{stringToCurrency({ amount: supervisorReport.balance })}</span></p>
       </div>

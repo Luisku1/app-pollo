@@ -2,7 +2,7 @@
 import { MdCancel } from 'react-icons/md'
 import SectionHeader from '../SectionHeader'
 
-export default function Modal({content, title, closeModal, ref, ableToClose = true}) {
+export default function Modal({content, title, closeModal, ref, ableToClose = true, extraInformation}) {
   return (
     <div>
       <div ref={ref} className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center max-w-lg my-auto mx-auto z-10'>
@@ -10,6 +10,8 @@ export default function Modal({content, title, closeModal, ref, ableToClose = tr
             {ableToClose && (
               <button className="flex justify-self-end sticky top-0" onClick={() => { closeModal() }}><MdCancel className="h-7 w-7" /></button>
             )}
+
+            {extraInformation}
 
             < div className='bg-white mt-4 mb-4'>
               <SectionHeader label={title} />

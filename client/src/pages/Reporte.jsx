@@ -344,7 +344,7 @@ export default function Reporte() {
             </div>
             <h4 className="text-2xl font-bold mb-3">Netos: {stringToCurrency({ amount: (netIncomes) })}</h4>
 
-            <PieChart chartInfo={pieChartInfo}></PieChart>
+            <PieChart chartInfo={pieChartInfo} totalIncomes={totalIncomes} verifiedIncomes={verifiedIncomes}></PieChart>
           </div>
 
 
