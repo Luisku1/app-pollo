@@ -16,7 +16,7 @@ export const useDeleteEmployeePayment = () => {
 
     deleteEmployeePaymentFetch({ employeePaymentId: employeePayment._id, incomeId: employeePayment.income ?? null, extraOutgoingId: employeePayment.extraOutgoing }).then(() => {
 
-      spliceIncomeById({incomeId: employeePayment.income, amount: employeePayment.amount})
+      spliceIncomeById(employeePayment.income)
       spliceExtraOutgoingById({extraOutgoingId: employeePayment.extraOutgoing, amount: employeePayment.amount})
 
     }).catch((error) => {

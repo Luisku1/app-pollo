@@ -4,10 +4,9 @@ import { MdEdit } from "react-icons/md";
 import { weekDays } from "../helpers/Constants"
 import { FaTrash } from "react-icons/fa";
 import { Link } from "react-router-dom"
-import { CiSearch } from "react-icons/ci";
-import { MdClear } from "react-icons/md";
 import { useEmployees } from "../hooks/Employees/useEmployees";
 import { useDeleteEmployee } from "../hooks/Employees/useDeleteEmployee";
+import SearchBar from "../components/SearchBar";
 
 export default function Empleados() {
 
@@ -17,7 +16,6 @@ export default function Empleados() {
   const [hoveredIndex, setHoveredIndex] = useState(null)
   const [isOpen, setIsOpen] = useState(false)
   const [buttonId, setButtonId] = useState(null)
-  const [searchTerm, setSearchTerm] = useState('');
   const searchBarRef = useRef(null);
   const [showActiveEmployees, setShowActiveEmployees] = useState(true)
   const [searching, setSearching] = useState(false)
@@ -28,10 +26,9 @@ export default function Empleados() {
     changeEmployeeActiveStatus({ employee })
   }
 
-  const handleSearchBarChange = (e) => {
+  const handleSearchBarChange = (value) => {
 
-    setSearchTerm(e.target.value)
-    filterEmployees(e.target.value)
+    filterEmployees(value)
   }
 
   const handleMouseEnter = useCallback((value) => {
@@ -55,7 +52,6 @@ export default function Empleados() {
       if (event.ctrlKey && event.key === 'b') {
         event.preventDefault();
         setSearching(true)
-        setSearchTerm('')
         searchBarRef.current.focus();
       }
     };
@@ -68,14 +64,10 @@ export default function Empleados() {
 
   }, []);
 
-  const clearSearchBar = () => {
-
-    const searchBar = document.getElementById('searchBar')
+  const stopSearching = () => {
 
     filterEmployees()
-    setSearching(true)
-    setSearchTerm('')
-    searchBar.focus()
+    setSearching(false)
   }
 
   useEffect(() => {
@@ -91,13 +83,9 @@ export default function Empleados() {
 
       <div className="w-full bg-white  p-3 border rounded-lg">
 
-        <div className="border rounded-lg flex items-center">
+        <div className="border rounded-lg flex items-center w-full">
 
-          <CiSearch className=" h-8 w-8 border-r" />
-          <input ref={searchBarRef} value={searchTerm} placeholder="Busca empleados con Ctrl + b" autoComplete="off" className=" h-full w-full p-2 outline-none" onFocus={() => { setSearching(true) }} type="text" name="searchBar" id="searchBar" onChange={handleSearchBarChange} />
-          <button className="h-8 w-8" onClick={clearSearchBar}>
-            <MdClear className="w-full h-full" />
-          </button>
+          <SearchBar ref={searchBarRef} handleFilterTextChange={handleSearchBarChange} placeholder={'Busca a tus empleados (CTRL + b)'}></SearchBar>
 
         </div>
 
@@ -105,8 +93,8 @@ export default function Empleados() {
 
       <div className="bg-white">
         <div className="grid grid-cols-2 border w-full mt-4 mb-4 rounded-lg">
-          <button className={"h-full rounded-lg hover:shadow-xl p-3 " + (showActiveEmployees && !searching ? 'border border-black bg-green-600 opacity-85 text-white font-bold' : 'bg-green-600 text-white font-bold opacity-40')} onClick={() => { setShowActiveEmployees(true), setSearching(false) }}>Empleados Activos</button>
-          <button className={"h-full rounded-lg hover:shadow-xl p-3 " + (!showActiveEmployees && !searching ? 'bg-red-700 text-white font-bold border opacity-85 border-black' : 'bg-red-700 font-bold opacity-40 text-white')} onClick={() => { setShowActiveEmployees(false), setSearching(false) }}>Empleados Inactivos</button>
+          <button className={"h-full rounded-lg hover:shadow-xl p-3 " + (showActiveEmployees && !searching ? 'border border-black bg-green-600 opacity-85 text-white font-bold' : 'bg-green-600 text-white font-bold opacity-40')} onClick={() => { setShowActiveEmployees(true), stopSearching() }}>Empleados Activos</button>
+          <button className={"h-full rounded-lg hover:shadow-xl p-3 " + (!showActiveEmployees && !searching ? 'bg-red-700 text-white font-bold border opacity-85 border-black' : 'bg-red-700 font-bold opacity-40 text-white')} onClick={() => { setShowActiveEmployees(false), stopSearching() }}>Empleados Inactivos</button>
         </div>
       </div>
 

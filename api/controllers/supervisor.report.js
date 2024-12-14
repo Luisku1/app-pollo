@@ -50,7 +50,8 @@ export const getSupervisorReports = async (req, res, next) => {
 
           _id: 1,
           balance: 1,
-          moneyDelivered: 1,
+          verifiedCash: 1,
+          verifiedDeposits: 1,
           incomes: 1,
           extraOutgoings: 1,
           supervisor: 1,

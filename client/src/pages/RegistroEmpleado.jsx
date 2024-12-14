@@ -2,8 +2,8 @@
 import { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { weekDays } from '../helpers/Constants'
-import { useRoles } from '../hooks/useRoles'
 import { ToastSuccess } from '../helpers/toastify'
+import { useRoles } from '../context/RolesContext'
 
 export default function RegistroEmpleadoNuevo({ employee }) {
 

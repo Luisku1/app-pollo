@@ -117,8 +117,7 @@ export const newIncomeType = async (req, res, next) => {
 
   try {
 
-    const newType = new IncomeType({ name })
-    newType.save()
+    const newType = await IncomeType.create({ name })
 
     res.status(201).json({ message: 'New type created successfully', type: newType })
 

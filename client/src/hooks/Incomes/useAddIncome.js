@@ -10,7 +10,7 @@ export const useAddIncome = () => {
 
     setLoading(true)
 
-    pushIncome({ income })
+    pushIncome(income)
     ToastSuccess(`Se registró el efectivo de ${income.amount.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}`)
 
     addIncomeFetch({
@@ -23,15 +23,14 @@ export const useAddIncome = () => {
         partOfAPayment: income.partOfAPayment,
         type: income.type.value,
         createdAt: income.createdAt
-
       }, group
     }).then((response) => {
 
-      updateLastIncomeId({ incomeId: response._id })
+      updateLastIncomeId(response._id)
 
     }).catch((error) => {
 
-      spliceIncome({ index: 0 })
+      spliceIncome(0)
       ToastDanger(`No se registró el efectivo de ${income.amount.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}`)
       console.log(error)
     })

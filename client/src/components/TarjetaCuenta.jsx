@@ -27,7 +27,6 @@ export default function TarjetaCuenta({ reportArray, managerRole, currentUser })
 
       if (data.success === false) {
 
-        console.log(data.message)
         setLoading(false)
         return
       }

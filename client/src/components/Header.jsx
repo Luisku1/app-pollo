@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from 'react'
 import DropdownItem from './DropdownItem'
 import { MdOutlineMenu } from "react-icons/md";
 import '../assets/dropdown.css'
-import { useRoles } from '../hooks/useRoles'
+import { useRoles } from '../context/RolesContext'
 
 export default function Header() {
 

@@ -1051,16 +1051,53 @@ export const updateEmployeeDailyBalance = async (req, res, next) => {
 	}
 }
 
-export const addSupervisorMoneyDelivery = async (req, res, next) => {
+export const verifySupervisorCash = async (req, res, next) => {
 
 	const { supervisorId, companyId, amount, date } = req.body
-	const { bottomDate, topDate } = getDayRange(date)
-	let dailyBalance = null
-	let updatedDailyBalance = null
-	let supervisorReport = null
-	let updatedSupervisorReport = null
+
 
 	try {
+
+		const updatedSupervisorReport = await verifySupervisorMoney({ amount, typeField: "verifiedCash", companyId, date, supervisorId })
+
+		res.status(200).json({ updatedSupervisorReport })
+
+	} catch (error) {
+
+
+		next(error)
+	}
+}
+
+export const verifySupervisorDeposits = async (req, res, next) => {
+
+	const { supervisorId, companyId, amount, date } = req.body
+
+	try {
+
+		const updatedSupervisorReport = await verifySupervisorMoney({ amount, typeField: "verifiedDeposits", companyId, date, supervisorId })
+
+		res.status(200).json({ updatedSupervisorReport })
+
+	} catch (error) {
+
+
+		next(error)
+	}
+}
+
+export const verifySupervisorMoney = async ({ amount, typeField, companyId, date, supervisorId }) => {
+
+	let supervisorReport = null
+	let updatedSupervisorReport = null
+	let updatedDailyBalance = null
+	let dailyBalance = null
+
+	const { bottomDate, topDate } = getDayRange(date)
+
+	try {
+
+		if (!['verifiedCash', "verifiedDeposits"].includes(typeField)) throw new Error(`Campo ${typeField} inválido`)
 
 		supervisorReport = await SupervisorReport.findOne({
 			createdAt: { $lt: topDate, $gte: bottomDate },
@@ -1072,12 +1109,11 @@ export const addSupervisorMoneyDelivery = async (req, res, next) => {
 			supervisorReport = await SupervisorReport.create({ company: companyId, supervisor: supervisor._id })
 
 			if (!supervisorReport) throw new Error("No se pudo crear el reporte del supervisor");
-
 		}
 
 		updatedSupervisorReport = await SupervisorReport.findByIdAndUpdate(supervisorReport._id, {
-			moneyDelivered: amount,
-			$inc: { balance: (amount - supervisorReport.moneyDelivered) }
+			[typeField]: amount,
+			$inc: { balance: (amount - supervisorReport[typeField]) }
 		}, { new: true })
 
 		if (!updatedSupervisorReport) throw new Error("No se editó el reporte de supervisor");
@@ -1095,18 +1131,18 @@ export const addSupervisorMoneyDelivery = async (req, res, next) => {
 
 		if (!updatedDailyBalance) throw new Error("No se editó el balance del supervisor");
 
-		res.status(200).json({ updatedSupervisorReport })
+		return updatedSupervisorReport
 
 	} catch (error) {
 
 		if (!updatedDailyBalance && updatedSupervisorReport
 			&& (SupervisorReport.balance != updatedSupervisorReport.balance
-				|| supervisorReport.moneyDelivered != supervisorReport.moneyDelivered)) {
+				|| supervisorReport[typeField] != supervisorReport[typeField])) {
 
-			await SupervisorReport.findByIdAndUpdate(supervisorReport._id, { moneyDelivered: supervisorReport.moneyDelivered, balance: supervisorReport.balance })
+			await SupervisorReport.findByIdAndUpdate(supervisorReport._id, { [typeField]: supervisorReport[typeField], balance: supervisorReport.balance })
 		}
-
-		next(error)
+		console.log(error)
+		throw error
 	}
 }
 

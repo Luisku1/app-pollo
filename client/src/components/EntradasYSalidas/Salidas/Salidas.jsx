@@ -16,7 +16,7 @@ import { useBranchCustomerProductPrice } from "../../../hooks/Prices/useBranchCu
 import { useAddOutput } from "../../../hooks/Outputs/useAddOutput"
 import { priceShouldNotBeZero } from "../../../helpers/Functions"
 
-export default function Salidas({ branchAndCustomerSelectOptions, products, date, roles, selectedProduct, setSelectedProduct, setSelectedProductToNull }) {
+export default function Salidas({ branchAndCustomerSelectOptions, products, date, selectedProduct, setSelectedProduct, setSelectedProductToNull }) {
 
   const { company, currentUser } = useSelector((state) => state.user)
   const [outputFormData, setOutputFormData] = useState({})
@@ -60,7 +60,6 @@ export default function Salidas({ branchAndCustomerSelectOptions, products, date
     if (piecesInput.value == '') {
 
       filledInputs = false
-
     }
 
     if (weightInput.value == '') {
@@ -88,7 +87,6 @@ export default function Salidas({ branchAndCustomerSelectOptions, products, date
       [e.target.name]: e.target.value,
 
     })
-
   }
 
   useEffect(() => {
@@ -281,7 +279,7 @@ export default function Salidas({ branchAndCustomerSelectOptions, products, date
 
         </div>
 
-        <ListaSalidas outputs={outputs} totalWeight={totalWeight} spliceOutput={spliceOutput} changeOutputsIsOpenValue={changeOutputsIsOpenValue} outputsIsOpen={outputsIsOpen} roles={roles}></ListaSalidas>
+        <ListaSalidas outputs={outputs} totalWeight={totalWeight} spliceOutput={spliceOutput} changeOutputsIsOpenValue={changeOutputsIsOpenValue} outputsIsOpen={outputsIsOpen}></ListaSalidas>
 
       </div>
     )

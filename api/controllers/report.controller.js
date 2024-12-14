@@ -174,16 +174,21 @@ export const getSupervisorsInfo = async (req, res, next) => {
 
     const supervisorsInfo = await supervisorsInfoQuery(companyId, topDate, bottomDate)
 
+    const supervisors = supervisorsInfo.supervisors
+
     if (supervisorsInfo) {
 
       const extraOutgoings = supervisorsInfo.extraOutgoings
-      const grossCashIncomes = supervisorsInfo.cash
+      const verifiedCash = supervisorsInfo.verifiedCash
+      const verifiedDeposits = supervisorsInfo.verifiedDeposits
+      const grossCash = supervisorsInfo.cash
       const deposits = supervisorsInfo.deposits
-      const netIncomes = supervisorsInfo.cash + deposits - supervisorsInfo.extraOutgoings
+      const terminalIncomes = supervisorsInfo.terminalIncomes
+      const netIncomes = supervisorsInfo.cash + deposits + terminalIncomes - supervisorsInfo.extraOutgoings
       const missingIncomes = -supervisorsInfo.missingIncomes
-      const reportedIncomes = netIncomes - missingIncomes
+      const verifiedIncomes = verifiedCash + verifiedDeposits
 
-      res.status(200).json({ supervisors: supervisorsInfo.supervisors, generalInfo: { extraOutgoings, grossCashIncomes, netIncomes: netIncomes, deposits, netIncomes, missingIncomes, reportedIncomes } })
+      res.status(200).json({ supervisors, extraOutgoings, grossCash, deposits, terminalIncomes, netIncomes, missingIncomes, verifiedCash, verifiedDeposits, verifiedIncomes, cashArray: supervisorsInfo.cashArray, depositsArray: supervisorsInfo.depositsArray, terminalIncomesArray: supervisorsInfo.terminalIncomesArray, extraOutgoingsArray: supervisorsInfo.extraOutgoingsArray })
 
     } else {
 
@@ -294,8 +299,84 @@ export const supervisorsInfoQuery = async (companyId, topDate, bottomDate) => {
       return new Types.ObjectId(role._id)
     })
 
+    const getIncomesByType = (type, arrayName) => ({
 
-    const supervisorsInfo = await Employee.aggregate([
+      $lookup: {
+        from: 'incomecollecteds',
+        localField: '_id',
+        foreignField: 'employee',
+        as: arrayName,
+        pipeline: [
+          {
+            $match: {
+              createdAt: { $gte: new Date(bottomDate), $lt: new Date(topDate) }
+            }
+          },
+          {
+            $lookup: {
+              from: 'branches',
+              localField: 'branch',
+              foreignField: '_id',
+              as: 'branch'
+            }
+          },
+          {
+            $lookup: {
+              from: 'employees',
+              localField: 'employee',
+              foreignField: '_id',
+              as: 'employee'
+            }
+          },
+          {
+            $lookup: {
+              from: 'customers',
+              localField: 'customer',
+              foreignField: '_id',
+              as: 'customer'
+            }
+          },
+          {
+            $unwind: {
+              path: '$customer',
+              preserveNullAndEmptyArrays: true
+            }
+          },
+          {
+            $lookup: {
+              from: 'incometypes',
+              localField: 'type',
+              foreignField: '_id',
+              as: 'type',
+            }
+          },
+          {
+            $unwind: {
+              path: '$branch',
+              preserveNullAndEmptyArrays: true
+            }
+          },
+          {
+            $unwind: {
+              path: '$employee',
+              preserveNullAndEmptyArrays: true
+            }
+          },
+          {
+            $unwind: {
+              path: '$type',
+              preserveNullAndEmptyArrays: true
+            }
+          },
+          {
+            $match: { 'type.name': type }
+          }
+        ]
+      }
+
+    })
+
+    const supervisorsInfoAggregate = await Employee.aggregate([
 
       {
         $match: {
@@ -315,131 +396,27 @@ export const supervisorsInfoQuery = async (companyId, topDate, bottomDate) => {
               $match: {
                 createdAt: { $gte: new Date(bottomDate), $lt: new Date(topDate) }
               }
+            },
+            {
+              $lookup: {
+                from: 'employees',
+                localField: 'employee',
+                foreignField: '_id',
+                as: 'employee'
+              }
+            },
+            {
+              $unwind: {
+                path: '$employee',
+                preserveNullAndEmptyArrays: true
+              }
             }
           ]
         }
       },
-      {
-        $lookup: {
-          from: 'incomecollecteds',
-          localField: '_id',
-          foreignField: 'employee',
-          as: 'depositsArray',
-          pipeline: [
-            {
-              $match: {
-                createdAt: { $gte: new Date(bottomDate), $lt: new Date(topDate) }
-              }
-            },
-            {
-              $lookup: {
-                from: 'branches',
-                localField: 'branch',
-                foreignField: '_id',
-                as: 'branch'
-              }
-            },
-            {
-              $lookup: {
-                from: 'customers',
-                localField: 'customer',
-                foreignField: '_id',
-                as: 'customer'
-              }
-            },
-            {
-              $unwind: {
-                path: '$customer',
-                preserveNullAndEmptyArrays: true
-              }
-            },
-            {
-              $lookup: {
-                from: 'incometypes',
-                localField: 'type',
-                foreignField: '_id',
-                as: 'type',
-              }
-            },
-            {
-              $unwind: {
-                path: '$branch',
-                preserveNullAndEmptyArrays: true
-              }
-            },
-            {
-              $unwind: {
-                path: '$type',
-                preserveNullAndEmptyArrays: true
-              }
-            },
-            {
-              $match: { 'type.name': 'Depósito' }
-            }
-          ]
-        }
-      },
-      {
-        $lookup: {
-          from: 'incomecollecteds',
-          localField: '_id',
-          foreignField: 'employee',
-          as: 'cashArray',
-          pipeline: [
-            {
-              $match: {
-                createdAt: { $gte: new Date(bottomDate), $lt: new Date(topDate) }
-              }
-            },
-            {
-              $lookup: {
-                from: 'branches',
-                localField: 'branch',
-                foreignField: '_id',
-                as: 'branch'
-              }
-            },
-            {
-              $lookup: {
-                from: 'incometypes',
-                localField: 'type',
-                foreignField: '_id',
-                as: 'type',
-
-              }
-            },
-            {
-              $lookup: {
-                from: 'customers',
-                localField: 'customer',
-                foreignField: '_id',
-                as: 'customer'
-              }
-            },
-            {
-              $unwind: {
-                path: '$customer',
-                preserveNullAndEmptyArrays: true
-              }
-            },
-            {
-              $unwind: {
-                path: '$branch',
-                preserveNullAndEmptyArrays: true // Por si hay ingresos sin sucursal asociada
-              }
-            },
-            {
-              $unwind: {
-                path: '$type',
-                preserveNullAndEmptyArrays: true
-              }
-            },
-            {
-              $match: { 'type.name': 'Efectivo' }
-            }
-          ]
-        }
-      },
+      getIncomesByType('Depósito', 'depositsArray'),
+      getIncomesByType('Efectivo', 'cashArray'),
+      getIncomesByType('Terminal', 'terminalIncomesArray'),
       {
         $lookup: {
 
@@ -462,11 +439,35 @@ export const supervisorsInfoQuery = async (companyId, topDate, bottomDate) => {
         }
       },
       {
+        $lookup: {
+
+          from: 'supervisorreports',
+          localField: '_id',
+          foreignField: 'supervisor',
+          as: 'supervisorReport',
+          pipeline: [
+            {
+              $match: {
+                createdAt: { $gte: new Date(bottomDate), $lt: new Date(topDate) }
+              }
+            }
+          ]
+        }
+      },
+      {
+        $unwind: {
+          path: '$supervisorReport',
+        }
+      },
+      {
         $addFields: {
 
           extraOutgoings: { $sum: '$extraOutgoingsArray.amount' },
           cash: { $sum: '$cashArray.amount' },
           deposits: { $sum: '$depositsArray.amount' },
+          terminalIncomes: { $sum: '$terminalIncomesArray.amount' },
+          verifiedCash: '$supervisorReport.verifiedCash',
+          verifiedDeposits: '$supervisorReport.verifiedDeposits',
           missingIncomes: '$dailyBalance.supervisorBalance'
         }
       },
@@ -475,6 +476,7 @@ export const supervisorsInfoQuery = async (companyId, topDate, bottomDate) => {
           $or: [
             { extraOutgoings: { $gt: 0 } },
             { cash: { $gt: 0 } },
+            { terminalIncomes: { $gt: 0 } },
             { deposits: { $gt: 0 } }
           ]
         }
@@ -483,27 +485,29 @@ export const supervisorsInfoQuery = async (companyId, topDate, bottomDate) => {
         $group: {
           _id: null,
           supervisors: {
-            $push: {
-              supervisor: '$$ROOT'
-            }
+            $push: '$$ROOT'
           },
           extraOutgoings: { $sum: '$extraOutgoings' },
           cash: { $sum: '$cash' },
           deposits: { $sum: '$deposits' },
+          verifiedCash: { $sum: '$verifiedCash' },
+          verifiedDeposits: { $sum: '$verifiedDeposits' },
+          terminalIncomes: { $sum: '$terminalIncomes' },
           missingIncomes: { $sum: '$missingIncomes' }
         }
       }
     ])
 
+    const supervisorsInfo = supervisorsInfoAggregate[0]
 
-    if (supervisorsInfo.length > 0) {
+    if (!supervisorsInfo) return null
 
-      return supervisorsInfo[0]
+    supervisorsInfo.cashArray = supervisorsInfo.supervisors.flatMap((supervisor) => supervisor.cashArray)
+    supervisorsInfo.depositsArray = supervisorsInfo.supervisors.flatMap((supervisor) => supervisor.depositsArray)
+    supervisorsInfo.terminalIncomesArray = supervisorsInfo.supervisors.flatMap((supervisor) => supervisor.terminalIncomesArray)
+    supervisorsInfo.extraOutgoingsArray = supervisorsInfo.supervisors.flatMap((supervisor) => supervisor.extraOutgoingsArray)
 
-    } else {
-
-      return null
-    }
+    return supervisorsInfo
 
   } catch (error) {
 

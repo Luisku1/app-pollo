@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react"
 import { getDayExtraOutgoingsFetch } from "../../services/ExtraOutgoings/getDayExtraOutgoings"
 
-export const useDayExtraOutgoings = ({ companyId, date }) => {
+export const useDayExtraOutgoings = ({ companyId = null, date = null, initialExtraOutgoings = [] }) => {
 
-  const [extraOutgoings, setExtraOutgoings] = useState([])
-  const [totalExtraOutgoings, setTotalExtraOutgoings] = useState(0.0)
+  const [extraOutgoings, setExtraOutgoings] = useState(initialExtraOutgoings)
+  const [totalExtraOutgoings, setTotalExtraOutgoings] = useState(
+    initialExtraOutgoings.reduce((acc, extraOutgoing) => acc + extraOutgoing.amount, 0)
+  )
   const [loading, setLoading] = useState(false)
 
   const pushExtraOutgoing = ({ extraOutgoing }) => {
@@ -60,5 +62,13 @@ export const useDayExtraOutgoings = ({ companyId, date }) => {
 
   }, [companyId, date])
 
-  return { extraOutgoings, totalExtraOutgoings, pushExtraOutgoing, spliceExtraOutgoing, spliceExtraOutgoingById, updateLastExtraOutgoingId, loading }
+  return {
+    extraOutgoings,
+    totalExtraOutgoings,
+    pushExtraOutgoing,
+    spliceExtraOutgoing,
+    spliceExtraOutgoingById,
+    updateLastExtraOutgoingId,
+    loading
+  }
 }

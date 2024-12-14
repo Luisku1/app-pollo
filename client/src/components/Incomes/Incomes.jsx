@@ -1,27 +1,26 @@
 /* eslint-disable react/prop-types */
 import { useState } from 'react'
 import { useAddIncome } from '../../hooks/Incomes/useAddIncome'
-import { useDeleteIncome } from '../../hooks/Incomes/useDeleteIncome'
 import { useIncomeTypes } from '../../hooks/Incomes/useIncomeTypes'
 import { isToday } from '../../helpers/DatePickerFunctions'
 import SectionHeader from '../SectionHeader'
-import { FaListAlt } from 'react-icons/fa'
 import { customSelectStyles } from '../../helpers/Constants'
 import Select from 'react-select'
 import BranchAndCustomerSelect from '../Select/BranchAndCustomerSelect'
-import { MdCancel } from 'react-icons/md'
-import DeleteButton from '../Buttons/DeleteButton'
+import ShowListButton from '../Buttons/ShowListButton'
+import IncomesList from './IncomesList'
+import { useRoles } from '../../context/RolesContext'
+import { stringToCurrency } from '../../helpers/Functions'
 
-export default function Incomes({ incomes, incomesTotal, pushIncome, spliceIncome, updateLastIncomeId, branchAndCustomerSelectOptions, date, companyId, currentUser, roles }) {
+export default function Incomes({ incomes, incomesTotal, pushIncome, spliceIncome, updateLastIncomeId, branchAndCustomerSelectOptions, date, companyId, currentUser }) {
 
   const [incomeFormData, setIncomeFormData] = useState({})
+  const { roles } = useRoles()
   const { addIncome } = useAddIncome()
-  const { deleteIncome } = useDeleteIncome()
   const { incomeTypes } = useIncomeTypes()
   const [selectedCustomerBranchIncomesOption, setSelectedCustomerBranchIncomesOption] = useState(null)
   const [selectedIncomeGroup, setSelectedIncomeGroup] = useState('')
   const [selectedIncomeType, setSelectedIncomeType] = useState(null)
-  const [incomesIsOpen, setIncomesIsOpen] = useState(false)
 
   const handleCustomerBranchIncomesSelectChange = (option) => {
 
@@ -132,22 +131,25 @@ export default function Incomes({ incomes, incomesTotal, pushIncome, spliceIncom
 
       <div className='border bg-white p-3 mt-4'>
 
-        <div className='grid grid-cols-3'>
+        <div className='grid grid-cols-2'>
           <SectionHeader label={'Efectivos'} />
-          <div className="h-10 w-10 shadow-lg justify-self-end">
-            <button className="w-full h-full" onClick={() => { setIncomesIsOpen(true) }}><FaListAlt className="h-full w-full text-red-600" />
-            </button>
+          <div className='flex items-center gap-4 justify-self-end mr-12'>
+
+            <ShowListButton
+              ListComponent={
+                <IncomesList
+                  incomesData={incomes}
+                />
+              }
+              listTitle={'Efectivos'}
+            />
+            {roles && roles.managerRole && currentUser.role == roles.managerRole._id ?
+              <p className='font-bold text-lg text-red-700 text-center'>{stringToCurrency({amount: incomesTotal})}</p>
+              : ''}
           </div>
-          {roles && roles.managerRole && currentUser.role == roles.managerRole._id ?
-            <p className='font-bold text-lg text-red-700 text-center'>{incomesTotal.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
-            : ''}
         </div>
-
-
         <form onSubmit={addIncomeSubmit} className="grid grid-cols-3 gap-2 mt-2">
-
           <BranchAndCustomerSelect defaultLabel={'Sucursal o Cliente'} options={branchAndCustomerSelectOptions} selectedOption={selectedCustomerBranchIncomesOption} handleSelectChange={handleCustomerBranchIncomesSelectChange}></BranchAndCustomerSelect>
-
           <Select
             styles={customSelectStyles}
             value={selectedIncomeType}
@@ -155,71 +157,11 @@ export default function Incomes({ incomes, incomesTotal, pushIncome, spliceIncom
             options={incomeTypes}
             placeholder={'Tipo'}
             isSearchable={true}
-
           />
-
           <input type="number" name="amount" id="income-amount" placeholder='$0.00' step={0.10} className='border border-black p-2 rounded-lg' required onInput={incomesButtonControl} onChange={handleIncomesInputsChange} />
-
           <button type='submit' id='incomeButton' disabled className='bg-slate-500 text-white p-3 rounded-lg col-span-3 mt-4'>Agregar</button>
-
         </form>
-
-
       </div>
-
-      {incomesIsOpen && incomes && incomes.length > 0 ?
-
-        <div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center max-w-lg my-auto mx-auto z-10'>
-          <div className=' bg-white p-5 rounded-lg justify-center items-center h-5/6 my-auto mx-auto w-11/12 overflow-y-scroll'>
-            <button className="" onClick={() => { setIncomesIsOpen(false) }}><MdCancel className="h-7 w-7" /></button>
-            < div className='bg-white mt-4 mb-4'>
-
-              <SectionHeader label={'Efectivos'} />
-
-              <div id='header' className='grid grid-cols-12 items-center justify-around font-semibold mt-4'>
-                <p className='col-span-3 text-center'>Sucursal o Cliente</p>
-                <p className='col-span-2 text-center'>Encargado</p>
-                <p className='col-span-3 text-center'>Tipo</p>
-                <p className='col-span-1 text-center'>Monto</p>
-              </div>
-
-              {incomes.map((income, index) => (
-
-                <div key={income._id} className='grid grid-cols-12 items-center border border-black border-opacity-30 mt-2 shadow-m rounded-lg'>
-
-                  <div id='list-element' className=' flex col-span-10 items-center justify-around pt-3 pb-3'>
-                    <p className='text-center text-xs w-3/12'>
-                      {(() => {
-                        const branchInfo = income.branch?.branch || income.branch?.label;
-                        const customerInfo = `${income.customer?.name || ''} ${income.customer?.lastName || ''}`.trim() || income.customer?.label;
-
-                        return branchInfo || customerInfo;
-                      })()}</p>
-                    <p className='text-center text-xs w-3/12'>{income.employee.name + ' ' + income.employee.lastName}</p>
-                    <p className='text-center text-xs w-2/12'>{income.type.name || income.type.label}</p>
-                    <p className='text-center text-xs w-3/12'>{income.amount.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
-                  </div>
-
-                  {((currentUser._id == income.employee._id || currentUser.role == roles.managerRole._id) && !income.partOfAPayment) ?
-
-                    <DeleteButton
-                      id={income._id}
-                      deleteFunction={deleteIncome}
-                      index={index}
-                      item={income}
-                      spliceFunction={spliceIncome}
-                    />
-                    : ''}
-
-                </div>
-
-              ))}
-
-            </div>
-          </div>
-        </div>
-        : ''
-      }
     </div>
   )
 }

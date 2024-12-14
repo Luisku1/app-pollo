@@ -1,20 +1,19 @@
 /* eslint-disable react/prop-types */
 import { useEffect, useState } from "react"
 
-export default function SectionsMenu({ sections }) {
+export default function SectionsMenu({ sections, handleShowSections, selectedSection, setSelectedSection }) {
 
   const [currentSections, setCurrentSections] = useState([])
-  const [selectedSection, setSelectedSection] = useState(null)
   const [startX, setStartX] = useState(0);
   const [endX, setEndX] = useState(0);
 
   const handleTouchStart = (e) => {
     setStartX(e.touches[0].clientX);
-  };
+  }
 
   const handleTouchMove = (e) => {
     setEndX(e.touches[0].clientX);
-  };
+  }
 
   const handleTouchEnd = () => {
     const diffX = endX - startX;
@@ -25,7 +24,7 @@ export default function SectionsMenu({ sections }) {
         changeSection('left');
       }
     }
-  };
+  }
 
   const changeSection = (direction) => {
     const currentIndex = currentSections.findIndex(section => section.label === selectedSection.label);
@@ -34,7 +33,7 @@ export default function SectionsMenu({ sections }) {
     } else if (direction === 'left' && currentIndex < currentSections.length - 1) {
       handleShowSections(currentSections[currentIndex + 1]);
     }
-  };
+  }
 
   useEffect(() => {
     window.addEventListener('touchstart', handleTouchStart);
@@ -46,18 +45,20 @@ export default function SectionsMenu({ sections }) {
       window.removeEventListener('touchmove', handleTouchMove);
       window.removeEventListener('touchend', handleTouchEnd);
     };
-  }, [endX]);
-
-  const handleShowSections = (section) => {
-
-    setSelectedSection(section)
-  }
+  }, [endX])
 
   useEffect(() => {
 
     if (!(sections && sections.length > 0)) return
 
     setCurrentSections(sections)
+
+  }, [sections])
+
+  useEffect(() => {
+
+    if(selectedSection != null || sections.length === 0) return
+
     setSelectedSection(sections[0])
 
   }, [sections])
@@ -65,7 +66,7 @@ export default function SectionsMenu({ sections }) {
   return (
 
     <div>
-      {currentSections.length > 0 && (
+      {currentSections.length > 0 && selectedSection && (
         <div>
           <div className={`border bg-white my-4 w-full rounded-lg font-bold grid grid-cols-${sections.length}`}>
             {currentSections.map((section) => (
@@ -77,13 +78,25 @@ export default function SectionsMenu({ sections }) {
             ))}
           </div>
 
-          {currentSections.map((section) => (
-            (section.label == selectedSection.label && (
-              <div key={section.label} className="mt-4">
-                {section.component}
-              </div>
-            ))
-          ))}
+          {selectedSection == null ?
+
+            <div className="mt-4">
+              {currentSections[0].component}
+            </div>
+
+            :
+
+            <div>
+              {currentSections.map((section) => (
+                (section.label == selectedSection.label && (
+                  <div key={section.label} className="mt-4">
+                    {section.component}
+                  </div>
+                ))
+              ))
+              }
+            </div>
+          }
         </div>
       )}
     </div>

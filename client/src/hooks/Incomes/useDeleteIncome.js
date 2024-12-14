@@ -11,7 +11,7 @@ export const useDeleteIncome = () => {
 
     setLoading(true)
 
-    spliceIncome({ index })
+    spliceIncome(index)
     ToastSuccess(`Se borró el efectivo de ${stringToCurrency({ amount: income.amount })}`)
 
     deleteIncomeFetch({ incomeId: income._id }).then(() => {

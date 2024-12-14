@@ -4,7 +4,7 @@ import { formatDate } from "../helpers/DatePickerFunctions";
 import { useSelector } from "react-redux";
 import { useEmployees } from "../hooks/Employees/useEmployees";
 import { useProducts } from "../hooks/Products/useProducts";
-import { useRoles } from "../hooks/useRoles";
+import { useRoles } from "../context/RolesContext";
 
 export default function ControlProveedor() {
 

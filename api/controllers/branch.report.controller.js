@@ -576,7 +576,7 @@ export const refactorSupervisorReports = async (req, res, next) => {
 
               extraOutgoings: supervisor.supervisor.totalExtraOutgoings,
               incomes: supervisor.supervisor.totalCash + supervisor.supervisor.totalDeposits,
-              moneyDelivered: supervisor.supervisor.totalCash + supervisor.supervisor.totalDeposits - supervisor.supervisor.totalExtraOutgoings,
+              verifiedCash: supervisor.supervisor.totalCash + supervisor.supervisor.totalDeposits - supervisor.supervisor.totalExtraOutgoings,
               balance: supervisor.supervisor.totalCash + supervisor.supervisor.totalDeposits - supervisor.supervisor.totalExtraOutgoings - (supervisor.supervisor.totalCash + supervisor.supervisor.totalDeposits - supervisor.supervisor.totalExtraOutgoings)
             }, { new: true })
 

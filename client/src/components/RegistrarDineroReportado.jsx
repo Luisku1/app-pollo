@@ -1,55 +1,61 @@
 /* eslint-disable react/prop-types */
 import { useEffect, useState } from "react"
-import { useAddMoneyDelivered } from "../hooks/Supervisors/useAddMoneyDelivered"
 import { useSupervisorReport } from "../hooks/Supervisors/useSupervisorReport"
 import { useSelector } from "react-redux"
 import { stringToCurrency } from "../helpers/Functions"
+import { useVerifyMoney } from "../hooks/Supervisors/useVerifyMoney"
 
-export default function RegistrarDineroReportado({ supervisorId, date, updateReportedIncomes }) {
+export default function RegistrarDineroReportado({ supervisorId, date, updateReportedCash, updateReportedDeposits }) {
 
   const { company } = useSelector((state) => state.user)
-  const [inputValue, setInputValue] = useState(0.00)
-  const { addMoneyDelivered } = useAddMoneyDelivered()
+  const [verifiedCash, setVerifiedCash] = useState(0.00)
+  const [verifiedDeposits, setVerifiedDeposits] = useState(0.00)
+  const { verifyMoney } = useVerifyMoney()
   const { supervisorReport, updateSupervisorReport } = useSupervisorReport({ supervisorId, date })
 
-  const handleInputOnChange = (e) => {
+  const handleVerifiedCashOnChange = (e) => {
 
-    setInputValue(e.target.value)
+    setVerifiedCash(e.target.value)
+  }
+  const handleVerifiedDepositsOnChange = (e) => {
+
+    setVerifiedDeposits(e.target.value)
   }
 
-  const submitMoneyDelivered = (e) => {
+  const submitVerifyMoney = (e, typeField) => {
 
     e.preventDefault()
 
-    addMoneyDelivered({ supervisorId, companyId: company._id, amount: inputValue, date, supervisorReport, updateSupervisorReport, updateReportedIncomes })
+    verifyMoney({ typeField, supervisorId, companyId: company._id, amount: typeField == "verifiedCash" ? verifiedCash : verifiedDeposits, date, supervisorReport, updateSupervisorReport, updateReportedCash, updateReportedDeposits })
   }
 
   useEffect(() => {
 
     if (!supervisorReport) return
 
-    setInputValue(supervisorReport.moneyDelivered)
+    setVerifiedCash(supervisorReport.verifiedCash)
+    setVerifiedDeposits(supervisorReport.verifiedDeposits)
 
   }, [supervisorReport])
 
   return (
-    <div className="grid grid-cols-12">
-      <div className="col-span-4">
-        <h3 className="text-md font-bold">Dinero entregado</h3>
-        <form onSubmit={submitMoneyDelivered}>
+    <div className="grid grid-cols-12 justify-self-center">
+      <div className="col-span-6">
+        <h3 className="text-md font-bold">Efectivo verificado</h3>
+        <form onSubmit={(e) => { submitVerifyMoney(e, "verifiedCash") }}>
           <input
-            className='border border-black p-3 rounded-md w-full'
+            className='border border-black p-2 rounded-md w-full mr-2'
             type="text"
             name=""
             step={0.01}
             id=""
             onFocus={(e) => { e.target.select() }}
-            value={inputValue}
-            onChange={handleInputOnChange}
+            value={verifiedCash}
+            onChange={handleVerifiedCashOnChange}
           />
           <div className="flex justify-center">
             <button type="submit" className="w-10/12 p-3 text-white bg-slate-500 mt-2 rounded-lg">
-              {supervisorReport && supervisorReport.moneyDelivered == 0 ?
+              {supervisorReport && supervisorReport.verifiedCash == 0 ?
                 'Guardar'
                 :
                 'Actualizar'
@@ -59,14 +65,38 @@ export default function RegistrarDineroReportado({ supervisorId, date, updateRep
         </form>
       </div>
 
-      <div className="col-span-8 ml-3">
+      <div className="col-span-6">
+        <h3 className="text-md font-bold">Depósitos verificados</h3>
+        <form onSubmit={(e) => { submitVerifyMoney(e, "verifiedDeposits") }}>
+          <input
+            className='border border-black p-2 rounded-md w-full ml-2'
+            type="text"
+            name=""
+            step={0.01}
+            id=""
+            onFocus={(e) => { e.target.select() }}
+            value={verifiedDeposits}
+            onChange={handleVerifiedDepositsOnChange}
+          />
+          <div className="flex justify-center">
+            <button type="submit" className="w-10/12 p-3 text-white bg-slate-500 mt-2 rounded-lg">
+              {supervisorReport && supervisorReport.verifiedDeposits == 0 ?
+                'Guardar'
+                :
+                'Actualizar'
+              }
+            </button>
+          </div>
+        </form>
+      </div>
 
-        <h3 className="text-md font-bold text-red-500">Reporte de supervisor</h3>
+      <div className="col-span-12 ml-3 mt-3">
+
         {supervisorReport ?
           <div>
             <p className="p-2"><span className="font-bold">Dinero a entregar: </span>{stringToCurrency({ amount: supervisorReport.incomes - supervisorReport.extraOutgoings })}</p>
             <p className="p-2">
-              <span className="font-bold">Dinero entregado: </span>{stringToCurrency({ amount: supervisorReport.moneyDelivered })}
+              <span className="font-bold">Dinero entregado: </span>{stringToCurrency({ amount: (supervisorReport.verifiedCash + supervisorReport.verifiedDeposits) || 0 })}
             </p>
             <p className="p-2 font-bold">Balance: <span className={`${supervisorReport.balance < 0 ? 'text-red-700' : ''}`}>{stringToCurrency({ amount: supervisorReport.balance })}</span></p>
           </div>

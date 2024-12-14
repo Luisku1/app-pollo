@@ -16,7 +16,7 @@ import { useBranchCustomerProductPrice } from '../../../hooks/Prices/useBranchCu
 import { useAddInput } from '../../../hooks/Inputs/useAddInput'
 import { priceShouldNotBeZero } from '../../../helpers/Functions'
 
-export default function Entradas({ branchAndCustomerSelectOptions, products, date, roles, selectedProduct, setSelectedProduct, setSelectedProductToNull }) {
+export default function Entradas({ branchAndCustomerSelectOptions, products, date, selectedProduct, setSelectedProduct, setSelectedProductToNull }) {
 
   const { company, currentUser } = useSelector((state) => state.user)
   const [inputFormData, setInputFormData] = useState({})
@@ -273,7 +273,7 @@ export default function Entradas({ branchAndCustomerSelectOptions, products, dat
           </form>
         </div>
 
-        <ListaEntradas inputs={inputs} totalWeight={totalWeight} spliceInput={spliceInput} changeInputsIsOpenValue={changeInputsIsOpenValue} inputsIsOpen={inputsIsOpen} roles={roles}></ListaEntradas>
+        <ListaEntradas inputs={inputs} totalWeight={totalWeight} spliceInput={spliceInput} changeInputsIsOpenValue={changeInputsIsOpenValue} inputsIsOpen={inputsIsOpen}></ListaEntradas>
 
       </div>
     )

@@ -1,66 +1,78 @@
 import { useEffect, useState } from "react"
 import { getIncomesFetch } from "../../services/Incomes/getIncomes"
 
-export const useIncomes = ({ companyId, date }) => {
-
-  const [incomes, setIncomes] = useState([])
-  const [incomesTotal, setIncomesTotal] = useState(0.0)
+export const useIncomes = ({ companyId = null, date = null, initialIncomes = [] }) => {
+  const [incomes, setIncomes] = useState(initialIncomes)
+  const [incomesTotal, setIncomesTotal] = useState(
+    initialIncomes.reduce((acc, income) => acc + income.amount, 0)
+  )
   const [loading, setLoading] = useState(false)
 
-  const pushIncome = ({ income }) => {
+  // Función para calcular el total
+  const calculateTotal = (incomesList) =>
+    incomesList.reduce((acc, income) => acc + income.amount, 0)
 
+  // Agregar un nuevo ingreso
+  const pushIncome = (income) => {
     setIncomes((prevIncomes) => [income, ...prevIncomes])
     setIncomesTotal((prevTotal) => prevTotal + income.amount)
   }
 
-  const spliceIncome = ({ index }) => {
-
-    const removedIncome = incomes.splice(index, 1)
-    setIncomesTotal((prevTotal) => prevTotal - removedIncome[0].amount)
-  }
-
-  const spliceIncomeById = ({incomeId, amount}) => {
-
-    setIncomes((prevIncomes) => prevIncomes.map((income) =>
-
-      income._id != incomeId
-    ))
-
-    setIncomesTotal((prevTotal) => prevTotal - amount)
-  }
-
-  const updateLastIncomeId = ({ incomeId }) => {
-
-    setIncomes((prevIncomes) => prevIncomes.map((income, index) =>
-
-      index == 0 ? { _id: incomeId, ...income } : income
-    ))
-  }
-
-  useEffect(() => {
-
-    if (!companyId || !date) return
-
-    setLoading(true)
-
-    setIncomes([])
-    setIncomesTotal(0.0)
-
-    getIncomesFetch({ companyId, date }).then((response) => {
-
-      setIncomes(response.incomes)
-      setIncomesTotal(response.total)
-
-    }).catch((error) => {
-
-      console.log(error)
+  // Eliminar ingreso por índice
+  const spliceIncome = (index) => {
+    setIncomes((prevIncomes) => {
+      const newIncomes = [...prevIncomes];
+      const [removedIncome] = newIncomes.splice(index, 1)
+      setIncomesTotal((prevTotal) => prevTotal - removedIncome.amount)
+      return newIncomes;
     })
+  }
 
-    setLoading(false)
+  // Eliminar ingreso por ID
+  const spliceIncomeById = (incomeId) => {
+    setIncomes((prevIncomes) => {
+      const filteredIncomes = prevIncomes.filter((income) => income._id !== incomeId)
+      setIncomesTotal(calculateTotal(filteredIncomes))
+      return filteredIncomes
+    })
+  }
 
+  // Actualizar el último ingreso con un ID
+  const updateLastIncomeId = (incomeId) => {
+    setIncomes((prevIncomes) =>
+      prevIncomes.map((income, index) =>
+        index === 0 ? { ...income, _id: incomeId } : income
+      )
+    )
+  }
+
+  // Efecto para obtener ingresos
+  useEffect(() => {
+    if (!companyId || !date) return;
+
+    const fetchIncomes = async () => {
+      setLoading(true)
+      try {
+        const response = await getIncomesFetch({ companyId, date })
+        setIncomes(response.incomes)
+        setIncomesTotal(response.total)
+      } catch (error) {
+        console.error('Error fetching incomes:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchIncomes()
   }, [companyId, date])
 
   return {
-    incomes, incomesTotal, loading, pushIncome, spliceIncome, spliceIncomeById, updateLastIncomeId
+    incomes,
+    incomesTotal,
+    loading,
+    pushIncome,
+    spliceIncome,
+    spliceIncomeById,
+    updateLastIncomeId,
   }
 }

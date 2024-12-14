@@ -11,8 +11,6 @@ export const useSupervisorReport = ({ supervisorId, date }) => {
 
     if (supervisorReport != updatedSupervisorReport || supervisorReport.balance != updatedSupervisorReport.balance) {
 
-      console.log(updatedSupervisorReport)
-
       setSupervisorReport(updatedSupervisorReport)
     }
   }

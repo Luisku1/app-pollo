@@ -6,10 +6,12 @@ import { useSelector } from 'react-redux'
 import { FaTrash } from 'react-icons/fa'
 import { useDeleteOutput } from '../../../hooks/Outputs/useDeleteOutput'
 import { formatTime } from '../../../helpers/DatePickerFunctions'
+import { useRoles } from '../../../context/RolesContext'
 
-export default function ListaSalidas({ outputs, changeOutputsIsOpenValue, outputsIsOpen, spliceOutput, roles }) {
+export default function ListaSalidas({ outputs, changeOutputsIsOpenValue, outputsIsOpen, spliceOutput }) {
 
   const { currentUser } = useSelector((state) => state.user)
+  const { roles } = useRoles()
   const { deleteOutput, loading } = useDeleteOutput()
   const [selectedOutput, setSelectedOutput] = useState(null)
   const [movementDetailsIsOpen, setMovementDetailsIsOpen] = useState(false)
@@ -95,51 +97,54 @@ export default function ListaSalidas({ outputs, changeOutputsIsOpenValue, output
                   : ''}
                 {outputs && outputs.length > 0 && outputs.map((output, index) => (
 
+                  <div key={index}>
+                    {(output.employee._id == currentUser._id || currentUser.role == roles.managerRole._id) && (
+                      <div className={(currentUser._id == output.employee?._id || currentUser.role == roles.managerRole._id ? '' : 'py-3 ') + (output.specialPrice ? 'border border-red-500 ' : 'border border-black ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-70 shadow-sm mt-2'}>
 
-                  <div key={index} className={(currentUser._id == output.employee?._id || currentUser.role == roles.managerRole._id ? '' : 'py-3 ') + (output.specialPrice ? 'border border-red-500 ' : 'border border-black ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-70 shadow-sm mt-2'}>
-
-                    <button onClick={() => { setSelectedOutput(output), setMovementDetailsIsOpen(!movementDetailsIsOpen) }} id='list-element' className='flex col-span-10 items-center justify-around h-full'>
-                      <p className='text-center text-xs  w-3/12'>{`${output.branch?.branch || output.branch?.label || (`${output.customer?.name} ${output.customer?.lastName}`)}`}</p>
-                      <p className='text-center text-xs w-3/12'>{output.employee.name + ' ' + output.employee.lastName}</p>
-                      <p className='text-center text-xs w-3/12'>{output.product.name || output.product.label}</p>
-                      <p className='text-center text-xs w-1/12'>{output.weight}</p>
-                    </button>
-
-                    {selectedOutput != null && selectedOutput._id == output._id && movementDetailsIsOpen ?
-                      <ShowOutputDetails output={output}></ShowOutputDetails>
-                      : ''}
-
-                    {currentUser._id == output.employee._id || currentUser.role == roles.managerRole._id ?
-
-                      <div>
-                        <button id={output._id} onClick={() => { setConfirmationIsOpen(!confirmationIsOpen), setDeleteOutputIdButton(output._id) }} disabled={loading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
-                          <span>
-                            <FaTrash className='text-red-700 m-auto' />
-                          </span>
+                        <button onClick={() => { setSelectedOutput(output), setMovementDetailsIsOpen(!movementDetailsIsOpen) }} id='list-element' className='flex col-span-10 items-center justify-around h-full'>
+                          <p className='text-center text-xs  w-3/12'>{`${output.branch?.branch || output.branch?.label || (`${output.customer?.name} ${output.customer?.lastName}`)}`}</p>
+                          <p className='text-center text-xs w-3/12'>{output.employee.name + ' ' + output.employee.lastName}</p>
+                          <p className='text-center text-xs w-3/12'>{output.product.name || output.product.label}</p>
+                          <p className='text-center text-xs w-1/12'>{output.weight}</p>
                         </button>
 
-                        {confirmationIsOpen && output._id == deleteOutputIdButton ?
-                          <div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center items-center'>
-                            <div className='bg-white p-5 rounded-lg flex flex-col justify-center items-center gap-5'>
-                              <div>
-                                <p className='text-3xl font-semibold'>¿Estás seguro de borrar este registro?</p>
-                              </div>
-                              <div className='flex gap-10'>
-                                <div>
-                                  <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteOutput({ output, spliceOutput, index }), setConfirmationIsOpen(!confirmationIsOpen) }}>Si</button>
+                        {selectedOutput != null && selectedOutput._id == output._id && movementDetailsIsOpen ?
+                          <ShowOutputDetails output={output}></ShowOutputDetails>
+                          : ''}
+
+                        {currentUser._id == output.employee._id || currentUser.role == roles.managerRole._id ?
+
+                          <div>
+                            <button id={output._id} onClick={() => { setConfirmationIsOpen(!confirmationIsOpen), setDeleteOutputIdButton(output._id) }} disabled={loading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
+                              <span>
+                                <FaTrash className='text-red-700 m-auto' />
+                              </span>
+                            </button>
+
+                            {confirmationIsOpen && output._id == deleteOutputIdButton ?
+                              <div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center items-center'>
+                                <div className='bg-white p-5 rounded-lg flex flex-col justify-center items-center gap-5'>
+                                  <div>
+                                    <p className='text-3xl font-semibold'>¿Estás seguro de borrar este registro?</p>
+                                  </div>
+                                  <div className='flex gap-10'>
+                                    <div>
+                                      <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteOutput({ output, spliceOutput, index }), setConfirmationIsOpen(!confirmationIsOpen) }}>Si</button>
+                                    </div>
+                                    <div>
+                                      <button className='rounded-lg border shadow-lg w-20 h-10' onClick={() => { setConfirmationIsOpen(!confirmationIsOpen) }}>No</button>
+                                    </div>
+                                  </div>
                                 </div>
-                                <div>
-                                  <button className='rounded-lg border shadow-lg w-20 h-10' onClick={() => { setConfirmationIsOpen(!confirmationIsOpen) }}>No</button>
-                                </div>
                               </div>
-                            </div>
+                              : ''}
+
                           </div>
+
                           : ''}
 
                       </div>
-
-                      : ''}
-
+                    )}
                   </div>
 
                 ))}

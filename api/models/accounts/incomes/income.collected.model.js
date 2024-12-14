@@ -5,6 +5,7 @@ const incomeCollectedSchema = mongoose.Schema({
 
   amount: {
     type: Number,
+    min: [0, "El monto debe ser superior a $0.00"],
     required: true
   },
 
@@ -28,19 +29,19 @@ const incomeCollectedSchema = mongoose.Schema({
 
   partOfAPayment: {
     type: Boolean,
-    required: true
+    required: true,
+    default: false
   },
 
   type: {
     type: Schema.Types.ObjectId, ref: 'IncomeType',
     required: true
-  },
-
-  createdAt: {
-    type: Date,
-    required: true
   }
-})
+
+}, {timestamps: true})
+
+incomeCollectedSchema.index({company: 1, createdAt: -1, customer: 1})
+incomeCollectedSchema.index({company: 1, createdAt: -1, branch: 1})
 
 const IncomeCollected = mongoose.model('IncomeCollected', incomeCollectedSchema)
 

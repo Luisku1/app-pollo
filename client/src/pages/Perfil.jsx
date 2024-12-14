@@ -7,7 +7,6 @@ import TarjetaCuenta from '../components/TarjetaCuenta'
 import { useLoading } from '../hooks/loading'
 import { useSignOut } from '../hooks/Auth/useSignOut'
 import { formatDate, formatInformationDate, isToday } from '../helpers/DatePickerFunctions'
-import { useRoles } from '../hooks/useRoles'
 import ShowListButton from '../components/Buttons/ShowListButton'
 import { useSupervisorReports } from '../hooks/Supervisors/useSupervisorReports'
 import SupervisorReports from '../components/SupervisorReports'
@@ -16,6 +15,7 @@ import EmployeePaymentsList from '../components/EmployeePaymentsList'
 import { useEmployeePayments } from '../hooks/Employees/useEmployeePayments'
 import { useDeleteEmployeePayment } from '../hooks/Employees/useDeleteEmployeePayment'
 import { stringToCurrency } from '../helpers/Functions'
+import { useRoles } from '../context/RolesContext'
 
 export default function Perfil() {
 

@@ -1,15 +1,13 @@
 /* eslint-disable react/prop-types */
 import { Link } from "react-router-dom"
 import { usePendingEmployeesRests } from "../../hooks/Employees/useEmployesRests"
-import { useEmployeesDailyBalances } from "../../hooks/Employees/useEmployeesDailyBalances"
 import CreateRests from '../CreateRest'
 import SectionHeader from "../SectionHeader"
 import SearchBar from "../SearchBar"
 import { useEffect, useState } from "react"
 
-export default function Employees({ companyId, date, employees }) {
+export default function Employees({ companyId, date, employees, dailyBalances }) {
 
-  const { employeesDailyBalances } = useEmployeesDailyBalances({ companyId, date })
   const [dailyBalancesFilterText, setDailyBalancesFilterText] = useState('')
   const { pendingRests, pushPendingEmployeeRest, splicePendingEmployeeRest, updateLastEmployeeRestId } = usePendingEmployeesRests({ companyId: companyId })
 
@@ -60,14 +58,14 @@ export default function Employees({ companyId, date, employees }) {
 
       <CreateRests updateLastEmployeeRestId={updateLastEmployeeRestId} employees={employees} pushPendingEmployeeRest={pushPendingEmployeeRest} splicePendingEmployeeRest={splicePendingEmployeeRest} pendingEmployeesRests={pendingRests}></CreateRests>
 
-      {employeesDailyBalances && employeesDailyBalances.length > 0 ?
+      {dailyBalances && dailyBalances.length > 0 ?
         <div className='border bg-white shadow-lg p-3 mt-4'>
 
           <SectionHeader label={'Empleados'} />
 
           <SearchBar handleFilterTextChange={handleDailyBalancesFilterText} placeholder={'Búsqueda de empleados'}></SearchBar>
 
-          {employeesDailyBalances && employeesDailyBalances.length > 0 ?
+          {dailyBalances && dailyBalances.length > 0 ?
             <div id='header' className='grid grid-cols-12 gap-4 items-center justify-around font-semibold mt-4'>
               <p className='p-3 rounded-lg col-span-3 text-sm text-center'>Empleado</p>
               <p className='p-3 rounded-lg col-span-3 text-sm text-center'>Retardo</p>
@@ -76,7 +74,7 @@ export default function Employees({ companyId, date, employees }) {
             </div>
             : ''}
 
-          {employeesDailyBalances && employeesDailyBalances.length > 0 && employeesDailyBalances.map((dailyBalance) => (
+          {dailyBalances && dailyBalances.length > 0 && dailyBalances.map((dailyBalance) => (
 
             ((`${dailyBalance.employee.name} ${dailyBalance.employee.lastName}`).includes(dailyBalancesFilterText) || dailyBalancesFilterText == '') && (
 

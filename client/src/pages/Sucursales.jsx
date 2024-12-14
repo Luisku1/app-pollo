@@ -5,7 +5,7 @@ import { MdClear, MdEdit } from "react-icons/md";
 import { FaTrash } from "react-icons/fa";
 import { CiSearch } from "react-icons/ci";
 import BranchSaleAvg from "../components/BranchSaleAvg";
-import { useExtraOutgoingsAvg } from "../hooks/ExtraOutgoings.js/useExtraOutgoingsAvg";
+import { useExtraOutgoingsAvg } from "../hooks/ExtraOutgoings/useExtraOutgoingsAvg";
 import BranchProviderInputsAvg from "../components/Sucursales/BranchProviderInputsAvg";
 import BranchOutputsAvg from "../components/Sucursales/BranchOutputsAvg";
 import BranchInputsAvg from "../components/Sucursales/BranchInputsAvg";

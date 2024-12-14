@@ -11,11 +11,12 @@ import { useEmployees } from '../hooks/Employees/useEmployees';
 import { useBranches } from '../hooks/Branches/useBranches';
 import { useCustomers } from '../hooks/Customers/useCustomers';
 import Loading from '../components/Loading';
-import { useRoles } from '../hooks/useRoles';
+import { useRoles } from '../context/RolesContext'
 import Employees from '../components/SupervisorSections/Employees';
 import IncomesAndOutgoings from '../components/SupervisorSections/IncomesAndOutgoings';
 import InputsAndOutputs from '../components/SupervisorSections/InputsAndOutputs';
 import SectionsMenu from '../components/SectionsMenu';
+import { useEmployeesDailyBalances } from '../hooks/Employees/useEmployeesDailyBalances';
 
 export default function ControlSupervisor() {
 
@@ -30,6 +31,13 @@ export default function ControlSupervisor() {
   const { roles, loading: roleLoading } = useRoles()
   const navigate = useNavigate()
   const [branchAndCustomerSelectOptions, setBranchAndCustomerSelectOptions] = useState([])
+  const [selectedSection, setSelectedSection] = useState(null)
+  const { employeesDailyBalances } = useEmployeesDailyBalances({ companyId: company._id, date: stringDatePickerValue })
+
+  const handleShowSections = (section) => {
+
+    setSelectedSection(section)
+  }
 
   useEffect(() => {
 
@@ -88,6 +96,9 @@ export default function ControlSupervisor() {
           </h1>
 
           <SectionsMenu
+            handleShowSections={handleShowSections}
+            selectedSection={selectedSection}
+            setSelectedSection={setSelectedSection}
             sections={
               [
                 {
@@ -114,7 +125,7 @@ export default function ControlSupervisor() {
                 },
                 {
                   label: 'Empleados',
-                  component: <Employees employees={employees} companyId={company._id} date={stringDatePickerValue} />
+                  component: <Employees dailyBalances={employeesDailyBalances} employees={employees} companyId={company._id} date={stringDatePickerValue} />
                 }
               ]
             }

@@ -1,6 +1,8 @@
-export const addMoneyDeliveredFetch = async ({ supervisorId, companyId, amount, date }) => {
+export const verifyMoneyFetch = async ({ typeField, supervisorId, companyId, amount, date }) => {
 
-  const res = await fetch('/api/report/supervisor-report/add-money-delivered', {
+  const type = typeField.replace("verified", "").toLowerCase()
+
+  const res = await fetch(`/api/report/supervisor-report/verify-${type}`, {
 
     method: 'PUT',
     headers: {

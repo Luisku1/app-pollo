@@ -10,7 +10,6 @@ import FechaDePagina from '../components/FechaDePagina';
 import { formatDate } from '../helpers/DatePickerFunctions';
 import { useEmployees } from '../hooks/Employees/useEmployees';
 import EmployeesSelect from '../components/Select/EmployeesSelect';
-import { customSelectStyles } from '../helpers/Constants';
 import { useBranches } from '../hooks/Branches/useBranches';
 import { useBranchReport } from '../hooks/BranchReports.js/useBranchReport';
 import { useLoading } from '../hooks/loading';
@@ -23,7 +22,8 @@ import { useAddStock } from '../hooks/Stock/useAddStock';
 import { useDeleteOutgoing } from '../hooks/Outgoings/useDeleteOutgoing';
 import { useInitialStock } from '../hooks/Stock/useInitialStock';
 import { useBranchPrices } from '../hooks/Prices/useBranchPrices';
-import { useRoles } from '../hooks/useRoles';
+import { useRoles } from '../context/RolesContext'
+import BranchSelect from '../components/RegistrarFormato/BranchSelect';
 
 export default function RegistroCuentaDiaria() {
 
@@ -68,16 +68,17 @@ export default function RegistroCuentaDiaria() {
   const [selectedAssistant, setSelectedAssistant] = useState(null)
   const [selectedBranch, setSelectedBranch] = useState(null)
   const [selectedProduct, setSelectedProduct] = useState(null)
+  const [autoChangeEmployee, setAutoChangeEmployee] = useState(true)
+  const [selectBranch, setSelectBranch] = useState(false)
   const navigate = useNavigate()
   const reportDate = (paramsDate ? new Date(paramsDate) : new Date()).toLocaleDateString('es-mx', { weekday: 'long', year: 'numeric', month: '2-digit', day: '2-digit' })
   const { branchReport, loading: repLoading } = useBranchReport({ branchId, date: stringDatePickerValue })
 
   const isLoading = useLoading(repLoading, loading, outgoingLoading)
 
-  console.log(roles)
-
   const handleEmployeeSelectChange = (employee) => {
 
+    setAutoChangeEmployee(false)
     setSelectedEmployee(employee)
   }
 
@@ -311,8 +312,6 @@ export default function RegistroCuentaDiaria() {
         createdAt: date,
         company: company._id
       }
-
-      console.log(stock)
 
       addStock({ stock, pushStock, spliceStock, updateLastStockId })
 
@@ -687,6 +686,10 @@ export default function RegistroCuentaDiaria() {
     if (branchId != null) {
 
       fetchs(branchId)
+
+    } else {
+
+      setSelectBranch(true)
     }
 
   }, [branchId, stringDatePickerValue])
@@ -740,7 +743,10 @@ export default function RegistroCuentaDiaria() {
 
     } else {
 
-      setSelectedEmployee({ value: currentUser._id, label: currentUser.name + ' ' + currentUser.lastName })
+      if (autoChangeEmployee) {
+
+        setSelectedEmployee({ value: currentUser._id, label: currentUser.name + ' ' + currentUser.lastName })
+      }
     }
 
     const assistantTempOption = employees.find((assistant) => assistant.value == branchReport.assistant)
@@ -839,9 +845,15 @@ export default function RegistroCuentaDiaria() {
       </h1>
       <p className='text-center mb-7'>{reportDate}</p>
 
-
-
       <SectionHeader label={'Información básica'} />
+
+      <div className="grid grid-cols-12 items-center mt-1 mb-2">
+
+        <p className='col-span-12 justify-self-center text-lg font-semibold mb-2'>Sucursal</p>
+        <div className='col-span-12'>
+          <BranchSelect branches={branches} modalStatus={selectBranch} selectedBranch={selectedBranch} selectBranch={handleBranchSelectChange}></BranchSelect>
+        </div>
+      </div>
 
       <div className="grid grid-cols-12 items-center mt-1 ">
         <p className='col-span-4'>Encargado:</p>
@@ -857,23 +869,6 @@ export default function RegistroCuentaDiaria() {
         <div className='col-span-8'>
 
           <EmployeesSelect defaultLabel={'Sin Auxiliar'} employees={employees} selectedEmployee={selectedAssistant} handleEmployeeSelectChange={handleAssistantSelectChange}></EmployeesSelect>
-
-        </div>
-      </div>
-
-      <div className="grid grid-cols-12 items-center mt-1 ">
-
-        <p className='col-span-4'>Sucursal:</p>
-        <div className='col-span-8'>
-
-          <Select
-            styles={customSelectStyles}
-            value={selectedBranch}
-            onChange={handleBranchSelectChange}
-            options={branches}
-            placeholder='Elige una sucursal'
-            isSearchable={true}
-          />
 
         </div>
       </div>

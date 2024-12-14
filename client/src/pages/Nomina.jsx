@@ -4,11 +4,11 @@ import { useParams, useNavigate } from 'react-router-dom';
 import FechaDePagina from "../components/FechaDePagina";
 import { formatDate } from "../helpers/DatePickerFunctions";
 import { useEmployeesPayroll } from "../hooks/Employees/useEmployeesPayroll";
-import { useRoles } from "../hooks/useRoles";
 import { useDeleteEmployeePayment } from "../hooks/Employees/useDeleteEmployeePayment";
 import EmployeePaymentsList from "../components/EmployeePaymentsList";
 import ShowListButton from "../components/Buttons/ShowListButton";
 import { stringToCurrency } from "../helpers/Functions";
+import { useRoles } from "../context/RolesContext";
 
 
 export default function Nomina() {
@@ -21,8 +21,6 @@ export default function Nomina() {
   const { roles } = useRoles()
   const { deleteEmployeePayment } = useDeleteEmployeePayment()
   const navigate = useNavigate()
-
-  console.log(employeesPayroll)
 
   const changeDatePickerValue = (e) => {
 

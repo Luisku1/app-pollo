@@ -7,8 +7,15 @@ const supervisorReportSchema = mongoose.Schema({
     default: 0
   },
 
-  moneyDelivered: {
+  verifiedCash: {
     type: Number,
+    default: 0,
+    required: true
+  },
+
+  verifiedDeposits: {
+    type: Number,
+    required: true,
     default: 0
   },
 

@@ -3,11 +3,18 @@ import { Pie } from 'react-chartjs-2';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 import { useEffect, useState } from 'react';
 import { stringToCurrency } from '../../helpers/Functions';
+import IncomesList from '../Incomes/IncomesList';
+import ListModal from '../Modals/ListModal';
+import ShowOrderedIncomesButton from '../Incomes/ShowOrderedIncomesButton';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
-export default function PieChart({ chartInfo }) {
+export default function PieChart({ verifiedIncomes, totalIncomes, chartInfo }) {
 
+  const [showIncomes, setShowIncomes] = useState(false)
+  const [showExtraOutgoings, setExtraOutgoings] = useState(false)
+  const [listTitle, setListTitle] = useState('')
+  const [list, setList] = useState([])
   const [data, setData] = useState({
     labels: [],
     datasets: [
@@ -19,6 +26,35 @@ export default function PieChart({ chartInfo }) {
       },
     ],
   })
+
+  const handleChartClick = (index) => {
+
+    const info = chartInfo[index]
+
+    if (!info) return
+
+    setList(info.data)
+
+    switch (info.label) {
+      case 'Efectivos netos verificados':
+        setShowIncomes(true)
+        setListTitle('Efectivos')
+        break;
+      case 'Terminal':
+        setShowIncomes(true)
+        setListTitle('Ingresos con Terminal')
+        break;
+      case 'Depósitos':
+        setShowIncomes(true)
+        setListTitle('Depósitos')
+        break;
+      case 'Gastos fuera de cuentas':
+        setListTitle('Gastos externos')
+        break;
+      default:
+        break;
+    }
+  }
 
   useEffect(() => {
 
@@ -73,13 +109,26 @@ export default function PieChart({ chartInfo }) {
 
     },
     onClick: (event, elements) => {
-      console.log(event, elements[0].index)
+      const index = elements[0].index
+      console.log(event)
+      handleChartClick(index)
     },
   };
 
   return (
     <div>
       <Pie data={data} options={options}></Pie>
+      {showIncomes && list.length > 0 && (
+        <ListModal //Mejor llamar a un componenete que controle al botón y dentro de ese
+          ListComponent={<IncomesList incomesData={list}/>}
+          changeStatus={() => setShowIncomes((prev) => !prev)}
+          listIsOpen={showIncomes}
+          listTitle={listTitle}
+        />
+      )}
+      {/* {showExtraOutgoings && list.length > 0 && (
+        ShowExtraOutgoings
+      )} */}
     </div>
   )
 }

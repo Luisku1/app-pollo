@@ -6,23 +6,24 @@ import Select from 'react-select'
 import { stringToCurrency } from '../../helpers/Functions'
 import { isToday } from '../../helpers/DatePickerFunctions'
 import { useEffect, useState } from 'react'
-import { useDeleteExtraOutgoing } from '../../hooks/ExtraOutgoings.js/useDeleteExtraOutgoing'
-import { useAddExtraOutgoing } from '../../hooks/ExtraOutgoings.js/useAddExtraOutgoing'
+import { useAddExtraOutgoing } from '../../hooks/ExtraOutgoings/useAddExtraOutgoing'
 import { useAddEmployeePayment } from '../../hooks/Employees/useAddEmployeePayment'
 import { useEmployeesPayments } from '../../hooks/Employees/useEmployeesPayments'
 import { useDeleteEmployeePayment } from '../../hooks/Employees/useDeleteEmployeePayment'
-import { useDayExtraOutgoings } from '../../hooks/ExtraOutgoings.js/useDayExtraOutgoings'
+import { useDayExtraOutgoings } from '../../hooks/ExtraOutgoings/useDayExtraOutgoings'
 import { customSelectStyles } from '../../helpers/Constants'
 import { MdCancel } from 'react-icons/md'
+import { useRoles } from '../../context/RolesContext'
+import ShowListButton from '../Buttons/ShowListButton'
+import ExtraOutgoingsList from './ExtraOutgoingsList'
 
-export default function ExtraOutgoings({ currentUser, companyId, date, pushIncome, roles, employees, branches, spliceIncomeById }) {
+export default function ExtraOutgoings({ currentUser, companyId, date, pushIncome, employees, branches, spliceIncomeById }) {
 
+  const { roles } = useRoles()
   const [extraOutgoingFormData, setExtraOutgoingFormData] = useState({})
-  const [outgoingsIsOpen, setOutgoingsIsOpen] = useState(false)
-  const { deleteExtraOutgoing } = useDeleteExtraOutgoing()
   const { addExtraOutgoing } = useAddExtraOutgoing()
   const { addEmployeePayment } = useAddEmployeePayment()
-  const { extraOutgoings, totalExtraOutgoings, pushExtraOutgoing, spliceExtraOutgoing, spliceExtraOutgoingById, updateLastExtraOutgoingId } = useDayExtraOutgoings({ companyId, date })
+  const { extraOutgoings, totalExtraOutgoings, pushExtraOutgoing, spliceExtraOutgoingById, updateLastExtraOutgoingId } = useDayExtraOutgoings({ companyId, date })
   const { employeesPayments, totalEmployeesPayments, pushEmployeePayment, spliceEmployeePayment, updateLastEmployeePayment } = useEmployeesPayments({ companyId, date })
   const { deleteEmployeePayment } = useDeleteEmployeePayment()
   const [buttonId, setButtonId] = useState(null)
@@ -74,7 +75,6 @@ export default function ExtraOutgoings({ currentUser, companyId, date, pushIncom
         company: companyId,
         createdAt
       }
-      console.log(extraOutgoing)
       addExtraOutgoing({ extraOutgoing, pushExtraOutgoing, updateLastExtraOutgoingId })
 
       conceptInput.value = ''
@@ -178,20 +178,22 @@ export default function ExtraOutgoings({ currentUser, companyId, date, pushIncom
     <div className='border p-3 mt-4 bg-white'>
 
       <SectionHeader label={'Gastos'} />
-
       <div className='border bg-white p-3 mt-4'>
-
         <div className='grid grid-cols-3'>
           <SectionHeader label={'Gastos externos'} />
-          <div className="h-10 w-10 shadow-lg justify-self-end">
-            <button className="w-full h-full" onClick={() => { setOutgoingsIsOpen(true) }}><FaListAlt className="h-full w-full text-red-600" />
-            </button>
+          <div className='flex items-center gap-4 justify-self-end mr-12'>
+            <ShowListButton
+              ListComponent={
+                <ExtraOutgoingsList
+                  initialExtraOutgoings={extraOutgoings}
+                />
+              }
+              listTitle={'Gastos externos'}
+            />
+            {roles && roles.managerRole && currentUser.role == roles.managerRole._id ?
+              <p className='font-bold text-lg text-red-700 text-center'>{stringToCurrency({ amount: totalExtraOutgoings })}</p>
+              : ''}
           </div>
-          {roles && roles.managerRole && currentUser.role == roles.managerRole._id ?
-
-            <p className='font-bold text-lg text-red-700 text-center'>{stringToCurrency({ amount: totalExtraOutgoings })}</p>
-
-            : ''}
         </div>
 
         <form id='extra-outgoing-form' onSubmit={addExtraOutgoingSubmit} className="grid grid-cols-3 items-center gap-2">
@@ -257,77 +259,6 @@ export default function ExtraOutgoings({ currentUser, companyId, date, pushIncom
 
       </div>
 
-      {outgoingsIsOpen && extraOutgoings && extraOutgoings.length > 0 ?
-        <div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center max-w-lg my-auto mx-auto z-10'>
-          <div className=' bg-white p-5 rounded-lg justify-center items-center h-5/6 my-auto mx-auto w-11/12 overflow-y-scroll'>
-            <button className="" onClick={() => { setOutgoingsIsOpen(false) }}><MdCancel className="h-7 w-7" /></button>
-            < div className='bg-white mt-4 mb-4'>
-              <SectionHeader label={'Gastos'} />
-
-              <div >
-
-                {extraOutgoings.length > 0 ?
-                  <div id='header' className='grid grid-cols-11 items-center justify-around font-semibold mt-4'>
-                    <p className='p-3 rounded-lg col-span-3 text-center bg-white'>Supervisor</p>
-                    <p className='p-3 rounded-lg col-span-3 text-center bg-white'>Concepto</p>
-                    <p className='p-3 rounded-lg col-span-3 text-center bg-white'>Monto</p>
-                  </div>
-                  : ''}
-
-                {extraOutgoings.length > 0 && extraOutgoings.map((extraOutgoing, index) => (
-
-
-                  <div key={extraOutgoing._id} className={(currentUser._id == extraOutgoing.employee._id || currentUser.role == roles.managerRole._id ? '' : 'py-3 ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
-
-                    <div id='list-element' className='flex col-span-10 items-center justify-around'>
-                      <p className='text-center text-sm w-3/12'>{extraOutgoing.employee.name ? extraOutgoing.employee.name : extraOutgoing.employee}</p>
-                      <p className='text-center text-sm w-3/12'>{extraOutgoing.concept}</p>
-                      <p className='text-center text-sm w-3/12'>{extraOutgoing.amount.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
-                    </div>
-
-                    {((currentUser._id == extraOutgoing.employee._id || currentUser.role == roles.managerRole._id) && !extraOutgoing.partOfAPayment) ?
-
-                      <div>
-                        <button id={extraOutgoing._id} onClick={() => { setIsOpen(!isOpen), setButtonId(extraOutgoing._id) }} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
-                          <span>
-                            <FaTrash className='text-red-700 m-auto' />
-                          </span>
-                        </button>
-
-                        {isOpen && extraOutgoing._id == buttonId ?
-                          <div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center items-center'>
-                            <div className='bg-white p-5 rounded-lg flex flex-col justify-center items-center gap-5'>
-                              <div>
-                                <p className='text-3xl font-semibold'>¿Estás seguro de borrar este registro?</p>
-                              </div>
-                              <div className='flex gap-10'>
-                                <div>
-                                  <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteExtraOutgoing({ extraOutgoing, spliceExtraOutgoing, index }), setIsOpen(!isOpen) }}>Si</button>
-                                </div>
-                                <div>
-                                  <button className='rounded-lg border shadow-lg w-20 h-10' onClick={() => { setIsOpen(!isOpen) }}>No</button>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                          : ''}
-
-                      </div>
-
-
-                      : ''}
-
-                  </div>
-
-                ))}
-
-              </div>
-            </div>
-          </div>
-        </div>
-        : ''
-      }
-
       {employeePaymentsIsOpen && employeesPayments && employeesPayments.length > 0 ?
         <div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center max-w-lg my-auto mx-auto z-10'>
           <div className=' bg-white p-5 rounded-lg justify-center items-center h-5/6 my-auto mx-auto w-11/12 overflow-y-scroll'>
@@ -346,51 +277,48 @@ export default function ExtraOutgoings({ currentUser, companyId, date, pushIncom
                   </div>
                   : ''}
                 {employeesPayments && employeesPayments.length > 0 && employeesPayments.map((employeePayment, index) => (
+                  <div key={employeePayment._id}>
+                    {(roles.managerRole._id == currentUser.role || employeePayment.employee._id == currentUser._id) && (
+                      <div className={(currentUser._id == employeePayment.supervisor._id || currentUser.role == roles.managerRole._id ? '' : 'py-3 ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
 
+                        <div id='list-element' className='flex col-span-10 items-center justify-around'>
+                          <p className='text-center text-sm w-3/12'>{`${(employeePayment.supervisor?.name + employeePayment.supervisor?.lastName)}`}</p>
+                          <p className='text-center text-sm w-3/12'>{employeePayment.employee.label ?? employeePayment.employee.name}</p>
+                          <p className='text-center text-sm w-3/12'>{stringToCurrency({ amount: employeePayment.amount })}</p>
+                        </div>
 
-                  <div key={employeePayment._id} className={(currentUser._id == employeePayment.supervisor._id || currentUser.role == roles.managerRole._id ? '' : 'py-3 ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
+                        {currentUser._id == employeePayment.supervisor._id || currentUser.role == roles.managerRole._id ?
 
-                    <div id='list-element' className='flex col-span-10 items-center justify-around'>
-                      <p className='text-center text-sm w-3/12'>{`${(employeePayment.supervisor?.name + employeePayment.supervisor?.lastName)}`}</p>
-                      <p className='text-center text-sm w-3/12'>{employeePayment.employee.label ?? employeePayment.employee.name}</p>
-                      <p className='text-center text-sm w-3/12'>{stringToCurrency({ amount: employeePayment.amount })}</p>
-                    </div>
+                          <div>
+                            <button id={employeePayment._id} onClick={() => { setIsOpen(!isOpen), setButtonId(employeePayment._id) }} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
+                              <span>
+                                <FaTrash className='text-red-700 m-auto' />
+                              </span>
+                            </button>
 
-                    {currentUser._id == employeePayment.supervisor._id || currentUser.role == roles.managerRole._id ?
-
-                      <div>
-                        <button id={employeePayment._id} onClick={() => { setIsOpen(!isOpen), setButtonId(employeePayment._id) }} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
-                          <span>
-                            <FaTrash className='text-red-700 m-auto' />
-                          </span>
-                        </button>
-
-                        {isOpen && employeePayment._id == buttonId ?
-                          <div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center items-center'>
-                            <div className='bg-white p-5 rounded-lg flex flex-col justify-center items-center gap-5'>
-                              <div>
-                                <p className='text-3xl font-semibold'>¿Estás seguro de borrar este registro?</p>
-                              </div>
-                              <div className='flex gap-10'>
-                                <div>
-                                  <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteEmployeePayment({ employeePayment, spliceEmployeePayment, spliceIncomeById, spliceExtraOutgoingById, index }), setIsOpen(!isOpen) }}>Si</button>
+                            {isOpen && employeePayment._id == buttonId ?
+                              <div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center items-center'>
+                                <div className='bg-white p-5 rounded-lg flex flex-col justify-center items-center gap-5'>
+                                  <div>
+                                    <p className='text-3xl font-semibold'>¿Estás seguro de borrar este registro?</p>
+                                  </div>
+                                  <div className='flex gap-10'>
+                                    <div>
+                                      <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteEmployeePayment({ employeePayment, spliceEmployeePayment, spliceIncomeById, spliceExtraOutgoingById, index }), setIsOpen(!isOpen) }}>Si</button>
+                                    </div>
+                                    <div>
+                                      <button className='rounded-lg border shadow-lg w-20 h-10' onClick={() => { setIsOpen(!isOpen) }}>No</button>
+                                    </div>
+                                  </div>
                                 </div>
-                                <div>
-                                  <button className='rounded-lg border shadow-lg w-20 h-10' onClick={() => { setIsOpen(!isOpen) }}>No</button>
-                                </div>
                               </div>
-                            </div>
+                              : ''}
                           </div>
                           : ''}
-
                       </div>
-
-                      : ''}
-
+                    )}
                   </div>
-
                 ))}
-
               </div>
             </div>
           </div>

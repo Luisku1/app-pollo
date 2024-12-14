@@ -6,13 +6,9 @@ const incomeTypeSchema = mongoose.Schema( {
         type: String,
         required: true,
         unique: true
-    },
-
-    createdAt: {
-        type: Date,
-        required: true
     }
-})
+
+}, {timestamp: {createdAt: true, updatedAt: false}})
 
 const IncomeType = mongoose.model('IncomeType', incomeTypeSchema)
 

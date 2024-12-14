@@ -2,15 +2,14 @@
 import { useSelector } from 'react-redux'
 import DeleteButton from './Buttons/DeleteButton'
 import { formatDateAndTime } from '../helpers/DatePickerFunctions'
+import { useRoles } from '../context/RolesContext'
 
-export default function EmployeePaymentsList({ employeePayments, deleteEmployeePayment, spliceEmployeePayment, roles }) {
+export default function EmployeePaymentsList({ employeePayments, deleteEmployeePayment, spliceEmployeePayment }) {
 
   const { currentUser } = useSelector((state) => state.user)
-
-  console.log(employeePayments)
+  const {roles} = useRoles()
 
   return (
-
     <div>
       < div className='mt-4 mb-4'>
         <div id='header' className='grid grid-cols-12 items-center justify-around font-semibold mt-4'>
