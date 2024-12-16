@@ -13,10 +13,10 @@ import RegistrarDineroReportado from "../components/RegistrarDineroReportado";
 import EmployeeMultiSelect from "../components/Select/EmployeeMultiSelect";
 import { useSupervisorsReportInfo } from "../hooks/Supervisors/useSupervisorsReportInfo.js";
 import ShowListButton from "../components/Buttons/ShowListButton";
-import IncomesList from "../components/Incomes/IncomesList";
 import { useRoles } from "../context/RolesContext.jsx";
-import ShowOrderedIncomesButton from "../components/Incomes/ShowOrderedIncomesButton.jsx";
 import ExtraOutgoingsList from "../components/Outgoings/ExtraOutgoingsList.jsx";
+import ShowIncomesModal from "../components/Incomes/ShowIncomesModal.jsx";
+import ShowExtraOutgoingsModal from "../components/Outgoings/ShowExtraOutgoingsModal.jsx";
 
 export default function Reporte() {
 
@@ -344,7 +344,7 @@ export default function Reporte() {
             </div>
             <h4 className="text-2xl font-bold mb-3">Netos: {stringToCurrency({ amount: (netIncomes) })}</h4>
 
-            <PieChart chartInfo={pieChartInfo} totalIncomes={totalIncomes} verifiedIncomes={verifiedIncomes}></PieChart>
+            <PieChart chartInfo={pieChartInfo} netIncomes={netIncomes} verifiedIncomes={verifiedIncomes}></PieChart>
           </div>
 
 
@@ -367,24 +367,39 @@ export default function Reporte() {
 
                         <button className="text-2xl font-semibold my-4 p-2 shadow-sm text-white rounded-lg w-fit bg-slate-500 flex" onClick={() => { navigate(`/perfil/${supervisor._id}`) }}>{`${supervisor.name} ${supervisor.lastName}`}</button>
 
-                        <div>
+                        <div className="gap-2 space-y-1">
                           <div className="flex gap-2 items-center">
-                            <p className="text-lg"><span className="font-bold">Depósitos: </span>{stringToCurrency({ amount: supervisor.deposits + supervisor.terminalIncomes })}</p>
-                            <ShowOrderedIncomesButton
+                            <p className="text-lg font-bold">Depósitos:</p>
+                            <ShowIncomesModal
+                              title={'Depósitos'}
+                              clickableComponent={
+                                <p className="text-lg">{stringToCurrency({ amount: supervisor.deposits + supervisor.terminalIncomes })}
+                                </p>
+                              }
                               incomes={[...supervisor.terminalIncomesArray, ...supervisor.depositsArray]}
                             />
                           </div>
                           <div className="flex gap-2 items-center">
-                            <p className="text-lg"><span className="font-bold">Efectivo: </span>{stringToCurrency({ amount: supervisor.cash })}</p>
-                            <ShowListButton
-                              ListComponent={
-                                <IncomesList
-                                  incomesData={supervisor.cashArray.sort((a, b) => a.branch.position - b.branch.position)}
-                                  roles={roles}
-                                />
-                              }
-                              listTitle={'Efectivos'}
-                            />
+                              <p className="text-lg font-bold">Efectivo:</p>
+                              <ShowIncomesModal
+                                title={'Efectivos'}
+                                clickableComponent={
+                                  <p className="text-lg">{stringToCurrency({ amount: supervisor.cash })}
+                                  </p>
+                                }
+                                incomes={supervisor.cashArray}
+                              />
+                          </div>
+                          <div className="flex gap-2 items-center">
+                              <p className="text-lg font-bold">Gastos:</p>
+                              <ShowExtraOutgoingsModal
+                                title={'Gastos'}
+                                clickableComponent={
+                                  <p className="text-lg">{stringToCurrency({ amount: supervisor.extraOutgoings })}
+                                  </p>
+                                }
+                                extraOutgoings={supervisor.extraOutgoingsArray}
+                              />
                           </div>
                           <div className="flex gap-2 items-center">
                             <p className="text-lg"><span className="font-bold">Gastos: </span>{stringToCurrency({ amount: supervisor.extraOutgoings })}</p>

@@ -32,7 +32,7 @@ export default function Salidas({ branchAndCustomerSelectOptions, products, date
   const [outputsIsOpen, setOutputsIsOpen] = useState(false)
   const [selectedCustomerBranchOption, setSelectedCustomerBranchOption] = useState(null)
   const [selectedGroup, setSelectedGroup] = useState('');
-  const { price } = useBranchCustomerProductPrice({ branchCustomerId: selectedCustomerBranchOption ? selectedCustomerBranchOption.value : null, productId: selectedProduct ? selectedProduct.value : null, date, group: selectedGroup == '' ? null : selectedGroup })
+  const { price, loading: priceIsLoading } = useBranchCustomerProductPrice({ branchCustomerId: selectedCustomerBranchOption ? selectedCustomerBranchOption.value : null, productId: selectedProduct ? selectedProduct.value : null, date, group: selectedGroup == '' ? null : selectedGroup })
   const [amount, setAmount] = useState('$0.00')
   const [loading, setLoading] = useState(false)
 
@@ -67,7 +67,7 @@ export default function Salidas({ branchAndCustomerSelectOptions, products, date
       filledInputs = false
     }
 
-    if (filledInputs && selectedCustomerBranchOption != null && selectedProduct != null && !loading) {
+    if (filledInputs && selectedCustomerBranchOption != null && !priceIsLoading && selectedProduct != null && !loading) {
 
       button.disabled = false
 
@@ -95,7 +95,7 @@ export default function Salidas({ branchAndCustomerSelectOptions, products, date
 
   }, [price])
 
-  useEffect(outputButtonControl, [selectedProduct, selectedCustomerBranchOption, loading])
+  useEffect(outputButtonControl, [selectedProduct, selectedCustomerBranchOption, loading, priceIsLoading])
 
   const addOutputSubmitButton = async (e) => {
 

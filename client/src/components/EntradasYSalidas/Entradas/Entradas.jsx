@@ -32,7 +32,7 @@ export default function Entradas({ branchAndCustomerSelectOptions, products, dat
   const [inputsIsOpen, setInputsIsOpen] = useState(false)
   const [selectedCustomerBranchOption, setSelectedCustomerBranchOption] = useState(null)
   const [selectedGroup, setSelectedGroup] = useState('')
-  const { price } = useBranchCustomerProductPrice({ branchCustomerId: selectedCustomerBranchOption ? selectedCustomerBranchOption.value : null, productId: selectedProduct ? selectedProduct.value : null, date, group: selectedGroup == '' ? null : selectedGroup })
+  const { price, loading: priceIsLoading } = useBranchCustomerProductPrice({ branchCustomerId: selectedCustomerBranchOption ? selectedCustomerBranchOption.value : null, productId: selectedProduct ? selectedProduct.value : null, date, group: selectedGroup == '' ? null : selectedGroup })
   const [amount, setAmount] = useState('$0.00')
   const [loading, setLoading] = useState(false)
 
@@ -68,7 +68,7 @@ export default function Entradas({ branchAndCustomerSelectOptions, products, dat
       filledInputs = false
     }
 
-    if (filledInputs && selectedCustomerBranchOption != null && selectedProduct != null && !loading) {
+    if (filledInputs && selectedCustomerBranchOption != null && !priceIsLoading && selectedProduct != null && !loading) {
 
       button.disabled = false
 
@@ -96,7 +96,7 @@ export default function Entradas({ branchAndCustomerSelectOptions, products, dat
 
   }, [price])
 
-  useEffect(inputButtonControl, [selectedProduct, selectedCustomerBranchOption, loading])
+  useEffect(inputButtonControl, [selectedProduct, selectedCustomerBranchOption, loading, priceIsLoading])
 
   const addInputSubmit = async (e) => {
 
@@ -190,7 +190,6 @@ export default function Entradas({ branchAndCustomerSelectOptions, products, dat
     setSelectedGroup(group ? group.label : '');
     setSelectedCustomerBranchOption(option)
   }
-
 
   if (isLoading) {
 

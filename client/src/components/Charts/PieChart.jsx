@@ -3,16 +3,15 @@ import { Pie } from 'react-chartjs-2';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 import { useEffect, useState } from 'react';
 import { stringToCurrency } from '../../helpers/Functions';
-import IncomesList from '../Incomes/IncomesList';
-import ListModal from '../Modals/ListModal';
-import ShowOrderedIncomesButton from '../Incomes/ShowOrderedIncomesButton';
+import ShowIncomesModal from '../Incomes/ShowIncomesModal';
+import ShowExtraOutgoingsModal from '../Outgoings/ShowExtraOutgoingsModal';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
-export default function PieChart({ verifiedIncomes = null, totalIncomes = null, chartInfo }) {
+export default function PieChart({ verifiedIncomes = null, netIncomes = null, chartInfo }) {
 
   const [showIncomes, setShowIncomes] = useState(false)
-  const [showExtraOutgoings, setExtraOutgoings] = useState(false)
+  const [showExtraOutgoings, setShowExtraOutgoings] = useState(false)
   const [listTitle, setListTitle] = useState('')
   const [list, setList] = useState([])
   const [data, setData] = useState({
@@ -49,6 +48,7 @@ export default function PieChart({ verifiedIncomes = null, totalIncomes = null, 
         setListTitle('Depósitos')
         break
       case 'Gastos fuera de cuentas':
+        setShowExtraOutgoings(true)
         setListTitle('Gastos externos')
         break
       default:
@@ -93,8 +93,16 @@ export default function PieChart({ verifiedIncomes = null, totalIncomes = null, 
   const renderStatistics = () => {
     return (
       <div className='w-full'>
-        {verifiedIncomes && totalIncomes && (
-          <p className='text-lg'>Ingresos reportados <br></br> <span className={`${verifiedIncomes < totalIncomes ? 'text-red-600' : 'text-green-600'}`}>{stringToCurrency({amount: verifiedIncomes})}</span> / <span className='text-green-600'>{stringToCurrency({amount: totalIncomes})}</span></p>
+        {verifiedIncomes && netIncomes && (
+          <div>
+            <p className='text-lg'>Ingresos totales confirmados</p>
+            <div className='flex gap-2'>
+              <p className='text-lg'><span className={`${verifiedIncomes < netIncomes ? 'text-red-600' : 'text-green-600'}`}>{stringToCurrency({ amount: verifiedIncomes })}</span> / <span className='text-green-600'>{stringToCurrency({ amount: netIncomes })}</span></p>
+              {verifiedIncomes < netIncomes && (
+                <p className='text-red-500'>{`(${stringToCurrency({ amount: verifiedIncomes - netIncomes })})`}</p>
+              )}
+            </div>
+          </div>
         )}
       </div>
     )
@@ -128,18 +136,23 @@ export default function PieChart({ verifiedIncomes = null, totalIncomes = null, 
   return (
     <div>
       <Pie data={data} options={options}></Pie>
-      {showIncomes && list.length > 0 && (
-        <ListModal //Mejor llamar a un componenete que controle al botón y dentro de ese
-          ListComponent={<IncomesList incomesData={list} />}
-          changeStatus={() => setShowIncomes((prev) => !prev)}
-          listIsOpen={showIncomes}
-          listTitle={listTitle}
+      {list.length > 0 && (
+        <ShowIncomesModal
+          incomes={list}
+          title={listTitle}
+          modalIsOpen={showIncomes}
+          toggleComponent={() => setShowIncomes((prev) => !prev)}
           extraInformation={renderStatistics()}
         />
       )}
-      {/* {showExtraOutgoings && list.length > 0 && (
-        ShowExtraOutgoings
-      )} */}
+      {list.length > 0 && (
+        <ShowExtraOutgoingsModal
+          extraOutgoings={list}
+          title={listTitle}
+          modalIsOpen={showExtraOutgoings}
+          toggleComponent={() => setShowExtraOutgoings((prev) => !prev)}
+        />
+      )}
     </div>
   )
 }
