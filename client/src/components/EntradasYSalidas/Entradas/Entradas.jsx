@@ -1,8 +1,6 @@
 /* eslint-disable react/prop-types */
 import { useEffect, useState } from 'react'
 import SectionHeader from '../../SectionHeader'
-import { FaListAlt } from 'react-icons/fa'
-import ListaEntradas from './ListaEntradas'
 import { useInputs } from '../../../hooks/Inputs/useInputs'
 import Select from 'react-select'
 import { useSelector } from 'react-redux'

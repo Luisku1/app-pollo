@@ -6,7 +6,7 @@ export const useDeleteInput = () => {
 
   const [loading, setLoading] = useState(false)
 
-  const deleteInput = ({ input, spliceInput, index }) => {
+  const deleteInput = (input, index, spliceInput) => {
 
     setLoading(true)
 

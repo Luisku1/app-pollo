@@ -15,7 +15,7 @@ export default function ListaEntradas({ initialInputs }) {
   const { roles, loading: rolesIsLoading } = useRoles()
   const { inputs, totalWeight, spliceInput } = useInputs({ initialInputs })
   const [selectedInput, setSelectedInput] = useState(null)
-  const { deleteInput, } = useDeleteInput()
+  const { deleteInput } = useDeleteInput()
   const [toggleMovementDetails, setToggleMovementDetails] = useState(false)
   const isEmpty = inputs.length === 0
 

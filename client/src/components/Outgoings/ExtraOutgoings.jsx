@@ -206,7 +206,7 @@ export default function ExtraOutgoings({ currentUser, companyId, date, pushIncom
           <SectionHeader label={'Pago a Empleados y Rentas'} />
           <div className='flex items-center gap-4 justify-self-end mr-12'>
             <ShowExtraOutgoingsModal
-              title={'Gastos'}
+              title={'Pago a Empleados y Rentas'}
               clickableComponent={
                 roles && roles.managerRole && currentUser.role == roles.managerRole._id ?
                   <p className='font-bold text-lg text-center'>{stringToCurrency({ amount: totalEmployeesPayments })}</p>
