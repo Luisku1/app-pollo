@@ -56,10 +56,11 @@ export const getEmployee = async (req, res, next) => {
 	try {
 
 		const employee = await Employee.findById(employeeId).populate('role')
+		const { password: pass, ...rest } = employee._doc
 
 		if (employee) {
 
-			res.status(200).json({ employee: employee })
+			res.status(200).json({ employee: rest })
 
 		} else {
 
@@ -248,6 +249,29 @@ export const getEmployeeDayInfo = async (req, res, next) => {
 
 	} catch (error) {
 
+		throw error
+	}
+}
+
+export const updateEmployee = async (req, res, next) => {
+
+	const { employeeId } = req.params
+	const updateData = req.body
+	console.log(updateData, employeeId)
+
+	try {
+
+		const updatedEmployee = await Employee.findByIdAndUpdate(employeeId, updateData, { new: true })
+
+		if (!updatedEmployee)
+			return res.status(404).json({ message: "No se encontró al empleado" })
+
+		console.log(updatedEmployee)
+		res.status(200).json({ employee: updatedEmployee })
+
+	} catch (error) {
+
+		next(error)
 	}
 }
 
@@ -1081,8 +1105,59 @@ export const verifySupervisorDeposits = async (req, res, next) => {
 
 	} catch (error) {
 
-
 		next(error)
+	}
+}
+
+export const fetchOrCreateSupervisorReport = async ({ supervisorId, companyId, date }) => {
+	try {
+
+		let supervisorReport = await fetchSupervisorReport({ supervisorId, companyId, date })
+
+		if (!supervisorReport) {
+
+			supervisorReport = await createSupervisorReport({ supervisorId, companyId, date })
+		}
+
+		if (!supervisorReport)
+			throw new Error("No se encontró ni se pudo crear el reporte de supervisor");
+
+		return supervisorReport
+
+	} catch (error) {
+		throw error
+	}
+}
+
+export const fetchSupervisorReport = async ({ supervisorId, companyId, date }) => {
+
+	try {
+		const { topDate, bottomDate } = getDayRange(date)
+
+		return await SupervisorReport.findOne({
+			company: companyId,
+			supervisor: new Types.ObjectId(supervisorId),
+			createdAt: { $lt: topDate, $gte: bottomDate },
+		})
+
+	} catch (error) {
+
+		console.error("Error al obtener el reporte del supervisor:", error)
+		throw new Error("Error al obtener el reporte del supervisor")
+	}
+}
+
+export const createSupervisorReport = async ({ supervisorId, companyId, date }) => {
+
+	try {
+
+		const { bottomDate } = getDayRange(date)
+
+		return await SupervisorReport.create({ supervisor: supervisorId, company: companyId, createdAt: bottomDate })
+	} catch (error) {
+
+		console.error("Error al crear el reporte del supervisor:", error)
+		throw new Error("Error al crear el reporte del supervisor")
 	}
 }
 
@@ -1099,17 +1174,7 @@ export const verifySupervisorMoney = async ({ amount, typeField, companyId, date
 
 		if (!['verifiedCash', "verifiedDeposits"].includes(typeField)) throw new Error(`Campo ${typeField} inválido`)
 
-		supervisorReport = await SupervisorReport.findOne({
-			createdAt: { $lt: topDate, $gte: bottomDate },
-			supervisor: new Types.ObjectId(supervisorId)
-		})
-
-		if (!supervisorReport) {
-
-			supervisorReport = await SupervisorReport.create({ company: companyId, supervisor: supervisor._id })
-
-			if (!supervisorReport) throw new Error("No se pudo crear el reporte del supervisor");
-		}
+		supervisorReport = await fetchOrCreateSupervisorReport({ supervisorId, companyId, date })
 
 		updatedSupervisorReport = await SupervisorReport.findByIdAndUpdate(supervisorReport._id, {
 			[typeField]: amount,
@@ -1408,27 +1473,80 @@ export const updateSupervisorDailyBalance = async ({ record, date, employee, rec
 	return updatedDailyBalance
 }
 
+export const fetchOrCreateDailyBalance = async ({ companyId, employeeId, date }) => {
+
+	try {
+
+		let dailyBalance = await fetchDailyBalance({ companyId, employeeId, date })
+
+		if (!dailyBalance) {
+
+			dailyBalance = await createDailyBalance({ companyId, employeeId, date })
+		}
+
+		if (!dailyBalance)
+			throw new Error("No se pudo crear el balance del empleado")
+
+		return dailyBalance
+
+	} catch (error) {
+
+		console.log("Error en fetchOrCreateDailyBalance", error)
+		throw new Error("No se pudo encontrar o crear el balance del empleado");
+
+	}
+}
+
+export const fetchDailyBalance = async ({ companyId, employeeId, date }) => {
+
+	try {
+
+		const { bottomDate, topDate } = getDayRange(date)
+
+		return await EmployeeDailyBalance.findOne({
+			company: companyId,
+			employee: employeeId,
+			createdAt: { $lt: topDate, $gte: bottomDate }
+		})
+
+	} catch (error) {
+
+		console.log("Error al obtener el balance del empleado", error)
+		throw new Error("No se encontró el balance del empleado");
+
+	}
+}
+
+export const createDailyBalance = async ({ companyId, employeeId, date }) => {
+
+	try {
+
+		const { bottomDate } = getDayRange(date)
+		return await EmployeeDailyBalance.create({ company: companyId, employee: employeeId, createdAt: bottomDate })
+
+	} catch (error) {
+
+		console.log('Error al crear el balance del empleado', error)
+		throw new Error("No se pudo crear el balance del empleado")
+	}
+}
+
 export const updateDailyBalancesBalance = async (branchReport, changedEmployee = false) => {
 
-	const { bottomDate, topDate } = getDayRange(branchReport.createdAt)
+	try {
+		let dailyBalance = await fetchOrCreateDailyBalance({ companyId: branchReport.company, employeeId: branchReport.employee, date: branchReport.createdAt })
 
-	let dailyBalance = await EmployeeDailyBalance.findOne({
-		createdAt: { $lt: topDate, $gte: bottomDate },
-		employee: new Types.ObjectId(branchReport.employee)
-	})
+		const updatedDailyBalance = await EmployeeDailyBalance.findByIdAndUpdate(dailyBalance._id, { accountBalance: changedEmployee ? 0 : branchReport.balance }, { new: true })
 
-	if (!dailyBalance) {
+		if (!updatedDailyBalance) throw new Error("No se actualizó el balance del empleado")
 
-		dailyBalance = EmployeeDailyBalance.create({ company: branchReport.company, employee: branchReport.employee, createdAt: branchReport.createdAt })
+		return updatedDailyBalance
+
+	} catch (error) {
+
+		console.log("Error al actualizar el balance del empleado", error)
+		throw new Error("No se pudo actualizar el balance del empleado");
 	}
-
-	if (!dailyBalance) throw new Error("No se encontró el balance del empleado.")
-
-	const updatedDailyBalance = await EmployeeDailyBalance.findByIdAndUpdate(dailyBalance._id, { accountBalance: changedEmployee ? 0 : branchReport.balance }, { new: true })
-
-	if (!updatedDailyBalance) throw new Error("No se actualizó el balance del empleado")
-
-	return updatedDailyBalance
 }
 
 export const createNewDailyBalance = async ({ employeeId, companyId }) => {

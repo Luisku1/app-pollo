@@ -2,25 +2,31 @@
 import { MdCancel } from 'react-icons/md'
 import SectionHeader from '../SectionHeader'
 
-export default function Modal({content, title, closeModal, ref, ableToClose = true, extraInformation}) {
+export default function Modal({ content, title, closeModal, ref, ableToClose = true, extraInformation }) {
   return (
-    <div>
-      <div ref={ref} className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center max-w-lg my-auto mx-auto z-10'>
-          <div className=' bg-white p-5 rounded-lg justify-center items-center h-5/6 my-auto mx-auto w-11/12 overflow-y-scroll'>
-            {ableToClose && (
-              <button className="flex justify-self-end sticky top-0" onClick={() => { closeModal() }}><MdCancel className="h-7 w-7" /></button>
-            )}
+    <div className="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex items-center justify-center z-10 max-w-lg mx-auto">
+      <div
+        ref={ref}
+        className="bg-white p-5 rounded-lg shadow-lg w-11/12 h-auto max-h-[90vh] overflow-y-auto relative"
+      >
+        {/* Botón para cerrar */}
+        {ableToClose && (
+          <button
+            className="absolute top-3 right-3 text-gray-600 hover:text-gray-800"
+            onClick={closeModal}
+          >
+            <MdCancel className="h-7 w-7" />
+          </button>
+        )}
 
-            {extraInformation}
+        {extraInformation}
 
-            < div className='bg-white mt-4 mb-4'>
-              <SectionHeader label={title} />
-              <div >
-                {content}
-              </div>
-            </div>
-          </div>
+        {/* Título y contenido */}
+        <div className="mt-4 mb-4">
+          {title && <SectionHeader label={title} />}
+          <div>{content}</div>
         </div>
+      </div>
     </div>
-  )
+  );
 }

@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react"
 import { getInputs } from "../../services/Inputs/getInputs"
 
-export const useInputs = ({ companyId, date }) => {
+export const useInputs = ({ companyId = null, date = null, initialInputs = [] }) => {
 
-  const [inputs, setInputs] = useState([])
-  const [totalWeight, setTotalWeight] = useState(0)
+  const [inputs, setInputs] = useState(initialInputs)
+  const [totalWeight, setTotalWeight] = useState(
+    initialInputs.reduce((acc, input) => acc + input.weight, 0)
+  )
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 

@@ -1,3 +1,4 @@
+import { FaEdit } from "react-icons/fa";
 import { useDispatch, useSelector } from 'react-redux'
 import { signOutFailiure, signOutStart, signOutSuccess } from '../redux/user/userSlice'
 import { Link, useParams } from 'react-router-dom'
@@ -16,12 +17,15 @@ import { useEmployeePayments } from '../hooks/Employees/useEmployeePayments'
 import { useDeleteEmployeePayment } from '../hooks/Employees/useDeleteEmployeePayment'
 import { stringToCurrency } from '../helpers/Functions'
 import { useRoles } from '../context/RolesContext'
+import RegistroEmpleadoNuevo from "./RegistroEmpleado";
+import Modal from "../components/Modals/Modal";
 
 export default function Perfil() {
 
   const { error, currentUser } = useSelector((state) => state.user)
   const { employeeId } = useParams()
   const [employee, setEmployee] = useState(null)
+  const [editEmployee, setEditEmployee] = useState(false)
   const [employeeDayInfo, setEmployeeDayInfo] = useState(null)
   const [lastSupervisorReport, setLastSupervisorReport] = useState(null)
   const [employeeBranchReports, setEmployeeBranchReports] = useState([])
@@ -34,6 +38,7 @@ export default function Perfil() {
   const { isLoading } = useLoading(loading)
   const { signOut } = useSignOut()
   const dispatch = useDispatch()
+  const isAuthorizedToEdit = currentUser.role == roles?.managerRole._id
 
   useEffect(() => {
 
@@ -153,6 +158,11 @@ export default function Perfil() {
     }
   }, [employee])
 
+  const toggleEditEmployee = () => {
+
+    setEditEmployee((prev) => !prev)
+  }
+
   return (
 
     <main className="p-3 max-w-lg mx-auto">
@@ -165,7 +175,22 @@ export default function Perfil() {
           {employee && roles ?
 
             <div id='personal-info' className="my-4 bg-white p-4" key={employee._id}>
-              <h1 className="text-3xl font-bold text-center">{employee.name + ' ' + employee.lastName}</h1>
+              <div className="flex gap-3 text-3xl font-bold text-center justify-self-center">
+                <h1 className="">{employee.name + ' ' + employee.lastName}</h1>
+                {isAuthorizedToEdit && (
+                  <button className="" onClick={toggleEditEmployee}>
+                    <FaEdit className="text-blue-500" />
+                  </button>
+                )}
+
+                {editEmployee && (
+                  <Modal
+                    content={<RegistroEmpleadoNuevo setEmployee={setEmployee} employee={employee} />}
+                    closeModal={toggleEditEmployee}
+                    ableToClose={true}
+                  />
+                )}
+              </div>
 
               {roles.managerRole._id == currentUser.role || currentUser._id == employee._id ?
                 <div className='p-3'>

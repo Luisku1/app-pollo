@@ -51,7 +51,8 @@ const supervisorReportSchema = mongoose.Schema({
 
 }, { timestamps: { createdAt: true, updatedAt: false } })
 
-supervisorReportSchema.index({ createdAt: -1, employee: 1 })
+supervisorReportSchema.index({ supervisor: 1, createdAt: -1})
+supervisorReportSchema.index({ company: 1, supervisor: 1, createdAt: -1 })
 
 const SupervisorReport = mongoose.model('SupervisorReport', supervisorReportSchema)
 

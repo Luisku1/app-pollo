@@ -15,6 +15,7 @@ import { ToastDanger } from '../../../helpers/toastify'
 import { useBranchCustomerProductPrice } from '../../../hooks/Prices/useBranchCustomerProductPrice'
 import { useAddInput } from '../../../hooks/Inputs/useAddInput'
 import { priceShouldNotBeZero } from '../../../helpers/Functions'
+import ShowInputs from '../ShowInputs'
 
 export default function Entradas({ branchAndCustomerSelectOptions, products, date, selectedProduct, setSelectedProduct, setSelectedProductToNull }) {
 
@@ -29,7 +30,7 @@ export default function Entradas({ branchAndCustomerSelectOptions, products, dat
     loading: inputLoading
   } = useInputs({ companyId: company._id, date })
   const { addInput } = useAddInput()
-  const [inputsIsOpen, setInputsIsOpen] = useState(false)
+  const [toggleInputs, setToggleInputs] = useState(false)
   const [selectedCustomerBranchOption, setSelectedCustomerBranchOption] = useState(null)
   const [selectedGroup, setSelectedGroup] = useState('')
   const { price, loading: priceIsLoading } = useBranchCustomerProductPrice({ branchCustomerId: selectedCustomerBranchOption ? selectedCustomerBranchOption.value : null, productId: selectedProduct ? selectedProduct.value : null, date, group: selectedGroup == '' ? null : selectedGroup })
@@ -174,9 +175,9 @@ export default function Entradas({ branchAndCustomerSelectOptions, products, dat
     }
   }
 
-  const changeInputsIsOpenValue = () => {
+  const toggleInputsList = () => {
 
-    setInputsIsOpen(prev => !prev)
+    setToggleInputs(prev => !prev)
   }
 
   const handleProductSelectChange = (product) => {
@@ -199,25 +200,23 @@ export default function Entradas({ branchAndCustomerSelectOptions, products, dat
 
     return (
       <div>
-
         <div className='border bg-white p-3 mt-4'>
-
-          <div className='grid grid-cols-3'>
+          <div className='grid grid-cols-2'>
             <SectionHeader label={'Entradas'} />
-            <div className="h-10 w-10 shadow-lg justify-self-end">
-              <button className="w-full h-full" onClick={() => { setInputsIsOpen(true) }}><FaListAlt className="h-full w-full text-red-600" />
-              </button>
+            <div className='flex items-center gap-4 justify-self-end mr-12'>
+              <ShowInputs
+                title={'Entradas'}
+                clickableComponent={<p className='font-bold text-lg text-center'>{(totalWeight ? totalWeight.toFixed(2) : '0.00') + ' Kg'}</p>}
+                inputs={inputs}
+                modalIsOpen={toggleInputs}
+                toggleComponent={toggleInputsList}
+              />
             </div>
-            <p className='font-bold text-lg text-red-700 text-center'>{totalWeight ? totalWeight.toFixed(2) : '0.00' + ' Kg'}</p>
           </div>
-
           <form onSubmit={addInputSubmit} className="flex flex-col space-y-2">
-
             <div>
-
               <BranchAndCustomerSelect defaultLabel={'Sucursal o Cliente'} options={branchAndCustomerSelectOptions} selectedOption={selectedCustomerBranchOption} handleSelectChange={handleBranchCustomerSelectChange}></BranchAndCustomerSelect>
             </div>
-
             <div>
               <Select
                 styles={customSelectStyles}
@@ -228,23 +227,19 @@ export default function Entradas({ branchAndCustomerSelectOptions, products, dat
                 isSearchable={true}
               />
             </div>
-
             <div className="grid grid-cols-3 gap-2">
-
               <div className='relative'>
                 <input type="number" name="pieces" id="input-pieces" placeholder='0.00' step={0.01} className='w-full border border-black p-3 rounded-lg' required onInput={inputButtonControl} onChange={handleInputInputsChange} />
                 <label htmlFor="compact-input" className="-translate-y-full px-1 absolute top-1/4 left-2 transform rounded-sm bg-white text-black text-sm font-semibold">
                   Piezas <span>*</span>
                 </label>
               </div>
-
               <div className='relative'>
                 <input type="number" name="weight" id="input-weight" placeholder='0.000 kg' step={0.001} className='w-full border border-black p-3 rounded-lg' required onInput={inputButtonControl} onChange={handleInputInputsChange} />
                 <label htmlFor="compact-input" className="-translate-y-full px-1 absolute top-1/4 left-2 transform rounded-sm bg-white text-black text-sm font-semibold">
                   Kilos <span>*</span>
                 </label>
               </div>
-
               <div className='relative items-center'>
                 <span className="absolute text-red-700 font-semibold left-3 top-3">$</span>
                 <input className='pl-6 w-full rounded-lg p-3 text-red-700 font-semibold border border-red-600' name='price' id='input-price' step={0.01} placeholder={price.toFixed(2)} type="number" onChange={(e) => { handleInputInputsChange(e), generarMonto() }} />
@@ -252,13 +247,9 @@ export default function Entradas({ branchAndCustomerSelectOptions, products, dat
                   Precio <span>*</span>
                 </label>
               </div>
-
             </div>
-
             <div className='grid grid-cols-4 gap-1'>
-
               <input className='col-span-3 text-sm border border-black rounded-lg p-3' name="comment" id="input-comment" placeholder='Comentario del producto (Opcional)' onChange={handleInputInputsChange}></input>
-
               <div className='relative'>
                 <p type="text" name="amount" id="input-amount" className='text-green-700 w-full border border-black rounded-md p-3' >{amount}</p>
                 <label htmlFor="compact-input" className=" -translate-y-full px-1 absolute top-1/4 left-2 rounded-sm bg-white text-green-700 text-sm font-bold">
@@ -266,14 +257,9 @@ export default function Entradas({ branchAndCustomerSelectOptions, products, dat
                 </label>
               </div>
             </div>
-
             <button type='submit' id='input-button' disabled className='bg-slate-500 text-white p-3 rounded-lg col-span-12 mt-8'>Agregar</button>
-
           </form>
         </div>
-
-        <ListaEntradas inputs={inputs} totalWeight={totalWeight} spliceInput={spliceInput} changeInputsIsOpenValue={changeInputsIsOpenValue} inputsIsOpen={inputsIsOpen}></ListaEntradas>
-
       </div>
     )
   }

@@ -14,8 +14,7 @@ import { useDayExtraOutgoings } from '../../hooks/ExtraOutgoings/useDayExtraOutg
 import { customSelectStyles } from '../../helpers/Constants'
 import { MdCancel } from 'react-icons/md'
 import { useRoles } from '../../context/RolesContext'
-import ShowListButton from '../Buttons/ShowListButton'
-import ExtraOutgoingsList from './ExtraOutgoingsList'
+import ShowExtraOutgoingsModal from './ShowExtraOutgoingsModal'
 
 export default function ExtraOutgoings({ currentUser, companyId, date, pushIncome, employees, branches, spliceIncomeById }) {
 
@@ -31,7 +30,6 @@ export default function ExtraOutgoings({ currentUser, companyId, date, pushIncom
   const [employeePaymentsIsOpen, setEmployeePaymentsIsOpen] = useState(false)
   const [selectedBranch, setSelectedBranch] = useState(null)
   const [selectedEmployee, setSelectedEmployee] = useState(null)
-
 
   const paymentsButtonControl = () => {
 
@@ -179,20 +177,19 @@ export default function ExtraOutgoings({ currentUser, companyId, date, pushIncom
 
       <SectionHeader label={'Gastos'} />
       <div className='border bg-white p-3 mt-4'>
-        <div className='grid grid-cols-3'>
+        <div className='grid grid-cols-2'>
           <SectionHeader label={'Gastos externos'} />
           <div className='flex items-center gap-4 justify-self-end mr-12'>
-            <ShowListButton
-              ListComponent={
-                <ExtraOutgoingsList
-                  initialExtraOutgoings={extraOutgoings}
-                />
+            <ShowExtraOutgoingsModal
+              title={'Gastos'}
+              clickableComponent={
+                roles && roles.managerRole && currentUser.role == roles.managerRole._id ?
+                  <p className='font-bold text-lg text-center'>{stringToCurrency({ amount: totalExtraOutgoings })}</p>
+                  :
+                  <FaListAlt className="h-10 w-10 text-red-600" />
               }
-              listTitle={'Gastos externos'}
+              extraOutgoings={extraOutgoings}
             />
-            {roles && roles.managerRole && currentUser.role == roles.managerRole._id ?
-              <p className='font-bold text-lg text-red-700 text-center'>{stringToCurrency({ amount: totalExtraOutgoings })}</p>
-              : ''}
           </div>
         </div>
 
@@ -205,18 +202,20 @@ export default function ExtraOutgoings({ currentUser, companyId, date, pushIncom
         </form>
       </div>
       <div className='border bg-white p-3 mt-4'>
-        <div className='grid grid-cols-3 items-center'>
+        <div className='grid grid-cols-2 items-center'>
           <SectionHeader label={'Pago a Empleados y Rentas'} />
-          <div className="h-10 w-10 shadow-lg justify-self-end">
-            <button className="w-full h-full" onClick={() => { setEmployeePaymentsIsOpen(true) }}><FaListAlt className="h-full w-full text-red-600" />
-            </button>
+          <div className='flex items-center gap-4 justify-self-end mr-12'>
+            <ShowExtraOutgoingsModal
+              title={'Gastos'}
+              clickableComponent={
+                roles && roles.managerRole && currentUser.role == roles.managerRole._id ?
+                  <p className='font-bold text-lg text-center'>{stringToCurrency({ amount: totalEmployeesPayments })}</p>
+                  :
+                  <FaListAlt className="h-10 w-10 text-red-600" />
+              }
+              extraOutgoings={employeesPayments}
+            />
           </div>
-          {roles && roles.managerRole && currentUser.role == roles.managerRole._id ?
-
-            <p className='font-bold text-lg text-red-700 text-center'>{totalEmployeesPayments.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
-
-
-            : ''}
         </div>
 
         <form onSubmit={addEmployeePaymentSubmit} className="grid grid-cols-1 items-center justify-between gap-3">

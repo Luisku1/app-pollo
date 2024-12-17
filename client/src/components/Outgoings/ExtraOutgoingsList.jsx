@@ -40,7 +40,7 @@ export default function ExtraOutgoingsList({ initialExtraOutgoings }) {
 
   const renderExtraOutgoingItem = ({ extraOutgoing, index }) => {
 
-    const { partOfAPayment, _id, employee, concept, amount } = extraOutgoing
+    const { partOfAPayment, _id, employee, concept, amount, detail } = extraOutgoing
     const employeeName = `${employee.name || employee}`
     const isAuthorized = currentUser._id == employee._id || currentUser.role == roles.managerRole._id
     const shouldRender = isAuthorized || currentUser.role === roles.managerRole._id;
@@ -53,7 +53,7 @@ export default function ExtraOutgoingsList({ initialExtraOutgoings }) {
 
             <div id='list-element' className='flex col-span-10 items-center justify-around'>
               <p className='text-center text-sm w-3/12'>{employeeName}</p>
-              <p className='text-center text-sm w-3/12'>{concept}</p>
+              <p className='text-center text-sm w-3/12'>{concept || detail}</p>
               <p className='text-center text-sm w-3/12'>{stringToCurrency({ amount })}</p>
             </div>
 

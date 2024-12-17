@@ -1,11 +1,12 @@
 import express from 'express'
-import { getEmployees, deleteEmployee, getEmployeesDailyBalances, updateEmployeeDailyBalance, getEmployee, getEmployeeReports, getEmployeeDayInfo, getEmployeePayroll, deleteDuplicatedEmployeeDailyBalances, newEmployeePaymentQuery, getEmployeesPaymentsQuery, deleteEmployeePaymentQuery, getEmployeePayments, getAllEmployees, changeEmployeeActiveStatus, createEmployeeRest, getPendingEmployeesRests, deleteEmployeeRest } from '../controllers/employee.controller.js'
+import { getEmployees, deleteEmployee, getEmployeesDailyBalances, updateEmployeeDailyBalance, getEmployee, getEmployeeReports, getEmployeeDayInfo, getEmployeePayroll, deleteDuplicatedEmployeeDailyBalances, newEmployeePaymentQuery, getEmployeesPaymentsQuery, deleteEmployeePaymentQuery, getEmployeePayments, getAllEmployees, changeEmployeeActiveStatus, createEmployeeRest, getPendingEmployeesRests, deleteEmployeeRest, updateEmployee } from '../controllers/employee.controller.js'
 import { getSupervisorReport, getSupervisorReports } from '../controllers/supervisor.report.js'
 
 const router = express.Router()
 
 router.put('/update-daily-balance/:balanceId', updateEmployeeDailyBalance)
 router.put('/change-active-status/:employeeId', changeEmployeeActiveStatus)
+router.put('/:employeeId', updateEmployee)
 router.post('/create-employee-rest', createEmployeeRest)
 router.get('/get-pending-employees-rests/:companyId', getPendingEmployeesRests)
 router.post('/employee-payment/create', newEmployeePaymentQuery)

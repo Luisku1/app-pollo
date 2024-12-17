@@ -48,7 +48,7 @@ export default function IncomesList({ incomesData }) {
     const employeeName = `${employee.name} ${employee.lastName}`
     const typeName = partOfAPayment ? 'Pago' : type?.name || type?.label
     const formattedAmount = amount.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })
-    const isAuthorized = currentUser._id === employee._id || currentUser.role === roles.managerRole._id;
+    const isAuthorized = currentUser._id === employee._id || currentUser.role === roles.managerRole._id
 
     return (
       isAuthorized && (

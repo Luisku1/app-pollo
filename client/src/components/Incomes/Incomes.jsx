@@ -7,10 +7,10 @@ import SectionHeader from '../SectionHeader'
 import { customSelectStyles } from '../../helpers/Constants'
 import Select from 'react-select'
 import BranchAndCustomerSelect from '../Select/BranchAndCustomerSelect'
-import ShowListButton from '../Buttons/ShowListButton'
-import IncomesList from './IncomesList'
 import { useRoles } from '../../context/RolesContext'
 import { stringToCurrency } from '../../helpers/Functions'
+import { FaListAlt } from 'react-icons/fa'
+import ShowIncomesModal from './ShowIncomesModal'
 
 export default function Incomes({ incomes, incomesTotal, pushIncome, spliceIncome, updateLastIncomeId, branchAndCustomerSelectOptions, date, companyId, currentUser }) {
 
@@ -134,18 +134,16 @@ export default function Incomes({ incomes, incomesTotal, pushIncome, spliceIncom
         <div className='grid grid-cols-2'>
           <SectionHeader label={'Efectivos'} />
           <div className='flex items-center gap-4 justify-self-end mr-12'>
-
-            <ShowListButton
-              ListComponent={
-                <IncomesList
-                  incomesData={incomes}
-                />
+            <ShowIncomesModal
+              title={'Gastos'}
+              clickableComponent={
+                roles && roles.managerRole && currentUser.role == roles.managerRole._id ?
+                  <p className='font-bold text-lg text-center'>{stringToCurrency({ amount: incomesTotal })}</p>
+                  :
+                  <FaListAlt className="h-10 w-10 text-red-600" />
               }
-              listTitle={'Efectivos'}
+              incomes={incomes}
             />
-            {roles && roles.managerRole && currentUser.role == roles.managerRole._id ?
-              <p className='font-bold text-lg text-red-700 text-center'>{stringToCurrency({amount: incomesTotal})}</p>
-              : ''}
           </div>
         </div>
         <form onSubmit={addIncomeSubmit} className="grid grid-cols-3 gap-2 mt-2">
