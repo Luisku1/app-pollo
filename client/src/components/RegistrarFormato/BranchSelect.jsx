@@ -46,7 +46,6 @@ export default function BranchSelect({ branches, selectBranch, ableToClose, sele
   }, [searchText, preSelect, selectedBranch])
 
   const renderBranchElemet = (branch) => {
-    console.log(branch, preSelect)
     return (
       <button key={branch.value} id={branch.value} className={`w-full py-2 border border-black rounded-lg border-opacity-25 ${preSelect && preSelect.value == branch.value ? 'bg-green-300' : ''}`} onClick={() => { handlePreSelect(branch) }}>
         <p className='w-full text-center font-semibold'>{branch.label}</p>

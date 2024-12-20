@@ -8,8 +8,6 @@ export const useEmployeePayments = ({ employeeId = null, date = null, initialPay
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
-  console.log(payments, total)
-
   useEffect(() => {
 
     if (!employeeId || !date) return

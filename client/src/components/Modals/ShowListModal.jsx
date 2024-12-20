@@ -30,8 +30,6 @@ const ShowListModal = ({
     return data;
   }, [data, sortFunction])
 
-  console.log(sortedData, sortFunction, data)
-
   return (
     <div>
       {clickableComponent && (
