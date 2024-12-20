@@ -45,6 +45,7 @@ export default function EmployeePaymentsList({ data, updateParentArrays }) {
     const isAuthorized = currentUser._id == employee._id || currentUser.role == roles.managerRole._id
     const shouldRender = isAuthorized || currentUser.role === roles.managerRole._id
 
+    console.log(employeePayment, data)
     return (
       <div key={_id} >
         {shouldRender && (

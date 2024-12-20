@@ -976,6 +976,7 @@ export const getEmployeePayments = async (req, res, next) => {
 					supervisor: 1,
 					amount: 1,
 					extraOutgoing: 1,
+					createdAt: 1,
 					income: 1
 				}
 			}

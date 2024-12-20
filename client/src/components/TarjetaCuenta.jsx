@@ -5,7 +5,7 @@ import { useRoles } from "../context/RolesContext"
 /* eslint-disable react/prop-types */
 export default function TarjetaCuenta({ reportArray, currentUser }) {
 
-  const roles = useRoles()
+  const { roles } = useRoles()
   const reports = reportArray
 
   return (
@@ -96,23 +96,18 @@ export default function TarjetaCuenta({ reportArray, currentUser }) {
                 <p className="font-semibold text-gray-600 text-lg">Faltante:</p>
                 <p
                   className={`text-lg font-bold ${reportData.balance < 0
-                    ? 'text-red-700'
-                    : roles.managerRole?._id === currentUser.role
-                      ? 'text-gray-800'
-                      : 'text-green-600'
+                    ? 'text-red-700' // Si el balance es negativo, mostrar en rojo
+                    // Si es manager, mostrar en gris oscuro
+                    : 'text-green-600' // Si no es manager, mostrar en verde si el balance es positivo
                     }`}
                 >
-                  {reportData.balance > 0
-                    ? roles.managerRole?._id === currentUser.role
-                      ? parseFloat(reportData.balance).toLocaleString('es-MX', {
-                        style: 'currency',
-                        currency: 'MXN',
-                      })
-                      : '$0.00'
-                    : parseFloat(reportData.balance).toLocaleString('es-MX', {
+                  {roles.managerRole?._id === currentUser.role || reportData.balance < 0 // Mostrar siempre si es manager o el balance es negativo
+                    ? parseFloat(reportData.balance).toLocaleString('es-MX', {
                       style: 'currency',
                       currency: 'MXN',
-                    })}
+                    })
+                    : (reportData.balance > 0 ? '$0.00' : '$0.00') // Para el resto de los usuarios, mostrar $0.00 solo si el balance es positivo
+                  }
                 </p>
               </div>
             </div>

@@ -14,7 +14,6 @@ import SupervisorReports from '../components/SupervisorReports'
 import SupervisorReport from '../components/SupervisorReportComp'
 import EmployeePaymentsList from '../components/EmployeePaymentsList'
 import { useEmployeePayments } from '../hooks/Employees/useEmployeePayments'
-import { useDeleteEmployeePayment } from '../hooks/Employees/useDeleteEmployeePayment'
 import { getEmployeeFullName, stringToCurrency } from '../helpers/Functions'
 import { useRoles } from '../context/RolesContext'
 import RegistroEmpleadoNuevo from "./RegistroEmpleado";
