@@ -8,14 +8,5 @@ export const getAllEmployees = async ({companyId}) => {
     return []
   }
 
-  const employees = data.employees.map((employee) => {
-
-    const { name, lastName, _id : value, ...rest } = employee
-    const newEmployee = { label: `${name} ${lastName}`, value, ...rest }
-
-    return newEmployee
-
-  })
-
-  return employees
+  return data.employees
 }

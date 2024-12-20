@@ -20,7 +20,10 @@ export default function Empleados() {
   const searchBarRef = useRef(null);
   const [showActiveEmployees, setShowActiveEmployees] = useState(true)
   const [searching, setSearching] = useState(false)
+  const [editEmployee, setEditEmployee] = useState(null)
   const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
+  console.log(employees)
 
   const handleChangeEmployeeStatus = (employee) => {
 
@@ -75,6 +78,11 @@ export default function Empleados() {
 
     document.title = 'Empleados'
   }, [])
+
+  const toggleEditEmployee = () => {
+
+    setEditEmployee((prev) => !prev)
+  }
 
   return (
 
