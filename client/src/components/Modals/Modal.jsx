@@ -19,7 +19,7 @@ export default function Modal({ content, title, closeModal, ref, ableToClose = t
           </button>
         )}
 
-        {extraInformation}
+        {extraInformation && extraInformation()}
 
         {/* Título y contenido */}
         <div className="mt-4 mb-4">

@@ -15,7 +15,7 @@ export const useDeleteInput = () => {
 
     deleteInputFetch({ inputId: input._id }).catch((error) => {
 
-      ToastDanger(`No se borró la entrada de ${input.product?.name ?? input.product?.label}`)
+      ToastDanger(`No se encontró la entrada de ${input.product?.name || input.product?.label}`)
       console.log(error)
     })
 

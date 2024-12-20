@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { stringToCurrency } from "../../helpers/Functions"
+import { getEmployeeFullName, stringToCurrency } from "../../helpers/Functions"
 import { ToastSuccess } from "../../helpers/toastify"
 import { addEmployeePaymentFetch } from "../../services/employees/addEmployeePayment"
 
@@ -12,7 +12,7 @@ export const useAddEmployeePayment = () => {
     setLoading(true)
     pushEmployeePayment({ employeePayment })
 
-    ToastSuccess(`Se registró el pago a ${employeePayment.employee.label} por ${stringToCurrency({ amount: employeePayment.amount })}`)
+    ToastSuccess(`Se registró el pago a ${getEmployeeFullName(employeePayment)} por ${stringToCurrency({ amount: employeePayment.amount })}`)
 
     addEmployeePaymentFetch({
       employeePayment: {
@@ -20,10 +20,9 @@ export const useAddEmployeePayment = () => {
         detail: employeePayment.detail,
         company: employeePayment.company,
         branch: employeePayment.branch?.value ?? null,
-        employee: employeePayment.employee.value,
+        employee: employeePayment.employee._id,
         supervisor: employeePayment.supervisor._id,
         createdAt: employeePayment.createdAt
-
       }
     }).then((response) => {
 

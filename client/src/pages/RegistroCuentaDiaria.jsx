@@ -95,7 +95,6 @@ export default function RegistroCuentaDiaria() {
 
   }
 
-
   const changeDatePickerValue = (e) => {
 
     stringDatePickerValue = (e.target.value + 'T06:00:00.000Z')
@@ -266,8 +265,8 @@ export default function RegistroCuentaDiaria() {
       amount: parseFloat(amount),
       concept,
       company: company._id,
-      employee: selectedEmployee.value,
-      branch: selectedBranch.value,
+      employee: selectedEmployee._id,
+      branch: selectedBranch._id,
       message: 'Soy el nuevo',
       createdAt: date
 
@@ -422,7 +421,7 @@ export default function RegistroCuentaDiaria() {
         },
         body: JSON.stringify({
           date: date,
-          employee: selectedEmployee.value,
+          employee: selectedEmployee._id,
           assistant: assistant,
           branch: selectedBranch.value,
           company: company._id,
@@ -448,7 +447,7 @@ export default function RegistroCuentaDiaria() {
       setError(null)
       setLoading(false)
 
-      navigate('/perfil/' + selectedEmployee.value)
+      navigate('/perfil/' + selectedEmployee._id)
 
     } catch (error) {
 
@@ -462,7 +461,7 @@ export default function RegistroCuentaDiaria() {
   const handleUpdate = async () => {
 
     setLoading(true)
-    const assistant = selectedAssistant == null ? null : selectedAssistant.value
+    const assistant = selectedAssistant == null ? null : selectedAssistant._id
 
     try {
 
@@ -473,7 +472,7 @@ export default function RegistroCuentaDiaria() {
         },
         body: JSON.stringify({
           branchReport: branchReport,
-          employee: selectedEmployee.value,
+          employee: selectedEmployee._id,
           assistant: assistant,
           initialStock: branchReport.initialStock != 0 ? initialStock : initialStock,
           finalStock: totalStock,
@@ -498,7 +497,7 @@ export default function RegistroCuentaDiaria() {
       setLoading(false)
       setError(null)
 
-      navigate('/perfil/' + selectedEmployee.value)
+      navigate('/perfil/' + selectedEmployee._id)
 
     } catch (error) {
 
@@ -732,7 +731,7 @@ export default function RegistroCuentaDiaria() {
 
       const employeeTempOption = employees.find((employee) =>
 
-        employee.value == branchReport.employee
+        employee._id == branchReport.employee
       )
 
       if (employeeTempOption) {
@@ -745,11 +744,11 @@ export default function RegistroCuentaDiaria() {
 
       if (autoChangeEmployee) {
 
-        setSelectedEmployee({ value: currentUser._id, label: currentUser.name + ' ' + currentUser.lastName })
+        setSelectedEmployee(currentUser)
       }
     }
 
-    const assistantTempOption = employees.find((assistant) => assistant.value == branchReport.assistant)
+    const assistantTempOption = employees.find((assistant) => assistant._id == branchReport.assistant)
 
 
     if (assistantTempOption) {
@@ -761,7 +760,7 @@ export default function RegistroCuentaDiaria() {
       setSelectedAssistant(null)
     }
 
-  }, [branchReport, employees, currentUser])
+  }, [branchReport, employees, currentUser, autoChangeEmployee])
 
   useEffect(() => {
 
@@ -851,7 +850,7 @@ export default function RegistroCuentaDiaria() {
 
         <p className='col-span-12 justify-self-center text-lg font-semibold mb-2'>Sucursal</p>
         <div className='col-span-12'>
-          <BranchSelect branches={branches} modalStatus={selectBranch} selectedBranch={selectedBranch} selectBranch={handleBranchSelectChange}></BranchSelect>
+          <BranchSelect branches={branches} modalStatus={selectBranch} selectedBranch={selectedBranch} ableToClose={selectedBranch ? true : false} selectBranch={handleBranchSelectChange}></BranchSelect>
         </div>
       </div>
 
@@ -978,7 +977,7 @@ export default function RegistroCuentaDiaria() {
               </div>
             ))}
 
-            {outgoings && outgoings.length > 0 && currentUser._id == (selectedEmployee ? selectedEmployee.value : 'none') || currentUser.role == managerRole._id ?
+            {outgoings && outgoings.length > 0 && currentUser._id == (selectedEmployee ? selectedEmployee._id : 'none') || currentUser.role == managerRole._id ?
 
 
               <div className='flex mt-4 border-black border rounded-lg p-3 border-opacity-30 shadow-lg'>

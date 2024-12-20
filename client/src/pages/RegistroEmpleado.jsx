@@ -16,7 +16,6 @@ export default function RegistroEmpleadoNuevo({ employee, setEmployee }) {
   const day = new Date().getDay()
 
   const handleChange = (e) => {
-    console.log(formData)
     setFormData({
       ...formData,
       [e.target.id]: e.target.value,

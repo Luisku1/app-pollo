@@ -4,12 +4,10 @@ import { useParams, useNavigate } from 'react-router-dom';
 import FechaDePagina from "../components/FechaDePagina";
 import { formatDate } from "../helpers/DatePickerFunctions";
 import { useEmployeesPayroll } from "../hooks/Employees/useEmployeesPayroll";
-import { useDeleteEmployeePayment } from "../hooks/Employees/useDeleteEmployeePayment";
 import EmployeePaymentsList from "../components/EmployeePaymentsList";
-import ShowListButton from "../components/Buttons/ShowListButton";
-import { stringToCurrency } from "../helpers/Functions";
+import { getEmployeeFullName, stringToCurrency } from "../helpers/Functions";
 import { useRoles } from "../context/RolesContext";
-
+import ShowListModal from "../components/Modals/ShowListModal";
 
 export default function Nomina() {
 
@@ -19,7 +17,6 @@ export default function Nomina() {
   const { company, currentUser } = useSelector((state) => state.user)
   const { employeesPayroll } = useEmployeesPayroll({ companyId: company._id, date: stringDatePickerValue })
   const { roles } = useRoles()
-  const { deleteEmployeePayment } = useDeleteEmployeePayment()
   const navigate = useNavigate()
 
   const changeDatePickerValue = (e) => {
@@ -74,16 +71,12 @@ export default function Nomina() {
                         </div>
                         <div className="flex gap-2 items-center">
                           <p className="font-semibold">Pagos recibidos: </p>
-                          <p className="font-bold">{stringToCurrency({ amount: employeePayroll.employeePaymentsAmount })}</p>
-                          <ShowListButton
-                            listTitle={`Pagos a ${employeePayroll.employee.name} ${employeePayroll.employee.lastName}`}
-                            ListComponent={
-                              <EmployeePaymentsList
-                                roles={roles}
-                                deleteEmployeePayment={deleteEmployeePayment}
-                                employeePayments={employeePayroll.employeePaymentsArray}
-                              />
-                            }
+                          <ShowListModal
+                            data={employeePayroll.employeePaymentsArray}
+                            title={`Pagos a ${getEmployeeFullName(employeePayroll.employee)}`}
+                            ListComponent={EmployeePaymentsList}
+                            clickableComponent={<p className="font-bold">{stringToCurrency({ amount: employeePayroll.employeePaymentsAmount })}</p>}
+                            sortFunction={(a, b) => b.amount - a.amount}
                           />
                         </div>
                         <div className="flex gap-2">
@@ -127,30 +120,36 @@ export default function Nomina() {
               </div>
 
               {employeePayroll.employeeDailyBalancesArray && employeePayroll.employeeDailyBalancesArray.length > 0 && employeePayroll.employeeDailyBalancesArray.map((dailyBalance) => (
-
-                <div className="grid col-span-12 grid-cols-12 p-1" key={dailyBalance._id}>
+                <div
+                  className={`grid col-span-12 grid-cols-12 p-1 mt-1 ${dailyBalance.accountBalance < 0 || dailyBalance.supervisorBalance < 0 ? 'bg-pastel-pink' : ''}`}
+                  key={dailyBalance._id}
+                >
 
                   <p className="text-sm col-span-5 truncate">{(new Date(dailyBalance.createdAt)).toLocaleDateString('es-mx', { weekday: 'long', month: '2-digit', day: '2-digit' })}</p>
 
-                  <input className="border border-black text-center col-span-2" type="number" name="" id="" defaultValue={dailyBalance.accountBalance} />
-                  <input className="col-span-2 border border-black text-center" type="number" name="" id="" defaultValue={dailyBalance.supervisorBalance} />
+                  <p
+                    className={`border border-black text-center col-span-2 ${dailyBalance.accountBalance < 0 ? 'text-red-500' : ''}`}
+                  >
+                    {dailyBalance.accountBalance.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}
+                  </p>
+                  <p
+                    className={`border border-black text-center col-span-2 ${dailyBalance.supervisorBalance < 0 ? 'text-red-500' : ''}`}
+                  >
+                    {dailyBalance.supervisorBalance.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}
+                  </p>
                   <input className='col-span-1' type="checkbox" name="foodDiscount" id="foodDiscount" defaultChecked={dailyBalance.foodDiscount} />
                   <input className='col-span-1' type="checkbox" name="restDay" id="restDay" defaultChecked={dailyBalance.restDay} />
                   <input className='col-span-1' type="checkbox" name="dayDiscount" id="dayDiscount" defaultChecked={dailyBalance.dayDiscount} />
                 </div>
 
               ))}
-
               <div className="col-span-12 mt-4 p-2 bg-slate-600 text-white rounded-lg mx-2">
                 <button className="w-full">Liberar nómina</button>
               </div>
             </div>
           </div>
-
         ))}
-
       </div>
-
     </main>
   )
 }

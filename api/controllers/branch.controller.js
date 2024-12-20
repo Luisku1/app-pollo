@@ -106,9 +106,6 @@ export const getMonthBranchesIncomesQuery = async (req, res, next) => {
 }
 
 export const getMonthBranchesIncomes = async (date, companyId) => {
-
-	const { bottomDate, topDate } = getMonthRange(date)
-
 	try {
 
 		const branchesIncomes = await Branch.aggregate([

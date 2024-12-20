@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types */
 import Select from 'react-select'
 import { customSelectStyles } from '../../helpers/Constants'
+import { getArrayForSelects, getElementForSelect, getEmployeeFullName } from '../../helpers/Functions'
 
 export default function EmployeesSelect({ defaultLabel, employees, selectedEmployee, handleEmployeeSelectChange }) {
 
@@ -8,9 +9,9 @@ export default function EmployeesSelect({ defaultLabel, employees, selectedEmplo
     <div>
       <Select
         styles={customSelectStyles}
-        value={selectedEmployee}
+        value={getElementForSelect(selectedEmployee, getEmployeeFullName)}
         onChange={handleEmployeeSelectChange}
-        options={employees}
+        options={getArrayForSelects(employees, getEmployeeFullName)}
         isClearable={true}
         placeholder={defaultLabel}
         isSearchable={true}

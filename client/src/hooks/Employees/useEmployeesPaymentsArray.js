@@ -1,9 +1,11 @@
 import { useState } from "react"
 
-export const useEmployeesPaymentsArray = (initialPayments = [], initialTotal = 0.0) => {
+export const useEmployeesPaymentsArray = (initialPayments = []) => {
 
   const [payments, setPayments] = useState(initialPayments)
-  const [total, setTotal] = useState(initialTotal)
+  const [total, setTotal] = useState(
+    initialPayments.reduce((acc, payment) => acc + payment.amount, 0)
+  )
 
   const pushEmployeePayment = ({ employeePayment }) => {
 

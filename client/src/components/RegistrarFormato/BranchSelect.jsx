@@ -4,10 +4,10 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import Modal from '../Modals/Modal'
 import SearchBar from '../SearchBar'
 
-export default function BranchSelect({ branches, selectBranch, selectedBranch, modalStatus = false }) {
+export default function BranchSelect({ branches, selectBranch, ableToClose, selectedBranch, modalStatus = false }) {
 
   const [searchText, setSearchText] = useState('')
-  const [preSelect, setPreSelect] = useState(null)
+  const [preSelect, setPreSelect] = useState(selectedBranch || null)
   const [showModal, setShowModal] = useState()
   const searchBarRef = useRef(null);
 
@@ -28,7 +28,7 @@ export default function BranchSelect({ branches, selectBranch, selectedBranch, m
 
   const handlePreSelect = (branch) => {
 
-    setPreSelect((previousSelect) => previousSelect == branch ? null : branch)
+    setPreSelect((previousSelect) => previousSelect == branch ? !selectedBranch ? null : selectedBranch : branch)
   }
 
   const filteredBranches = useMemo(() => {
@@ -38,15 +38,15 @@ export default function BranchSelect({ branches, selectBranch, selectedBranch, m
   const handleSelectBranch = (branch) => {
 
     changeShowModal()
-    selectBranch(branch)
+    selectBranch(branch ? branch : selectedBranch)
   }
 
   useEffect(() => {
 
-
-  }, [searchText])
+  }, [searchText, preSelect, selectedBranch])
 
   const renderBranchElemet = (branch) => {
+    console.log(branch, preSelect)
     return (
       <button key={branch.value} id={branch.value} className={`w-full py-2 border border-black rounded-lg border-opacity-25 ${preSelect && preSelect.value == branch.value ? 'bg-green-300' : ''}`} onClick={() => { handlePreSelect(branch) }}>
         <p className='w-full text-center font-semibold'>{branch.label}</p>
@@ -89,7 +89,8 @@ export default function BranchSelect({ branches, selectBranch, selectedBranch, m
       {showModal && (
         <Modal
           title={"Selecciona tu sucursal"}
-          content={renderBranchList(branches)} ableToClose={false}
+          content={renderBranchList(branches)}
+          ableToClose={ableToClose}
           closeModal={changeShowModal}>
         </Modal>
       )}

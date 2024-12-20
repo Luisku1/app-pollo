@@ -64,6 +64,7 @@ export default function Reporte() {
   } = useBranchReports({ companyId: company._id, date: stringDatePickerValue })
   const navigate = useNavigate()
   const [pieChartInfo, setPieChartInfo] = useState([])
+  const [negativeBalances, setNegativeBalances] = useState(new Set())
 
   const updateReportedCash = ({ reportedCash, prevReportedCash, prevReportedIncomes }) => {
 
@@ -280,7 +281,7 @@ export default function Reporte() {
 
                 {branchReports.map((branchReport, index) => (
 
-                  <tbody key={branchReport._id} className="">
+                  <tbody key={branchReport._id} className={branchReport.balance < 0 ? 'bg-pastel-pink' : ''}>
 
 
                     <tr className={'border-x ' + (index + 1 != branchReports.length ? "border-b " : '') + 'border-black border-opacity-40'}>
@@ -321,7 +322,7 @@ export default function Reporte() {
               </div>
 
               <div className={!showCards ? 'hidden' : ''} >
-                <TarjetaCuenta reportArray={branchReports} managerRole={roles.managerRole} currentUser={currentUser}></TarjetaCuenta>
+                <TarjetaCuenta reportArray={branchReports} currentUser={currentUser}></TarjetaCuenta>
               </div>
             </div>
           </div>
@@ -359,7 +360,7 @@ export default function Reporte() {
               <div key={supervisor._id}>
 
                 {(selectedSupervisors.some(selected => selected.value.toString() === supervisor._id.toString()) || selectedSupervisors.length == 0) && (
-                  <div className='border bg-white p-3 mt-4 rounded-lg border-black'>
+                  <div className={`border ${negativeBalances.has(supervisor._id) ? 'bg-pastel-pink' : 'bg-white'} p-3 mt-4 rounded-lg border-black`}>
 
                     <div className="">
 
@@ -380,40 +381,40 @@ export default function Reporte() {
                             />
                           </div>
                           <div className="flex gap-2 items-center">
-                              <p className="text-lg font-bold">Efectivo:</p>
-                              <ShowIncomesModal
-                                title={'Efectivos'}
-                                clickableComponent={
-                                  <p className="text-lg">{stringToCurrency({ amount: supervisor.cash })}
-                                  </p>
-                                }
-                                incomes={supervisor.cashArray}
-                              />
+                            <p className="text-lg font-bold">Efectivo:</p>
+                            <ShowIncomesModal
+                              title={'Efectivos'}
+                              clickableComponent={
+                                <p className="text-lg">{stringToCurrency({ amount: supervisor.cash })}
+                                </p>
+                              }
+                              incomes={supervisor.cashArray}
+                            />
                           </div>
                           <div className="flex gap-2 items-center">
-                              <p className="text-lg font-bold">Gastos:</p>
-                              <ShowExtraOutgoingsModal
-                                title={'Gastos'}
-                                clickableComponent={
-                                  <p className="text-lg">{stringToCurrency({ amount: supervisor.extraOutgoings })}
-                                  </p>
-                                }
-                                extraOutgoings={supervisor.extraOutgoingsArray}
-                              />
+                            <p className="text-lg font-bold">Gastos:</p>
+                            <ShowExtraOutgoingsModal
+                              title={'Gastos'}
+                              clickableComponent={
+                                <p className="text-lg">{stringToCurrency({ amount: supervisor.extraOutgoings })}
+                                </p>
+                              }
+                              extraOutgoings={supervisor.extraOutgoingsArray}
+                            />
                           </div>
                           <div className="flex gap-2 items-center">
                             <p className="text-lg"><span className="font-bold">Gastos: </span>{stringToCurrency({ amount: supervisor.extraOutgoings })}</p>
                             <ShowListButton
                               ListComponent={
                                 <ExtraOutgoingsList
-                                  initialExtraOutgoings={supervisor.extraOutgoingsArray.sort((a, b) => a.amount - b.amunt)}
+                                  data={supervisor.extraOutgoingsArray.sort((a, b) => a.amount - b.amunt)}
                                 />
                               }
                               listTitle={'Gastos externos'}
                             />
                           </div>
                           <p className="text-lg"><span className="font-bold">Efectivo neto: </span>{(supervisor.cash - supervisor.extraOutgoings).toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
-                          <RegistrarDineroReportado updateReportedDeposits={updateReportedDeposits} updateReportedCash={updateReportedCash} supervisorId={supervisor._id} date={stringDatePickerValue}></RegistrarDineroReportado>
+                          <RegistrarDineroReportado setNegativeBalances={setNegativeBalances} updateReportedDeposits={updateReportedDeposits} updateReportedCash={updateReportedCash} supervisorId={supervisor._id} date={stringDatePickerValue}></RegistrarDineroReportado>
                         </div>
                       </div>
                     </div>

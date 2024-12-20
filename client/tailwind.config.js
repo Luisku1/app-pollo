@@ -7,7 +7,13 @@ export default {
     "./node_modules/react-tailwindcss-select/dist/index.esm.js"
   ],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        'pastel-pink': '#FEEAF2', // Tono de rosa pastel personalizado
+        'header': '#333333',
+        'menu': '#E4E4E4'
+      },
+    },
   },
   plugins: [],
 }

@@ -19,7 +19,7 @@ export const useAddStock = () => {
         weight: stock.weight,
         amount: stock.amount,
         price: stock.price,
-        employee: stock.employee.value,
+        employee: stock.employee._id,
         product: stock.product.value,
         branch: stock.branch.value,
         createdAt: stock.createdAt,

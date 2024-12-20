@@ -554,7 +554,31 @@ export const fetchEmployeesPayroll = async ({ companyId, date }) => {
 					foreignField: 'employee',
 					as: 'employeePaymentsArray',
 					pipeline: [
-						{ $match: { createdAt: { $gte: new Date(weekStart), $lt: new Date(weekEnd) } } }
+						{
+							$match: { createdAt: { $gte: new Date(weekStart), $lt: new Date(weekEnd) } }
+						},
+						{
+							$lookup: {
+								from: 'employees',
+								foreignField: '_id',
+								localField: 'employee',
+								as: 'employee'
+							}
+						},
+						{
+							$lookup: {
+								from: 'employees',
+								foreignField: '_id',
+								localField: 'supervisor',
+								as: 'supervisor'
+							}
+						},
+						{
+							$unwind: { path: '$supervisor', preserveNullAndEmptyArrays: true }
+						},
+						{
+							$unwind: { path: '$employee', preserveNullAndEmptyArrays: true }
+						}
 					]
 				}
 			},
@@ -916,22 +940,49 @@ export const getEmployeePayments = async (req, res, next) => {
 			employeePayments: []
 		}
 
-		employeePayments.employeePayments = await EmployeePayment.find({
-			$and: [
+		employeePayments.employeePayments = await EmployeePayment.aggregate([
+			{
+				$match: {
+					"createdAt": { $lt: new Date(topDate), $gte: firstWeekDay },
+					"employee": new Types.ObjectId(employeeId)
+				}
+			},
+			{
+				$lookup: {
+					from: 'employees',
+					foreignField: '_id',
+					localField: 'employee',
+					as: 'employee'
+				}
+			},
+			{
+				$lookup: {
+					from: 'employees',
+					foreignField: '_id',
+					localField: 'supervisor',
+					as: 'supervisor'
+				}
+			},
+			{
+				$unwind: { path: '$supervisor', preserveNullAndEmptyArrays: true }
+			},
+			{
+				$unwind: { path: '$employee', preserveNullAndEmptyArrays: true }
+			},
+			{
+				$project: {
+					_id: 1,
+					detail: 1,
+					employee: 1,
+					supervisor: 1,
+					amount: 1,
+					extraOutgoing: 1,
+					income: 1
+				}
+			}
+		])
 
-				{
-					createdAt: {
-						$gte: firstWeekDay
-					}
-				},
-				{
-					createdAt: {
-						$lt: new Date(topDate)
-					}
-				},
-				{ employee: employeeId }
-			]
-		})
+		console.log(employeePayments)
 
 		employeePayments.employeePayments.forEach((employeePayment) => {
 

@@ -15,6 +15,8 @@ import { customSelectStyles } from '../../helpers/Constants'
 import { MdCancel } from 'react-icons/md'
 import { useRoles } from '../../context/RolesContext'
 import ShowExtraOutgoingsModal from './ShowExtraOutgoingsModal'
+import ShowListModal from '../Modals/ShowListModal'
+import EmployeePaymentsList from '../EmployeePaymentsList'
 
 export default function ExtraOutgoings({ currentUser, companyId, date, pushIncome, employees, branches, spliceIncomeById }) {
 
@@ -188,7 +190,7 @@ export default function ExtraOutgoings({ currentUser, companyId, date, pushIncom
                   :
                   <FaListAlt className="h-10 w-10 text-red-600" />
               }
-              extraOutgoings={extraOutgoings}
+              data={extraOutgoings}
             />
           </div>
         </div>
@@ -205,15 +207,12 @@ export default function ExtraOutgoings({ currentUser, companyId, date, pushIncom
         <div className='grid grid-cols-2 items-center'>
           <SectionHeader label={'Pago a Empleados y Rentas'} />
           <div className='flex items-center gap-4 justify-self-end mr-12'>
-            <ShowExtraOutgoingsModal
-              title={'Pago a Empleados y Rentas'}
-              clickableComponent={
-                roles && roles.managerRole && currentUser.role == roles.managerRole._id ?
-                  <p className='font-bold text-lg text-center'>{stringToCurrency({ amount: totalEmployeesPayments })}</p>
-                  :
-                  <FaListAlt className="h-10 w-10 text-red-600" />
-              }
-              extraOutgoings={employeesPayments}
+            <ShowListModal
+              data={employeesPayments}
+              title={'Pagos a empleados'}
+              ListComponent={EmployeePaymentsList}
+              clickableComponent={<p className='font-bold text-lg text-center'>{stringToCurrency({ amount: totalEmployeesPayments })}</p>}
+              sortFunction={(a, b) => b.amount - a.amount}
             />
           </div>
         </div>

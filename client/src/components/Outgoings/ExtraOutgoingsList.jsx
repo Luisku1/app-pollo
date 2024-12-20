@@ -6,19 +6,19 @@ import DeleteButton from "../Buttons/DeleteButton"
 import { stringToCurrency } from "../../helpers/Functions"
 
 /* eslint-disable react/prop-types */
-export default function ExtraOutgoingsList({ initialExtraOutgoings }) {
+export default function ExtraOutgoingsList({ data }) {
 
   const { currentUser } = useSelector((state) => state.user)
   const { deleteExtraOutgoing } = useDeleteExtraOutgoing()
-  const { extraOutgoings, totalExtraOutgoings, spliceExtraOutgoing } = useDayExtraOutgoings({ initialExtraOutgoings })
+  const { extraOutgoings, totalExtraOutgoings, spliceExtraOutgoing } = useDayExtraOutgoings({ initialExtraOutgoings: data })
   const { roles } = useRoles()
   const isEmpty = extraOutgoings.length === 0
 
-   const renderTotal = () => {
+  const renderTotal = () => {
     return (
       <div className='justify-self-end'>
         <p className='text-orange-500 font-bold text-lg'>
-          {stringToCurrency({amount: totalExtraOutgoings})}
+          {stringToCurrency({ amount: totalExtraOutgoings })}
         </p>
       </div>
     )
@@ -71,7 +71,6 @@ export default function ExtraOutgoingsList({ initialExtraOutgoings }) {
         )}
       </div>
     )
-
   }
 
   const renderExtraOutgoingsList = () => {
@@ -82,7 +81,7 @@ export default function ExtraOutgoingsList({ initialExtraOutgoings }) {
       <div>
         {showTotal && renderTotal()}
         {renderListHeader()}
-        {roles && roles.managerRole && !isEmpty && extraOutgoings.map((extraOutgoing, index) => renderExtraOutgoingItem({extraOutgoing, index}))}
+        {roles && roles.managerRole && !isEmpty && extraOutgoings.map((extraOutgoing, index) => renderExtraOutgoingItem({ extraOutgoing, index }))}
       </div>
     )
   }

@@ -51,6 +51,10 @@ export default function PieChart({ verifiedIncomes = null, netIncomes = null, ch
         setShowExtraOutgoings(true)
         setListTitle('Gastos externos')
         break
+      case 'Ingresos sin verificar':
+        setShowIncomes(true)
+        setListTitle('Ingresos registrados')
+        break;
       default:
         break
     }
@@ -93,11 +97,17 @@ export default function PieChart({ verifiedIncomes = null, netIncomes = null, ch
   const renderStatistics = () => {
     return (
       <div className='w-full'>
-        {verifiedIncomes && netIncomes && (
+        {(verifiedIncomes || verifiedIncomes === 0) && (netIncomes || netIncomes === 0) && (
           <div>
             <p className='text-lg'>Ingresos totales confirmados</p>
             <div className='flex gap-2'>
-              <p className='text-lg'><span className={`${verifiedIncomes < netIncomes ? 'text-red-600' : 'text-green-600'}`}>{stringToCurrency({ amount: verifiedIncomes })}</span> / <span className='text-green-600'>{stringToCurrency({ amount: netIncomes })}</span></p>
+              <p className='text-lg'>
+                <span className={`${verifiedIncomes < netIncomes ? 'text-red-600' : 'text-green-600'}`}>
+                  {stringToCurrency({ amount: verifiedIncomes })}
+                </span>
+                /
+                <span className='text-green-600'>{stringToCurrency({ amount: netIncomes })}</span>
+              </p>
               {verifiedIncomes < netIncomes && (
                 <p className='text-red-500'>{`(${stringToCurrency({ amount: verifiedIncomes - netIncomes })})`}</p>
               )}
@@ -105,8 +115,8 @@ export default function PieChart({ verifiedIncomes = null, netIncomes = null, ch
           </div>
         )}
       </div>
-    )
-  }
+    );
+  };
 
   const options = {
     mantainAspectRatio: false,
@@ -142,7 +152,7 @@ export default function PieChart({ verifiedIncomes = null, netIncomes = null, ch
           title={listTitle}
           modalIsOpen={showIncomes}
           toggleComponent={() => setShowIncomes((prev) => !prev)}
-          extraInformation={renderStatistics()}
+          extraInformation={renderStatistics}
         />
       )}
       {list.length > 0 && (

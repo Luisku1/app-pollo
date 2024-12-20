@@ -1,13 +1,13 @@
 import { FaEdit } from "react-icons/fa";
 import { useDispatch, useSelector } from 'react-redux'
 import { signOutFailiure, signOutStart, signOutSuccess } from '../redux/user/userSlice'
-import { Link, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { weekDays } from '../helpers/Constants'
 import TarjetaCuenta from '../components/TarjetaCuenta'
 import { useLoading } from '../hooks/loading'
 import { useSignOut } from '../hooks/Auth/useSignOut'
-import { formatDate, formatInformationDate, isToday } from '../helpers/DatePickerFunctions'
+import { formatDate } from '../helpers/DatePickerFunctions'
 import ShowListButton from '../components/Buttons/ShowListButton'
 import { useSupervisorReports } from '../hooks/Supervisors/useSupervisorReports'
 import SupervisorReports from '../components/SupervisorReports'
@@ -15,10 +15,11 @@ import SupervisorReport from '../components/SupervisorReportComp'
 import EmployeePaymentsList from '../components/EmployeePaymentsList'
 import { useEmployeePayments } from '../hooks/Employees/useEmployeePayments'
 import { useDeleteEmployeePayment } from '../hooks/Employees/useDeleteEmployeePayment'
-import { stringToCurrency } from '../helpers/Functions'
+import { getEmployeeFullName, stringToCurrency } from '../helpers/Functions'
 import { useRoles } from '../context/RolesContext'
 import RegistroEmpleadoNuevo from "./RegistroEmpleado";
 import Modal from "../components/Modals/Modal";
+import ShowListModal from "../components/Modals/ShowListModal";
 
 export default function Perfil() {
 
@@ -32,8 +33,7 @@ export default function Perfil() {
   const { supervisorReports } = useSupervisorReports({ supervisorId: employeeId })
   const [lastBranchReport, setLastBranchReport] = useState(null)
   const [loading, setLoading] = useState(false)
-  const { payments, total, spliceEmployeePayment } = useEmployeePayments({ employeeId, date: formatDate(new Date()) })
-  const { deleteEmployeePayment } = useDeleteEmployeePayment()
+  const { payments, total } = useEmployeePayments({ employeeId, date: formatDate(new Date()) })
   const { roles } = useRoles()
   const { isLoading } = useLoading(loading)
   const { signOut } = useSignOut()
@@ -195,17 +195,16 @@ export default function Perfil() {
               {roles.managerRole._id == currentUser.role || currentUser._id == employee._id ?
                 <div className='p-3'>
                   <div className='flex flex-row-reverse gap-2 items-center'>
-                    <ShowListButton
-                      ListComponent={
-                        <EmployeePaymentsList
-                          spliceEmployeePayment={spliceEmployeePayment}
-                          deleteEmployeePayment={deleteEmployeePayment}
-                          employeePayments={payments}
-                          roles={roles}
-                        />
-                      }
-                    />
-                    <p className='text-center text-lg'><span className='text-red-700 font-semibold'>Pagos: </span> {`${stringToCurrency({ amount: total })}`}</p>
+                    <div className="flex gap-2 text-center text-lg">
+                      <p className="text-red-700 font-semibold">Pagos:</p>
+                      <ShowListModal
+                        data={payments}
+                        title={`Pagos a ${getEmployeeFullName(employee)}`}
+                        ListComponent={EmployeePaymentsList}
+                        clickableComponent={<p>{stringToCurrency({ amount: total })}</p>}
+                        sortFunction={(a, b) => b.amount - a.amount}
+                      />
+                    </div>
                   </div>
                 </div>
                 : ''}
@@ -258,46 +257,17 @@ export default function Perfil() {
 
                 <div className='mt-4'>
                   <p className='text-center text-lg font-semibold'>Última cuenta de pollería</p>
-                  <div key={lastBranchReport._id} className="bg-white p-5 mb-4 mt-4 rounded-3xl shadow-lg border" >
-
-                    <div className='flex justify-around'>
-                      <div className='flex justify-center my-auto gap-1'>
-                        <p className="text-center text-lg font-semibold text-red-500 mb-3">Fecha:</p>
-                        <p className="text-center text-lg font-semibold text-black mb-3">{formatInformationDate(lastBranchReport.createdAt)}</p>
-                      </div>
-                      <div className='flex my-auto gap-1'>
-                        <p className="text-center text-lg font-semibold text-red-500 mb-3">{lastBranchReport.branch.branch}</p>
-                      </div>
-                    </div>
-
-                    <div className='grid grid-cols-12'>
-                      <Link className='col-span-10' to={'/formato/' + lastBranchReport.createdAt + '/' + lastBranchReport.branch._id}>
-
-                        <div className=''>
-                          {!isToday(lastBranchReport.createdAt) || roles.managerRole._id == currentUser.role || lastBranchReport.balance < 0 ?
-                            <div className="flex gap-2">
-                              <p className="text-lg">Faltante: </p>
-                              <p className={lastBranchReport.balance < 0 ? 'text-red-700 font-bold' : '' + 'text-lg font-bold'}>{lastBranchReport.balance > 0 ? roles.managerRole._id == currentUser.role ? parseFloat(lastBranchReport.balance).toLocaleString("es-MX", { style: 'currency', currency: 'MXN' }) : '$0.00' : parseFloat(lastBranchReport.balance).toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
-                            </div>
-                            : ''}
-                          <p>Efectivo: {lastBranchReport.incomes.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
-                          <p>Sobrante: {lastBranchReport.finalStock.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
-                          <p>Gastos: {lastBranchReport.outgoings.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
-                        </div>
-                      </Link>
-                    </div>
-                  </div>
+                  <TarjetaCuenta reportArray={[lastBranchReport]} currentUser={currentUser} />
                 </div>
               )}
 
               {employeeBranchReports && employeeBranchReports.length > 0 ?
-
                 <div className='flex gap-4 mt-4 items-center justify-self-center'>
                   <h3 className='text-2xl font-bold'>Cuentas en pollería</h3>
                   <div className=''>
                     <ShowListButton
                       ListComponent={
-                        <TarjetaCuenta reportArray={employeeBranchReports} managerRole={roles.managerRole} currentUser={currentUser} />
+                        <TarjetaCuenta reportArray={employeeBranchReports} currentUser={currentUser} />
                       }
                     />
                   </div>

@@ -7,6 +7,7 @@ import { Link } from "react-router-dom"
 import { useEmployees } from "../hooks/Employees/useEmployees";
 import { useDeleteEmployee } from "../hooks/Employees/useDeleteEmployee";
 import SearchBar from "../components/SearchBar";
+import { getEmployeeFullName } from "../helpers/Functions";
 
 export default function Empleados() {
 
@@ -101,17 +102,13 @@ export default function Empleados() {
       <div>
 
         {employees && employees.length > 0 && employees.map((employee, index) => (
-
-          <div key={employee.value}>
-
+          <div key={employee._id}>
             {employee.active == showActiveEmployees || searching ?
-
-
               <div className="my-4 bg-white p-4 grid grid-cols-12 rounded-lg">
 
                 <div className="col-span-9">
-                  <Link to={'/perfil/' + employee.value}>
-                    <p className="text-2xl font-bold">{employee.label}</p>
+                  <Link to={'/perfil/' + employee._id}>
+                    <p className="text-2xl font-bold">{getEmployeeFullName(employee)}</p>
                   </Link>
 
                   <div className="p-3">
@@ -134,10 +131,10 @@ export default function Empleados() {
 
                   <div className="col-span-3 my-auto justify-self-center">
 
-                    <button id={employee.value} className={`transition-colors duration-300 w-full mx-auto border p-3 rounded-lg text-center font-bold ${hoveredIndex != employee.value ? (employee.active ? 'bg-green-600 text-white' : 'bg-red-600 text-white') : (employee.active ? 'bg-red-600 text-white' : 'bg-green-600 text-white')}`} onMouseEnter={() => { handleMouseEnter(employee.value) }} onMouseLeave={handleMouseLeave} onClick={() => { handleChangeEmployeeStatus(employee) }}>
+                    <button id={employee._id} className={`transition-colors duration-300 w-full mx-auto border p-3 rounded-lg text-center font-bold ${hoveredIndex != employee._id ? (employee.active ? 'bg-green-600 text-white' : 'bg-red-600 text-white') : (employee.active ? 'bg-red-600 text-white' : 'bg-green-600 text-white')}`} onMouseEnter={() => { handleMouseEnter(employee._id) }} onMouseLeave={handleMouseLeave} onClick={() => { handleChangeEmployeeStatus(employee) }}>
                       {employee.active ?
                         <div>
-                          {hoveredIndex != employee.value ?
+                          {hoveredIndex != employee._id ?
                             <p>Activo</p>
                             :
                             <p>Cambiar</p>
@@ -146,7 +143,7 @@ export default function Empleados() {
                         :
                         <div>
 
-                          {hoveredIndex != employee.value ?
+                          {hoveredIndex != employee._id ?
                             <p>Inactivo</p>
                             :
                             <p>Cambiar</p>
@@ -161,13 +158,13 @@ export default function Empleados() {
                       </span>
                     </button>
                     <div>
-                      <button id={employee.value} onClick={() => { setIsOpen(isOpen ? false : true), setButtonId(employee.value) }} disabled={loading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
+                      <button id={employee._id} onClick={() => { setIsOpen(isOpen ? false : true), setButtonId(employee._id) }} disabled={loading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
                         <span>
                           <FaTrash className='text-red-700 m-auto' />
                         </span>
                       </button>
 
-                      {isOpen && employee.value == buttonId ?
+                      {isOpen && employee._id == buttonId ?
                         <div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center items-center'>
                           <div className='bg-white p-5 rounded-lg flex flex-col justify-center items-center gap-5'>
                             <div>
@@ -175,7 +172,7 @@ export default function Empleados() {
                             </div>
                             <div className='flex gap-10'>
                               <div>
-                                <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteEmployee({ employeeId: employee.value, index, spliceEmployee }), setIsOpen(isOpen ? false : true) }}>Si</button>
+                                <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteEmployee({ employeeId: employee._id, index, spliceEmployee }), setIsOpen(isOpen ? false : true) }}>Si</button>
                               </div>
                               <div>
                                 <button className='rounded-lg border shadow-lg w-20 h-10' onClick={() => { setIsOpen(isOpen ? false : true) }}>No</button>

@@ -2,11 +2,13 @@ import { useEffect, useState } from "react"
 import { getEmployeePayments } from "../../services/employees/employeePayments"
 import { useEmployeesPaymentsArray } from "./useEmployeesPaymentsArray"
 
-export const useEmployeePayments = ({ employeeId, date }) => {
+export const useEmployeePayments = ({ employeeId = null, date = null, initialPayments = [] }) => {
 
-  const { payments, setPayments, total, setTotal, pushEmployeePayment, spliceEmployeePayment, updateLastEmployeePayment } = useEmployeesPaymentsArray()
+  const { payments, setPayments, total, setTotal, pushEmployeePayment, spliceEmployeePayment, updateLastEmployeePayment } = useEmployeesPaymentsArray(initialPayments)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+
+  console.log(payments, total)
 
   useEffect(() => {
 

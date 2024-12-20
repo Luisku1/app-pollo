@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react';
 import Modal from '../Modals/Modal';
 import ExtraOutgoingsList from './ExtraOutgoingsList';
 
-const ShowExtraOutgoingsModal = ({ extraOutgoings, title, clickableComponent = null, toggleComponent = null, modalIsOpen = null, extraInformation = null }) => {
+const ShowExtraOutgoingsModal = ({ data, title, clickableComponent = null, toggleComponent = null, modalIsOpen = null, extraInformation = null }) => {
 
   const [listIsOpen, setListIsOpen] = useState(false)
 
@@ -17,11 +17,11 @@ const ShowExtraOutgoingsModal = ({ extraOutgoings, title, clickableComponent = n
 
   const sortedExtraOutgoings = useMemo(() => {
 
-    const sortedExtraOutgoings = extraOutgoings.length > 0 ? extraOutgoings.sort((a, b) => b.amount - a.amount) : []
+    const sortedExtraOutgoings = data.length > 0 ? data.sort((a, b) => b.amount - a.amount) : []
 
     return sortedExtraOutgoings
 
-  }, [extraOutgoings])
+  }, [data])
 
   return (
     <div>
@@ -37,7 +37,7 @@ const ShowExtraOutgoingsModal = ({ extraOutgoings, title, clickableComponent = n
           extraInformation={extraInformation}
           content={
             <ExtraOutgoingsList
-              initialExtraOutgoings={sortedExtraOutgoings}
+              data={sortedExtraOutgoings}
             />
           }
           closeModal={changeListIsOpen} />
