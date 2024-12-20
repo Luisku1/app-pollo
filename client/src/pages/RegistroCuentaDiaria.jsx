@@ -259,6 +259,8 @@ export default function RegistroCuentaDiaria() {
 
     const { amount, concept } = outgoingFormData
 
+    console.log(selectedBranch)
+
     const outgoing = {
 
       _id: 'TempId',
@@ -266,7 +268,7 @@ export default function RegistroCuentaDiaria() {
       concept,
       company: company._id,
       employee: selectedEmployee._id,
-      branch: selectedBranch._id,
+      branch: selectedBranch.value,
       message: 'Soy el nuevo',
       createdAt: date
 

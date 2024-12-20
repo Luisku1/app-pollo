@@ -16,6 +16,7 @@ export const useOutgoings = ({ branchId, date }) => {
 
   const spliceOutgoing = ({ index }) => {
 
+    if(outgoings.length === 0) return
     const removedOutgoing = outgoings.splice(index, 1)
     setOutgoingsTotal((prev) => prev - parseFloat(removedOutgoing[0].amount))
   }

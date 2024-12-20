@@ -8,6 +8,7 @@ export const useAddOutgoing = () => {
 
   const addOutgoing = async ({ outgoing, pushOutgoing, spliceOutgoing, updateOutgoingId }) => {
 
+    console.log(outgoing)
     pushOutgoing({ outgoing })
     ToastSuccess(`Se agregó el gasto de "${outgoing.concept}"`)
 
