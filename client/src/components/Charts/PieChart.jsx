@@ -157,7 +157,7 @@ export default function PieChart({ verifiedIncomes = null, netIncomes = null, ch
       )}
       {list.length > 0 && (
         <ShowExtraOutgoingsModal
-          extraOutgoings={list}
+          data={list}
           title={listTitle}
           modalIsOpen={showExtraOutgoings}
           toggleComponent={() => setShowExtraOutgoings((prev) => !prev)}

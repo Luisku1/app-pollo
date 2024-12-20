@@ -26,21 +26,32 @@ export const useAddEmployeePayment = () => {
       }
     }).then((response) => {
 
-      response.employeePayment.supervisor = employeePayment.supervisor
-      response.employeePayment.branch = employeePayment.branch
-      response.employeePayment.employee = employeePayment.employee
+      const createdEmployeePayment = {
+        ...response.employeePayment,
+        supervisor: employeePayment.supervisor,
+        branch: employeePayment.branch,
+        employee: {
+          ...employeePayment.employee, // Conserva los datos originales del empleado
+          ...response.employeePayment.employee, // Agrega campos de la respuesta si es necesario
+        },
+      };
 
-      updateLastEmployeePayment({ createdEmployeePayment: response.employeePayment })
+      updateLastEmployeePayment({ createdEmployeePayment });
 
       if (response.income) {
-
-        response.income.employee = employeePayment.supervisor
-        response.income.branch = employeePayment.branch
-        pushIncome({ income: response.income })
+        const createdIncome = {
+          ...response.income,
+          employee: employeePayment.supervisor,
+          branch: employeePayment.branch,
+        };
+        pushIncome(createdIncome);
       }
 
-      response.extraOutgoing.employee = employeePayment.supervisor
-      pushExtraOutgoing({ extraOutgoing: response.extraOutgoing })
+      const createdExtraOutgoing = {
+        ...response.extraOutgoing,
+        employee: employeePayment.supervisor,
+      };
+      pushExtraOutgoing({ extraOutgoing: createdExtraOutgoing });
 
     }).catch((error) => {
 

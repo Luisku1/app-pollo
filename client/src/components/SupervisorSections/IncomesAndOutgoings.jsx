@@ -3,7 +3,7 @@ import { useIncomes } from "../../hooks/Incomes/useIncomes";
 import Incomes from "../Incomes/Incomes";
 import ExtraOutgoings from "../Outgoings/ExtraOutgoings";
 
-export default function IncomesAndOutgoings({date, companyId, currentUser, branchAndCustomerSelectOptions, employees, branches}) {
+export default function IncomesAndOutgoings({ date, companyId, currentUser, branchAndCustomerSelectOptions, employees, branches }) {
 
   const { incomes, incomesTotal, pushIncome, spliceIncome, spliceIncomeById, updateLastIncomeId } = useIncomes({ companyId, date })
 

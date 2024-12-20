@@ -365,27 +365,22 @@ export const deleteExtraOutgoingFunction = async ({ extraOutgoingId }) => {
 
     deletedExtraOutgoing = await ExtraOutgoing.findByIdAndDelete(extraOutgoingId)
 
-    console.log(deletedExtraOutgoing)
+    const { bottomDate, topDate } = getDayRange(deletedExtraOutgoing.createdAt)
+    await deleteSupervisorExtraOutgoing({ extraOutgoing: deletedExtraOutgoing, day: { bottomDate, topDate } })
 
-    if (deletedExtraOutgoing) {
-
-      const { bottomDate, topDate } = getDayRange(deletedExtraOutgoing.createdAt)
-      await deleteSupervisorExtraOutgoing({ extraOutgoing: deletedExtraOutgoing, day: { bottomDate, topDate } })
-
-      return deletedExtraOutgoing || null
-    }
+    return deletedExtraOutgoing || null
 
   } catch (error) {
 
-    if (deletedExtraOutgoing) {
+  if (deletedExtraOutgoing) {
 
-      await ExtraOutgoing.create({ deletedExtraOutgoing })
-    }
-
-    console.log(error)
-
-    throw error
+    await ExtraOutgoing.create({ deletedExtraOutgoing })
   }
+
+  console.log(error)
+
+  throw error
+}
 }
 
 export const deleteOutgoing = async (req, res, next) => {

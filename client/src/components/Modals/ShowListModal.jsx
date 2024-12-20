@@ -10,7 +10,8 @@ const ShowListModal = ({
   modalIsOpen = null,
   extraInformation = null,
   sortFunction = null,
-  ListComponent = null
+  ListComponent = null,
+  updateParentArrays = null
 }) => {
 
   const [listIsOpen, setListIsOpen] = useState(false);
@@ -44,7 +45,7 @@ const ShowListModal = ({
           extraInformation={extraInformation}
           content={
             // Usamos un componente de lista genérico que recibirá los datos.
-            ListComponent ? <ListComponent data={sortedData} /> : <div>No se proporcionó un componente de lista.</div>
+            ListComponent ? <ListComponent updateParentArrays={updateParentArrays} data={sortedData} /> : <div>No se proporcionó un componente de lista.</div>
           }
           closeModal={changeListIsOpen}
         />

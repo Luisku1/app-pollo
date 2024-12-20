@@ -135,7 +135,7 @@ export default function Incomes({ incomes, incomesTotal, pushIncome, spliceIncom
           <SectionHeader label={'Efectivos'} />
           <div className='flex items-center gap-4 justify-self-end mr-12'>
             <ShowIncomesModal
-              title={'Gastos'}
+              title={'Ingresos'}
               clickableComponent={
                 roles && roles.managerRole && currentUser.role == roles.managerRole._id ?
                   <p className='font-bold text-lg text-center'>{stringToCurrency({ amount: incomesTotal })}</p>

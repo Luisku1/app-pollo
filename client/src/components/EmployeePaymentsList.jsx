@@ -7,13 +7,14 @@ import { getEmployeeFullName, stringToCurrency } from '../helpers/Functions'
 import { useEmployeePayments } from '../hooks/Employees/useEmployeePayments'
 import { useDeleteEmployeePayment } from '../hooks/Employees/useDeleteEmployeePayment'
 
-export default function EmployeePaymentsList({ data }) {
+export default function EmployeePaymentsList({ data, updateParentArrays }) {
 
   const { payments, total, spliceEmployeePayment } = useEmployeePayments({initialPayments: data})
   const { deleteEmployeePayment } = useDeleteEmployeePayment()
   const { currentUser } = useSelector((state) => state.user)
   const { roles } = useRoles()
   const isEmpty = payments.length === 0
+
 
   const renderTotal = () => {
     return (
@@ -61,6 +62,7 @@ export default function EmployeePaymentsList({ data }) {
                 index={index}
                 item={employeePayment}
                 spliceFunction={spliceEmployeePayment}
+                updateParentArrays={updateParentArrays}
               />
             )}
           </div>

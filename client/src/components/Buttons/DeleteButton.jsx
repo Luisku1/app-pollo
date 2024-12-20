@@ -2,7 +2,7 @@
 import { useState } from "react"
 import { FaTrash } from "react-icons/fa"
 
-export default function DeleteButton({ id, item, index, deleteFunction, spliceFunction }) {
+export default function DeleteButton({ id, item, index, deleteFunction, spliceFunction, extraSplice, extraSplice1, updateParentArrays }) {
 
   const [buttonId, setButtonId] = useState(id)
   const [confirmationIsOpen, setConfirmationIsOpen] = useState(false)
@@ -29,7 +29,7 @@ export default function DeleteButton({ id, item, index, deleteFunction, spliceFu
             </div>
             <div className='flex gap-10'>
               <div>
-                <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { toggleConfirmation(); deleteFunction(item, index, spliceFunction) }}>Si</button>
+                <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { toggleConfirmation(); deleteFunction(item, index, spliceFunction, extraSplice, extraSplice1, updateParentArrays) }}>Si</button>
               </div>
               <div>
                 <button className='rounded-lg border shadow-lg w-20 h-10' onClick={() => { setConfirmationIsOpen(!confirmationIsOpen) }}>No</button>

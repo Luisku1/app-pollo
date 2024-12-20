@@ -16,17 +16,20 @@ export const useDayExtraOutgoings = ({ companyId = null, date = null, initialExt
   }
 
   const spliceExtraOutgoing = ({ index }) => {
+    setExtraOutgoings((prevExtraOutgoings) => {
+      const newExtraOutgoings = [...prevExtraOutgoings];
+      const removed = newExtraOutgoings.splice(index, 1);
+      setTotalExtraOutgoings((prevTotal) => prevTotal - removed[0].amount);
 
-    const removedExtraOutgoing = extraOutgoings.splice(index, 1)
-    setTotalExtraOutgoings((prevTotal) => prevTotal - removedExtraOutgoing[0].amount)
+      return newExtraOutgoings;
+    })
   }
 
   const spliceExtraOutgoingById = ({ extraOutgoingId, amount }) => {
 
-    setExtraOutgoings((prevExtraOutgoings) => prevExtraOutgoings.map((extraOutgoing) =>
-
-      extraOutgoing._id != extraOutgoingId
-    ))
+    setExtraOutgoings((prevExtraOutgoings) =>
+      prevExtraOutgoings.filter((extraOutgoing) => extraOutgoing._id !== extraOutgoingId)
+    )
 
     setTotalExtraOutgoings((prevTotal) => prevTotal - amount)
   }

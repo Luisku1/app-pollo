@@ -12,11 +12,10 @@ import PieChart from "../components/Charts/PieChart";
 import RegistrarDineroReportado from "../components/RegistrarDineroReportado";
 import EmployeeMultiSelect from "../components/Select/EmployeeMultiSelect";
 import { useSupervisorsReportInfo } from "../hooks/Supervisors/useSupervisorsReportInfo.js";
-import ShowListButton from "../components/Buttons/ShowListButton";
 import { useRoles } from "../context/RolesContext.jsx";
 import ExtraOutgoingsList from "../components/Outgoings/ExtraOutgoingsList.jsx";
 import ShowIncomesModal from "../components/Incomes/ShowIncomesModal.jsx";
-import ShowExtraOutgoingsModal from "../components/Outgoings/ShowExtraOutgoingsModal.jsx";
+import ShowListModal from "../components/Modals/ShowListModal.jsx";
 
 export default function Reporte() {
 
@@ -393,24 +392,15 @@ export default function Reporte() {
                           </div>
                           <div className="flex gap-2 items-center">
                             <p className="text-lg font-bold">Gastos:</p>
-                            <ShowExtraOutgoingsModal
+                            <ShowListModal
+                              ListComponent={ExtraOutgoingsList}
+                              sortFunction={(a, b) => b.amount - a.amount}
                               title={'Gastos'}
                               clickableComponent={
                                 <p className="text-lg">{stringToCurrency({ amount: supervisor.extraOutgoings })}
                                 </p>
                               }
-                              extraOutgoings={supervisor.extraOutgoingsArray}
-                            />
-                          </div>
-                          <div className="flex gap-2 items-center">
-                            <p className="text-lg"><span className="font-bold">Gastos: </span>{stringToCurrency({ amount: supervisor.extraOutgoings })}</p>
-                            <ShowListButton
-                              ListComponent={
-                                <ExtraOutgoingsList
-                                  data={supervisor.extraOutgoingsArray.sort((a, b) => a.amount - b.amunt)}
-                                />
-                              }
-                              listTitle={'Gastos externos'}
+                              data={supervisor.extraOutgoingsArray}
                             />
                           </div>
                           <p className="text-lg"><span className="font-bold">Efectivo neto: </span>{(supervisor.cash - supervisor.extraOutgoings).toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>

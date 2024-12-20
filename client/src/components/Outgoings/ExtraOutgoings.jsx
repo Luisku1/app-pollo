@@ -33,6 +33,11 @@ export default function ExtraOutgoings({ currentUser, companyId, date, pushIncom
   const [selectedBranch, setSelectedBranch] = useState(null)
   const [selectedEmployee, setSelectedEmployee] = useState(null)
 
+  const updateParentArrays = ({ incomeId, extraOutgoingId, amount }) => {
+    if (incomeId) spliceIncomeById(incomeId);
+    if (extraOutgoingId) spliceExtraOutgoingById({ extraOutgoingId, amount });
+  }
+
   const paymentsButtonControl = () => {
 
     const amountInput = document.getElementById('paymentAmount')
@@ -170,9 +175,7 @@ export default function ExtraOutgoings({ currentUser, companyId, date, pushIncom
     }
   }
 
-
   useEffect(paymentsButtonControl, [selectedEmployee, selectedBranch])
-
 
   return (
     <div className='border p-3 mt-4 bg-white'>
@@ -213,6 +216,7 @@ export default function ExtraOutgoings({ currentUser, companyId, date, pushIncom
               ListComponent={EmployeePaymentsList}
               clickableComponent={<p className='font-bold text-lg text-center'>{stringToCurrency({ amount: totalEmployeesPayments })}</p>}
               sortFunction={(a, b) => b.amount - a.amount}
+              updateParentArrays={updateParentArrays}
             />
           </div>
         </div>

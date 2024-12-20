@@ -257,7 +257,6 @@ export const updateEmployee = async (req, res, next) => {
 
 	const { employeeId } = req.params
 	const updateData = req.body
-	console.log(updateData, employeeId)
 
 	try {
 
@@ -1042,8 +1041,6 @@ export const deleteEmployeePaymentQuery = async (req, res, next) => {
 	try {
 
 		deletedExtraOutgoing = await deleteExtraOutgoingFunction({ extraOutgoingId })
-
-		if (!deletedExtraOutgoing) throw new Error("No se eliminó el gasto fuera de cuentas")
 
 		if (incomeId) {
 

@@ -33,6 +33,7 @@ export const useEmployeesPayments = ({ companyId, date }) => {
 
   return {
     employeesPayments,
+    setEmployeesPayments,
     totalEmployeesPayments,
     pushEmployeePayment,
     spliceEmployeePayment,
