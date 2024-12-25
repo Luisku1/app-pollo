@@ -35,12 +35,18 @@ const employeePaymentSchema = new mongoose.Schema({
   },
 
   income: {
-    type: Schema.Types.ObjectId, ref: 'IncomeCollected'
+    type: Schema.Types.ObjectId, ref: 'IncomeCollected',
+    validate: {
+      validator: function (v) {
+        return v != null;
+      },
+      message: 'Income is required'
+    }
   },
 
-}, { timestamps: { createdAt: true, updatedAt: true } })
+}, { timestamps: true })
 
-employeePaymentSchema.index({createdAt: -1, employee: 1}, {unique: true})
+employeePaymentSchema.index({ createdAt: -1, employee: 1 }, { unique: true })
 
 const EmployeePayment = mongoose.model('EmployeePayment', employeePaymentSchema)
 

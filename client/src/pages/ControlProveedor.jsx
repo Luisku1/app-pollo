@@ -20,7 +20,7 @@ export default function ControlProveedor() {
   return (
     <main className={"p-3 max-w-lg mx-auto"} >
       <CompraProveedor
-
+        providers={}
       />
     </main>
   )

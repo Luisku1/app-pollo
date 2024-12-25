@@ -114,11 +114,11 @@ export const getOutgoings = async (req, res, next) => {
 
 export const newExtraOutgoingQuery = async (req, res, next) => {
 
-  const { amount, concept, company, employee, createdAt } = req.body
+  const { amount, concept, company, employee, createdAt, _id } = req.body
   let extraOutgoing = null
   try {
 
-    extraOutgoing = await newExtraOutgoingFunction({ amount, concept, company, employee, createdAt })
+    extraOutgoing = await newExtraOutgoingFunction({ _id, amount, concept, company, employee, createdAt })
 
 
     if (extraOutgoing) {
@@ -372,15 +372,15 @@ export const deleteExtraOutgoingFunction = async ({ extraOutgoingId }) => {
 
   } catch (error) {
 
-  if (deletedExtraOutgoing) {
+    if (deletedExtraOutgoing) {
 
-    await ExtraOutgoing.create({ deletedExtraOutgoing })
+      await ExtraOutgoing.create({ deletedExtraOutgoing })
+    }
+
+    console.log(error)
+
+    throw error
   }
-
-  console.log(error)
-
-  throw error
-}
 }
 
 export const deleteOutgoing = async (req, res, next) => {

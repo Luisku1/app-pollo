@@ -1,4 +1,4 @@
-export const addEmployeePaymentFetch = async ({ employeePayment }) => {
+export const addEmployeePaymentFetch = async (employeePayment) => {
 
   const res = await fetch('/api/employee/employee-payment/create', {
     method: 'POST',

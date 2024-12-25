@@ -831,66 +831,66 @@ export const getEmployeesDailyBalances = async (req, res, next) => {
 }
 
 export const newEmployeePaymentQuery = async (req, res, next) => {
-
-	const { amount, detail, company, branch, employee, supervisor, createdAt } = req.body
-
-	let income = null
-	let employeePayment = null
-	let incomeType = null
-	let extraOutgoing
-
-	const employeeData = await Employee.findById(employee, 'name lastName')
+	let extraOutgoing = null;
+	let income = null;
+	let employeePayment = null;
 
 	try {
+		const { amount, detail, company, branch, employee, supervisor, createdAt, _id } = req.body;
 
-		extraOutgoing = await newExtraOutgoingFunction({ amount, concept: (detail + ' [' + employeeData.name + ' ' + employeeData.lastName + ']'), company, employee: supervisor, createdAt, partOfAPayment: true })
-
-		if (!extraOutgoing) throw new Error("No se ha podido crear el gasto fuera de cuenta");
-
-		if (branch != null) {
-
-			incomeType = await getIncomeTypeId({ name: 'Efectivo' })
-
-			if (!incomeType) throw new Error("No se encontró el tipo de ingreso");
-
-			income = await newBranchIncomeFunction({ amount, company, branch, employee: supervisor, type: String(incomeType._id), createdAt, partOfAPayment: true })
-
-			if (!income) throw new Error("No se pudo crear el efectivo");
-
-			employeePayment = await newEmployeePaymentFunction({ amount, detail, employee, supervisor, company, extraOutgoing: extraOutgoing._id, income: income._id, createdAt })
-
-			if (!employeePayment) throw new Error("No se ha podido crear el pago a empleado");
-
-		} else {
-
-			employeePayment = await newEmployeePaymentFunction({ amount, detail, employee, supervisor, company, extraOutgoing: extraOutgoing._id, createdAt })
-
-			if (!employeePayment) throw new Error("No se ha podido crear el pago a empleado");
-
+		// Validación de entrada
+		if (!amount || !detail || !company || !employee || !supervisor || !createdAt) {
+			throw new Error("Faltan datos requeridos");
 		}
 
-		res.status(200).json({ extraOutgoing, income, employeePayment })
+		const employeeData = await Employee.findById(employee, 'name lastName');
+		if (!employeeData) {
+			throw new Error("Empleado no encontrado");
+		}
 
+		const concept = `${detail} [${employeeData.name} ${employeeData.lastName}]`;
+
+		// Crear extraOutgoing
+		extraOutgoing = await newExtraOutgoingFunction({ _id, amount, concept, company, employee: supervisor, createdAt, partOfAPayment: true });
+		if (!extraOutgoing) {
+			throw new Error("No se ha podido crear el gasto fuera de cuenta");
+		}
+
+		if (branch) {
+			const incomeType = await getIncomeTypeId({ name: 'Efectivo' });
+			if (!incomeType) {
+				throw new Error("No se encontró el tipo de ingreso");
+			}
+
+			income = await newBranchIncomeFunction({ amount, company, branch, employee: supervisor, type: String(incomeType._id), createdAt, partOfAPayment: true });
+			if (!income) {
+				throw new Error("No se pudo crear el efectivo");
+			}
+		}
+
+		employeePayment = await newEmployeePaymentFunction({ amount, detail, employee, supervisor, company, extraOutgoing: extraOutgoing._id, income: income ? income._id : null, createdAt });
+		if (!employeePayment) {
+			throw new Error("No se ha podido crear el pago a empleado");
+		}
+
+		res.status(200).json({ extraOutgoing, income, employeePayment });
 	} catch (error) {
-
+		// Manejo de errores y limpieza
 		if (extraOutgoing) {
-
-			await ExtraOutgoing.findByIdAndDelete(extraOutgoing._id)
+			await deleteExtraOutgoingFunction({ extraOutgoingId: extraOutgoing._id });
 		}
 
 		if (employeePayment) {
-
-			await EmployeePayment.findByIdAndDelete(employeePayment._id)
+			await deleteEmployeePaymentQuery({ paymentId: employeePayment._id });
 		}
 
 		if (income) {
-
-			await deleteIncome({ incomeId: income._id })
+			await deleteIncome({ incomeId: income._id });
 		}
 
-		next(error)
+		next(error);
 	}
-}
+};
 
 export const newEmployeePaymentFunction = async ({ amount, detail, employee, supervisor, company, extraOutgoing, income, createdAt }) => {
 

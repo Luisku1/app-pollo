@@ -4,37 +4,34 @@ import { ToastDanger, ToastSuccess } from "../../helpers/toastify"
 import { stringToCurrency } from "../../helpers/Functions"
 
 export const useAddExtraOutgoing = () => {
+  const [loading, setLoading] = useState(false);
 
-  const [loading, setLoading] = useState(false)
+  const addExtraOutgoing = async (extraOutgoing) => {
+    setLoading(true);
 
-  const addExtraOutgoing = ({extraOutgoing, pushExtraOutgoing, updateLastExtraOutgoingId}) => {
+    try {
+      ToastSuccess(`Se registró el gasto de ${stringToCurrency({ amount: extraOutgoing.amount })}`);
 
-    setLoading(true)
+      const response = await addExtraOutgoingFetch(
+        {
+          amount: extraOutgoing.amount,
+          concept: extraOutgoing.concept,
+          employee: extraOutgoing.employee._id,
+          company: extraOutgoing.company,
+          createdAt: extraOutgoing.createdAt,
+        },
+      );
 
-    pushExtraOutgoing({extraOutgoing})
+      // Manejo de la respuesta si es necesario
+      console.log(response);
 
-    ToastSuccess(`Se registró el gasto de ${stringToCurrency({amount: extraOutgoing.amount})} `)
+    } catch (error) {
+      ToastDanger(`No se registró el gasto de ${stringToCurrency({ amount: extraOutgoing.amount })}`);
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    addExtraOutgoingFetch({extraOutgoing: {
-
-      amount: extraOutgoing.amount,
-      concept: extraOutgoing.concept,
-      employee: extraOutgoing.employee._id,
-      company: extraOutgoing.company,
-      createdAt: extraOutgoing.createdAt
-
-    }}).then((response) => {
-
-      updateLastExtraOutgoingId({extraOutgoingId: response.extraOutgoing._id})
-
-    }).catch((error) => {
-
-      ToastDanger(`No se registró el gasto de ${stringToCurrency({amount: extraOutgoing.amount})} `)
-      console.log(error)
-    })
-
-    setLoading(false)
-  }
-
-  return {addExtraOutgoing, loading}
-}
+  return { addExtraOutgoing, loading };
+};

@@ -2,7 +2,7 @@
 import { useState } from "react"
 import { FaTrash } from "react-icons/fa"
 
-export default function DeleteButton({ id, item, index, deleteFunction, spliceFunction, extraSplice, extraSplice1, updateParentArrays }) {
+export default function DeleteButton({ id, item, index, deleteFunction, spliceIncome, spliceExtraOutgoing }) {
 
   const [buttonId, setButtonId] = useState(id)
   const [confirmationIsOpen, setConfirmationIsOpen] = useState(false)

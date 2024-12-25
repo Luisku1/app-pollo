@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react"
+import { v4 as uuidv4 } from 'uuid';
 import { getDayExtraOutgoingsFetch } from "../../services/ExtraOutgoings/getDayExtraOutgoings"
+import { useAddExtraOutgoing } from "./useAddExtraOutgoing"
+import { deleteExtraOutgoingFetch } from "../../services/ExtraOutgoings/deleteExtraOutgoing"
 
 export const useDayExtraOutgoings = ({ companyId = null, date = null, initialExtraOutgoings = [] }) => {
 
@@ -7,39 +10,54 @@ export const useDayExtraOutgoings = ({ companyId = null, date = null, initialExt
   const [totalExtraOutgoings, setTotalExtraOutgoings] = useState(
     initialExtraOutgoings.reduce((acc, extraOutgoing) => acc + extraOutgoing.amount, 0)
   )
+  const { addExtraOutgoing } = useAddExtraOutgoing()
   const [loading, setLoading] = useState(false)
 
-  const pushExtraOutgoing = ({ extraOutgoing }) => {
+  const pushExtraOutgoing = (extraOutgoing) => {
 
     setExtraOutgoings((prevExtraOutgoings) => [extraOutgoing, ...prevExtraOutgoings])
     setTotalExtraOutgoings((prevTotal) => prevTotal + extraOutgoing.amount)
   }
 
-  const spliceExtraOutgoing = ({ index }) => {
+  const spliceExtraOutgoingByIndex = (index) => {
     setExtraOutgoings((prevExtraOutgoings) => {
-      const newExtraOutgoings = [...prevExtraOutgoings];
-      const removed = newExtraOutgoings.splice(index, 1);
-      setTotalExtraOutgoings((prevTotal) => prevTotal - removed[0].amount);
-
+      const removed = prevExtraOutgoings[index];
+      const newExtraOutgoings = prevExtraOutgoings.filter((_, i) => i !== index);
+      setTotalExtraOutgoings((prevTotal) => prevTotal - removed.amount);
       return newExtraOutgoings;
-    })
+    });
+  };
+
+  const onAddExtraOutgoing = async (extraOutgoing) => {
+
+    const tempId = uuidv4()
+
+    try {
+
+      const tempExtraOutgoing = { ...extraOutgoing, _id: tempId }
+
+      pushExtraOutgoing(tempExtraOutgoing)
+      await addExtraOutgoing(tempExtraOutgoing)
+
+    } catch (error) {
+
+      spliceExtraOutgoingByIndex(extraOutgoings.findIndex((extraOutgoing) => extraOutgoing._id === tempId))
+      console.log(error)
+    }
   }
 
-  const spliceExtraOutgoingById = ({ extraOutgoingId, amount }) => {
+  const onDeleteExtraOutgoing = async (extraOutgoing, index) => {
 
-    setExtraOutgoings((prevExtraOutgoings) =>
-      prevExtraOutgoings.filter((extraOutgoing) => extraOutgoing._id !== extraOutgoingId)
-    )
+    try {
 
-    setTotalExtraOutgoings((prevTotal) => prevTotal - amount)
-  }
+      spliceExtraOutgoingByIndex(index)
+      await deleteExtraOutgoingFetch(extraOutgoing)
 
-  const updateLastExtraOutgoingId = ({ extraOutgoingId }) => {
+    } catch (error) {
 
-    setExtraOutgoings((prevExtraOutgoings) => prevExtraOutgoings.map((extraOutgoing, index) =>
-
-      index == 0 ? { _id: extraOutgoingId, ...extraOutgoing } : extraOutgoing
-    ))
+      pushExtraOutgoing(extraOutgoing)
+      console.log(error)
+    }
   }
 
   useEffect(() => {
@@ -69,9 +87,9 @@ export const useDayExtraOutgoings = ({ companyId = null, date = null, initialExt
     extraOutgoings,
     totalExtraOutgoings,
     pushExtraOutgoing,
-    spliceExtraOutgoing,
-    spliceExtraOutgoingById,
-    updateLastExtraOutgoingId,
+    spliceExtraOutgoingByIndex,
+    onAddExtraOutgoing,
+    onDeleteExtraOutgoing,
     loading
   }
 }
