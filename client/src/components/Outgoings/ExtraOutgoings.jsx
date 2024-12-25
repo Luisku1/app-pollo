@@ -6,10 +6,7 @@ import Select from 'react-select'
 import { stringToCurrency } from '../../helpers/Functions'
 import { isToday } from '../../helpers/DatePickerFunctions'
 import { useEffect, useState } from 'react'
-import { useAddExtraOutgoing } from '../../hooks/ExtraOutgoings/useAddExtraOutgoing'
-import { useAddEmployeePayment } from '../../hooks/Employees/useAddEmployeePayment'
 import { useEmployeesPayments } from '../../hooks/Employees/useEmployeesPayments'
-import { useDeleteEmployeePayment } from '../../hooks/Employees/useDeleteEmployeePayment'
 import { useDayExtraOutgoings } from '../../hooks/ExtraOutgoings/useDayExtraOutgoings'
 import { customSelectStyles } from '../../helpers/Constants'
 import { MdCancel } from 'react-icons/md'
@@ -17,26 +14,20 @@ import { useRoles } from '../../context/RolesContext'
 import ShowExtraOutgoingsModal from './ShowExtraOutgoingsModal'
 import ShowListModal from '../Modals/ShowListModal'
 import EmployeePaymentsList from '../EmployeePaymentsList'
+import { useSelector } from 'react-redux'
 
-export default function ExtraOutgoings({ currentUser, companyId, date, pushIncome, employees, branches, spliceIncomeById }) {
+export default function ExtraOutgoings({ date, pushIncome, employees, branches, spliceIncomeById }) {
 
+  const { currentUser, company } = useSelector((state) => state.user)
   const { roles } = useRoles()
   const [extraOutgoingFormData, setExtraOutgoingFormData] = useState({})
-  const { addExtraOutgoing } = useAddExtraOutgoing()
-  const { addEmployeePayment } = useAddEmployeePayment()
-  const { extraOutgoings, totalExtraOutgoings, pushExtraOutgoing, spliceExtraOutgoingById, updateLastExtraOutgoingId } = useDayExtraOutgoings({ companyId, date })
-  const { employeesPayments, totalEmployeesPayments, pushEmployeePayment, spliceEmployeePayment, updateLastEmployeePayment } = useEmployeesPayments({ companyId, date })
-  const { deleteEmployeePayment } = useDeleteEmployeePayment()
+  const { extraOutgoings, totalExtraOutgoings, onAddExtraOutgoing, loading, onDeleteExtraOutgoing, spliceExtraOutgoingByIndex, pushExtraOutgoing } = useDayExtraOutgoings({ companyId: company._id, date })
+  const { payments, total: totalEmployeesPayments, onAddEmployeePayment, onDeleteEmployeePayment } = useEmployeesPayments({ companyId: company._id, date })
   const [buttonId, setButtonId] = useState(null)
   const [isOpen, setIsOpen] = useState(false)
   const [employeePaymentsIsOpen, setEmployeePaymentsIsOpen] = useState(false)
   const [selectedBranch, setSelectedBranch] = useState(null)
   const [selectedEmployee, setSelectedEmployee] = useState(null)
-
-  const updateParentArrays = ({ incomeId, extraOutgoingId, amount }) => {
-    if (incomeId) spliceIncomeById(incomeId);
-    if (extraOutgoingId) spliceExtraOutgoingById({ extraOutgoingId, amount });
-  }
 
   const paymentsButtonControl = () => {
 
@@ -77,10 +68,11 @@ export default function ExtraOutgoings({ currentUser, companyId, date, pushIncom
         amount: parseFloat(amount),
         concept,
         employee: currentUser,
-        company: companyId,
+        company: company._id,
         createdAt
       }
-      addExtraOutgoing({ extraOutgoing, pushExtraOutgoing, updateLastExtraOutgoingId })
+
+      onAddExtraOutgoing(extraOutgoing)
 
       conceptInput.value = ''
       amountInput.value = ''
@@ -105,14 +97,14 @@ export default function ExtraOutgoings({ currentUser, companyId, date, pushIncom
       const employeePayment = {
         amount: parseFloat(amount.value),
         detail: detail.value,
-        company: companyId,
+        company: company._id,
         branch: selectedBranch,
         employee: selectedEmployee,
         supervisor: currentUser,
         createdAt
       }
 
-      addEmployeePayment({ employeePayment, pushEmployeePayment, pushIncome, pushExtraOutgoing, spliceEmployeePayment, updateLastEmployeePayment })
+      onAddEmployeePayment(employeePayment, pushIncome, pushExtraOutgoing)
 
       setSelectedEmployee(null)
       setSelectedBranch(null)
@@ -211,12 +203,10 @@ export default function ExtraOutgoings({ currentUser, companyId, date, pushIncom
           <SectionHeader label={'Pago a Empleados y Rentas'} />
           <div className='flex items-center gap-4 justify-self-end mr-12'>
             <ShowListModal
-              data={employeesPayments}
               title={'Pagos a empleados'}
               ListComponent={EmployeePaymentsList}
+              ListComponentProps={{ data: payments, spliceIncomeById, spliceExtraOutgoingByIndex }}
               clickableComponent={<p className='font-bold text-lg text-center'>{stringToCurrency({ amount: totalEmployeesPayments })}</p>}
-              sortFunction={(a, b) => b.amount - a.amount}
-              updateParentArrays={updateParentArrays}
             />
           </div>
         </div>
@@ -261,7 +251,7 @@ export default function ExtraOutgoings({ currentUser, companyId, date, pushIncom
 
       </div>
 
-      {employeePaymentsIsOpen && employeesPayments && employeesPayments.length > 0 ?
+      {employeePaymentsIsOpen && payments && payments.length > 0 ?
         <div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center max-w-lg my-auto mx-auto z-10'>
           <div className=' bg-white p-5 rounded-lg justify-center items-center h-5/6 my-auto mx-auto w-11/12 overflow-y-scroll'>
             <button className="" onClick={() => { setEmployeePaymentsIsOpen(false) }}><MdCancel className="h-7 w-7" /></button>
@@ -271,14 +261,14 @@ export default function ExtraOutgoings({ currentUser, companyId, date, pushIncom
 
               <div>
 
-                {employeesPayments && employeesPayments.length > 0 ?
+                {payments && payments.length > 0 ?
                   <div id='header' className='grid grid-cols-11 gap-4 items-center justify-around font-semibold mt-4'>
                     <p className='p-3 rounded-lg col-span-3 text-center'>Supervisor</p>
                     <p className='p-3 rounded-lg col-span-3 text-center'>Trabajador</p>
                     <p className='p-3 rounded-lg col-span-3 text-center'>Monto</p>
                   </div>
                   : ''}
-                {employeesPayments && employeesPayments.length > 0 && employeesPayments.map((employeePayment, index) => (
+                {payments && payments.length > 0 && payments.map((employeePayment, index) => (
                   <div key={employeePayment._id}>
                     {(roles.managerRole._id == currentUser.role || employeePayment.employee._id == currentUser._id) && (
                       <div className={(currentUser._id == employeePayment.supervisor._id || currentUser.role == roles.managerRole._id ? '' : 'py-3 ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>

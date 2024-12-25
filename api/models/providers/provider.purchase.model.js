@@ -24,6 +24,12 @@ const providerPurchaseSchema = mongoose.Schema({
 
   comment: {
     type: String,
+    validate: {
+      validator: function(v) {
+        return v.length <= 200;
+      },
+      message: 'Comment should be less than 200 characters'
+    }
   },
 
   specialPrice: {
@@ -53,6 +59,8 @@ const providerPurchaseSchema = mongoose.Schema({
 
 }, { timestamps: true })
 
+providerPurchaseSchema.index({ createdAt: -1, provider: 1 }, { unique: true })
+providerPurchaseSchema.index({ company: 1, createdAt: -1, provider: 1 }, { unique: true })
 const ProviderPurchase = mongoose.model('ProviderPurchase', providerPurchaseSchema)
 
 export default ProviderPurchase

@@ -3,15 +3,13 @@ import { useMemo, useState } from 'react'
 import Modal from './Modal'
 
 const ShowListModal = ({
-  data,
   title,
   clickableComponent = null,
   toggleComponent = null,
   modalIsOpen = null,
   extraInformation = null,
-  sortFunction = null,
   ListComponent = null,
-  updateParentArrays = null
+  ListComponentProps = {}
 }) => {
 
   const [listIsOpen, setListIsOpen] = useState(false);
@@ -23,13 +21,6 @@ const ShowListModal = ({
       setListIsOpen(prev => !prev)
     }
   }
-
-  const sortedData = useMemo(() => {
-    if (sortFunction) {
-      return [...data].sort(sortFunction)
-    }
-    return data;
-  }, [data, sortFunction])
 
   return (
     <div>
@@ -45,7 +36,7 @@ const ShowListModal = ({
           extraInformation={extraInformation}
           content={
             // Usamos un componente de lista genérico que recibirá los datos.
-            ListComponent ? <ListComponent updateParentArrays={updateParentArrays} data={sortedData} /> : <div>No se proporcionó un componente de lista.</div>
+            ListComponent ? <ListComponent {...ListComponentProps} /> : <div>No se proporcionó un componente de lista.</div>
           }
           closeModal={changeListIsOpen}
         />
