@@ -7,23 +7,20 @@ export const useDeleteIncome = () => {
 
   const [loading, setLoading] = useState(false)
 
-  const deleteIncome = (income, index, spliceIncome) => {
+  const deleteIncome = async (income) => {
 
     setLoading(true)
 
-    spliceIncome(index)
-    ToastSuccess(`Se borró el efectivo de ${stringToCurrency({ amount: income.amount })}`)
+    try {
+      ToastSuccess(`Se borró el efectivo de ${stringToCurrency({ amount: income.amount })}`)
 
-    deleteIncomeFetch({ incomeId: income._id }).then(() => {
-
-
-    }).catch((error) => {
-
+      await deleteIncomeFetch(income._id)
+    } catch (error) {
       ToastDanger(`No se borró el efectivo de ${stringToCurrency({ amount: income.amount })}`)
       console.log(error)
-    })
-
-    setLoading(false)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return { deleteIncome, loading }

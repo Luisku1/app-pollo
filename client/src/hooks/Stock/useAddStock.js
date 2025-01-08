@@ -6,15 +6,15 @@ export const useAddStock = () => {
 
   const [loading, setLoading] = useState(false)
 
-  const addStock = ({ stock, pushStock, spliceStock, updateLastStockId }) => {
+  const addStock = async (stock) => {
 
     setLoading(true)
 
-    pushStock({ stock })
     ToastSuccess(`Se registró el sobrante de ${stock.product?.name ?? stock.product?.label}`)
 
-    addStockFetch({
-      stock: {
+    try {
+      await addStockFetch({
+        _id: stock._id || null,
         pieces: stock.pieces,
         weight: stock.weight,
         amount: stock.amount,
@@ -24,20 +24,14 @@ export const useAddStock = () => {
         branch: stock.branch.value,
         createdAt: stock.createdAt,
         company: stock.company
-      }
-    }).then((response) => {
-
-      updateLastStockId({ stockId: response.stock._id })
-
-    }).catch((error) => {
-
-      spliceStock({ index: 0 })
+      })
+    } catch (error) {
       ToastDanger(`No se registró el sobrante de ${stock.product?.name ?? stock.product?.label}`)
       console.log(error)
-    })
-
-    setLoading(false)
+    } finally {
+      setLoading(false)
+    }
   }
 
-  return {addStock, loading}
+  return { addStock, loading }
 }

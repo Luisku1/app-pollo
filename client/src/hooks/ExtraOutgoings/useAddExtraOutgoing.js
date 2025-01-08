@@ -12,8 +12,9 @@ export const useAddExtraOutgoing = () => {
     try {
       ToastSuccess(`Se registró el gasto de ${stringToCurrency({ amount: extraOutgoing.amount })}`);
 
-      const response = await addExtraOutgoingFetch(
+      await addExtraOutgoingFetch(
         {
+          _id: extraOutgoing._id || null,
           amount: extraOutgoing.amount,
           concept: extraOutgoing.concept,
           employee: extraOutgoing.employee._id,
@@ -21,9 +22,6 @@ export const useAddExtraOutgoing = () => {
           createdAt: extraOutgoing.createdAt,
         },
       );
-
-      // Manejo de la respuesta si es necesario
-      console.log(response);
 
     } catch (error) {
       ToastDanger(`No se registró el gasto de ${stringToCurrency({ amount: extraOutgoing.amount })}`);

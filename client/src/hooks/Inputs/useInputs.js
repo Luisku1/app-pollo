@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react"
 import { getInputs } from "../../services/Inputs/getInputs"
+import { useDeleteInput } from "./useDeleteInput"
+import { useAddInput } from "./useAddInput"
+import { Types } from "mongoose"
 
 export const useInputs = ({ companyId = null, date = null, initialInputs = [] }) => {
 
@@ -7,60 +10,100 @@ export const useInputs = ({ companyId = null, date = null, initialInputs = [] })
   const [totalWeight, setTotalWeight] = useState(
     initialInputs.reduce((acc, input) => acc + input.weight, 0)
   )
+  const [totalAmount, setTotalAmount] = useState(
+    initialInputs.reduce((acc, input) => acc + input.amount, 0)
+  )
+  const { deleteInput } = useDeleteInput()
+  const { addInput } = useAddInput()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
-  const pushInput = ({ input }) => {
+  const calculateTotal = (inputsList) => {
+    setTotalWeight(inputsList.reduce((acc, input) => acc + input.weight, 0))
+    setTotalAmount(inputsList.reduce((acc, input) => acc + input.amount, 0))
+  }
 
-    setInputs((prevInputs) => [input, ...prevInputs])
+  const pushInput = (input) => {
+    setInputs((prevInputs) => {
+      calculateTotal([input, ...prevInputs])
+      return [input, ...prevInputs]
+    })
     setTotalWeight((prevTotal) => prevTotal + input.weight)
   }
 
-  const spliceInput = ({ index }) => {
+  const spliceInput = (index) => {
+    setInputs((prevInputs) => {
+      const newInputs = prevInputs.filter((_, i) => i !== index);
+      calculateTotal(newInputs)
+      return newInputs;
+    });
+  };
 
-    const removedInput = inputs.splice(index, 1)
-    setTotalWeight((prevTotal) => prevTotal - removedInput[0].weight)
+  const onAddInput = async (input, group) => {
+
+    const tempId = new Types.ObjectId().toHexString()
+
+    try {
+
+      const tempInput = { ...input, _id: tempId }
+
+      pushInput(tempInput)
+      await addInput(tempInput, group)
+
+    } catch (error) {
+
+      spliceInput(inputs.findIndex((input) => input._id === tempId))
+      console.log(error)
+    }
   }
 
-  const updateLastInputId = ({ inputId }) => {
+  const onDeleteInput = async (input, index) => {
 
-    setInputs((prevInputs) => prevInputs.map((input, index) =>
+    try {
 
-      index == 0 ? { _id: inputId, ...input } : input
-    ))
+      spliceInput(index)
+      await deleteInput(input)
+
+    } catch (error) {
+
+      pushInput(input)
+      console.log(error)
+    }
   }
 
   useEffect(() => {
+    if (!companyId || !date) return;
 
-    if (!companyId || !date) return
+    const fetchInputs = async () => {
+      setLoading(true);
+      setInputs([]);
+      setTotalWeight(0.0);
 
-    setLoading(true)
+      try {
+        const response = await getInputs({ companyId, date });
+        setInputs(response.inputs);
+        calculateTotal(response.inputs);
+      } catch (error) {
+        setError(error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    setInputs([])
-    setTotalWeight(0.0)
+    fetchInputs();
 
-    getInputs({ companyId, date }).then((response) => {
-
-      setInputs(response.inputs)
-      setTotalWeight(response.totalWeight)
-
-    }).catch((error) => {
-
-      setError(error)
-    })
-
-    setLoading(false)
-
-  }, [companyId, date])
+  }, [companyId, date]);
 
   return {
 
     inputs,
     totalWeight,
+    totalAmount,
+    onAddInput,
+    onDeleteInput,
     loading,
     pushInput,
     spliceInput,
-    updateLastInputId,
     error
   }
 }

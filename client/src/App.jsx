@@ -1,35 +1,33 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import ListadoDeCuentas from './pages/ListadoDeCuentas'
-import InicioSesion from './pages/InicioSesion'
-import Perfil from './pages/Perfil'
-import RegistroCuentaDiaria from './pages/RegistroCuentaDiaria'
-import Header from './components/Header'
-import RegistroDueño from './pages/RegistroDueño'
-import RegistroEmpleado from './pages/RegistroEmpleado'
-import RegistroEmpresa from './pages/RegistroEmpresa'
-import PrivateRoute from './components/PrivateRoute'
-import Empleados from './pages/Empleados'
-import RegistroSucursal from './pages/RegistroSucursal'
-import ControlSupervisor from './pages/ControlSupervisor'
-import Empresas from './pages/Empresas'
-import Productos from './pages/Productos'
-import Sucursales from './pages/Sucursales'
-import Precios from './pages/Precios'
-import Reporte from './pages/Reporte'
-import EntradaInicial from './pages/EntradaInicial'
-import Gastos from './pages/Gastos'
-import Nomina from './pages/Nomina'
-import Sobrante from './pages/Sobrante'
-import Graficos from './pages/Graficos'
-import PreciosSucursal from './pages/PreciosSucursal'
-import RegistroCliente from './pages/RegistroCliente'
-import RegistroProveedor from './pages/RegistroProveedor'
-import { ToastContainerComponent } from './helpers/toastify'
-// import 'bootstrap/dist/css/bootstrap.min.css'
-import './index.css'
-import ControlProveedor from './pages/ControlProveedor'
-import { RolesProvider } from './context/RolesContext'
-
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { ToastContainerComponent } from './helpers/toastify';
+import { RolesProvider } from './context/RolesContext';
+import PrivateRoute from './components/PrivateRoute';
+import Header from './components/Header';
+import ListadoDeCuentas from './pages/ListadoDeCuentas';
+import InicioSesion from './pages/InicioSesion';
+import Perfil from './pages/Perfil';
+import RegistroCuentaDiaria from './pages/RegistroCuentaDiaria';
+import RegistroDueño from './pages/RegistroDueño';
+import RegistroEmpleado from './pages/RegistroEmpleado';
+import RegistroEmpresa from './pages/RegistroEmpresa';
+import Empleados from './pages/Empleados';
+import RegistroSucursal from './pages/RegistroSucursal';
+import ControlSupervisor from './pages/ControlSupervisor';
+import Empresas from './pages/Empresas';
+import Productos from './pages/Productos';
+import Sucursales from './pages/Sucursales';
+import Precios from './pages/Precios';
+import Reporte from './pages/Reporte';
+import EntradaInicial from './pages/EntradaInicial';
+import Gastos from './pages/Gastos';
+import Nomina from './pages/Nomina';
+import Sobrante from './pages/Sobrante';
+import Graficos from './pages/Graficos';
+import PreciosSucursal from './pages/PreciosSucursal';
+import RegistroCliente from './pages/RegistroCliente';
+import RegistroProveedor from './pages/RegistroProveedor';
+import ControlProveedor from './pages/ControlProveedor';
+import './index.css';
 
 export default function App() {
   return (
@@ -70,8 +68,6 @@ export default function App() {
             <Route path="/gastos/:date" element={<Gastos />} />
             <Route path="/sobrante" element={<Sobrante />} />
             <Route path="/sobrante/:date" element={<Sobrante />} />
-            <Route path="/reporte" element={<Reporte />} />
-            <Route path="/reporte/:date" element={<Reporte />} />
             <Route path="/graficos/" element={<Graficos />} />
             <Route path="/graficos/:date" element={<Graficos />} />
             <Route path="/proveedores/:date" element={<ControlProveedor />} />
@@ -80,6 +76,5 @@ export default function App() {
         </Routes>
       </BrowserRouter>
     </RolesProvider>
-  )
-
+  );
 }

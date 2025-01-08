@@ -1,12 +1,14 @@
 /* eslint-disable react/prop-types */
 import { Pie } from 'react-chartjs-2';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
+import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { useEffect, useState } from 'react';
 import { stringToCurrency } from '../../helpers/Functions';
-import ShowIncomesModal from '../Incomes/ShowIncomesModal';
-import ShowExtraOutgoingsModal from '../Outgoings/ShowExtraOutgoingsModal';
+import ShowListModal from '../Modals/ShowListModal';
+import IncomesList from '../Incomes/IncomesList';
+import ExtraOutgoingsList from '../Outgoings/ExtraOutgoingsList';
 
-ChartJS.register(ArcElement, Tooltip, Legend);
+ChartJS.register(ArcElement, Tooltip, Legend, ChartDataLabels);
 
 export default function PieChart({ verifiedIncomes = null, netIncomes = null, chartInfo }) {
 
@@ -125,6 +127,16 @@ export default function PieChart({ verifiedIncomes = null, netIncomes = null, ch
       legend: {
         position: 'top', // Posición de la leyenda
       },
+      datalabels: {
+        color: '#000', // Cambiar a un color que contraste bien
+        formatter: (value, context) => {
+          return value === 0 ? '' : stringToCurrency({ amount: value });
+        },
+        font: {
+          weight: 'bold',
+          size: 16, // Aumentar el tamaño de la fuente
+        }
+      },
       tooltip: {
         callbacks: {
           label: function (tooltipItem) {
@@ -138,7 +150,6 @@ export default function PieChart({ verifiedIncomes = null, netIncomes = null, ch
     },
     onClick: (event, elements) => {
       const index = elements[0].index
-      console.log(event)
       handleChartClick(index)
     },
   }
@@ -147,18 +158,21 @@ export default function PieChart({ verifiedIncomes = null, netIncomes = null, ch
     <div>
       <Pie data={data} options={options}></Pie>
       {list.length > 0 && (
-        <ShowIncomesModal
-          incomes={list}
+        <ShowListModal
           title={listTitle}
           modalIsOpen={showIncomes}
-          toggleComponent={() => setShowIncomes((prev) => !prev)}
+          ListComponentProps={{ incomesData: list }}
+          ListComponent={IncomesList}
           extraInformation={renderStatistics}
+          toggleComponent={() => setShowIncomes((prev) => !prev)}
         />
       )}
       {list.length > 0 && (
-        <ShowExtraOutgoingsModal
-          data={list}
-          title={listTitle}
+
+        <ShowListModal
+          ListComponent={ExtraOutgoingsList}
+          ListComponentProps={{ extraOutgoings: list, totalExtraOutgoings: list.reduce((acc, curr) => acc + curr.amount, 0) }}
+          title={'Gastos'}
           modalIsOpen={showExtraOutgoings}
           toggleComponent={() => setShowExtraOutgoings((prev) => !prev)}
         />

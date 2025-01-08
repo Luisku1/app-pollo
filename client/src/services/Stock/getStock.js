@@ -1,4 +1,4 @@
-export const getStockFetch = async ({ branchId, date }) => {
+export const getStockFetch = async (branchId, date) => {
 
   const res = await fetch('/api/stock/get-branch-stock/' + branchId + '/' + date)
   const data = await res.json()

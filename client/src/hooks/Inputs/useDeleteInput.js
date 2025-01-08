@@ -6,20 +6,21 @@ export const useDeleteInput = () => {
 
   const [loading, setLoading] = useState(false)
 
-  const deleteInput = (input, index, spliceInput) => {
+  const deleteInput = async (input) => {
 
     setLoading(true)
 
-    spliceInput({ index })
-    ToastSuccess(`Se borró la entrada de ${input.product?.name ?? input.product?.label}`)
+    try {
+      ToastSuccess(`Se borró la entrada de ${input.product?.name ?? input.product?.label}`)
 
-    deleteInputFetch({ inputId: input._id }).catch((error) => {
-
+      await deleteInputFetch(input._id)
+    } catch (error) {
       ToastDanger(`No se encontró la entrada de ${input.product?.name || input.product?.label}`)
       console.log(error)
-    })
-
-    setLoading(false)
+      throw error
+    } finally {
+      setLoading(false)
+    }
   }
 
   return { deleteInput, loading }

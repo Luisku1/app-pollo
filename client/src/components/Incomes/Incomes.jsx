@@ -1,6 +1,5 @@
 /* eslint-disable react/prop-types */
 import { useState } from 'react'
-import { useAddIncome } from '../../hooks/Incomes/useAddIncome'
 import { useIncomeTypes } from '../../hooks/Incomes/useIncomeTypes'
 import { isToday } from '../../helpers/DatePickerFunctions'
 import SectionHeader from '../SectionHeader'
@@ -10,13 +9,13 @@ import BranchAndCustomerSelect from '../Select/BranchAndCustomerSelect'
 import { useRoles } from '../../context/RolesContext'
 import { stringToCurrency } from '../../helpers/Functions'
 import { FaListAlt } from 'react-icons/fa'
-import ShowIncomesModal from './ShowIncomesModal'
+import ShowListModal from '../Modals/ShowListModal'
+import IncomesList from './IncomesList'
 
-export default function Incomes({ incomes, incomesTotal, pushIncome, spliceIncome, updateLastIncomeId, branchAndCustomerSelectOptions, date, companyId, currentUser }) {
+export default function Incomes({ incomes, incomesTotal, onAddIncome, onDeleteIncome, branchAndCustomerSelectOptions, date, companyId, currentUser }) {
 
   const [incomeFormData, setIncomeFormData] = useState({})
   const { roles } = useRoles()
-  const { addIncome } = useAddIncome()
   const { incomeTypes } = useIncomeTypes()
   const [selectedCustomerBranchIncomesOption, setSelectedCustomerBranchIncomesOption] = useState(null)
   const [selectedIncomeGroup, setSelectedIncomeGroup] = useState('')
@@ -75,7 +74,7 @@ export default function Incomes({ incomes, incomesTotal, pushIncome, spliceIncom
       }
 
 
-      addIncome({ income, group, pushIncome, spliceIncome, updateLastIncomeId })
+      onAddIncome(income, group)
 
 
       amountInput.value = ''
@@ -134,15 +133,17 @@ export default function Incomes({ incomes, incomesTotal, pushIncome, spliceIncom
         <div className='grid grid-cols-2'>
           <SectionHeader label={'Efectivos'} />
           <div className='flex items-center gap-4 justify-self-end mr-12'>
-            <ShowIncomesModal
+            <ShowListModal
               title={'Ingresos'}
+              ListComponent={IncomesList}
+              ListComponentProps={{ incomes, incomesTotal, onDeleteIncome }}
               clickableComponent={
                 roles && roles.managerRole && currentUser.role == roles.managerRole._id ?
-                  <p className='font-bold text-lg text-center'>{stringToCurrency({ amount: incomesTotal })}</p>
+                  <p className='font-bold text-lg text-center'>{stringToCurrency({ amount: incomesTotal ?? 0 })}</p>
                   :
                   <FaListAlt className="h-10 w-10 text-red-600" />
               }
-              incomes={incomes}
+            //Comparar con el monto para cubrir la nota de hoy.
             />
           </div>
         </div>

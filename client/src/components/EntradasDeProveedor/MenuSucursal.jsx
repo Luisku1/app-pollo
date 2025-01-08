@@ -2,16 +2,14 @@
 import { useEffect, useState } from 'react'
 import BranchAndCustomerSelect from '../Select/BranchAndCustomerSelect'
 import { useSelector } from 'react-redux'
-import { useCreateProviderInput } from '../../hooks/ProviderInputs/useCreateProviderInput'
 import Select from 'react-select'
 import { customSelectStyles } from '../../helpers/Constants'
 import { useBranchCustomerProductPrice } from '../../hooks/Prices/useBranchCustomerProductPrice'
 
-export default function MenuSucursal({ branchAndCustomerSelectOptions, date, pushProviderInput, spliceProviderInput, selectedProduct, updateLastProviderInputId }) {
+export default function MenuSucursal({ branchAndCustomerSelectOptions, date, selectedProduct, onAddProviderInput }) {
 
   const { currentUser, company } = useSelector((state) => state.user)
   const [selectedBranchCustomerOption, setSelectedBranchCustomerOption] = useState(null)
-  const { createProviderInput, loading: createInputLoading } = useCreateProviderInput()
   const [selectedGroup, setSelectedGroup] = useState('')
   const { price } = useBranchCustomerProductPrice({ branchCustomerId: selectedBranchCustomerOption ? selectedBranchCustomerOption.value : null, productId: selectedProduct ? selectedProduct.value : null, date, group: selectedGroup == '' ? null : selectedGroup })
   const [providerInputFormData, setProviderInputFormData] = useState({})
@@ -72,7 +70,7 @@ export default function MenuSucursal({ branchAndCustomerSelectOptions, date, pus
       filledInputs = false
     }
 
-    if (filledInputs && selectedBranchCustomerOption != null && !createInputLoading) {
+    if (filledInputs && selectedBranchCustomerOption != null && selectedProduct != null) {
 
       button.disabled = false
 
@@ -82,7 +80,7 @@ export default function MenuSucursal({ branchAndCustomerSelectOptions, date, pus
     }
   }
 
-  useEffect(providerInputButtonControl, [createInputLoading, selectedBranchCustomerOption, selectedProduct])
+  useEffect(providerInputButtonControl, [selectedBranchCustomerOption, selectedProduct])
 
   const submitProviderInput = async (e) => {
 
@@ -137,7 +135,7 @@ export default function MenuSucursal({ branchAndCustomerSelectOptions, date, pus
       }
     }
 
-    createProviderInput({ providerInput, group, pushProviderInput, spliceProviderInput, updateLastProviderInputId })
+    onAddProviderInput(providerInput, group)
 
     piecesInput.value = ''
     weightInput.value = ''
@@ -178,7 +176,7 @@ export default function MenuSucursal({ branchAndCustomerSelectOptions, date, pus
 
         <div className="relative">
           <span className="absolute text-red-700 font-semibold left-3 top-3">$</span>
-          <input className='pl-6 w-full rounded-lg p-3 text-red-700 font-semibold border border-red-600' name='price' placeholder={price.toFixed(2)} onChange={() => {generarMonto()}} id='provider-input-price' step={0.01} type="number" />
+          <input className='pl-6 w-full rounded-lg p-3 text-red-700 font-semibold border border-red-600' name='price' placeholder={price.toFixed(2)} onChange={() => { generarMonto() }} id='provider-input-price' step={0.01} type="number" />
           <label htmlFor="compact-input" className="-translate-y-full px-1 absolute top-1/4 left-2 transform rounded-sm bg-white text-black text-sm font-semibold">
             Precio
           </label>

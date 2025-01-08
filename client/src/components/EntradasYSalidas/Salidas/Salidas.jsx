@@ -1,5 +1,4 @@
 /* eslint-disable react/prop-types */
-import { FaListAlt } from "react-icons/fa"
 import SectionHeader from "../../SectionHeader"
 import { useEffect, useState } from "react"
 import ListaSalidas from "./ListaSalidas"
@@ -13,8 +12,8 @@ import { useLoading } from "../../../hooks/loading"
 import Loading from "../../Loading"
 import { ToastDanger } from "../../../helpers/toastify"
 import { useBranchCustomerProductPrice } from "../../../hooks/Prices/useBranchCustomerProductPrice"
-import { useAddOutput } from "../../../hooks/Outputs/useAddOutput"
 import { priceShouldNotBeZero } from "../../../helpers/Functions"
+import ShowListModal from "../../Modals/ShowListModal"
 
 export default function Salidas({ branchAndCustomerSelectOptions, products, date, selectedProduct, setSelectedProduct, setSelectedProductToNull }) {
 
@@ -23,20 +22,15 @@ export default function Salidas({ branchAndCustomerSelectOptions, products, date
   const {
     outputs,
     totalWeight,
-    pushOutput,
-    spliceOutput,
-    loading: outputLoading,
-    updateLastOutputId
+    onAddOutput,
+    onDeleteOutput
   } = useOutput({ companyId: company._id, date })
-  const { addOutput } = useAddOutput()
-  const [outputsIsOpen, setOutputsIsOpen] = useState(false)
   const [selectedCustomerBranchOption, setSelectedCustomerBranchOption] = useState(null)
   const [selectedGroup, setSelectedGroup] = useState('');
   const { price, loading: priceIsLoading } = useBranchCustomerProductPrice({ branchCustomerId: selectedCustomerBranchOption ? selectedCustomerBranchOption.value : null, productId: selectedProduct ? selectedProduct.value : null, date, group: selectedGroup == '' ? null : selectedGroup })
   const [amount, setAmount] = useState('$0.00')
   const [loading, setLoading] = useState(false)
-
-  const isLoading = useLoading(outputLoading)
+  const isLoading = useLoading(false)
 
   const generarMonto = () => {
 
@@ -54,6 +48,8 @@ export default function Salidas({ branchAndCustomerSelectOptions, products, date
     const weightInput = document.getElementById('output-weight')
     const piecesInput = document.getElementById('output-pieces')
     const button = document.getElementById('outputButton')
+
+    if (!weightInput || !piecesInput || !button) return
 
     let filledInputs = true
 
@@ -158,7 +154,7 @@ export default function Salidas({ branchAndCustomerSelectOptions, products, date
         }
       }
 
-      addOutput({ output, group, pushOutput, spliceOutput, updateLastOutputId })
+      onAddOutput(output, group)
 
       piecesInput.value = ''
       weightInput.value = ''
@@ -177,11 +173,6 @@ export default function Salidas({ branchAndCustomerSelectOptions, products, date
   const handleProductSelectChange = (product) => {
 
     setSelectedProduct(product)
-  }
-
-  const changeOutputsIsOpenValue = () => {
-
-    setOutputsIsOpen(prev => !prev)
   }
 
   const handleBranchCustomerSelectChange = (option) => {
@@ -203,14 +194,16 @@ export default function Salidas({ branchAndCustomerSelectOptions, products, date
 
         <div className='border bg-white p-3 mt-4'>
 
-          <div className='grid grid-cols-3'>
+          <div className='grid grid-cols-2'>
             <SectionHeader label={'Salidas'} />
-            <div className="h-10 w-10 shadow-lg justify-self-end">
-              <button className="w-full h-full" onClick={() => { setOutputsIsOpen(true) }}><FaListAlt className="h-full w-full text-red-600" />
-              </button>
+            <div className='flex items-center gap-4 justify-self-end mr-12'>
+              <ShowListModal
+                title={'Salidas'}
+                ListComponent={ListaSalidas}
+                ListComponentProps={{ outputs, totalWeight, onDeleteOutput }}
+                clickableComponent={<p className='font-bold text-lg text-center'>{(totalWeight ? totalWeight.toFixed(2) : '0.00') + ' Kg'}</p>}
+              />
             </div>
-
-            <p className='font-bold text-lg text-red-700 text-center'>{totalWeight ? totalWeight.toFixed(2) : '0.00' + ' Kg'}</p>
 
           </div>
 
@@ -278,8 +271,6 @@ export default function Salidas({ branchAndCustomerSelectOptions, products, date
 
 
         </div>
-
-        <ListaSalidas outputs={outputs} totalWeight={totalWeight} spliceOutput={spliceOutput} changeOutputsIsOpenValue={changeOutputsIsOpenValue} outputsIsOpen={outputsIsOpen}></ListaSalidas>
 
       </div>
     )

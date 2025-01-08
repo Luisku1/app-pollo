@@ -6,20 +6,20 @@ export const useDeleteStock = () => {
 
   const [loading, setLoading] = useState()
 
-  const deleteStock = ({ stock, spliceStock, index }) => {
+  const deleteStock = async (stock) => {
 
     setLoading(true)
 
-    spliceStock({ index })
-    ToastSuccess(`Se eliminó el sobrante de ${stock.product.name ?? stock.product.label}`)
+    try {
+      ToastSuccess(`Se eliminó el sobrante de ${stock.product.name ?? stock.product.label}`)
 
-    deleteStockFetch({ stockId: stock._id }).catch((error) => {
-
+      await deleteStockFetch(stock._id)
+    } catch (error) {
       ToastDanger(`No se eliminó el sobrante de ${stock.product.name ?? stock.product.label}`)
       console.log(error)
-    })
-
-    setLoading(false)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return { deleteStock, loading }

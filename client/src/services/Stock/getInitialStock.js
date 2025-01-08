@@ -1,4 +1,4 @@
-export const getInitialStockFetch = async ({ branchId, date }) => {
+export const getInitialStockFetch = async (branchId, date) => {
 
 
   const res = await fetch('/api/stock/get-initial-stock/' + branchId + '/' + date)

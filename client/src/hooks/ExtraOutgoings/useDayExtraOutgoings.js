@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react"
-import { v4 as uuidv4 } from 'uuid';
+import { useEffect, useMemo, useState } from "react"
 import { getDayExtraOutgoingsFetch } from "../../services/ExtraOutgoings/getDayExtraOutgoings"
 import { useAddExtraOutgoing } from "./useAddExtraOutgoing"
-import { deleteExtraOutgoingFetch } from "../../services/ExtraOutgoings/deleteExtraOutgoing"
+import { useDeleteExtraOutgoing } from "./useDeleteExtraOutgoing";
+import { Types } from "mongoose";
 
 export const useDayExtraOutgoings = ({ companyId = null, date = null, initialExtraOutgoings = [] }) => {
 
@@ -11,7 +11,13 @@ export const useDayExtraOutgoings = ({ companyId = null, date = null, initialExt
     initialExtraOutgoings.reduce((acc, extraOutgoing) => acc + extraOutgoing.amount, 0)
   )
   const { addExtraOutgoing } = useAddExtraOutgoing()
+  const { deleteExtraOutgoing } = useDeleteExtraOutgoing()
   const [loading, setLoading] = useState(false)
+
+  const calculateTotal = (extraOutgoingsList) => {
+
+    setTotalExtraOutgoings(extraOutgoingsList.reduce((acc, extraOutgoing) => acc + extraOutgoing.amount, 0))
+  }
 
   const pushExtraOutgoing = (extraOutgoing) => {
 
@@ -28,9 +34,20 @@ export const useDayExtraOutgoings = ({ companyId = null, date = null, initialExt
     });
   };
 
+  const spliceExtraOutgoingById = (extraOutgoingId) => {
+
+    setExtraOutgoings((prevExtraOutgoings) => {
+
+      const filteredExtraOutgoings = prevExtraOutgoings.filter((extraOutgoing) => extraOutgoing._id !== extraOutgoingId)
+      setTotalExtraOutgoings(calculateTotal(filteredExtraOutgoings))
+      return filteredExtraOutgoings
+    })
+
+  }
+
   const onAddExtraOutgoing = async (extraOutgoing) => {
 
-    const tempId = uuidv4()
+    const tempId = new Types.ObjectId().toHexString()
 
     try {
 
@@ -51,7 +68,7 @@ export const useDayExtraOutgoings = ({ companyId = null, date = null, initialExt
     try {
 
       spliceExtraOutgoingByIndex(index)
-      await deleteExtraOutgoingFetch(extraOutgoing)
+      await deleteExtraOutgoing(extraOutgoing)
 
     } catch (error) {
 
@@ -59,6 +76,12 @@ export const useDayExtraOutgoings = ({ companyId = null, date = null, initialExt
       console.log(error)
     }
   }
+
+  const sortedExtraOutgoings = useMemo(() => {
+
+    return extraOutgoings.sort((a, b) => { b.amount - a.amount })
+
+  }, [extraOutgoings])
 
   useEffect(() => {
 
@@ -84,8 +107,9 @@ export const useDayExtraOutgoings = ({ companyId = null, date = null, initialExt
   }, [companyId, date])
 
   return {
-    extraOutgoings,
+    extraOutgoings: sortedExtraOutgoings,
     totalExtraOutgoings,
+    spliceExtraOutgoingById,
     pushExtraOutgoing,
     spliceExtraOutgoingByIndex,
     onAddExtraOutgoing,

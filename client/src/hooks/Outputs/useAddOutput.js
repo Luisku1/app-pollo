@@ -3,44 +3,42 @@ import { addOutputFetch } from "../../services/Outputs/addOutput"
 import { ToastDanger, ToastSuccess } from "../../helpers/toastify"
 
 export const useAddOutput = () => {
+  const [loading, setLoading] = useState(false);
 
-  const [loading, setLoading] = useState(false)
+  const addOutput = async (output, group) => {
 
-  const addOutput = ({ output, group, pushOutput, spliceOutput, updateLastOutputId }) => {
+    setLoading(true);
+    ToastSuccess(`Se guardó la salida de ${output.product.label}`);
 
-    setLoading(true)
+    try {
+      await addOutputFetch({
+        output: {
+          _id: output._id,
+          price: output.price,
+          amount: output.amount,
+          comment: output.comment,
+          weight: output.weight,
+          pieces: output.pieces,
+          specialPrice: output.specialPrice,
+          company: output.company,
+          product: output.product.value,
+          employee: output.employee._id,
+          branch: output.branch?.value || null,
+          customer: output.customer?.value || null,
+          createdAt: output.createdAt
+        },
+        group
+      });
 
-    pushOutput({ output })
-    ToastSuccess(`Se guardó la salida de ${output.product.label}`)
 
-    addOutputFetch({
-      output: {
-        price: output.price,
-        amount: output.amount,
-        comment: output.comment,
-        weight: output.weight,
-        pieces: output.pieces,
-        specialPrice: output.specialPrice,
-        company: output.company,
-        product: output.product.value,
-        employee: output.employee._id,
-        branch: output.branch?.value || null,
-        customer: output.customer?.value || null,
-        createdAt: output.createdAt
-      }, group
-    }).then((response) => {
+    } catch (error) {
+      console.error(error);
+      ToastDanger(`No se guardó la salida de ${output.product.label}`);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
 
-      updateLastOutputId({ outputId: response._id })
-
-    }).catch((error) => {
-
-      console.log(error)
-      spliceOutput({ index: 0 })
-      ToastDanger(`No se guardó la salida de ${output.product.label}`)
-    })
-
-    setLoading(false)
-  }
-
-  return { addOutput, loading }
-}
+  return { addOutput, loading };
+};

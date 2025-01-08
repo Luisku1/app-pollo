@@ -1,20 +1,26 @@
+import { useState } from "react"
+import { addProviderPurchaseFetch } from "../../services/Providers/addProviderPurchase"
+import { ToastDanger, ToastSuccess } from "../../helpers/toastify"
+
 //hook para agregar una compra a un proveedor
 const useAddProviderPurchase = () => {
+  const [loading, setLoading] = useState(false)
 
-  const addProviderPurchase = async (providerId, purchase) => {
+  const addPurchase = async (purchaseData) => {
+    setLoading(true)
+
     try {
-      const response = await fetch(`/api/providers/${providerId}/purchases`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(purchase)
-      });
-      return await response.json();
+      ToastSuccess('Compra del proveedor guardada exitosamente')
+      await addProviderPurchaseFetch(purchaseData)
     } catch (error) {
-      console.error(error);
+      console.error(error)
+      ToastDanger('Error al guardar la compra del proveedor')
+    } finally {
+      setLoading(false)
     }
   }
 
-  return { addProviderPurchase }
+  return { addPurchase, loading }
 }
+
+export default useAddProviderPurchase

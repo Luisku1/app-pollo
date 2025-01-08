@@ -22,6 +22,15 @@ const stockSchema = mongoose.Schema({
 		required: true
 	},
 
+  isInitial: {
+    type: Boolean,
+    default: false
+  },
+
+	associatedStock: {
+		type: Schema.Types.ObjectId, ref: 'Stock'
+	},
+
 	company: {
 		type: Schema.Types.ObjectId, ref: 'Company',
 		required: true

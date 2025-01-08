@@ -1,4 +1,4 @@
-export const addStockFetch = async ({ stock }) => {
+export const addStockFetch = async (stock) => {
 
   const res = await fetch('/api/stock/create', {
     method: 'POST',

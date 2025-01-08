@@ -9,11 +9,11 @@ import { pushOrPullCustomerReportRecord } from './customer.controller.js'
 
 export const newBranchInput = async (req, res, next) => {
 
-  const { weight, specialPrice, price, amount, comment, pieces, company, product, employee, branch, createdAt } = req.body
+  const { _id, weight, specialPrice, price, amount, comment, pieces, company, product, employee, branch, createdAt } = req.body
 
   try {
 
-    const newInput = await newBranchInputAndUpdateBranchReport({ weight, comment, pieces, company, product, employee, branch, amount, price, createdAt, specialPrice })
+    const newInput = await newBranchInputAndUpdateBranchReport({ _id, weight, comment, pieces, company, product, employee, branch, amount, price, createdAt, specialPrice })
 
     res.status(200).json({ message: 'New input created', input: newInput })
 
@@ -23,13 +23,13 @@ export const newBranchInput = async (req, res, next) => {
   }
 }
 
-export const newBranchInputAndUpdateBranchReport = async ({ weight, comment, pieces, company, product, employee, branch, amount, price, createdAt, specialPrice }) => {
+export const newBranchInputAndUpdateBranchReport = async ({ _id, weight, comment, pieces, company, product, employee, branch, amount, price, createdAt, specialPrice }) => {
 
   let input = null
 
   try {
 
-    input = await Input.create({ weight, comment, pieces, company, product, employee, branch, amount, price, createdAt, specialPrice })
+    input = await Input.create({ _id, weight, comment, pieces, company, product, employee, branch, amount, price, createdAt, specialPrice })
 
     if (!input) throw new Error("No se logró crear la entrada a sucursal");
 
@@ -58,11 +58,11 @@ export const newBranchInputAndUpdateBranchReport = async ({ weight, comment, pie
 
 export const newCustomerInput = async (req, res, next) => {
 
-  const { weight, price, pieces, amount, employee, comment, product, company, customer, createdAt } = req.body
+  const { _id, weight, price, pieces, amount, employee, comment, product, company, customer, createdAt } = req.body
 
   try {
 
-    const input = await Input.create({ weight, pieces, price, employee, amount, comment, product, company, customer, createdAt })
+    const input = await Input.create({ _id, weight, pieces, price, employee, amount, comment, product, company, customer, createdAt })
 
     await pushOrPullCustomerReportRecord({
       customerId: customer,
@@ -272,7 +272,6 @@ export const getBranchInputsRequest = async (req, res, next) => {
 }
 
 export const getBranchInputs = async ({ branchId, date }) => {
-
 
   const { bottomDate, topDate } = getDayRange(date)
 
@@ -523,11 +522,11 @@ export const deleteInput = async (req, res, next) => {
 
 export const newBranchOutput = async (req, res, next) => {
 
-  const { weight, comment, amount, price, pieces, company, product, employee, branch: branch, specialPrice, createdAt } = req.body
+  const { _id, weight, comment, amount, price, pieces, company, product, employee, branch: branch, specialPrice, createdAt } = req.body
 
   try {
 
-    const newOutput = await newBranchOutputAndUpdateBranchReport({ weight, comment, pieces, company, product, employee, branch, amount, price, createdAt, specialPrice })
+    const newOutput = await newBranchOutputAndUpdateBranchReport({ _id, weight, comment, pieces, company, product, employee, branch, amount, price, createdAt, specialPrice })
     res.status(200).json({ message: 'New output created', output: newOutput })
 
   } catch (error) {
@@ -536,13 +535,13 @@ export const newBranchOutput = async (req, res, next) => {
   }
 }
 
-export const newBranchOutputAndUpdateBranchReport = async ({ weight, comment, pieces, company, product, employee, branch, amount, price, createdAt, specialPrice }) => {
+export const newBranchOutputAndUpdateBranchReport = async ({ _id, weight, comment, pieces, company, product, employee, branch, amount, price, createdAt, specialPrice }) => {
 
   let output = null
 
   try {
 
-    output = await Output.create({ weight, comment, pieces, company, product, employee, branch, amount, price, createdAt, specialPrice })
+    output = await Output.create({ _id, weight, comment, pieces, company, product, employee, branch, amount, price, createdAt, specialPrice })
 
     if (!output) throw new Error("No se logró crear el registro")
 
@@ -571,11 +570,11 @@ export const newBranchOutputAndUpdateBranchReport = async ({ weight, comment, pi
 
 export const newCustomerOutput = async (req, res, next) => {
 
-  const { weight, amount, comment, pieces, company, product, employee, customer, price, createdAt } = req.body
+  const { _id, weight, amount, comment, pieces, company, product, employee, customer, price, createdAt } = req.body
 
   try {
 
-    const output = await Output.create({ weight, comment, pieces, company, product, employee, customer, amount, price, createdAt })
+    const output = await Output.create({ _id, weight, comment, pieces, company, product, employee, customer, amount, price, createdAt })
 
     await pushOrPullCustomerReportRecord({
       customerId: customer,
@@ -587,7 +586,7 @@ export const newCustomerOutput = async (req, res, next) => {
       arrayField: 'returnsArray'
     })
 
-    res.status(200).json({ message: 'New output created', output: newOutput })
+    res.status(200).json({ message: 'New output created', output })
 
   } catch (error) {
 
@@ -875,10 +874,10 @@ export const getBranchProviderInputsAvg = async (req, res, next) => {
 
 export const createBranchProviderInput = async (req, res, next) => {
 
-  const { weight, product, price, amount, employee, branch, company, comment, pieces, specialPrice, createdAt } = req.body
+  const { _id, weight, product, price, amount, employee, branch, company, comment, pieces, specialPrice, createdAt } = req.body
 
   try {
-    const newProviderInput = await createBranchProviderInputAndUpdateBranchReport({ weight, product, price, employee, branch, company, comment, pieces, amount, specialPrice, createdAt })
+    const newProviderInput = await createBranchProviderInputAndUpdateBranchReport({ _id, weight, product, price, employee, branch, company, comment, pieces, amount, specialPrice, createdAt })
 
     res.status(200).json({ providerInput: newProviderInput })
 
@@ -888,13 +887,17 @@ export const createBranchProviderInput = async (req, res, next) => {
   }
 }
 
-export const createBranchProviderInputAndUpdateBranchReport = async ({ weight, product, price, employee, branch, company, comment, pieces, amount, specialPrice, createdAt }) => {
+export const createBranchProviderInputAndUpdateBranchReport = async ({ _id, weight, product, price, employee, branch, company, comment, pieces, amount, specialPrice, createdAt }) => {
 
   let providerInput = null
 
   try {
 
-    providerInput = await ProviderInput.create({ weight, product, price, employee, branch, company, comment, pieces, amount, specialPrice, createdAt })
+    const providerInputData = { weight, product, price, employee, branch, company, comment, pieces, amount, specialPrice, createdAt }
+
+    if (_id) providerInputData._id = _id
+
+    providerInput = await ProviderInput.create(providerInputData)
 
     if (!providerInput) throw new Error("No creó el registro")
 
@@ -923,11 +926,17 @@ export const createBranchProviderInputAndUpdateBranchReport = async ({ weight, p
 
 export const createCustomerProviderInput = async (req, res, next) => {
 
-  const { weight, product, price, amount, employee, customer, company, comment, pieces, createdAt } = req.body
+  const { _id, weight, product, price, amount, employee, customer, company, comment, pieces, createdAt } = req.body
+
+  let providerInput = null
 
   try {
 
-    const providerInput = await ProviderInput.create({ weight, product, price, employee, customer, company, comment, pieces, amount, createdAt })
+    const providerInputData = { weight, product, price, amount, employee, customer, company, comment, pieces, createdAt }
+
+    if (_id) providerInputData._id = _id
+
+    providerInput = await ProviderInput.create(providerInputData)
 
     pushOrPullCustomerReportRecord({
       customerId: customer,
@@ -960,7 +969,7 @@ export const deleteProviderInput = async (req, res, next) => {
 
     if (!deletedProviderInput) throw new Error("No se eliminó el registro");
 
-    if(deletedProviderInput.branch) {
+    if (deletedProviderInput.branch) {
 
       await pushOrPullBranchReportRecord({
         branchId: deletedProviderInput.branch,
@@ -985,7 +994,7 @@ export const deleteProviderInput = async (req, res, next) => {
       })
     }
 
-      res.status(200).json('Registro eliminado')
+    res.status(200).json({ message: 'Registro eliminado', success: true })
 
   } catch (error) {
 
@@ -1002,16 +1011,17 @@ export const deleteOutput = async (req, res, next) => {
 
   const outputId = req.params.outputId
 
+  if (!Types.ObjectId.isValid(outputId)) {
+    return next(errorHandler(400, 'Invalid output ID'));
+  }
+
   let deletedOutput = null
 
   try {
 
-    deletedOutput = await Output.findByIdAndDelete(outputId)
+    let deletedOutput = await Output.findByIdAndDelete(outputId)
 
-    if (!deletedOutput) throw new Error("No se eliminó el registro");
-
-    if(deletedOutput.branch) {
-
+    if (deletedOutput.branch) {
       await pushOrPullBranchReportRecord({
         branchId: deletedOutput.branch,
         date: deletedOutput.createdAt,
@@ -1021,9 +1031,7 @@ export const deleteOutput = async (req, res, next) => {
         arrayField: 'outputsArray',
         amountField: 'outputs'
       })
-
     } else {
-
       await pushOrPullCustomerReportRecord({
         customerId: deletedOutput.customer,
         date: deletedOutput.createdAt,

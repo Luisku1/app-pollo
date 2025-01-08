@@ -13,7 +13,7 @@ export const useProducts = ({ companyId }) => {
 
     setLoading(true)
 
-    getProductsFetch({ companyId }).then((response) => {
+    getProductsFetch(companyId).then((response) => {
 
       setProducts(response)
 

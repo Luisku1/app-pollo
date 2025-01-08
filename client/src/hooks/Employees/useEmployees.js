@@ -1,33 +1,18 @@
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { getEmployeesNameList } from "../../services/employees/employeesNameList"
 import { getAllEmployees } from "../../services/employees/getAllEmployees"
 import { changeActiveStatus } from "../../services/employees/changeActiveStatus"
 import { ToastSuccess } from "../../helpers/toastify"
 import { getEmployeeFullName } from "../../helpers/Functions"
+import { useUpdateEmployee } from "./useUpdateEmployee"
 
 export const useEmployees = ({ companyId, onlyActiveEmployees = true }) => {
 
   const [employees, setEmployees] = useState([])
-  const [filteredEmployees, setFilteredEmployees] = useState([])
+  const { updateEmployee, loading: updating } = useUpdateEmployee()
   const [loading, setLoading] = useState(false)
+  const [filterString, setFilterString] = useState('')
   const [error, setError] = useState(null)
-
-  const filterEmployees = (filterString = '') => {
-
-    if (filterString != '') {
-
-      const filteredList = employees.filter((employee) =>
-
-        getEmployeeFullName(employee).toLowerCase().includes(filterString.toLowerCase())
-      )
-
-      setFilteredEmployees(filteredList)
-
-    } else {
-
-      setFilteredEmployees(employees)
-    }
-  }
 
   const changeEmployeeActiveStatus = ({ employee }) => {
 
@@ -42,15 +27,6 @@ export const useEmployees = ({ companyId, onlyActiveEmployees = true }) => {
           return employee._id == updatedEmployee._id ? updatedEmployee : employee
         })
       )
-
-      setFilteredEmployees((prevEmployees) =>
-
-        prevEmployees.map((employee) => {
-
-          return employee._id == updatedEmployee._id ? updatedEmployee : employee
-        })
-      )
-
     }).catch((error) => {
 
       setError(error)
@@ -58,15 +34,6 @@ export const useEmployees = ({ companyId, onlyActiveEmployees = true }) => {
   }
 
   const spliceEmployee = ({ employeeId }) => {
-
-
-    setFilteredEmployees((prevEmployees) =>
-
-      prevEmployees.filter((employee) =>
-
-        employee._id != employeeId
-      )
-    )
 
     setEmployees((prevEmployees) =>
 
@@ -76,6 +43,29 @@ export const useEmployees = ({ companyId, onlyActiveEmployees = true }) => {
       )
     )
   }
+
+  const onUpdateEmployee = async (employee) => {
+    setEmployees((prevEmployees) =>
+      prevEmployees.map((prevEmployee) =>
+        prevEmployee._id === employee._id ? employee : prevEmployee
+      )
+    );
+    try {
+
+      updateEmployee(employee);
+
+    } catch (error) {
+      console.error('Error updating employee:', error);
+    }
+  };
+
+  const filteredEmployees = useMemo(() => {
+
+    return employees.filter((employee) =>
+      getEmployeeFullName(employee).toLowerCase().includes(filterString.toLowerCase())
+    )
+  }
+    , [employees, filterString])
 
   useEffect(() => {
 
@@ -88,7 +78,6 @@ export const useEmployees = ({ companyId, onlyActiveEmployees = true }) => {
       getEmployeesNameList({ companyId }).then((response) => {
 
         setEmployees(response)
-        setFilteredEmployees(response)
 
       }).catch((error) => {
 
@@ -100,7 +89,6 @@ export const useEmployees = ({ companyId, onlyActiveEmployees = true }) => {
       getAllEmployees({ companyId }).then((response) => {
 
         setEmployees(response)
-        setFilteredEmployees(response)
 
       }).catch((error) => {
 
@@ -112,5 +100,5 @@ export const useEmployees = ({ companyId, onlyActiveEmployees = true }) => {
 
   }, [companyId, onlyActiveEmployees])
 
-  return { employees: filteredEmployees, spliceEmployee, filterEmployees, changeEmployeeActiveStatus, loading, error }
+  return { employees: filteredEmployees, spliceEmployee, onUpdateEmployee, setFilterString, changeEmployeeActiveStatus, loading, updating, error }
 }

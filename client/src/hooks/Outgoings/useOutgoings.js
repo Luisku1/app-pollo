@@ -1,37 +1,73 @@
 import { useEffect, useState } from "react"
 import { getOutgoings } from "../../services/Outgoings/getOutgoings"
+import { useAddOutgoing } from "./useAddOutgoing"
+import { Types } from "mongoose"
+import { useDeleteOutgoing } from "./useDeleteOutgoing"
 
-export const useOutgoings = ({ branchId, date }) => {
+export const useOutgoings = ({ branchId = null, date = null, initialOutgoings = [] }) => {
 
-  const [outgoings, setOutgoings] = useState([])
-  const [outgoingsTotal, setOutgoingsTotal] = useState(0)
+  const [outgoings, setOutgoings] = useState(initialOutgoings)
+  const [outgoingsTotal, setOutgoingsTotal] = useState(
+    initialOutgoings.reduce((acc, outgoing) => acc + outgoing.amount, 0)
+  )
+  const { deleteOutgoing } = useDeleteOutgoing()
+  const { addOutgoing } = useAddOutgoing()
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
 
-  const pushOutgoing = ({ outgoing }) => {
+  const calculateTotal = (outgoingsList) => {
+
+    setOutgoingsTotal(outgoingsList.reduce((acc, outgoing) => acc + outgoing.amount, 0))
+  }
+
+  const pushOutgoing = (outgoing) => {
 
     setOutgoings((prevOutgoings) => [outgoing, ...prevOutgoings])
     setOutgoingsTotal((prev) => prev + outgoing.amount)
   }
 
-  const spliceOutgoing = ({ index }) => {
+  const spliceOutgoing = (index) => {
+    setOutgoings((prevOutgoings) => {
+      const newOutgoings = prevOutgoings.filter((_, i) => i !== index);
+      calculateTotal(newOutgoings);
+      return newOutgoings;
+    });
+  };
 
-    if(outgoings.length === 0) return
-    const removedOutgoing = outgoings.splice(index, 1)
-    setOutgoingsTotal((prev) => prev - parseFloat(removedOutgoing[0].amount))
+  const onAddOutgoing = async (outgoing) => {
+
+    const tempId = new Types.ObjectId().toHexString()
+
+    try {
+
+      const tempOutgoing = { ...outgoing, _id: tempId }
+
+      pushOutgoing(tempOutgoing)
+      await addOutgoing(tempOutgoing)
+
+    } catch (error) {
+
+      spliceOutgoing(outgoings.findIndex((outgoing) => outgoing._id === tempId))
+      console.log(error)
+    }
   }
 
-  const updateOutgoingId = (tempId, realId) => {
-    setOutgoings((prevOutgoings) => {
+  const onDeleteOutgoing = async (outgoing, index) => {
 
-      prevOutgoings[0]._id = realId
+    try {
 
-      return prevOutgoings
-    })
+      spliceOutgoing(index)
+      await deleteOutgoing(outgoing)
+
+    } catch (error) {
+
+      pushOutgoing(outgoing)
+      console.log(error)
+    }
   }
 
   useEffect(() => {
 
+    if (initialOutgoings.length > 0) return
     if (!branchId || !date) return
 
     setLoading(true)
@@ -46,12 +82,19 @@ export const useOutgoings = ({ branchId, date }) => {
 
     }).catch((error) => {
 
-      setError(error)
+      console.log(error)
     })
 
     setLoading(false)
-  }, [branchId, date])
+  }, [branchId, date, initialOutgoings])
 
-  return { outgoings, updateOutgoingId, outgoingsTotal, pushOutgoing, spliceOutgoing, loading, error }
-
+  return {
+    outgoings,
+    outgoingsTotal,
+    onAddOutgoing,
+    onDeleteOutgoing,
+    pushOutgoing,
+    spliceOutgoing,
+    loading
+  }
 }

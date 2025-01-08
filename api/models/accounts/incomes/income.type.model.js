@@ -8,7 +8,7 @@ const incomeTypeSchema = mongoose.Schema( {
         unique: true
     }
 
-}, {timestamp: {createdAt: true, updatedAt: false}})
+}, {timestamps: {createdAt: true, updatedAt: false}})
 
 const IncomeType = mongoose.model('IncomeType', incomeTypeSchema)
 

@@ -1,4 +1,4 @@
-export const createProviderInputFetch = async ({ providerInput, group }) => {
+export const createProviderInputFetch = async (providerInput, group) => {
 
   const res = await fetch(`/api/input/${group}/create-provider-input`, {
     method: 'POST',

@@ -1,4 +1,4 @@
-export const deleteOutgoingFetch = async ({ outgoingId }) => {
+export const deleteOutgoingFetch = async (outgoingId) => {
 
   const res = await fetch('/api/outgoing/delete/' + outgoingId, {
 

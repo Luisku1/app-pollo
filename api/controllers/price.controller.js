@@ -273,7 +273,7 @@ export const getBranchProductPrice = async (req, res, next) => {
 
     if (productPrice) {
 
-      res.status(200).json({ price: productPrice.price || 0.0 })
+      res.status(200).json({ price: productPrice || 0.0 })
 
     } else {
 
@@ -391,10 +391,7 @@ export const getProductPrice = async (productId, branchId, topDate = new Date())
       ]
     }, 'price').sort({ createdAt: -1 }).limit(1)
 
-    if (price) {
-
-      return price[0]
-    }
+    return price[0].price ?? null
 
   } catch (error) {
 

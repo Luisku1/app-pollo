@@ -1,21 +1,12 @@
-export const getProductsFetch = async ({ companyId }) => {
+export const getProductsFetch = async (companyId) => {
 
   const res = await fetch('/api/product/get-products/' + companyId)
   const data = await res.json()
 
   if (data.success === false) {
 
-    return []
+    throw new Error(data.message)
   }
 
-  const products = data.products.map((product) => {
-
-    const { name: label, _id : value, ...rest } = product
-    const newProduct = { label, value, ...rest }
-
-    return newProduct
-
-  })
-
-  return products
+  return data.products
 }

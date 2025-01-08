@@ -1,4 +1,4 @@
-export const deleteInputFetch = async ({ inputId }) => {
+export const deleteInputFetch = async (inputId) => {
 
   const res = await fetch(`/api/input/delete-input/${inputId}`, {
 

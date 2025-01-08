@@ -6,23 +6,22 @@ export const useDeleteProviderInput = () => {
 
   const [loading, setLoading] = useState(null)
 
-  const deleteProviderInput = ({ providerInput, spliceProviderInput, pushProviderInput, index }) => {
+  const deleteProviderInput = async (providerInput) => {
 
     setLoading(true)
 
-    spliceProviderInput({ index })
+    try {
 
-    ToastSuccess(`Se borró la entrada de proveedor de ${providerInput.product?.name ?? providerInput.product?.label}`)
+      ToastSuccess(`Se borró la entrada de proveedor de ${providerInput.product?.name ?? providerInput.product?.label}`)
 
-    deleteProviderInputFetch({ providerInputId: providerInput._id }).catch((error) => {
+      await deleteProviderInputFetch(providerInput._id)
 
+    } catch (error) {
       console.log(error)
-      pushProviderInput({ providerInput })
       ToastDanger(`No se borró la entrada de proveedor de ${providerInput.product?.name ?? providerInput.product?.label}`)
-    })
-
-    setLoading(false)
-
+    } finally {
+      setLoading(false)
+    }
   }
 
   return { deleteProviderInput, loading }

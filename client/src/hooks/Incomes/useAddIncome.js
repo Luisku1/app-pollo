@@ -6,36 +6,33 @@ export const useAddIncome = () => {
 
   const [loading, setLoading] = useState(false)
 
-  const addIncome = ({ income, group, pushIncome, spliceIncome, updateLastIncomeId }) => {
+  const addIncome = async (income, group) => {
 
     setLoading(true)
 
-    pushIncome(income)
-    ToastSuccess(`Se registró el efectivo de ${income.amount.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}`)
+    try {
 
-    addIncomeFetch({
-      income: {
-        amount: income.amount,
-        company: income.company,
-        branch: income.branch?.value || null,
-        customer: income.customer?.value || null,
-        employee: income.employee._id,
-        partOfAPayment: income.partOfAPayment,
-        type: income.type.value,
-        createdAt: income.createdAt
-      }, group
-    }).then((response) => {
+      ToastSuccess(`Se registró el efectivo de ${income.amount.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}`)
 
-      updateLastIncomeId(response._id)
+      await addIncomeFetch({
+          _id: income._id || null,
+          amount: income.amount,
+          company: income.company,
+          branch: income.branch?.value || null,
+          customer: income.customer?.value || null,
+          employee: income.employee._id,
+          partOfAPayment: income.partOfAPayment,
+          type: income.type.value,
+          createdAt: income.createdAt
+        }, group
+      )
 
-    }).catch((error) => {
-
-      spliceIncome(0)
+    } catch (error) {
       ToastDanger(`No se registró el efectivo de ${income.amount.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}`)
       console.log(error)
-    })
-
-    setLoading(false)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return { addIncome, loading }

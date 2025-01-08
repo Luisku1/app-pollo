@@ -1,27 +1,21 @@
-import { useNavigate, useParams } from "react-router-dom";
-import CompraProveedor from "../components/Proveedores/CompraProveedor";
+import { useParams } from "react-router-dom";
+import MenuProveedor from "../components/Proveedores/MenuProveedor";
 import { formatDate } from "../helpers/DatePickerFunctions";
-import { useSelector } from "react-redux";
-import { useEmployees } from "../hooks/Employees/useEmployees";
-import { useProducts } from "../hooks/Products/useProducts";
-import { useRoles } from "../context/RolesContext";
+import useProvidersPurchases from "../hooks/Providers/useProvidersPurchases";
 
 export default function ControlProveedor() {
 
   let paramsDate = useParams().date
   let datePickerValue = (paramsDate ? new Date(paramsDate) : new Date())
   let stringDatePickerValue = formatDate(datePickerValue)
-  const { currentUser, company } = useSelector((state) => state.user)
-  const { employees, loading: empLoading } = useEmployees({ companyId: company._id })
-  const { products, loading: prodLoading } = useProducts({ companyId: company._id })
-  const { roles, loading: roleLoading } = useRoles()
-  const navigate = useNavigate()
+  const {purchases} = useProvidersPurchases({date: stringDatePickerValue})
 
   return (
-    <main className={"p-3 max-w-lg mx-auto"} >
-      <CompraProveedor
-        providers={}
+    <div>
+      <h1>Control de Proveedor</h1>
+      <MenuProveedor
+        date={stringDatePickerValue}
       />
-    </main>
-  )
+    </div>
+  );
 }

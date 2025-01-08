@@ -99,6 +99,11 @@ const branchReportSchema = mongoose.Schema({
     type: Schema.Types.ObjectId, ref: 'Employee'
   },
 
+  pricesDate: {
+    type: Date,
+    required: true
+  },
+
   dateSent: {
     type: Date
   }

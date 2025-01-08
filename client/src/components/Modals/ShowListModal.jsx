@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import { useMemo, useState } from 'react'
+import { useState } from 'react';
 import Modal from './Modal'
 
 const ShowListModal = ({

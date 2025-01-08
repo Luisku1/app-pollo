@@ -7,23 +7,18 @@ export const useDeleteOutgoing = () => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
-  const deleteOutgoing = ({ outgoing, spliceOutgoing, pushOutgoing, index }) => {
-
+  const deleteOutgoing = async (outgoing) => {
     setLoading(true)
-
-    spliceOutgoing({ index })
-    ToastSuccess(`Se eliminó el gasto de "${outgoing.concept}"`)
-
-    deleteOutgoingFetch({ outgoingId: outgoing._id }).catch((error) => {
-
-      pushOutgoing({ outgoing })
+    try {
+      ToastSuccess(`Se eliminó el gasto de "${outgoing.concept}"`)
+      await deleteOutgoingFetch(outgoing._id)
+    } catch (error) {
       ToastDanger(`No se eliminó el gasto de "${outgoing.concept}"`)
       setError(error)
       console.log(error)
-    })
-
-    setLoading(false)
-
+    } finally {
+      setLoading(false)
+    }
   }
 
   return { deleteOutgoing, loading, error }

@@ -11,9 +11,9 @@ import { useLoading } from '../../../hooks/loading'
 import Loading from '../../Loading'
 import { ToastDanger } from '../../../helpers/toastify'
 import { useBranchCustomerProductPrice } from '../../../hooks/Prices/useBranchCustomerProductPrice'
-import { useAddInput } from '../../../hooks/Inputs/useAddInput'
 import { priceShouldNotBeZero } from '../../../helpers/Functions'
-import ShowInputs from '../ShowInputs'
+import ShowListModal from '../../Modals/ShowListModal'
+import ListaEntradas from './ListaEntradas'
 
 export default function Entradas({ branchAndCustomerSelectOptions, products, date, selectedProduct, setSelectedProduct, setSelectedProductToNull }) {
 
@@ -22,13 +22,10 @@ export default function Entradas({ branchAndCustomerSelectOptions, products, dat
   const {
     inputs,
     totalWeight,
-    pushInput,
-    spliceInput,
-    updateLastInputId,
+    onDeleteInput,
+    onAddInput,
     loading: inputLoading
   } = useInputs({ companyId: company._id, date })
-  const { addInput } = useAddInput()
-  const [toggleInputs, setToggleInputs] = useState(false)
   const [selectedCustomerBranchOption, setSelectedCustomerBranchOption] = useState(null)
   const [selectedGroup, setSelectedGroup] = useState('')
   const { price, loading: priceIsLoading } = useBranchCustomerProductPrice({ branchCustomerId: selectedCustomerBranchOption ? selectedCustomerBranchOption.value : null, productId: selectedProduct ? selectedProduct.value : null, date, group: selectedGroup == '' ? null : selectedGroup })
@@ -53,6 +50,8 @@ export default function Entradas({ branchAndCustomerSelectOptions, products, dat
     const weightInput = document.getElementById('input-weight')
     const piecesInput = document.getElementById('input-pieces')
     const button = document.getElementById('input-button')
+
+    if(!weightInput || !piecesInput || !button) return
 
     let filledInputs = true
 
@@ -157,7 +156,7 @@ export default function Entradas({ branchAndCustomerSelectOptions, products, dat
         }
       }
 
-      addInput({ input, group, pushInput, spliceInput, updateLastInputId })
+      onAddInput(input, group)
 
       piecesInput.value = ''
       weightInput.value = ''
@@ -171,11 +170,6 @@ export default function Entradas({ branchAndCustomerSelectOptions, products, dat
       setLoading(false)
 
     }
-  }
-
-  const toggleInputsList = () => {
-
-    setToggleInputs(prev => !prev)
   }
 
   const handleProductSelectChange = (product) => {
@@ -202,12 +196,11 @@ export default function Entradas({ branchAndCustomerSelectOptions, products, dat
           <div className='grid grid-cols-2'>
             <SectionHeader label={'Entradas'} />
             <div className='flex items-center gap-4 justify-self-end mr-12'>
-              <ShowInputs
+              <ShowListModal
                 title={'Entradas'}
+                ListComponent={ListaEntradas}
+                ListComponentProps={{ inputs, totalWeight, onDeleteInput }}
                 clickableComponent={<p className='font-bold text-lg text-center'>{(totalWeight ? totalWeight.toFixed(2) : '0.00') + ' Kg'}</p>}
-                inputs={inputs}
-                modalIsOpen={toggleInputs}
-                toggleComponent={toggleInputsList}
               />
             </div>
           </div>

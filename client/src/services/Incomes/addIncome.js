@@ -1,4 +1,4 @@
-export const addIncomeFetch = async ({ income, group }) => {
+export const addIncomeFetch = async (income, group) => {
 
   const res = await fetch(`/api/income/${group}/create`, {
 

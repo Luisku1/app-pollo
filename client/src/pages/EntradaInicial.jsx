@@ -3,25 +3,22 @@ import { useEffect, useRef, useState } from "react"
 import { useSelector } from "react-redux"
 import SectionHeader from "../components/SectionHeader";
 import { MdCancel } from "react-icons/md";
-import { FaListAlt, FaTrash } from "react-icons/fa";
+import { FaListAlt } from "react-icons/fa";
 import { BsInfoSquare } from "react-icons/bs";
 import Select from 'react-select'
 import { customSelectStyles } from "../helpers/Constants";
 import MenuSucursal from "../components/EntradasDeProveedor/MenuSucursal";
 import { useProviderInputs } from "../hooks/ProviderInputs/useProviderInputs";
-import { useDeleteProviderInput } from "../hooks/ProviderInputs/useDeleteProviderInput";
 import { stringToCurrency } from "../helpers/Functions";
+import DeleteButton from "../components/Buttons/DeleteButton";
 
 export default function EntradaInicial({ date, branchAndCustomerSelectOptions, products, roles }) {
 
   const { company, currentUser } = useSelector((state) => state.user)
   const [selectedProduct, setSelectedProduct] = useState(null)
-  const { deleteProviderInput, loading: deletingLoading } = useDeleteProviderInput()
-  const { providerInputs, providerInputsWeight, providerInputsPieces, providerInputsAmount, pushProviderInput, spliceProviderInput, updateLastProviderInputId } = useProviderInputs({ companyId: company._id, productId: selectedProduct == null ? products.length > 0 ? products[0].value : null : selectedProduct.value, date })
+  const { providerInputs, providerInputsWeight, providerInputsPieces, providerInputsAmount, onAddProviderInput, onDeleteProviderInput } = useProviderInputs({ companyId: company._id, productId: selectedProduct == null ? products.length > 0 ? products[0].value : null : selectedProduct.value, date })
   const [showProviderInputs, setShowProviderInputs] = useState(false)
   const [showProviderInputsStats, setShowProviderInputsStats] = useState(false)
-  const [buttonId, setButtonId] = useState(null)
-  const [isOpen, setIsOpen] = useState(false)
   const listRef = useRef(null);
 
   useEffect(() => {
@@ -120,7 +117,12 @@ export default function EntradaInicial({ date, branchAndCustomerSelectOptions, p
 
         </div>
 
-        <MenuSucursal date={date} updateLastProviderInputId={updateLastProviderInputId} branchAndCustomerSelectOptions={branchAndCustomerSelectOptions} spliceProviderInput={spliceProviderInput} pushProviderInput={pushProviderInput} selectedProduct={selectedProduct}></MenuSucursal>
+        <MenuSucursal
+          date={date}
+          branchAndCustomerSelectOptions={branchAndCustomerSelectOptions}
+          onAddProviderInput={onAddProviderInput}
+          selectedProduct={selectedProduct}>
+        </MenuSucursal>
 
       </div>
 
@@ -158,39 +160,15 @@ export default function EntradaInicial({ date, branchAndCustomerSelectOptions, p
 
                       {providerInput.employee._id == currentUser._id || roles.managerRole._id == currentUser.role ?
 
-                        <div>
-                          <button id={providerInput._id} onClick={() => { setIsOpen(!isOpen), setButtonId(providerInput._id) }} disabled={deletingLoading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
-                            <span>
-                              <FaTrash className='text-red-700 m-auto' />
-                            </span>
-                          </button>
-
-                          {isOpen && providerInput._id == buttonId ?
-                            <div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center items-center'>
-                              <div className='bg-white p-5 rounded-lg flex flex-col justify-center items-center gap-5'>
-                                <div>
-                                  <p className='text-3xl font-semibold'>¿Estás seguro de borrar este registro?</p>
-                                </div>
-                                <div className='flex gap-10'>
-                                  <div>
-                                    <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteProviderInput({ providerInput, spliceProviderInput, pushProviderInput, index }), setIsOpen(!isOpen) }}>Si</button>
-                                  </div>
-                                  <div>
-                                    <button className='rounded-lg border shadow-lg w-20 h-10' onClick={() => { setIsOpen(!isOpen) }}>No</button>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                            : ''}
-
-                        </div>
-
+                        <DeleteButton
+                          deleteFunction={onDeleteProviderInput}
+                          id={providerInput._id}
+                          index={index}
+                          item={providerInput}
+                        />
                         : ''}
-
                     </div>
-
                   ))}
-
                 </div>
               </div>
             </div>

@@ -13,12 +13,12 @@ import { useSupervisorReports } from '../hooks/Supervisors/useSupervisorReports'
 import SupervisorReports from '../components/SupervisorReports'
 import SupervisorReport from '../components/SupervisorReportComp'
 import EmployeePaymentsList from '../components/EmployeePaymentsList'
-import { useEmployeePayments } from '../hooks/Employees/useEmployeePayments'
 import { getEmployeeFullName, stringToCurrency } from '../helpers/Functions'
 import { useRoles } from '../context/RolesContext'
 import RegistroEmpleadoNuevo from "./RegistroEmpleado";
 import Modal from "../components/Modals/Modal";
 import ShowListModal from "../components/Modals/ShowListModal";
+import { useEmployeesPayments } from "../hooks/Employees/useEmployeesPayments";
 
 export default function Perfil() {
 
@@ -32,7 +32,7 @@ export default function Perfil() {
   const { supervisorReports } = useSupervisorReports({ supervisorId: employeeId })
   const [lastBranchReport, setLastBranchReport] = useState(null)
   const [loading, setLoading] = useState(false)
-  const { payments, total } = useEmployeePayments({ employeeId, date: formatDate(new Date()) })
+  const { payments, total } = useEmployeesPayments({ employeeId, date: formatDate(new Date()) })
   const { roles } = useRoles()
   const { isLoading } = useLoading(loading)
   const { signOut } = useSignOut()

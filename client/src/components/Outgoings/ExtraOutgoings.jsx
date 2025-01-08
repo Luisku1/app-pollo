@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import { FaListAlt, FaTrash } from 'react-icons/fa'
+import { FaListAlt } from 'react-icons/fa'
 import SectionHeader from '../SectionHeader'
 import EmployeesSelect from '../Select/EmployeesSelect'
 import Select from 'react-select'
@@ -9,23 +9,22 @@ import { useEffect, useState } from 'react'
 import { useEmployeesPayments } from '../../hooks/Employees/useEmployeesPayments'
 import { useDayExtraOutgoings } from '../../hooks/ExtraOutgoings/useDayExtraOutgoings'
 import { customSelectStyles } from '../../helpers/Constants'
-import { MdCancel } from 'react-icons/md'
 import { useRoles } from '../../context/RolesContext'
-import ShowExtraOutgoingsModal from './ShowExtraOutgoingsModal'
 import ShowListModal from '../Modals/ShowListModal'
 import EmployeePaymentsList from '../EmployeePaymentsList'
 import { useSelector } from 'react-redux'
+import ExtraOutgoingsList from './ExtraOutgoingsList'
 
 export default function ExtraOutgoings({ date, pushIncome, employees, branches, spliceIncomeById }) {
 
   const { currentUser, company } = useSelector((state) => state.user)
   const { roles } = useRoles()
   const [extraOutgoingFormData, setExtraOutgoingFormData] = useState({})
-  const { extraOutgoings, totalExtraOutgoings, onAddExtraOutgoing, loading, onDeleteExtraOutgoing, spliceExtraOutgoingByIndex, pushExtraOutgoing } = useDayExtraOutgoings({ companyId: company._id, date })
+  const { extraOutgoings, spliceExtraOutgoingById, totalExtraOutgoings, onAddExtraOutgoing, onDeleteExtraOutgoing, pushExtraOutgoing } = useDayExtraOutgoings({ companyId: company._id, date })
   const { payments, total: totalEmployeesPayments, onAddEmployeePayment, onDeleteEmployeePayment } = useEmployeesPayments({ companyId: company._id, date })
-  const [buttonId, setButtonId] = useState(null)
-  const [isOpen, setIsOpen] = useState(false)
-  const [employeePaymentsIsOpen, setEmployeePaymentsIsOpen] = useState(false)
+  // const [buttonId, setButtonId] = useState(null)
+  // const [isOpen, setIsOpen] = useState(false)
+  // const [employeePaymentsIsOpen, setEmployeePaymentsIsOpen] = useState(false)
   const [selectedBranch, setSelectedBranch] = useState(null)
   const [selectedEmployee, setSelectedEmployee] = useState(null)
 
@@ -104,7 +103,7 @@ export default function ExtraOutgoings({ date, pushIncome, employees, branches, 
         createdAt
       }
 
-      onAddEmployeePayment(employeePayment, pushIncome, pushExtraOutgoing)
+      onAddEmployeePayment(employeePayment, pushIncome, spliceIncomeById, pushExtraOutgoing, spliceExtraOutgoingById)
 
       setSelectedEmployee(null)
       setSelectedBranch(null)
@@ -177,15 +176,15 @@ export default function ExtraOutgoings({ date, pushIncome, employees, branches, 
         <div className='grid grid-cols-2'>
           <SectionHeader label={'Gastos externos'} />
           <div className='flex items-center gap-4 justify-self-end mr-12'>
-            <ShowExtraOutgoingsModal
+            <ShowListModal
               title={'Gastos'}
+              ListComponent={ExtraOutgoingsList}
+              ListComponentProps={{ extraOutgoings, totalExtraOutgoings, onDeleteExtraOutgoing }}
               clickableComponent={
                 roles && roles.managerRole && currentUser.role == roles.managerRole._id ?
                   <p className='font-bold text-lg text-center'>{stringToCurrency({ amount: totalExtraOutgoings })}</p>
                   :
-                  <FaListAlt className="h-10 w-10 text-red-600" />
-              }
-              data={extraOutgoings}
+                  <FaListAlt className="h-10 w-10 text-red-600" />}
             />
           </div>
         </div>
@@ -205,7 +204,7 @@ export default function ExtraOutgoings({ date, pushIncome, employees, branches, 
             <ShowListModal
               title={'Pagos a empleados'}
               ListComponent={EmployeePaymentsList}
-              ListComponentProps={{ data: payments, spliceIncomeById, spliceExtraOutgoingByIndex }}
+              ListComponentProps={{ payments, total: totalEmployeesPayments, onDeletePayment: onDeleteEmployeePayment, spliceIncome: spliceIncomeById, spliceExtraOutgoingById }}
               clickableComponent={<p className='font-bold text-lg text-center'>{stringToCurrency({ amount: totalEmployeesPayments })}</p>}
             />
           </div>
@@ -251,7 +250,7 @@ export default function ExtraOutgoings({ date, pushIncome, employees, branches, 
 
       </div>
 
-      {employeePaymentsIsOpen && payments && payments.length > 0 ?
+      {/* {employeePaymentsIsOpen && payments && payments.length > 0 ?
         <div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center max-w-lg my-auto mx-auto z-10'>
           <div className=' bg-white p-5 rounded-lg justify-center items-center h-5/6 my-auto mx-auto w-11/12 overflow-y-scroll'>
             <button className="" onClick={() => { setEmployeePaymentsIsOpen(false) }}><MdCancel className="h-7 w-7" /></button>
@@ -316,7 +315,7 @@ export default function ExtraOutgoings({ date, pushIncome, employees, branches, 
           </div>
         </div>
         : ''
-      }
+      } */}
     </div>
 
 

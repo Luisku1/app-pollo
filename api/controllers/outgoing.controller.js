@@ -8,7 +8,7 @@ import mongoose, { Types } from "mongoose"
 import Branch from "../models/branch.model.js"
 import { addRecordToBranchReportArrays, createDefaultBranchReport, fetchBranchReport, pushOrPullBranchReportRecord } from "./branch.report.controller.js"
 import BranchReport from "../models/accounts/branch.report.model.js"
-import { addSupervisorReportExtraOutgoing, deleteSupervisorExtraOutgoing, updateEmployeeDailyBalancesBalance } from "./employee.controller.js"
+import { addSupervisorReportExtraOutgoing, deleteSupervisorExtraOutgoing, pushOrPullSupervsorReportRecord, updateEmployeeDailyBalancesBalance } from "./employee.controller.js"
 
 export const newOutgoing = async (req, res, next) => {
 
@@ -116,6 +116,7 @@ export const newExtraOutgoingQuery = async (req, res, next) => {
 
   const { amount, concept, company, employee, createdAt, _id } = req.body
   let extraOutgoing = null
+
   try {
 
     extraOutgoing = await newExtraOutgoingFunction({ _id, amount, concept, company, employee, createdAt })
@@ -132,28 +133,35 @@ export const newExtraOutgoingQuery = async (req, res, next) => {
   }
 }
 
-export const newExtraOutgoingFunction = async ({ amount, concept, company, employee, createdAt, partOfAPayment = false }) => {
+export const newExtraOutgoingFunction = async ({ _id, amount, concept, company, employee, createdAt, partOfAPayment = false }) => {
+  let extraOutgoing = null;
 
-  let extraOutgoing = null
+  // Validación de entrada
+  if (!amount || !concept || !company || !employee || !createdAt || partOfAPayment === undefined) {
+    throw new Error("Faltan datos requeridos para crear el gasto fuera de cuenta");
+  }
+
+  const extraOutgoingData = { amount, concept, company, employee, createdAt, partOfAPayment };
+  if (_id && Types.ObjectId.isValid(_id)) {
+    extraOutgoingData._id = _id;
+  }
 
   try {
+    extraOutgoing = await ExtraOutgoing.create(extraOutgoingData);
 
-    extraOutgoing = await ExtraOutgoing.create({ amount, concept, company, employee, createdAt, partOfAPayment })
+    await addSupervisorReportExtraOutgoing({ extraOutgoing, date: extraOutgoing.createdAt });
 
-    await addSupervisorReportExtraOutgoing({ extraOutgoing, date: extraOutgoing.createdAt })
-
-    return extraOutgoing || null
+    return extraOutgoing || null;
 
   } catch (error) {
 
     if (extraOutgoing) {
-
-      await ExtraOutgoing.findByIdAndDelete(extraOutgoing._id)
+      await ExtraOutgoing.findByIdAndDelete(extraOutgoing._id);
     }
 
-    throw error
+    throw error;
   }
-}
+};
 
 export const getBranchOutgoingsRequest = async (req, res, next) => {
 
@@ -344,7 +352,9 @@ export const deleteExtraOutgoing = async (req, res, next) => {
 
   try {
 
-    deletedExtraOutgoing = await deleteExtraOutgoingFunction({ extraOutgoingId })
+    console.log(extraOutgoingId)
+
+    deletedExtraOutgoing = await deleteExtraOutgoingFunction(extraOutgoingId)
 
     if (deletedExtraOutgoing) {
 
@@ -357,7 +367,9 @@ export const deleteExtraOutgoing = async (req, res, next) => {
   }
 }
 
-export const deleteExtraOutgoingFunction = async ({ extraOutgoingId }) => {
+
+
+export const deleteExtraOutgoingFunction = async (extraOutgoingId) => {
 
   let deletedExtraOutgoing = null
 
@@ -365,8 +377,20 @@ export const deleteExtraOutgoingFunction = async ({ extraOutgoingId }) => {
 
     deletedExtraOutgoing = await ExtraOutgoing.findByIdAndDelete(extraOutgoingId)
 
-    const { bottomDate, topDate } = getDayRange(deletedExtraOutgoing.createdAt)
-    await deleteSupervisorExtraOutgoing({ extraOutgoing: deletedExtraOutgoing, day: { bottomDate, topDate } })
+    console.log(extraOutgoingId, deletedExtraOutgoing)
+
+    if (deletedExtraOutgoing) {
+
+      await pushOrPullSupervsorReportRecord ({
+        supervisorId: deletedExtraOutgoing.employee,
+        date: deletedExtraOutgoing.createdAt,
+        record: deletedExtraOutgoing,
+        operation: '$pull',
+        affectsBalancePositively: true,
+        amountField: 'extraOutgoings',
+        arrayField: 'extraOutgoingsArray'
+      })
+    }
 
     return deletedExtraOutgoing || null
 
@@ -374,7 +398,7 @@ export const deleteExtraOutgoingFunction = async ({ extraOutgoingId }) => {
 
     if (deletedExtraOutgoing) {
 
-      await ExtraOutgoing.create({ deletedExtraOutgoing })
+      await ExtraOutgoing.create(deletedExtraOutgoing)
     }
 
     console.log(error)

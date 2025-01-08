@@ -32,6 +32,11 @@ const providerPurchaseSchema = mongoose.Schema({
     }
   },
 
+  isReturn: {
+    type: Boolean,
+    default: false
+  },
+
   specialPrice: {
     type: Boolean,
     default: false

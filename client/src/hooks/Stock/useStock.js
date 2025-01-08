@@ -1,52 +1,98 @@
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { getStockFetch } from "../../services/Stock/getStock"
+import { useDeleteStock } from "./useDeleteStock"
+import { useAddStock } from "./useAddStock"
+import { Types } from "mongoose"
 
-export const useStock = ({ branchId, date }) => {
+export const useStock = ({ branchId, date, initialStock = [] }) => {
 
-  const [stock, setStock] = useState([])
-  const [totalStock, setTotalStock] = useState(0.0)
+  const [stock, setStock] = useState(initialStock)
+  const [totalStock, setTotalStock] = useState(
+    initialStock.reduce((acc, item) => acc + item.amount, 0)
+  )
   const [loading, setLoading] = useState(false)
+  const { deleteStock } = useDeleteStock()
+  const { addStock } = useAddStock()
 
-  const pushStock = ({ stock }) => {
+  const pushStock = (stock) => {
 
     setStock((prevStock) => [stock, ...prevStock])
     setTotalStock((prevTotal) => prevTotal + stock.amount)
   }
 
-  const spliceStock = ({ index }) => {
+  const spliceStock = (index) => {
 
     const removedStock = stock.splice(index, 1)
     setTotalStock((prevTotal) => prevTotal - removedStock[0].amount)
   }
 
-  const updateLastStockId = ({ stockId }) => {
+  const onAddStock = async (stock) => {
 
-    setStock((prevStock) => prevStock.map((stock, index) =>
+    const tempId = new Types.ObjectId().toHexString()
 
-      index == 0 ? { _id: stockId, ...stock } : stock
-    ))
+    try {
+
+      const tempStock = { ...stock, _id: tempId }
+
+      pushStock(tempStock)
+      await addStock(tempStock)
+
+    } catch (error) {
+
+      spliceStock(stock.findIndex((stock) => stock._id === tempId))
+      console.log(error)
+    }
   }
+
+  const onDeleteStock = async (stock, index) => {
+
+    try {
+
+      spliceStock(index)
+      await deleteStock(stock)
+
+    } catch (error) {
+
+      pushStock(stock)
+      console.log(error)
+    }
+  }
+
+  const sortedStock = useMemo(() => stock.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt)), [stock])
 
   useEffect(() => {
 
+    if (initialStock.length > 0) return
     if (!branchId || !date) return
 
     setLoading(true)
     setStock([])
     setTotalStock(0.0)
 
-    getStockFetch({ branchId, date }).then((response) => {
+    const fetchStock = async () => {
 
-      setStock(response.stock)
-      setTotalStock(response.totalStock)
+      try {
+        const response = await getStockFetch(branchId, date);
+        setStock(response.stock);
+        setTotalStock(response.totalStock);
+      } catch (error) {
+        console.log(error);
+      } finally {
+        setLoading(false);
+      }
+    }
 
-    }).catch((error) => {
+    fetchStock()
 
-      console.log(error)
-    })
+  }, [branchId, date, initialStock])
 
-    setLoading(false)
-  }, [branchId, date])
-
-  return { stock, totalStock, pushStock, spliceStock, updateLastStockId, loading }
+  return {
+    stock: sortedStock,
+    totalStock,
+    pushStock,
+    onAddStock,
+    onDeleteStock,
+    spliceStock,
+    loading
+  }
 }

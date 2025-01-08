@@ -1,4 +1,4 @@
-export const getIncomesFetch = async ({ companyId, date }) => {
+export const getIncomesFetch = async (companyId, date) => {
 
   const res = await fetch(`/api/income/get/${companyId}/${date}`)
   const data = await res.json()

@@ -2,17 +2,19 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { useSelector } from "react-redux"
 import { MdEdit } from "react-icons/md";
 import { weekDays } from "../helpers/Constants"
-import { FaTrash } from "react-icons/fa";
+import { FaEdit, FaTrash } from "react-icons/fa";
 import { Link } from "react-router-dom"
 import { useEmployees } from "../hooks/Employees/useEmployees";
 import { useDeleteEmployee } from "../hooks/Employees/useDeleteEmployee";
 import SearchBar from "../components/SearchBar";
 import { getEmployeeFullName } from "../helpers/Functions";
+import Modal from "../components/Modals/Modal";
+import RegistroEmpleadoNuevo from "./RegistroEmpleado";
 
 export default function Empleados() {
 
   const { company } = useSelector((state) => state.user)
-  const { employees, filterEmployees, changeEmployeeActiveStatus, spliceEmployee, loading, error } = useEmployees({ companyId: company._id, onlyActiveEmployees: false })
+  const { employees, filterEmployees, changeEmployeeActiveStatus, onUpdateEmployee, spliceEmployee, loading, error } = useEmployees({ companyId: company._id, onlyActiveEmployees: false })
   const { deleteEmployee } = useDeleteEmployee()
   const [hoveredIndex, setHoveredIndex] = useState(null)
   const [isOpen, setIsOpen] = useState(false)
@@ -23,7 +25,7 @@ export default function Empleados() {
   const [editEmployee, setEditEmployee] = useState(null)
   const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 
-  console.log(employees)
+
 
   const handleChangeEmployeeStatus = (employee) => {
 
@@ -165,6 +167,17 @@ export default function Empleados() {
                         <MdEdit className='text-blue-700 m-auto' />
                       </span>
                     </button>
+                      <button className="" onClick={toggleEditEmployee}>
+                        <FaEdit className="text-blue-500" />
+                      </button>
+
+                    {editEmployee && (
+                      <Modal
+                        content={<RegistroEmpleadoNuevo setEmployee={onUpdateEmployee} employee={employee} />}
+                        closeModal={toggleEditEmployee}
+                        ableToClose={true}
+                      />
+                    )}
                     <div>
                       <button id={employee._id} onClick={() => { setIsOpen(isOpen ? false : true), setButtonId(employee._id) }} disabled={loading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
                         <span>

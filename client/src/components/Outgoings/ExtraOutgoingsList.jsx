@@ -1,16 +1,12 @@
 import { useSelector } from "react-redux"
 import { useRoles } from "../../context/RolesContext"
-import { useDayExtraOutgoings } from "../../hooks/ExtraOutgoings/useDayExtraOutgoings"
-import { useDeleteExtraOutgoing } from "../../hooks/ExtraOutgoings/useDeleteExtraOutgoing"
 import DeleteButton from "../Buttons/DeleteButton"
 import { stringToCurrency } from "../../helpers/Functions"
 
 /* eslint-disable react/prop-types */
-export default function ExtraOutgoingsList({ data }) {
+export default function ExtraOutgoingsList({ extraOutgoings, totalExtraOutgoings, onDeleteExtraOutgoing }) {
 
   const { currentUser } = useSelector((state) => state.user)
-  const { deleteExtraOutgoing } = useDeleteExtraOutgoing()
-  const { extraOutgoings, totalExtraOutgoings, spliceExtraOutgoing } = useDayExtraOutgoings({ initialExtraOutgoings: data })
   const { roles } = useRoles()
   const isEmpty = extraOutgoings.length === 0
 
@@ -59,11 +55,10 @@ export default function ExtraOutgoingsList({ data }) {
 
             {shouldShowDeleteButton && (
               <DeleteButton
-                deleteFunction={deleteExtraOutgoing}
+                deleteFunction={onDeleteExtraOutgoing}
                 id={_id}
                 index={index}
                 item={extraOutgoing}
-                spliceFunction={spliceExtraOutgoing}
               />
             )}
 

@@ -1,4 +1,4 @@
-export const deleteOutputFetch = async ({ outputId }) => {
+export const deleteOutputFetch = async (outputId) => {
 
   const res = await fetch(`/api/output/delete-output/${outputId}`, {
 

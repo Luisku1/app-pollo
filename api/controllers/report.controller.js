@@ -314,6 +314,30 @@ export const supervisorsInfoQuery = async (companyId, topDate, bottomDate) => {
           },
           {
             $lookup: {
+              from: 'employeepayments',
+              localField: '_id',
+              foreignField: 'income',
+              as: 'employeePayment',
+              pipeline: [
+                {
+                  $lookup: {
+                    from: 'employees',
+                    localField: 'employee',
+                    foreignField: '_id',
+                    as: 'employee'
+                  }
+                },
+                {
+                  $unwind: {
+                    path: '$employee',
+                    preserveNullAndEmptyArrays: true
+                  }
+                }
+              ]
+            }
+          },
+          {
+            $lookup: {
               from: 'branches',
               localField: 'branch',
               foreignField: '_id',
@@ -350,6 +374,7 @@ export const supervisorsInfoQuery = async (companyId, topDate, bottomDate) => {
               as: 'type',
             }
           },
+          { $unwind: { path: '$employeePayment', preserveNullAndEmptyArrays: true } },
           {
             $unwind: {
               path: '$branch',
@@ -392,6 +417,9 @@ export const supervisorsInfoQuery = async (companyId, topDate, bottomDate) => {
           foreignField: 'employee',
           as: 'extraOutgoingsArray',
           pipeline: [
+            {
+              $sort: { "amount": -1 }
+            },
             {
               $match: {
                 createdAt: { $gte: new Date(bottomDate), $lt: new Date(topDate) }
@@ -505,7 +533,7 @@ export const supervisorsInfoQuery = async (companyId, topDate, bottomDate) => {
     supervisorsInfo.cashArray = supervisorsInfo.supervisors.flatMap((supervisor) => supervisor.cashArray)
     supervisorsInfo.depositsArray = supervisorsInfo.supervisors.flatMap((supervisor) => supervisor.depositsArray)
     supervisorsInfo.terminalIncomesArray = supervisorsInfo.supervisors.flatMap((supervisor) => supervisor.terminalIncomesArray)
-    supervisorsInfo.extraOutgoingsArray = supervisorsInfo.supervisors.flatMap((supervisor) => supervisor.extraOutgoingsArray)
+    supervisorsInfo.extraOutgoingsArray = supervisorsInfo.supervisors.flatMap((supervisor) => supervisor.extraOutgoingsArray).sort((a, b) => b.amount - a.amount)
 
     return supervisorsInfo
 

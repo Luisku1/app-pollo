@@ -1,4 +1,4 @@
-export const deleteProviderInputFetch = async ({ providerInputId }) => {
+export const deleteProviderInputFetch = async (providerInputId) => {
 
   const res = await fetch('/api/input/delete-provider-input/' + providerInputId, {
 

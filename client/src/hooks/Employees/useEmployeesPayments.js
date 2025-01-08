@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react"
-import { v4 } from 'uuid'
+import { useEffect, useMemo, useState } from "react"
 import { getEmployeesPaymentsFetch } from "../../services/employees/employeesPayments"
 import { useAddEmployeePayment } from "./useAddEmployeePayment"
 import { useDeleteEmployeePayment } from "./useDeleteEmployeePayment"
+import { getEmployeePayments } from "../../services/employees/employeePayments"
+import { Types } from "mongoose";
 
-export const useEmployeesPayments = ({ companyId = null, date = null, initialPayments = [] }) => {
+export const useEmployeesPayments = ({ companyId = null, date = null, employeeId = null, initialPayments = [] }) => {
 
   const [payments, setPayments] = useState(initialPayments)
   const [total, setTotal] = useState(
@@ -30,21 +31,44 @@ export const useEmployeesPayments = ({ companyId = null, date = null, initialPay
     })
   }
 
-  const onAddEmployeePayment = async (employeePayment, pushIncome, pushExtraOutgoing) => {
+  const onAddEmployeePayment = async (employeePayment, pushIncome, spliceIncomeById, pushExtraOutgoing, spliceExtraOutgoingById) => {
 
-    const tempId = v4()
-    const tempEmployeePayment = { ...employeePayment, _id: tempId }
+    const tempId = new Types.ObjectId().toHexString()
+    const incomeId = new Types.ObjectId().toHexString()
+    const date = new Date()
+
+    const income = {
+      _id: incomeId,
+      amount: employeePayment.amount,
+      branch: employeePayment.branch,
+      employee: employeePayment.employee,
+      partOfAPayment: true,
+      createdAt: date,
+    }
+    const extraOutgoingId = new Types.ObjectId().toHexString()
+    console.log(incomeId, extraOutgoingId)
+    const extraOutgoing = {
+      _id: extraOutgoingId,
+      amount: employeePayment.amount,
+      concept: employeePayment.detail,
+      employee: employeePayment.employee,
+      partOfAPayment: true,
+      createdAt: date,
+    }
+    const tempEmployeePayment = { ...employeePayment, _id: tempId, income: employeePayment.branch ? incomeId : null, extraOutgoing: extraOutgoingId }
     try {
 
       pushEmployeePayment(tempEmployeePayment)
-
-      const { income, extraOutgoing } = await addEmployeePayment(employeePayment)
-
       if (income) pushIncome?.(income)
       if (extraOutgoing) pushExtraOutgoing?.(extraOutgoing)
 
+      await addEmployeePayment(tempEmployeePayment)
+
+
     } catch (error) {
 
+      spliceIncomeById?.(incomeId)
+      spliceExtraOutgoingById?.(extraOutgoingId)
       spliceEmployeePaymentByIndex(payments.findIndex((payment) => payment._id === tempId))
       console.log(error)
     }
@@ -57,8 +81,8 @@ export const useEmployeesPayments = ({ companyId = null, date = null, initialPay
       spliceEmployeePaymentByIndex(index)
       await deleteEmployeePayment(employeePayment)
 
-      if (employeePayment.income) spliceIncome?.(employeePayment.income)
-      if (employeePayment.extraOutgoing) spliceExtraOutgoing?.(employeePayment.extraOutgoing)
+      if (employeePayment.income) spliceIncome?.(employeePayment.income._id ? employeePayment.income._id : employeePayment.income)
+      if (employeePayment.extraOutgoing) spliceExtraOutgoing?.(employeePayment.extraOutgoing._id ? employeePayment.extraOutgoing._id : employeePayment.extraOutgoing)
 
     } catch (error) {
 
@@ -66,6 +90,12 @@ export const useEmployeesPayments = ({ companyId = null, date = null, initialPay
       console.log(error)
     }
   }
+
+  const sortedPayments = useMemo(() => {
+
+    return payments.sort((a, b) => b.amount - a.amount)
+
+  }, [payments])
 
   useEffect(() => {
 
@@ -76,22 +106,37 @@ export const useEmployeesPayments = ({ companyId = null, date = null, initialPay
     setPayments([])
     setTotal(0.0)
 
-    getEmployeesPaymentsFetch({ companyId, date }).then((response) => {
+    if (employeeId) {
 
-      setPayments(response.employeesPayments)
-      setTotal(response.totalEmployeesPayments)
+      getEmployeePayments({ employeeId, date }).then((response) => {
 
-    }).catch((error) => {
+        setPayments(response.employeePayments)
+        setTotal(response.total)
 
-      setError(error)
-    })
+      }).catch((error) => {
+
+        setError(error)
+      })
+
+    } else {
+
+      getEmployeesPaymentsFetch({ companyId, date }).then((response) => {
+
+        setPayments(response.employeesPayments)
+        setTotal(response.totalEmployeesPayments)
+
+      }).catch((error) => {
+
+        setError(error)
+      })
+    }
 
     setLoading(false)
 
-  }, [companyId, date])
+  }, [companyId, date, employeeId])
 
   return {
-    payments,
+    payments: sortedPayments,
     setPayments,
     total,
     pushEmployeePayment,

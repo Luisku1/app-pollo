@@ -36,12 +36,6 @@ const employeePaymentSchema = new mongoose.Schema({
 
   income: {
     type: Schema.Types.ObjectId, ref: 'IncomeCollected',
-    validate: {
-      validator: function (v) {
-        return v != null;
-      },
-      message: 'Income is required'
-    }
   },
 
 }, { timestamps: true })

@@ -4,17 +4,12 @@ import DeleteButton from './Buttons/DeleteButton'
 import { formatDateAndTime } from '../helpers/DatePickerFunctions'
 import { useRoles } from '../context/RolesContext'
 import { getEmployeeFullName, stringToCurrency } from '../helpers/Functions'
-import { useEmployeePayments } from '../hooks/Employees/useEmployeePayments'
-import { useDeleteEmployeePayment } from '../hooks/Employees/useDeleteEmployeePayment'
 
-export default function EmployeePaymentsList({ data, updateParentArrays }) {
+export default function EmployeePaymentsList({ payments, total, onDeletePayment, spliceIncome, spliceExtraOutgoing }) {
 
-  const { payments, total, spliceEmployeePayment } = useEmployeePayments({initialPayments: data})
-  const { deleteEmployeePayment } = useDeleteEmployeePayment()
   const { currentUser } = useSelector((state) => state.user)
   const { roles } = useRoles()
   const isEmpty = payments.length === 0
-
 
   const renderTotal = () => {
     return (
@@ -45,7 +40,6 @@ export default function EmployeePaymentsList({ data, updateParentArrays }) {
     const isAuthorized = currentUser._id == employee._id || currentUser.role == roles.managerRole._id
     const shouldRender = isAuthorized || currentUser.role === roles.managerRole._id
 
-    console.log(employeePayment, data)
     return (
       <div key={_id} >
         {shouldRender && (
@@ -54,16 +48,16 @@ export default function EmployeePaymentsList({ data, updateParentArrays }) {
               <p className='text-center text-xs w-3/12'>{formatDateAndTime(createdAt)}</p>
               <p className='text-center text-xs w-3/12'>{supervisor.name}</p>
               <p className='text-center text-xs w-3/12'>{`${detail} [${getEmployeeFullName(employee)}]`}</p>
-              <p className='text-center text-xs w-3/12'>{stringToCurrency({amount})}</p>
+              <p className='text-center text-xs w-3/12'>{stringToCurrency({ amount })}</p>
             </div>
             {isAuthorized && (
               <DeleteButton
-                deleteFunction={deleteEmployeePayment}
+                deleteFunction={onDeletePayment}
                 id={_id}
                 index={index}
                 item={employeePayment}
-                spliceFunction={spliceEmployeePayment}
-                updateParentArrays={updateParentArrays}
+                spliceIncome={spliceIncome}
+                spliceExtraOutgoing={spliceExtraOutgoing}
               />
             )}
           </div>

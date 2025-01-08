@@ -1,13 +1,9 @@
-import BranchReport from "../models/accounts/branch.report.model.js";
 import Stock from "../models/accounts/stock.model.js";
 import { errorHandler } from "../utils/error.js";
 import { getDayRange } from "../utils/formatDate.js";
-import { updateReportStock } from "../utils/updateReport.js";
-import { createDefaultBranchReport, fetchBranchReport } from "./branch.report.controller.js";
-import { pricesAggregate } from "./price.controller.js";
-import { updateEmployeeDailyBalancesBalance } from "./employee.controller.js";
+import { fetchBranchReport } from "./branch.report.controller.js";
+import { getProductPrice, pricesAggregate } from "./price.controller.js";
 import { pushOrPullBranchReportRecord } from './branch.report.controller.js'
-import { Types } from "mongoose";
 
 export const createStock = async (req, res, next) => {
 
@@ -29,6 +25,7 @@ export const createStock = async (req, res, next) => {
 export const createStockAndUpdateBranchReport = async ({ pieces, price, employee, weight, amount, branch, product, company, createdAt }) => {
 
   let stock = null
+  let initialStock = null
 
   try {
 
@@ -48,11 +45,22 @@ export const createStockAndUpdateBranchReport = async ({ pieces, price, employee
 
     const nextBranchReportDate = new Date(createdAt)
     nextBranchReportDate.setDate(nextBranchReportDate.getDate() + 1)
+    const { bottomDate, topDate } = getDayRange(nextBranchReportDate)
+    console.log(stock)
+    const price = await getProductPrice(product, branch, topDate)
+    initialStock = { associatedStock: stock._id, createdAt: bottomDate, isInitial: true, ...stock }
+
+    if (price) {
+      initialStock.price = price
+      initialStock.amount = initialStock.weight * price
+    }
+
+    await Stock.create(initialStock)
 
     await pushOrPullBranchReportRecord({
       branchId: branch,
       date: nextBranchReportDate,
-      record: stock,
+      record: initialStock,
       affectsBalancePositively: false,
       operation: '$addToSet',
       arrayField: 'initialStockArray',
@@ -63,10 +71,13 @@ export const createStockAndUpdateBranchReport = async ({ pieces, price, employee
 
   } catch (error) {
 
-    if (stock) {
-
+    if (stock)
       await Stock.findByIdAndDelete(stock._id)
-    }
+
+
+    if (initialStock && initialStock._id)
+      await Stock.findByIdAndDelete(initialStock._id)
+
 
     throw error;
   }
@@ -106,7 +117,7 @@ export const getInitialStockValue = async ({ branchId, date }) => {
 
   const todayBranchReport = await fetchBranchReport({ branchId, date })
 
-  const pricesDate = todayBranchReport.dateSent ? todayBranchReport.dateSent : topDate
+  const pricesDate = todayBranchReport?.dateSent ? todayBranchReport.dateSent : topDate
 
   const initialStock = await Stock.find({
 
@@ -122,7 +133,6 @@ export const getInitialStockValue = async ({ branchId, date }) => {
 }
 
 export const calculateInitialStock = ({ branchPrices, stock }) => {
-
 
   let total = 0.0
 

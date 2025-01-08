@@ -1,4 +1,4 @@
-export const deleteIncomeFetch = async ({ incomeId }) => {
+export const deleteIncomeFetch = async (incomeId) => {
 
   const res = await fetch('/api/income/delete/' + incomeId, {
 

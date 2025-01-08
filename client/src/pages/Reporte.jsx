@@ -394,7 +394,7 @@ export default function Reporte() {
                             <p className="text-lg font-bold">Gastos:</p>
                             <ShowListModal
                               ListComponent={ExtraOutgoingsList}
-                              sortFunction={(a, b) => b.amount - a.amount}
+                              ListComponentProps={{ extraOutgoings: supervisor.extraOutgoingsArray, totalExtraOutgoings: supervisor.extraOutgoings }}
                               title={'Gastos'}
                               clickableComponent={
                                 <p className="text-lg">{stringToCurrency({ amount: supervisor.extraOutgoings })}

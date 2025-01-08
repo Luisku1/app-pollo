@@ -153,12 +153,12 @@ export const pushOrPullProviderReportRecord = async ({
 
 export const newPurchase = async (req, res, next) => {
 
-  const { weight, price, amount, pieces, comment, specialPrice, product, company, supervisor, provider } = req.body
+  const { weight, price, amount, pieces, comment, isReturn, specialPrice, product, company, supervisor, provider } = req.body
   let purchase = null
 
   try {
 
-    purchase = await ProviderPurchase.create({ weight, price, amount, pieces, comment, specialPrice, product, company, supervisor, provider })
+    purchase = await ProviderPurchase.create({ weight, price, isReturn, amount: isReturn ? -amount : amount, pieces, comment, specialPrice, product, company, supervisor, provider })
 
     await pushOrPullProviderReportRecord({
       providerId: purchase.provider,
@@ -170,7 +170,11 @@ export const newPurchase = async (req, res, next) => {
       amountField: 'purchasesAmount'
     })
 
-    res.status(201).json({ message: 'Compra registrada correctamente', purchase })
+    res.status(201).json({
+      data: purchase,
+      message: 'Compra registrada correctamente',
+      success: true
+    })
 
   } catch (error) {
 

@@ -1,18 +1,19 @@
+import { Types } from "mongoose";
 import IncomeCollected from "../models/accounts/incomes/income.collected.model.js";
 import IncomeType from "../models/accounts/incomes/income.type.model.js";
 import { errorHandler } from "../utils/error.js";
 import { getDayRange } from "../utils/formatDate.js";
 import { pushOrPullBranchReportRecord } from "./branch.report.controller.js";
 import { pushOrPullCustomerReportRecord } from "./customer.controller.js";
-import { addSupervisorReportIncome, deleteSupervisorReportIncome } from "./employee.controller.js";
+import { addSupervisorReportIncome, deleteSupervisorReportIncome, pushOrPullSupervsorReportRecord } from "./employee.controller.js";
 
 export const newBranchIncomeQuery = async (req, res, next) => {
 
-  const { amount, company, branch, employee, type, createdAt } = req.body
+  const { _id, amount, company, branch, employee, type, createdAt } = req.body
 
   try {
 
-    const newIncome = await newBranchIncomeFunction({ amount, company, branch, employee, type, createdAt })
+    const newIncome = await newBranchIncomeFunction({ _id, amount, company, branch, employee, type, createdAt })
 
     res.status(201).json({ message: 'New income created successfully', income: newIncome })
 
@@ -22,13 +23,17 @@ export const newBranchIncomeQuery = async (req, res, next) => {
   }
 }
 
-export const newBranchIncomeFunction = async ({ amount, company, branch, employee, type, createdAt, partOfAPayment = false }) => {
+export const newBranchIncomeFunction = async ({ _id = null, amount, company, branch, employee, type, createdAt, partOfAPayment = false }) => {
 
   let income = null
 
+  const incomeData = { amount, company, branch, employee, type, createdAt, partOfAPayment }
+
+  if (_id) incomeData._id = _id
+
   try {
 
-    income = await IncomeCollected.create({ amount, company, branch, employee, type, createdAt, partOfAPayment })
+    income = await IncomeCollected.create({ _id, amount, company, branch, employee, type, createdAt, partOfAPayment })
 
     if (!income) throw new Error("No se logró crear el registro")
 
@@ -170,53 +175,109 @@ export const getBranchIncomes = async ({ branchId, date }) => {
 }
 
 export const getIncomes = async (req, res, next) => {
+  const date = new Date(req.params.date);
+  const companyId = req.params.companyId;
 
-  const date = new Date(req.params.date)
-  const companyId = req.params.companyId
-
-  const { bottomDate, topDate } = getDayRange(date)
+  const { bottomDate, topDate } = getDayRange(date);
 
   try {
-
-    const incomes = await IncomeCollected.find({
-      createdAt: { $gte: bottomDate, $lt: topDate },
-      company: companyId
-    }).populate({ path: 'employee', select: 'name lastName' }).populate({ path: 'branch', select: 'branch position' }).populate({ path: 'type', select: 'name' }).populate({ path: 'customer', select: 'name lastName' })
+    const incomes = await IncomeCollected.aggregate([
+      {
+        $match: {
+          "createdAt": { $gte: new Date(bottomDate), $lt: new Date(topDate) },
+          "company": new Types.ObjectId(companyId)
+        }
+      },
+      {
+        $lookup: {
+          from: 'employeepayments',
+          localField: '_id',
+          foreignField: 'income',
+          as: 'employeePayment',
+          pipeline: [
+            {
+              $lookup: {
+                from: 'employees',
+                localField: 'employee',
+                foreignField: '_id',
+                as: 'employee'
+              }
+            },
+            { $unwind: { path: '$employee', preserveNullAndEmptyArrays: true } }
+          ]
+        }
+      },
+      {
+        $lookup: {
+          from: 'employees',
+          localField: 'employee',
+          foreignField: '_id',
+          as: 'employee'
+        }
+      },
+      {
+        $lookup: {
+          from: 'branches',
+          localField: 'branch',
+          foreignField: '_id',
+          as: 'branch'
+        }
+      },
+      {
+        $lookup: {
+          from: 'incometypes',
+          localField: 'type',
+          foreignField: '_id',
+          as: 'type'
+        }
+      },
+      {
+        $lookup: {
+          from: 'customers',
+          localField: 'customer',
+          foreignField: '_id',
+          as: 'customer'
+        }
+      },
+      { $unwind: { path: '$employeePayment', preserveNullAndEmptyArrays: true } },
+      {
+        $unwind: { path: '$employee', preserveNullAndEmptyArrays: true }
+      },
+      {
+        $unwind: { path: '$branch', preserveNullAndEmptyArrays: true }
+      },
+      {
+        $unwind: { path: '$type', preserveNullAndEmptyArrays: true }
+      },
+      {
+        $unwind: { path: '$customer', preserveNullAndEmptyArrays: true }
+      }
+    ]);
 
     if (incomes.length > 0) {
-
-      let total = 0
-      const branchesIncomes = []
-      const customersIncomes = []
+      let total = 0;
+      const branchesIncomes = [];
+      const customersIncomes = [];
 
       incomes.forEach((income) => {
-
-        if (income.branch === undefined) {
-
-          customersIncomes.push(income)
-
+        if (!income.branch) {
+          customersIncomes.push(income);
         } else {
-
-          branchesIncomes.push(income)
+          branchesIncomes.push(income);
         }
+        total += income.amount;
+      });
 
-        total += income.amount
-      })
+      branchesIncomes.sort((prevIncome, nextIncome) => prevIncome.branch.position - nextIncome.branch.position);
 
-      branchesIncomes.sort((prevIncome, nextIncome) => prevIncome.branch.position - nextIncome.branch.position)
-
-      res.status(200).json({ incomes: [...branchesIncomes, ...customersIncomes], total })
-
+      res.status(200).json({ incomes: [...branchesIncomes, ...customersIncomes], total });
     } else {
-
-      next(errorHandler(404, 'Not incomes found'))
+      next(errorHandler(404, 'No incomes found'));
     }
-
   } catch (error) {
-
-    next(error)
+    next(error);
   }
-}
+};
 
 export const getIncomeTypes = async (req, res, next) => {
 
@@ -245,7 +306,7 @@ export const deleteIncomeQuery = async (req, res, next) => {
 
   try {
 
-    const deletedIncome = await deleteIncome({ incomeId })
+    const deletedIncome = await deleteIncome(incomeId)
 
     if (!deletedIncome) throw new Error("Algo ha salido mal");
 
@@ -257,7 +318,7 @@ export const deleteIncomeQuery = async (req, res, next) => {
   }
 }
 
-export const deleteIncome = async ({ incomeId }) => {
+export const deleteIncome = async (incomeId) => {
 
   let deletedIncome = null
 
@@ -292,7 +353,15 @@ export const deleteIncome = async ({ incomeId }) => {
       })
     }
 
-    await deleteSupervisorReportIncome({ income: deletedIncome, date: deletedIncome.createdAt })
+    await pushOrPullSupervsorReportRecord({
+      employeeId: deletedIncome.employee,
+      date: deletedIncome.createdAt,
+      record: deletedIncome,
+      affectsBalancePositively: false,
+      operation: '$pull',
+      arrayField: 'incomesArray',
+      amountField: 'incomes'
+    })
 
     return deletedIncome
 
