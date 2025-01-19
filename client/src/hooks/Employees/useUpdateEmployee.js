@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { ToastDanger, ToastSuccess } from "../../helpers/toastify"
 import { getEmployeeFullName } from "../../helpers/Functions"
-import { updateEmployeeFetch } from "../../services/Employees/updateEmployee"
+import { updateEmployeeFetch } from "./updateEmployeeFetch"
 
 export const useUpdateEmployee = () => {
   const [loading, setLoading] = useState(false)
