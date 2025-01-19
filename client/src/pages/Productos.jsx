@@ -165,7 +165,7 @@ export default function Productos() {
 
         <input type="text" name="name" id="name" placeholder='Nombre del producto' className='border border-black p-3 rounded-lg' required onInput={productButtonControl} onChange={handleProductInputsChange} />
         <input type="number" name="price" id="price" placeholder="Precio inicial" className="border border-black p-3 rounded-lg" onChange={handleProductInputsChange} />
-        <button type='submit' id='product-button' disabled={loading} className='bg-slate-500 text-white p-3 rounded-lg'>Agregar</button>
+        <button type='submit' id='product-button' disabled={loading} className='bg-button text-white p-3 rounded-lg'>Agregar</button>
 
       </form>
 

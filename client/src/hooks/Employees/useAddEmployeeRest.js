@@ -8,7 +8,7 @@ export const useAddEmployeeRest = () => {
 
   const [loading, setLoading] = useState(false)
 
-  const addEmployeeRest = ({ employeeRest, pushPendingEmployeeRest, splicePendingEmployeeRest, updateLastEmployeeRestId }) => {
+  const addEmployeeRest = async (employeeRest) => {
 
     setLoading(true)
 
@@ -19,33 +19,25 @@ export const useAddEmployeeRest = () => {
       ToastInfo('El descanso no tiene a un reemplazo')
     }
 
-    pushPendingEmployeeRest({ employeeRest })
-
-    addEmployeeRestFetch({
-      employeeId: employeeRest.employee._id,
-      replacementId: employeeRest.replacement?._id,
-      date: employeeRest.date,
-      companyId: employeeRest.companyId
-    }).then((response) => {
-
-      updateLastEmployeeRestId({ createdEmployeeRestId: response.newEmployeeRest._id })
-
-    }).catch((error) => {
-
+    try {
+      await addEmployeeRestFetch({
+        _id: employeeRest._id,
+        employeeId: employeeRest.employee._id,
+        replacementId: employeeRest.replacement?._id,
+        date: employeeRest.date,
+        companyId: employeeRest.companyId
+      })
+    } catch (error) {
       if(error.message.includes('duplicate')) {
-
-        ToastDanger('Este empleado ya tiene un descanso para esa fecha')
-
+        ToastInfo('Este empleado ya tiene un descanso para esa fecha')
       } else {
-
         ToastDanger('No se pudo registrar el descanso, inténtalo de nuevo.')
       }
-
-      splicePendingEmployeeRest({ index: 0 })
       console.log(error)
-    })
-
-    setLoading(false)
+      throw error
+    } finally {
+      setLoading(false)
+    }
   }
 
   return { addEmployeeRest, loading }

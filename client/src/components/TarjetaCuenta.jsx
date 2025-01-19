@@ -1,22 +1,32 @@
-import { Link } from "react-router-dom"
 import { isToday } from "../helpers/DatePickerFunctions"
 import { useRoles } from "../context/RolesContext"
+import Modal from "./Modals/Modal"
+import { useState } from 'react'
+import RegistroCuentaDiaria from '../pages/RegistroCuentaDiaria'
 
 /* eslint-disable react/prop-types */
 export default function TarjetaCuenta({ reportArray, currentUser }) {
 
   const { roles } = useRoles()
   const reports = reportArray
+  const [showModal, setShowModal] = useState(false)
+  const [selectedReport, setSelectedReport] = useState(null)
+
+  const handleShowReport = (reportData) => {
+
+    setSelectedReport(reportData)
+    setShowModal(true)
+  }
 
   return (
 
-    <div className="">
+    <div className="w-full relative">
       {roles && reports.map((reportData) => (
-        <Link
+        <button
           key={reportData._id}
-          className={`block p-5 mb-4 mt-4 rounded-3xl shadow-lg border transition-all duration-200 ${reportData.balance < 0 ? 'bg-pastel-pink hover:shadow-red-400/30' : 'bg-white hover:shadow-gray-200'
+          className={`block w-full p-5 mb-4 mt-4 rounded-3xl shadow-lg border transition-all duration-200 ${reportData.balance < 0 ? 'bg-pastel-pink hover:shadow-red-400/30' : 'bg-white hover:shadow-gray-200'
             } hover:scale-[1.01] hover:border-pink-300`}
-          to={`/formato/${reportData.createdAt}/${reportData.branch._id}`}
+          onClick={() => handleShowReport(reportData)}
         >
           <div className="flex justify-between items-center mb-4">
             <p className="text-lg font-semibold text-red-500">{reportData.branch.branch}</p>
@@ -27,10 +37,9 @@ export default function TarjetaCuenta({ reportArray, currentUser }) {
               </p>
             </div>
           </div>
-
           <div className="space-y-4">
             {/* Encargado y Auxiliar */}
-            <div className="grid grid-cols-2 gap-4 text-sm">
+            <div className="grid grid-cols-2 gap-4 text-sm text-left">
               <div>
                 <p className="font-bold text-lg text-gray-600">Encargado:</p>
                 <p className="text-black font-semibold">{reportData.employee?.name || 'Sin empleado'}</p>
@@ -42,10 +51,9 @@ export default function TarjetaCuenta({ reportArray, currentUser }) {
                 </div>
               )}
             </div>
-
             {/* Resumen financiero */}
             <div className="overflow-x-auto">
-              <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
+              <div className="grid grid-cols-2 gap-4 text-sm text-gray-600 text-left">
                 {/* Primer grupo: Efectivo, Sobrante, Gastos, Salidas */}
                 <div>
                   <p className="font-semibold text-lg">Efectivo:</p>
@@ -71,7 +79,6 @@ export default function TarjetaCuenta({ reportArray, currentUser }) {
                     {reportData.outputs.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}
                   </p>
                 </div>
-
                 {/* Segundo grupo: Entradas, Inicial */}
                 <div>
                   <p className="font-semibold text-lg">Entradas:</p>
@@ -88,7 +95,6 @@ export default function TarjetaCuenta({ reportArray, currentUser }) {
               </div>
             </div>
           </div>
-
           {/* Faltante */}
           {(!isToday(reportData.createdAt) || roles.managerRole?._id === currentUser.role || reportData.balance < 0) && (
             <div className="mt-4 border-t-2 border-black pt-4">
@@ -112,8 +118,17 @@ export default function TarjetaCuenta({ reportArray, currentUser }) {
               </div>
             </div>
           )}
-        </Link>
+        </button>
       ))}
+      {showModal && (
+        <div className="fixed bottom-0 left-0 w-full z-50">
+          <Modal
+            closeModal={() => setShowModal(false)}
+            content={<RegistroCuentaDiaria edit={false} _branchReport={selectedReport} _branch={selectedReport.branch} />}
+            lowerZIndex={true}
+          />
+        </div>
+      )}
     </div>
 
 

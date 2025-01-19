@@ -952,7 +952,6 @@ export const createCustomerProviderInput = async (req, res, next) => {
 
   } catch (error) {
 
-    console.log(error)
     next(error)
   }
 }
@@ -1002,6 +1001,8 @@ export const deleteProviderInput = async (req, res, next) => {
 
       await ProviderInput.create({ deletedProviderInput })
     }
+
+    console.log(error)
 
     next(error);
   }

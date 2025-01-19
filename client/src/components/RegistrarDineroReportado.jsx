@@ -77,7 +77,7 @@ export default function RegistrarDineroReportado({ setNegativeBalances, supervis
             onChange={handleVerifiedCashOnChange}
           />
           <div className="flex justify-center">
-            <button type="submit" className="w-10/12 p-3 text-white bg-slate-500 mt-2 rounded-lg">
+            <button type="submit" className="w-10/12 p-3 text-white bg-button mt-2 rounded-lg">
               {supervisorReport && supervisorReport.verifiedCash == 0 ?
                 'Guardar'
                 :
@@ -102,7 +102,7 @@ export default function RegistrarDineroReportado({ setNegativeBalances, supervis
             onChange={handleVerifiedDepositsOnChange}
           />
           <div className="flex justify-center">
-            <button type="submit" className="w-10/12 p-3 text-white bg-slate-500 mt-2 rounded-lg">
+            <button type="submit" className="w-10/12 p-3 text-white bg-button mt-2 rounded-lg">
               {supervisorReport && supervisorReport.verifiedDeposits == 0 ?
                 'Guardar'
                 :

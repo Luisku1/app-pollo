@@ -22,10 +22,10 @@ const stockSchema = mongoose.Schema({
 		required: true
 	},
 
-  isInitial: {
-    type: Boolean,
-    default: false
-  },
+	isInitial: {
+		type: Boolean,
+		default: false
+	},
 
 	associatedStock: {
 		type: Schema.Types.ObjectId, ref: 'Stock'
@@ -56,6 +56,8 @@ const stockSchema = mongoose.Schema({
 		required: true
 	}
 })
+
+stockSchema.index({ associatedStock: 1 })
 
 const Stock = mongoose.model('Stock', stockSchema)
 

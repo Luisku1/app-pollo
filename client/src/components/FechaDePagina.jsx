@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import { GrNext, GrPrevious } from "react-icons/gr";
 
-export default function FechaDePagina({ changeDatePickerValue, stringDatePickerValue, changeDay }) {
+export default function FechaDePagina({ changeDatePickerValue, stringDatePickerValue, changeDay, higherZ = false }) {
 
   const prevDay = () => {
 
@@ -32,7 +32,7 @@ export default function FechaDePagina({ changeDatePickerValue, stringDatePickerV
 
   return (
 
-    <div className="gap-2">
+    <div className={`sticky top-[4rem] w-fit mx-auto bg-opacity-60 bg-menu ${higherZ ? 'z-30' : 'z-20'}`}>
 
       <p className="font-bold text-center text-lg">{
         (new Date(stringDatePickerValue)).toLocaleDateString('es-mx', { month: 'long' }) + ', ' + (new Date(stringDatePickerValue)).toLocaleDateString('es-mx', { weekday: 'long' })

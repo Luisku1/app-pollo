@@ -143,7 +143,7 @@ export default function Nomina() {
                 </div>
 
               ))}
-              <div className="col-span-12 mt-4 p-2 bg-slate-600 text-white rounded-lg mx-2">
+              <div className="col-span-12 mt-4 p-2 bg-button text-white rounded-lg mx-2">
                 <button className="w-full">Liberar nómina</button>
               </div>
             </div>

@@ -2,7 +2,6 @@ export const getEmployeePaymentFetch = async (incomeId) => {
   try {
     const response = await fetch(`/api/employee/${incomeId}/payment`);
     const resData = await response.json();
-    console.log(resData)
     if (resData.success === false) {
       throw new Error('Hay un error con el pago del empleado');
     }

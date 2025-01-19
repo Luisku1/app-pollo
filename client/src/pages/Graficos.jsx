@@ -30,15 +30,11 @@ export const ChartComponent = ({ branchName, branchReports }) => {
 
   }, [branchReports])
 
-
-
   return (
-
-    < div className='p-3'>
+    <div className='p-3'>
       <h2 className='font-bold text-lg text-center mb-4'>{branchName}</h2>
-
-      <div id='chartContainer' ref={chartContainerRef} className='flex justify-center' />
-    </div >
+      <div id='chartContainer' ref={chartContainerRef} className='flex justify-center w-full' />
+    </div>
   )
 }
 
@@ -94,12 +90,12 @@ export default function Graficos() {
 
   return (
 
-    <main className="p-3 mx-auto justify-items-center">
+    <main className="p-3 max-w-lg mx-auto justify-items-center">
 
 
       <FechaDePagina changeDay={changeDay} stringDatePickerValue={stringDatePickerValue} changeDatePickerValue={changeDatePickerValue} ></FechaDePagina>
 
-      <div id='chart'>
+      <div id='chart' className='max-w-lg mx-auto'>
         {branchesIncomes.length > 0 && branchesIncomes.map((branch) => (
 
           <div key={branch._id} className='mb-4'>

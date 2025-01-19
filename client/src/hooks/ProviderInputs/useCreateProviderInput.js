@@ -13,6 +13,7 @@ export const useCreateProviderInput = () => {
 
       await createProviderInputFetch(
         {
+          _id: providerInput._id,
           price: providerInput.price,
           amount: providerInput.amount,
           comment: providerInput.comment,
@@ -20,7 +21,7 @@ export const useCreateProviderInput = () => {
           pieces: providerInput.pieces,
           specialPrice: providerInput.specialPrice,
           company: providerInput.company,
-          product: providerInput.product.value,
+          product: providerInput.product._id,
           employee: providerInput.employee._id,
           branch: providerInput.branch?.value || null,
           customer: providerInput.customer?.value || null,

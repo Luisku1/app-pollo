@@ -3,7 +3,7 @@ import Select from 'react-select'
 import { customSelectStyles } from '../../helpers/Constants'
 import { getArrayForSelects, getElementForSelect, getEmployeeFullName } from '../../helpers/Functions'
 
-export default function EmployeesSelect({ defaultLabel, employees, selectedEmployee, handleEmployeeSelectChange }) {
+export default function EmployeesSelect({ isEditing = true, defaultLabel, employees, selectedEmployee, handleEmployeeSelectChange }) {
 
   return (
     <div>
@@ -14,6 +14,7 @@ export default function EmployeesSelect({ defaultLabel, employees, selectedEmplo
         options={getArrayForSelects(employees, getEmployeeFullName)}
         isClearable={true}
         placeholder={defaultLabel}
+        isDisabled={!isEditing}
         isSearchable={true}
       />
     </div>

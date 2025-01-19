@@ -40,7 +40,8 @@ const ShowIncomesModal = ({ incomes, title, clickableComponent = null, toggleCom
           extraInformation={extraInformation}
           content={
             <IncomesList
-              incomesData={sortedIncomes}
+              incomesTotal={incomes.reduce((acc, income) => acc + income.amount, 0)}
+              incomes={sortedIncomes}
             />
           }
           closeModal={changeListIsOpen} />

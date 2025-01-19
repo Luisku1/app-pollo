@@ -161,7 +161,7 @@ export default function PieChart({ verifiedIncomes = null, netIncomes = null, ch
         <ShowListModal
           title={listTitle}
           modalIsOpen={showIncomes}
-          ListComponentProps={{ incomesData: list }}
+          ListComponentProps={{ incomes: list, incomesTotal: list.reduce((acc, curr) => acc + curr.amount, 0) }}
           ListComponent={IncomesList}
           extraInformation={renderStatistics}
           toggleComponent={() => setShowIncomes((prev) => !prev)}

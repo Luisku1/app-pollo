@@ -2,13 +2,11 @@ import ExtraOutgoing from "../models/accounts/outgoings/extra.outgoing.model.js"
 import Outgoing from "../models/accounts/outgoings/outgoing.model.js"
 import Loan from '../models/accounts/outgoings/loan.model.js'
 import { errorHandler } from "../utils/error.js"
-import { updateReportOutgoings } from "../utils/updateReport.js"
 import { getDayRange } from "../utils/formatDate.js"
-import mongoose, { Types } from "mongoose"
+import { Types } from "mongoose"
 import Branch from "../models/branch.model.js"
-import { addRecordToBranchReportArrays, createDefaultBranchReport, fetchBranchReport, pushOrPullBranchReportRecord } from "./branch.report.controller.js"
-import BranchReport from "../models/accounts/branch.report.model.js"
-import { addSupervisorReportExtraOutgoing, deleteSupervisorExtraOutgoing, pushOrPullSupervsorReportRecord, updateEmployeeDailyBalancesBalance } from "./employee.controller.js"
+import { pushOrPullBranchReportRecord } from "./branch.report.controller.js"
+import { pushOrPullSupervisorReportRecord } from "./employee.controller.js"
 
 export const newOutgoing = async (req, res, next) => {
 
@@ -18,14 +16,11 @@ export const newOutgoing = async (req, res, next) => {
 
     const outgoing = await newOutgoingAndUpdateBranchReport({ amount, concept, company, branch, employee, createdAt })
 
-
     res.status(201).json({ message: 'New outgoing created successfully', outgoing: outgoing })
-
 
   } catch (error) {
 
     next(error)
-
   }
 }
 
@@ -149,7 +144,15 @@ export const newExtraOutgoingFunction = async ({ _id, amount, concept, company, 
   try {
     extraOutgoing = await ExtraOutgoing.create(extraOutgoingData);
 
-    await addSupervisorReportExtraOutgoing({ extraOutgoing, date: extraOutgoing.createdAt });
+    await pushOrPullSupervisorReportRecord({
+      supervisorId: employee,
+      date: extraOutgoing.createdAt,
+      record: extraOutgoing,
+      operation: '$addToSet',
+      affectsBalancePositively: true,
+      amountField: 'extraOutgoings',
+      arrayField: 'extraOutgoingsArray'
+    })
 
     return extraOutgoing || null;
 
@@ -352,8 +355,6 @@ export const deleteExtraOutgoing = async (req, res, next) => {
 
   try {
 
-    console.log(extraOutgoingId)
-
     deletedExtraOutgoing = await deleteExtraOutgoingFunction(extraOutgoingId)
 
     if (deletedExtraOutgoing) {
@@ -377,11 +378,9 @@ export const deleteExtraOutgoingFunction = async (extraOutgoingId) => {
 
     deletedExtraOutgoing = await ExtraOutgoing.findByIdAndDelete(extraOutgoingId)
 
-    console.log(extraOutgoingId, deletedExtraOutgoing)
-
     if (deletedExtraOutgoing) {
 
-      await pushOrPullSupervsorReportRecord ({
+      await pushOrPullSupervisorReportRecord({
         supervisorId: deletedExtraOutgoing.employee,
         date: deletedExtraOutgoing.createdAt,
         record: deletedExtraOutgoing,
@@ -502,30 +501,6 @@ export const getLoans = async (req, res, next) => {
 
       next(errorHandler(404, 'Not loans found'))
     }
-
-  } catch (error) {
-
-    next(error)
-  }
-}
-
-export const deleteLoan = async (req, res, next) => {
-
-  const loanId = req.params.loanId
-
-  try {
-
-    const deleted = await Loan.deleteOne({ _id: loanId })
-
-    if (!deleted.deletedCount == 0) {
-
-      res.status(200).json('Loan deleted successfully')
-
-    } else {
-
-      next(errorHandler(404, 'Loan not founded'))
-    }
-
 
   } catch (error) {
 

@@ -18,6 +18,7 @@ export const useDeleteIncome = () => {
     } catch (error) {
       ToastDanger(`No se borró el efectivo de ${stringToCurrency({ amount: income.amount })}`)
       console.log(error)
+      throw error
     } finally {
       setLoading(false)
     }

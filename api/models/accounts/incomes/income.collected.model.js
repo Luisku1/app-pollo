@@ -38,10 +38,10 @@ const incomeCollectedSchema = mongoose.Schema({
     required: true
   }
 
-}, {timestamps: true})
+}, { timestamps: true })
 
-incomeCollectedSchema.index({company: 1, createdAt: -1, customer: 1})
-incomeCollectedSchema.index({company: 1, createdAt: -1, branch: 1})
+incomeCollectedSchema.index({ company: 1, createdAt: -1, customer: 1 })
+incomeCollectedSchema.index({ company: 1, createdAt: -1, branch: 1 })
 
 const IncomeCollected = mongoose.model('IncomeCollected', incomeCollectedSchema)
 

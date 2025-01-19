@@ -8,18 +8,5 @@ export const getCustomersNameList = async ({ companyId }) => {
     return []
   }
 
-  const customers = []
-
-  data.customers.map((customer) => {
-
-    const auxCustomerConst = {
-
-      value: customer._id,
-      label: customer.name + ' ' + customer.lastName
-    }
-
-    customers.push(auxCustomerConst)
-  })
-
-  return customers
+  return data.customers
 }

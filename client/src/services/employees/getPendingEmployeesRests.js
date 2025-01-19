@@ -1,4 +1,4 @@
-export const getPendingEmployeesRestsFetch = async ({companyId}) => {
+export const getPendingEmployeesRestsFetch = async (companyId) => {
 
   const res = await fetch('/api/employee/get-pending-employees-rests/' + companyId)
   const data = await res.json()

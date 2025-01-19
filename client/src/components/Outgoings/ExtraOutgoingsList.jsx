@@ -8,7 +8,7 @@ export default function ExtraOutgoingsList({ extraOutgoings, totalExtraOutgoings
 
   const { currentUser } = useSelector((state) => state.user)
   const { roles } = useRoles()
-  const isEmpty = extraOutgoings.length === 0
+  const isEmpty = !extraOutgoings || extraOutgoings.length === 0
 
   const renderTotal = () => {
     return (
@@ -55,10 +55,8 @@ export default function ExtraOutgoingsList({ extraOutgoings, totalExtraOutgoings
 
             {shouldShowDeleteButton && (
               <DeleteButton
-                deleteFunction={onDeleteExtraOutgoing}
+                deleteFunction={() => onDeleteExtraOutgoing(extraOutgoing, index)}
                 id={_id}
-                index={index}
-                item={extraOutgoing}
               />
             )}
 

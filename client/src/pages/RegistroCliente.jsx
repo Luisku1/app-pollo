@@ -83,7 +83,7 @@ export default function RegistroCliente() {
           <p className="text-xs text-red-700">Ubicación*</p>
           <input type="text" name="location" id="location" placeholder="https://maps.app.goo.gl/YU99bo6wYVY9AMdL6" required className='border p-3 rounded-lg' onChange={handleChange} />
           <input type="tel" name="phoneNumber" id="phoneNumber" placeholder="Teléfono de tu cliente" className='border p-3 rounded-lg' onChange={handleChange} />
-          <button disabled={loading} className="bg-slate-700 text-white p-3 rounded-lg uppercase hover:opacity-95 disabled:opacity-80">
+          <button disabled={loading} className="bg-button text-white p-3 rounded-lg uppercase hover:opacity-95 disabled:opacity-80">
             {loading ? 'Cargando...' : 'Registrar'}
           </button>
         </form>

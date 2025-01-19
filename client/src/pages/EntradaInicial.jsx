@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 import { useSelector } from "react-redux"
 import SectionHeader from "../components/SectionHeader";
 import { MdCancel } from "react-icons/md";
@@ -9,58 +9,29 @@ import Select from 'react-select'
 import { customSelectStyles } from "../helpers/Constants";
 import MenuSucursal from "../components/EntradasDeProveedor/MenuSucursal";
 import { useProviderInputs } from "../hooks/ProviderInputs/useProviderInputs";
-import { stringToCurrency } from "../helpers/Functions";
+import { getArrayForSelects, getElementForSelect, stringToCurrency } from "../helpers/Functions";
 import DeleteButton from "../components/Buttons/DeleteButton";
+import Modal from "../components/Modals/Modal";
 
 export default function EntradaInicial({ date, branchAndCustomerSelectOptions, products, roles }) {
 
   const { company, currentUser } = useSelector((state) => state.user)
   const [selectedProduct, setSelectedProduct] = useState(null)
-  const { providerInputs, providerInputsWeight, providerInputsPieces, providerInputsAmount, onAddProviderInput, onDeleteProviderInput } = useProviderInputs({ companyId: company._id, productId: selectedProduct == null ? products.length > 0 ? products[0].value : null : selectedProduct.value, date })
+  const { providerInputs, providerInputsWeight, providerInputsPieces, providerInputsAmount, onAddProviderInput, onDeleteProviderInput } = useProviderInputs({ companyId: company._id, productId: selectedProduct == null ? products.length > 0 ? products[0]._id : null : selectedProduct._id, date })
   const [showProviderInputs, setShowProviderInputs] = useState(false)
   const [showProviderInputsStats, setShowProviderInputsStats] = useState(false)
-  const listRef = useRef(null);
 
   useEffect(() => {
 
-    const list = listRef.current;
+    if (!products || products.length == 0) return
 
-    if (list) {
-
-      const handleScroll = () => {
-
-        sessionStorage.setItem('scrollPosition', list.scrollTop);
-
-      };
-
-      list.addEventListener('scroll', handleScroll);
-
-      // Restaurar la posición del scroll
-      const scrollPosition = sessionStorage.getItem('scrollPosition');
-
-      if (scrollPosition) {
-
-        list.scrollTop = scrollPosition;
-      }
-
-      return () => {
-        list.removeEventListener('scroll', handleScroll);
-      };
-    }
-  }, []);
-
-  useEffect(() => {
-
-    if (products.length < 1) return
-
-    setSelectedProduct({ value: products[0].value, label: `${products[0].label} de proveedor` })
+    setSelectedProduct({ name: `${products[0].name} de proveedor`, ...products[0] })
 
   }, [products])
 
   const showProviderInputsFunction = async () => {
 
     setShowProviderInputs(true)
-
   }
 
   const hideProviderInputs = async () => {
@@ -70,33 +41,50 @@ export default function EntradaInicial({ date, branchAndCustomerSelectOptions, p
 
   const handleProductSelectChange = (product) => {
 
-    setSelectedProduct({ value: product.value, label: `${product.label} de proveedor` })
+    setSelectedProduct({ name: `${product.name} de proveedor`, ...product })
   }
 
   useEffect(() => {
 
-    if (products && products.length == 0) return
+    if (!products || products.length == 0) return
 
     handleProductSelectChange(products[0])
 
   }, [products])
 
   return (
-
     <main className="max-w-lg mx-auto">
-
       <div className='border bg-white p-3 mt-4'>
-        <SectionHeader label={(selectedProduct ? selectedProduct.label : 'Producto')} />
-
+        <SectionHeader label={'Entradas de Proveedor'} />
         <div className="grid grid-rows-2">
           <div className="flex gap-3 justify-self-end items-center">
-
             <div className="flex gap-3">
-
               <button className="w-10 h-10" onClick={showProviderInputsFunction}><FaListAlt className="h-full w-full text-red-600" />
               </button>
               <button className="w-10 h-10 rounded-lg shadow-lg" onClick={() => setShowProviderInputsStats(true)}><BsInfoSquare className="h-full w-full text-red-600" />
               </button>
+              {showProviderInputsStats && providerInputs && providerInputs.length > 0 ?
+                <Modal
+                  closeModal={() => setShowProviderInputsStats(false)}
+                  title={'Datos de entradas de proveedores'}
+                  content={
+                    <div >
+                      <div className="grid grid-cols-2 p-3 shadow-lg rounded-lg mb-4 gap-2 items-center">
+                        <p className="font-bold text-lg">Kilos: </p>
+                        <p>{providerInputsWeight.toFixed(2) + ' Kg'}</p>
+                      </div>
+                      <div className="grid grid-cols-2 p-3 shadow-lg rounded-lg mb-4 gap-2 items-center">
+                        <p className="font-bold text-lg">Piezas: </p>
+                        <p>{providerInputsPieces.toFixed(2) + ' u'}</p>
+                      </div>
+                      <div className="grid grid-cols-2 p-3 shadow-lg rounded-lg mb-4 gap-2 items-center">
+                        <p className="font-bold text-lg">Promedio: </p>
+                        <p>{(providerInputsWeight / providerInputsPieces).toFixed(2) + ' Kg/u'}</p>
+                      </div>
+                    </div>
+                  }
+                />
+                : ''}
             </div>
             <p className='font-bold text-md'><span className=" text-red-700 text-center">{`${providerInputsWeight.toFixed(2)} Kg / ${providerInputsPieces}`}</span><sup className="text-red-700">u</sup><span>:</span><span className="text-green-700">{` ${stringToCurrency({ amount: providerInputsAmount })}`}</span></p>
           </div>
@@ -105,38 +93,31 @@ export default function EntradaInicial({ date, branchAndCustomerSelectOptions, p
               <div className="col-span-3">
                 <Select
                   styles={customSelectStyles}
-                  value={selectedProduct}
+                  value={getElementForSelect(selectedProduct, (product) => { return product.name }) || null}
                   onChange={handleProductSelectChange}
-                  options={products}
+                  options={getArrayForSelects(products, (product) => { return product.name })}
                   placeholder={'Producto de Proveedor'}
                   isSearchable={true}
                 />
               </div>
             </div>
           </h2>
-
         </div>
-
         <MenuSucursal
           date={date}
           branchAndCustomerSelectOptions={branchAndCustomerSelectOptions}
           onAddProviderInput={onAddProviderInput}
+
           selectedProduct={selectedProduct}>
         </MenuSucursal>
-
       </div>
-
       <div className="grid my-4 grid-cols-1 rounded-lg">
-
         {providerInputs && providerInputs.length > 0 && showProviderInputs ?
-
           <div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center max-w-lg my-auto mx-auto z-10'>
             <div className=' bg-white p-5 rounded-lg justify-center items-center h-5/6 my-auto mx-auto w-11/12 overflow-y-scroll'>
               <button className="" onClick={hideProviderInputs}><MdCancel className="h-7 w-7" /></button>
               < div className='bg-white mt-4 mb-4'>
-
-                <SectionHeader label={'Entradas de proveedor'} />
-
+                <SectionHeader label={'Entradas de ' + selectedProduct.name} />
                 <div>
                   {providerInputs && providerInputs.length > 0 ?
                     <div id='header' className='grid grid-cols-12 items-center justify-around font-semibold sticky top-0 bg-white'>
@@ -146,25 +127,18 @@ export default function EntradaInicial({ date, branchAndCustomerSelectOptions, p
                       <p className='col-span-1 text-center'>Kg</p>
                     </div>
                     : ''}
-
                   {providerInputs && providerInputs.length > 0 && providerInputs.map((providerInput, index) => (
-
                     <div key={providerInput._id} className={(currentUser._id == providerInput.employee || currentUser.role == roles.managerRole._id ? '' : 'py-3 ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
-
                       <div id='list-element' className='flex col-span-10 items-center justify-around'>
                         <p className='text-center text-xs  w-3/12'>{`${providerInput.branch?.branch || providerInput.branch?.label || (`${providerInput.customer?.name} ${providerInput.customer?.lastName}`)}`}</p>
                         <p className='text-center text-xs w-3/12'>{providerInput.employee.name + ' ' + providerInput.employee.lastName}</p>
                         <p className='text-center text-xs w-3/12'>{providerInput.pieces}</p>
                         <p className='text-center text-xs w-1/12'>{`${providerInput.weight.toFixed(2)}`}</p>
                       </div>
-
                       {providerInput.employee._id == currentUser._id || roles.managerRole._id == currentUser.role ?
-
                         <DeleteButton
-                          deleteFunction={onDeleteProviderInput}
+                          deleteFunction={() => onDeleteProviderInput(providerInput, index)}
                           id={providerInput._id}
-                          index={index}
-                          item={providerInput}
                         />
                         : ''}
                     </div>
@@ -174,38 +148,7 @@ export default function EntradaInicial({ date, branchAndCustomerSelectOptions, p
             </div>
           </div>
           : ''}
-
-        {showProviderInputsStats && providerInputs && providerInputs.length > 0 ?
-
-          < div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center max-w-lg my-auto mx-auto z-10'>
-            <div className=' bg-white p-5 rounded-lg justify-center items-center h-5/6 my-auto mx-auto w-11/12 overflow-y-scroll'>
-              <button className="" onClick={() => setShowProviderInputsStats(false)}><MdCancel className="h-7 w-7" /></button>
-              < div className='bg-white mt-4 mb-4'>
-
-                <SectionHeader label={'Datos de entradas de proveedores'}></SectionHeader>
-
-                <div >
-                  <div className="grid grid-cols-2 p-3 shadow-lg rounded-lg mb-4 gap-2 items-center">
-                    <p className="font-bold text-lg">Kilos: </p>
-                    <p>{providerInputsWeight.toFixed(2) + ' Kg'}</p>
-                  </div>
-                  <div className="grid grid-cols-2 p-3 shadow-lg rounded-lg mb-4 gap-2 items-center">
-                    <p className="font-bold text-lg">Piezas: </p>
-                    <p>{providerInputsPieces.toFixed(2) + ' u'}</p>
-                  </div>
-                  <div className="grid grid-cols-2 p-3 shadow-lg rounded-lg mb-4 gap-2 items-center">
-                    <p className="font-bold text-lg">Promedio: </p>
-                    <p>{(providerInputsWeight / providerInputsPieces).toFixed(2) + ' Kg/u'}</p>
-                  </div>
-                </div>
-
-              </div>
-            </div>
-          </div>
-
-          : ''}
       </div>
-
-    </main >
+    </main>
   )
 }

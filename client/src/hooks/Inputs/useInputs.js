@@ -4,15 +4,11 @@ import { useDeleteInput } from "./useDeleteInput"
 import { useAddInput } from "./useAddInput"
 import { Types } from "mongoose"
 
-export const useInputs = ({ companyId = null, date = null, initialInputs = [] }) => {
+export const useInputs = ({ companyId = null, date = null, initialInputs = null }) => {
 
-  const [inputs, setInputs] = useState(initialInputs)
-  const [totalWeight, setTotalWeight] = useState(
-    initialInputs.reduce((acc, input) => acc + input.weight, 0)
-  )
-  const [totalAmount, setTotalAmount] = useState(
-    initialInputs.reduce((acc, input) => acc + input.amount, 0)
-  )
+  const [inputs, setInputs] = useState([])
+  const [totalWeight, setTotalWeight] = useState(0.0)
+  const [totalAmount, setTotalAmount] = useState(0.0)
   const { deleteInput } = useDeleteInput()
   const { addInput } = useAddInput()
   const [loading, setLoading] = useState(false)
@@ -71,7 +67,19 @@ export const useInputs = ({ companyId = null, date = null, initialInputs = [] })
     }
   }
 
+  const initialize = (initialArray) => {
+    setInputs(initialArray);
+  };
+
   useEffect(() => {
+    if (initialInputs) {
+      initialize(initialInputs);
+      calculateTotal(initialInputs);
+    }
+  }, [initialInputs])
+
+  useEffect(() => {
+
     if (!companyId || !date) return;
 
     const fetchInputs = async () => {
@@ -84,7 +92,11 @@ export const useInputs = ({ companyId = null, date = null, initialInputs = [] })
         setInputs(response.inputs);
         calculateTotal(response.inputs);
       } catch (error) {
-        setError(error);
+        if (error.response && error.response.status === 404) {
+          console.error("Inputs not found for the given date.");
+        } else {
+          setError(error);
+        }
       } finally {
         setLoading(false);
       }
@@ -104,6 +116,7 @@ export const useInputs = ({ companyId = null, date = null, initialInputs = [] })
     loading,
     pushInput,
     spliceInput,
-    error
+    error,
+    initialize
   }
 }

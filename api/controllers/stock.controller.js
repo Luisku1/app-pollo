@@ -1,17 +1,22 @@
 import Stock from "../models/accounts/stock.model.js";
 import { errorHandler } from "../utils/error.js";
 import { getDayRange } from "../utils/formatDate.js";
-import { fetchBranchReport } from "./branch.report.controller.js";
+import { fetchBranchReport, fetchOrCreateBranchReport } from "./branch.report.controller.js";
 import { getProductPrice, pricesAggregate } from "./price.controller.js";
 import { pushOrPullBranchReportRecord } from './branch.report.controller.js'
+import { Types } from "mongoose";
 
 export const createStock = async (req, res, next) => {
 
-  const { pieces, weight, price, amount, branch, product, company, employee, createdAt } = req.body
+  const { _id, pieces, weight, price, amount, branch, product, company, employee, createdAt } = req.body
+
+  const stockData = { pieces, weight, price, amount, branch, product, company, employee, createdAt }
+
+  if (_id) stockData._id = _id
 
   try {
 
-    const newStock = await createStockAndUpdateBranchReport({ pieces, price, employee, weight, amount, branch, product, company, createdAt })
+    const newStock = await createStockAndUpdateBranchReport(stockData)
 
     res.status(201).json({ message: 'New stock created successfully', stock: newStock })
 
@@ -22,66 +27,106 @@ export const createStock = async (req, res, next) => {
   }
 }
 
-export const createStockAndUpdateBranchReport = async ({ pieces, price, employee, weight, amount, branch, product, company, createdAt }) => {
+export const createStockAndUpdateBranchReport = async (params) => {
+  const {
+    _id = null,
+    isInitial = false,
+    associatedStock = null,
+    pieces,
+    price,
+    employee,
+    weight,
+    amount,
+    branch,
+    product,
+    company,
+    createdAt
+  } = params;
+
+  const stockData = { pieces, price, employee, weight, amount, branch, product, company, createdAt };
+  if (_id) stockData._id = _id;
 
   let stock = null
   let initialStock = null
 
   try {
+    stock = isInitial ? null : await createNewStock(stockData);
+    initialStock = isInitial ? { isInitial, associatedStock, ...stockData } : await createInitialStock(stock, stockData, price, branch, product, createdAt);
 
-    stock = await Stock.create({ pieces, price, employee, weight, amount, branch, product, company, createdAt })
-
-    if (!stock) throw new Error("No se logró crear el registro");
-
-    await pushOrPullBranchReportRecord({
-      branchId: branch,
-      date: createdAt,
-      record: stock,
-      affectsBalancePositively: true,
-      operation: '$addToSet',
-      arrayField: 'finalStockArray',
-      amountField: 'finalStock'
-    })
-
-    const nextBranchReportDate = new Date(createdAt)
-    nextBranchReportDate.setDate(nextBranchReportDate.getDate() + 1)
-    const { bottomDate, topDate } = getDayRange(nextBranchReportDate)
-    console.log(stock)
-    const price = await getProductPrice(product, branch, topDate)
-    initialStock = { associatedStock: stock._id, createdAt: bottomDate, isInitial: true, ...stock }
-
-    if (price) {
-      initialStock.price = price
-      initialStock.amount = initialStock.weight * price
+    if (!initialStock.isInitial || !initialStock.associatedStock) {
+      throw new Error("Faltan campos para el sobrante inicial");
     }
 
-    await Stock.create(initialStock)
+    await saveInitialStock(initialStock, branch, initialStock.createdAt);
 
-    await pushOrPullBranchReportRecord({
-      branchId: branch,
-      date: nextBranchReportDate,
-      record: initialStock,
-      affectsBalancePositively: false,
-      operation: '$addToSet',
-      arrayField: 'initialStockArray',
-      amountField: 'initialStock'
-    })
-
-    return stock
-
+    return stock;
   } catch (error) {
-
-    if (stock)
-      await Stock.findByIdAndDelete(stock._id)
-
-
-    if (initialStock && initialStock._id)
-      await Stock.findByIdAndDelete(initialStock._id)
-
-
+    await handleStockCreationError(stock, initialStock);
     throw error;
   }
-}
+};
+
+const createNewStock = async (stockData) => {
+  const stock = await Stock.create({ ...stockData });
+  if (!stock) throw new Error("No se logró crear el registro");
+
+  await pushOrPullBranchReportRecord({
+    branchId: stockData.branch,
+    date: stockData.createdAt,
+    record: stock,
+    affectsBalancePositively: true,
+    operation: '$addToSet',
+    arrayField: 'finalStockArray',
+    amountField: 'finalStock'
+  });
+
+  return stock;
+};
+
+const createInitialStock = async (stock, stockData, price, branch, product, createdAt) => {
+  const nextBranchReportDate = new Date(createdAt);
+  nextBranchReportDate.setDate(nextBranchReportDate.getDate() + 1);
+  const { bottomDate } = getDayRange(nextBranchReportDate);
+  const branchReport = await fetchOrCreateBranchReport({ branchId: branch, date: nextBranchReportDate });
+
+  if (!branchReport) throw new Error("No se logró obtener el reporte de la sucursal");
+
+  const nextReportPrice = await getProductPrice(product, branch, branchReport.pricesDate || bottomDate);
+  const initialStockId = new Types.ObjectId().toHexString();
+  const initialStock = { ...stock._doc, _id: initialStockId, isInitial: true, associatedStock: stock._id, createdAt: bottomDate };
+
+  if (nextReportPrice != price) {
+    initialStock.price = nextReportPrice;
+    initialStock.amount = initialStock.weight * nextReportPrice;
+  }
+
+  return initialStock;
+};
+
+const saveInitialStock = async (initialStock, branch, createdAt) => {
+  const savedInitialStock = await Stock.create({ ...initialStock });
+  if (!savedInitialStock) throw new Error("No se pudo crear el inicial");
+
+  await pushOrPullBranchReportRecord({
+    branchId: branch,
+    date: createdAt,
+    record: savedInitialStock,
+    affectsBalancePositively: false,
+    operation: '$addToSet',
+    arrayField: 'initialStockArray',
+    amountField: 'initialStock'
+  });
+};
+
+const handleStockCreationError = async (stock, initialStock) => {
+  if (stock) {
+    await deleteStockAndUpdateBranchReport({ stockId: stock._id });
+  }
+
+  if (initialStock && initialStock._id) {
+    await deleteStockAndUpdateBranchReport({ stockId: initialStock._id, isInitial: true });
+  }
+};
 
 export const getInitialStock = async (req, res, next) => {
 
@@ -105,46 +150,6 @@ export const getInitialStock = async (req, res, next) => {
 
     next(error)
   }
-}
-
-export const getInitialStockValue = async ({ branchId, date }) => {
-
-  const dateMinusOne = new Date(date)
-  dateMinusOne.setDate(dateMinusOne.getDate() - 1)
-
-  const { topDate } = getDayRange(date)
-  const { bottomDate: yesterdayBottomDate, topDate: yesterdayTopDate } = getDayRange(dateMinusOne)
-
-  const todayBranchReport = await fetchBranchReport({ branchId, date })
-
-  const pricesDate = todayBranchReport?.dateSent ? todayBranchReport.dateSent : topDate
-
-  const initialStock = await Stock.find({
-
-    createdAt: { $lt: yesterdayTopDate, $gte: yesterdayBottomDate },
-    branch: branchId
-  })
-
-  const branchPrices = await pricesAggregate(branchId, pricesDate)
-
-  if (!branchPrices || !initialStock) return 0.0
-
-  return calculateInitialStock({ branchPrices, stock: initialStock })
-}
-
-export const calculateInitialStock = ({ branchPrices, stock }) => {
-
-  let total = 0.0
-
-  stock.forEach((stock) => {
-
-    const priceIndex = branchPrices.findIndex((price) => (price.productId.toString() == stock.product.toString()))
-
-    total += parseFloat(branchPrices[priceIndex].latestPrice * stock.weight)
-
-  })
-
-  return total
 }
 
 export const getBranchDayStock = async (req, res, next) => {
@@ -257,49 +262,68 @@ export const getCompanyDayStock = async (req, res, next) => {
 export const deleteStock = async (req, res, next) => {
 
   const stockId = req.params.stockId
-  let deletedStock = null
 
   try {
 
-    deletedStock = await Stock.findByIdAndDelete(stockId)
+    await deleteStockAndUpdateBranchReport({ stockId, alsoDeleteInitial: true })
 
-    if (!deletedStock) throw new Error("No se logró crear el registro")
+    res.status(200).json({ message: 'Registro eliminado' })
+
+  } catch (error) {
+
+    next(error)
+  }
+}
+
+const deleteStockAndUpdateBranchReport = async ({ stockId, isInitial = false, alsoDeleteInitial = false }) => {
+
+  let deletedStock = null;
+  let deletedInitialStock = null;
+
+  try {
+    deletedStock = await Stock.findByIdAndDelete(stockId);
+    if (!deletedStock) throw new Error("No se logró eliminar el registro");
 
     await pushOrPullBranchReportRecord({
       branchId: deletedStock.branch,
       date: deletedStock.createdAt,
       record: deletedStock,
-      affectsBalancePositively: true,
+      affectsBalancePositively: !isInitial,
       operation: '$pull',
-      arrayField: 'finalStockArray',
-      amountField: 'finalStock'
-    })
+      arrayField: isInitial ? 'initialStockArray' : 'finalStockArray',
+      amountField: isInitial ? 'initialStock' : 'finalStock'
+    });
 
-    const nextBranchReportDate = new Date(deletedStock.createdAt)
-    nextBranchReportDate.setDate(nextBranchReportDate.getDate() + 1)
+    if (alsoDeleteInitial) {
+      const initialStock = await Stock.findOne({ associatedStock: stockId });
+      if (initialStock) {
 
-    await pushOrPullBranchReportRecord({
-      branchId: deletedStock.branch,
-      date: nextBranchReportDate,
-      record: deletedStock,
-      affectsBalancePositively: false,
-      operation: '$pull',
-      arrayField: 'initialStockArray',
-      amountField: 'initialStock'
-    })
+        deletedInitialStock = await Stock.findByIdAndDelete(initialStock._id);
+        if (!deletedInitialStock) throw new Error("No se logró borrar el inicial");
 
-    res.status(200).json({ message: 'Registro borrado correctamente' })
-
+        await pushOrPullBranchReportRecord({
+          branchId: deletedInitialStock.branch,
+          date: deletedInitialStock.createdAt,
+          record: deletedInitialStock,
+          affectsBalancePositively: false,
+          operation: '$pull',
+          arrayField: 'initialStockArray',
+          amountField: 'initialStock'
+        });
+      }
+    }
   } catch (error) {
 
     if (deletedStock) {
-
-      await Stock.create(deletedStock)
+      await createStockAndUpdateBranchReport(deletedStock);
     }
 
-    next(error);
+    if (deletedInitialStock) {
+      await createStockAndUpdateBranchReport(deletedInitialStock);
+    }
+    throw error;
   }
-}
+};
 
 export const getTotalStockByProduct = async (req, res, next) => {
 

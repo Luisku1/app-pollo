@@ -11,7 +11,7 @@ import ShowDetails from '../ShowDetails';
 export default function IncomesList({ incomes, incomesTotal, onDeleteIncome }) {
   const { currentUser } = useSelector((state) => state.user);
   const { roles } = useRoles();
-  const [isEmpty] = useState(incomes.length === 0);
+  const isEmpty = !incomes || incomes.length === 0;
   const [selectedIncome, setSelectedIncome] = useState(null);
   const [incomeDetailsIsOpen, setIncomeDetailsIsOpen] = useState(false);
 
@@ -63,7 +63,7 @@ export default function IncomesList({ incomes, incomesTotal, onDeleteIncome }) {
     const typeName = partOfAPayment ? 'Pago' : type.name ?? type.label;
     const formattedAmount = stringToCurrency({ amount });
     const isAuthorized = currentUser._id === employee?._id || currentUser.role === roles.managerRole._id;
-    const deletable = (currentUser.role === roles.managerRole._id || currentUser._id === employee?._id) && !partOfAPayment;
+    const deletable = onDeleteIncome ? (isAuthorized && !partOfAPayment) : false;
 
     return (
       isAuthorized && (
@@ -89,9 +89,7 @@ export default function IncomesList({ incomes, incomesTotal, onDeleteIncome }) {
               <div className="col-span-2 flex justify-center">
                 <DeleteButton
                   id={_id}
-                  item={income}
-                  index={index}
-                  deleteFunction={onDeleteIncome}
+                  deleteFunction={() => onDeleteIncome(income, index)}
                 />
               </div>
             )}

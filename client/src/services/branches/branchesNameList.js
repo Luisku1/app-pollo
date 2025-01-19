@@ -8,18 +8,7 @@ export const getBranchesNameList = async ({ companyId }) => {
     return []
   }
 
-  const branches = []
-
-  data.branches.map((branch) => {
-
-    const option = {
-
-      value: branch._id,
-      label: branch.branch
-    }
-
-    branches.push(option)
-  })
+  const branches = data.branches
 
   return branches
 }

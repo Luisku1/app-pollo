@@ -4,24 +4,24 @@ import { useAddIncome } from "./useAddIncome";
 import { useDeleteIncome } from "./useDeleteIncome";
 import { Types } from "mongoose";
 
-export const useIncomes = ({ companyId, date }) => {
+export const useIncomes = ({ companyId = null, date = null, initialIncomes = null}) => {
   const [incomes, setIncomes] = useState([]);
-  const [incomesTotal, setIncomesTotal] = useState(0);
   const { addIncome, loading: addLoading } = useAddIncome();
   const { deleteIncome, loading: deleteLoading } = useDeleteIncome();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  const initialize = (initialArray) => {
+    setIncomes(initialArray);
+  };
+
   const pushIncome = (income) => {
     setIncomes((prevIncomes) => [income, ...prevIncomes]);
-    setIncomesTotal((prevTotal) => prevTotal + income.amount);
   };
 
   const spliceIncome = (index) => {
     setIncomes((prevIncomes) => {
-      const removedIncome = prevIncomes[index];
       const newIncomes = prevIncomes.filter((_, i) => i !== index);
-      setIncomesTotal((prevTotal) => prevTotal - removedIncome.amount);
       return newIncomes;
     });
   };
@@ -29,7 +29,6 @@ export const useIncomes = ({ companyId, date }) => {
   const spliceIncomeById = (incomeId) => {
     setIncomes((prevIncomes) => {
       const filteredIncomes = prevIncomes.filter((income) => income._id !== incomeId);
-      setIncomesTotal(filteredIncomes.reduce((acc, income) => acc + income.amount, 0));
       return filteredIncomes;
     });
   };
@@ -65,27 +64,24 @@ export const useIncomes = ({ companyId, date }) => {
     }
   };
 
-  const sortedIncomes = useMemo(() => {
-    const clientsIncomes = incomes.filter((income) => !income.branch);
-    const branchesIncomes = incomes
-      .filter((income) => income.branch)
-      .sort((a, b) => a.branch.position - b.branch.position);
+  useEffect(() => {
 
-    return [...branchesIncomes, ...clientsIncomes];
-  }, [incomes]);
+    if (!initialIncomes) return;
+    setIncomes(initialIncomes);
+
+  }, [initialIncomes, incomes])
 
   useEffect(() => {
+
     if (!companyId || !date) return;
 
     const fetchIncomes = async () => {
       setLoading(true);
       setIncomes([]);
-      setIncomesTotal(0);
 
       try {
         const response = await getIncomesFetch(companyId, date);
         setIncomes(response.incomes);
-        setIncomesTotal(response.total);
       } catch (error) {
         setError(error);
       } finally {
@@ -95,6 +91,15 @@ export const useIncomes = ({ companyId, date }) => {
 
     fetchIncomes();
   }, [companyId, date]);
+
+
+  const sortedIncomes = useMemo(() => {
+    const branchesIncomes = incomes.filter((income) => income.branch).sort((a, b) => a.branch.position - b.branch.position);
+    const clientsIncomes = incomes.filter((income) => !income.branch);
+    return [...branchesIncomes, ...clientsIncomes];
+  }, [incomes]);
+
+  const incomesTotal = useMemo(() => incomes.reduce((acc, income) => acc + income.amount, 0), [incomes])
 
   return {
     incomes: sortedIncomes,
@@ -107,5 +112,6 @@ export const useIncomes = ({ companyId, date }) => {
     spliceIncome,
     spliceIncomeById,
     updateLastIncomeId,
+    initialize
   };
 };

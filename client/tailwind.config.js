@@ -11,7 +11,10 @@ export default {
       colors: {
         'pastel-pink': '#FEEAF2', // Tono de rosa pastel personalizado
         'header': '#333333',
-        'menu': '#E4E4E4'
+        'menu': '#E4E4E4',
+        'button': '#A36A63',
+        'options-bar': '#415D43',
+        'supervisor-button': '#CCCCCC'
       },
     },
   },

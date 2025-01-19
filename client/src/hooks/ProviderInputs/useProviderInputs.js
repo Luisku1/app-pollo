@@ -4,18 +4,12 @@ import { useCreateProviderInput } from "./useCreateProviderInput"
 import { useDeleteProviderInput } from "./useDeleteProviderInput"
 import { Types } from "mongoose"
 
-export const useProviderInputs = ({ companyId = null, productId = null, date = null, initialInputs = [] }) => {
+export const useProviderInputs = ({ companyId = null, productId = null, date = null, initialInputs = null }) => {
 
-  const [providerInputs, setProviderInputs] = useState(initialInputs)
-  const [providerInputsWeight, setProviderInputsWeight] = useState(
-    initialInputs.reduce((acc, input) => acc + input.weight, 0)
-  )
-  const [providerInputsPieces, setProviderInputsPieces] = useState(
-    initialInputs.reduce((acc, input) => acc + input.pieces, 0)
-  )
-  const [providerInputsAmount, setProviderInputsAmount] = useState(
-    initialInputs.reduce((acc, input) => acc + input.amount, 0)
-  )
+  const [providerInputs, setProviderInputs] = useState([])
+  const [providerInputsWeight, setProviderInputsWeight] = useState(0)
+  const [providerInputsPieces, setProviderInputsPieces] = useState(0)
+  const [providerInputsAmount, setProviderInputsAmount] = useState(0)
   const { createProviderInput } = useCreateProviderInput()
   const { deleteProviderInput } = useDeleteProviderInput()
   const [loading, setLoading] = useState(false)
@@ -28,21 +22,19 @@ export const useProviderInputs = ({ companyId = null, productId = null, date = n
     setProviderInputsPieces(providerInputsList.reduce((acc, input) => acc + input.pieces, 0))
   }
 
-  const spliceProviderInput = ({ index }) => {
-
+  const spliceProviderInput = (index) => {
     setProviderInputs((prevInputs) => {
       const newInputs = prevInputs.filter((_, i) => i !== index)
       calculateTotal(newInputs)
       return newInputs
     })
-
   }
 
-  const pushProviderInput = ({ providerInput }) => {
-
+  const pushProviderInput = (providerInput) => {
     setProviderInputs((prevInputs) => {
-      calculateTotal([providerInput])
-      return [providerInput, ...prevInputs]
+      const newInputs = [providerInput, ...prevInputs]
+      calculateTotal(newInputs)
+      return newInputs
     })
   }
 
@@ -54,7 +46,7 @@ export const useProviderInputs = ({ companyId = null, productId = null, date = n
 
       const tempProviderInput = { ...providerInput, _id: tempId }
 
-      pushProviderInput(tempProviderInput, group)
+      pushProviderInput(tempProviderInput)
       await createProviderInput(tempProviderInput, group)
 
     } catch (error) {
@@ -78,20 +70,24 @@ export const useProviderInputs = ({ companyId = null, productId = null, date = n
     }
   }
 
-  const sortedProviderInputs = useMemo(() => {
+  const initialize = (initialArray) => {
+    setProviderInputs(initialArray);
+  };
 
-    const clientsInputs = providerInputs.filter((input) => !input.branch)
-    const branchesInputs = providerInputs
-    return [...branchesInputs, ...clientsInputs]
-  }, [providerInputs])
+  useEffect(() => {
+
+    if (!initialInputs) return
+
+    initialize(initialInputs)
+    calculateTotal(initialInputs)
+
+  }, [initialInputs])
 
   useEffect(() => {
 
     if (!companyId || !date || !productId) return
 
     setLoading(true)
-
-    setProviderInputs([])
     setProviderInputsWeight(0.0)
     setProviderInputsPieces(0.0)
     setProviderInputsAmount(0.0)
@@ -112,6 +108,15 @@ export const useProviderInputs = ({ companyId = null, productId = null, date = n
 
   }, [companyId, date, productId])
 
+  const sortedProviderInputs = useMemo(() => {
+    let clientsInputs = providerInputs.filter((input) => !input.branch)
+    clientsInputs = clientsInputs.sort((a, b) => a.name - b.name)
+    let branchesInputs = providerInputs
+      .filter((input) => input.branch)
+      .sort((a, b) => a.branch.position - b.branch.position)
+    return [...branchesInputs, ...clientsInputs]
+  }, [providerInputs])
+
   return {
     providerInputs: sortedProviderInputs,
     providerInputsAmount,
@@ -122,6 +127,7 @@ export const useProviderInputs = ({ companyId = null, productId = null, date = n
     pushProviderInput,
     spliceProviderInput,
     loading,
-    error
+    error,
+    initialize
   }
 }

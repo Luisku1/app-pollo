@@ -23,7 +23,7 @@ export const useAddInput = () => {
           pieces: input.pieces,
           specialPrice: input.specialPrice,
           company: input.company,
-          product: input.product.value,
+          product: input.product._id,
           employee: input.employee._id,
           branch: input.branch?.value || null,
           customer: input.customer?.value || null,

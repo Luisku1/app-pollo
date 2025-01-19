@@ -1,39 +1,29 @@
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { getOutgoings } from "../../services/Outgoings/getOutgoings"
 import { useAddOutgoing } from "./useAddOutgoing"
 import { Types } from "mongoose"
 import { useDeleteOutgoing } from "./useDeleteOutgoing"
 
-export const useOutgoings = ({ branchId = null, date = null, initialOutgoings = [] }) => {
+export const useOutgoings = ({ branchId = null, date = null, initialOutgoings = null }) => {
 
-  const [outgoings, setOutgoings] = useState(initialOutgoings)
-  const [outgoingsTotal, setOutgoingsTotal] = useState(
-    initialOutgoings.reduce((acc, outgoing) => acc + outgoing.amount, 0)
-  )
+  const [outgoings, setOutgoings] = useState([])
   const { deleteOutgoing } = useDeleteOutgoing()
   const { addOutgoing } = useAddOutgoing()
   const [loading, setLoading] = useState(false)
 
-  const calculateTotal = (outgoingsList) => {
-
-    setOutgoingsTotal(outgoingsList.reduce((acc, outgoing) => acc + outgoing.amount, 0))
-  }
-
   const pushOutgoing = (outgoing) => {
 
     setOutgoings((prevOutgoings) => [outgoing, ...prevOutgoings])
-    setOutgoingsTotal((prev) => prev + outgoing.amount)
   }
 
   const spliceOutgoing = (index) => {
     setOutgoings((prevOutgoings) => {
       const newOutgoings = prevOutgoings.filter((_, i) => i !== index);
-      calculateTotal(newOutgoings);
       return newOutgoings;
     });
   };
 
-  const onAddOutgoing = async (outgoing) => {
+  const onAddOutgoing = async (outgoing, modifyBalance) => {
 
     const tempId = new Types.ObjectId().toHexString()
 
@@ -41,6 +31,7 @@ export const useOutgoings = ({ branchId = null, date = null, initialOutgoings = 
 
       const tempOutgoing = { ...outgoing, _id: tempId }
 
+      modifyBalance(tempOutgoing.amount, 'add')
       pushOutgoing(tempOutgoing)
       await addOutgoing(tempOutgoing)
 
@@ -51,10 +42,11 @@ export const useOutgoings = ({ branchId = null, date = null, initialOutgoings = 
     }
   }
 
-  const onDeleteOutgoing = async (outgoing, index) => {
+  const onDeleteOutgoing = async (outgoing, index, modifyBalance) => {
 
     try {
 
+      modifyBalance(outgoing.amount, 'subtract')
       spliceOutgoing(index)
       await deleteOutgoing(outgoing)
 
@@ -65,36 +57,53 @@ export const useOutgoings = ({ branchId = null, date = null, initialOutgoings = 
     }
   }
 
+  const initialize = (initialArray) => {
+    setOutgoings(initialArray);
+  };
+
   useEffect(() => {
 
-    if (initialOutgoings.length > 0) return
+    if (!initialOutgoings || initialOutgoings == outgoings) return
+
+    setOutgoings(initialOutgoings)
+
+  }, [initialOutgoings, outgoings])
+
+  useEffect(() => {
+
     if (!branchId || !date) return
 
-    setLoading(true)
+    const fetchOutgoings = async () => {
+      setLoading(true)
+      try {
+        const response = await getOutgoings({ branchId, date })
+        setOutgoings(response.outgoings)
+      } catch (error) {
+        console.log(error)
+      } finally {
+        setLoading(false)
+      }
+    }
 
-    setOutgoings([])
-    setOutgoingsTotal(0.0)
+    fetchOutgoings()
+  }, [branchId, date])
 
-    getOutgoings({ branchId, date }).then((response) => {
+  const outgoingsTotal = useMemo(() => {
+    return outgoings.reduce((acc, outgoing) => acc + outgoing.amount, 0)
+  }, [outgoings])
 
-      setOutgoings(response.outgoings)
-      setOutgoingsTotal(response.outgoingsTotal)
-
-    }).catch((error) => {
-
-      console.log(error)
-    })
-
-    setLoading(false)
-  }, [branchId, date, initialOutgoings])
+  const sortedOutgoings = useMemo(() => {
+    return outgoings.sort((a, b) => a.amount - b.amount)
+  }, [outgoings])
 
   return {
-    outgoings,
+    outgoings: sortedOutgoings,
     outgoingsTotal,
     onAddOutgoing,
     onDeleteOutgoing,
     pushOutgoing,
     spliceOutgoing,
-    loading
+    loading,
+    initialize
   }
 }

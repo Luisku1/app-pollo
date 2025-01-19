@@ -165,23 +165,18 @@ export default function Perfil() {
   return (
 
     <main className="p-3 max-w-lg mx-auto">
-
       {error ? <p>{error}</p> : ''}
-
       {!isLoading && (
-
         <div>
           {employee && roles ?
-
             <div id='personal-info' className="my-4 bg-white p-4" key={employee._id}>
               <div className="flex gap-3 text-3xl font-bold text-center justify-self-center">
-                <h1 className="">{employee.name + ' ' + employee.lastName}</h1>
+                <h1 className="text-button">{employee.name + ' ' + employee.lastName}</h1>
                 {isAuthorizedToEdit && (
                   <button className="" onClick={toggleEditEmployee}>
                     <FaEdit className="text-blue-500" />
                   </button>
                 )}
-
                 {editEmployee && (
                   <Modal
                     content={<RegistroEmpleadoNuevo setEmployee={setEmployee} employee={employee} />}
@@ -190,7 +185,6 @@ export default function Perfil() {
                   />
                 )}
               </div>
-
               {roles.managerRole._id == currentUser.role || currentUser._id == employee._id ?
                 <div className='p-3'>
                   <div className='flex flex-row-reverse gap-2 items-center'>
@@ -273,7 +267,6 @@ export default function Perfil() {
                 </div>
                 : ''
               }
-
               {supervisorReports && supervisorReports.length > 0 && (currentUser._id == employeeId || roles.managerRole._id == currentUser.role) ?
 
                 <div className='flex gap-4 mt-4 items-center justify-self-center'>
@@ -289,7 +282,6 @@ export default function Perfil() {
                 </div>
                 : ''
               }
-
               {employeeId == currentUser._id ?
                 <div className='mt-8 grid grid-1'>
                   <button className='shadow-lg rounded-full p-2 flex-col-reverse justify-self-end border bg-red-700'>

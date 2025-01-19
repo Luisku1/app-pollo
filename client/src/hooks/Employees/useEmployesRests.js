@@ -1,36 +1,56 @@
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { getPendingEmployeesRestsFetch } from "../../services/employees/getPendingEmployeesRests"
+import { Types } from "mongoose"
+import { useAddEmployeeRest } from "./useAddEmployeeRest"
+import { useDeleteEmployeeRest } from "./useDeleteEmployeeRest"
 
 export const usePendingEmployeesRests = ({ companyId }) => {
 
   const [pendingRests, setPendingRests] = useState([])
+  const { addEmployeeRest } = useAddEmployeeRest()
+  const { deleteEmployeeRest } = useDeleteEmployeeRest()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
-  const pushPendingEmployeeRest = ({ employeeRest }) => {
+  const pushPendingEmployeeRest = (employeeRest) => {
 
     setPendingRests((prev) => [employeeRest, ...prev])
   }
 
-  const splicePendingEmployeeRest = ({ index }) => {
+  const splicePendingEmployeeRest = (index) => {
 
-    if (pendingRests.length == 0) {
-      setPendingRests([])
+    setPendingRests((prev) => prev.filter((_, i) => i != index))
+  }
 
-    } else {
+  const onAddEmployeeRest = async (employeeRest) => {
 
-      setPendingRests((prev) => prev.filter((_,  i) => i != index))
+    const tempId = new Types.ObjectId().toHexString()
+
+    try {
+
+      const tempEmployeeRest = { ...employeeRest, _id: tempId };
+      pushPendingEmployeeRest(tempEmployeeRest);
+
+      await addEmployeeRest(tempEmployeeRest);
+
+    } catch (error) {
+
+      splicePendingEmployeeRest(pendingRests.findIndex((rest) => rest._id === tempId));
+      console.log(error);
     }
-  }
+  };
 
-  const updateLastEmployeeRestId = ({ createdEmployeeRestId }) => {
+  const onDeleteEmployeeRest = async (employeeRest, index) => {
+    try {
 
+      splicePendingEmployeeRest(index);
+      await deleteEmployeeRest(employeeRest);
 
-    setPendingRests((prev) => prev.map((employeeRest, index) =>
-
-      index != 0 ? employeeRest : { _id: createdEmployeeRestId, ...employeeRest }
-    ))
-  }
+    } catch (error) {
+      pushPendingEmployeeRest(employeeRest);
+      console.log(error);
+    }
+  };
 
   useEffect(() => {
 
@@ -38,24 +58,32 @@ export const usePendingEmployeesRests = ({ companyId }) => {
 
     setLoading(true)
 
-    getPendingEmployeesRestsFetch({ companyId }).then((response) => {
+    const fetchPendingEmployeesRests = async () => {
+      try {
+        const response = await getPendingEmployeesRestsFetch(companyId)
+        setPendingRests(response.pendingEmployeesRests)
+      } catch (error) {
+        console.log(error)
+        setError(error)
+      } finally {
+        setLoading(false)
+      }
+    }
 
-      setPendingRests(response.pendingEmployeesRests)
+    fetchPendingEmployeesRests()
 
-    }).catch((error) => {
-
-      console.log(error)
-      setError(error)
-    })
-
-    setLoading(false)
   }, [companyId])
 
+  const sortedPendingRest = useMemo(() => {
+    return pendingRests.sort((a, b) => a.createdAt - b.createdAt)
+  }, [pendingRests])
+
   return {
-    pendingRests,
+    pendingRests: sortedPendingRest,
     pushPendingEmployeeRest,
     splicePendingEmployeeRest,
-    updateLastEmployeeRestId,
+    onAddEmployeeRest,
+    onDeleteEmployeeRest,
     loading,
     error
   }

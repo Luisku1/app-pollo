@@ -2,7 +2,6 @@
 import { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { useParams, useNavigate } from 'react-router-dom';
-import { MdKeyboardArrowDown, MdKeyboardArrowRight } from 'react-icons/md';
 import FechaDePagina from '../components/FechaDePagina';
 import { formatDate } from '../helpers/DatePickerFunctions';
 import { useEmployees } from '../hooks/Employees/useEmployees';
@@ -11,7 +10,6 @@ import { useBranches } from '../hooks/Branches/useBranches';
 import { useBranchReport } from '../hooks/BranchReports.js/useBranchReport';
 import { useLoading } from '../hooks/loading';
 import Loading from '../helpers/Loading';
-import { useBranchPrices } from '../hooks/Prices/useBranchPrices';
 import { useRoles } from '../context/RolesContext'
 import BranchSelect from '../components/RegistrarFormato/BranchSelect';
 import AddStock from '../components/Stock/AddStock';
@@ -19,36 +17,44 @@ import AddOutgoing from '../components/Outgoings/AddOutgoing';
 import { useProducts } from '../hooks/Products/useProducts';
 import ProviderInputsList from '../components/Proveedores/ProviderInputsList';
 import BranchPrices from '../components/Prices/BranchPrices';
+import ShowListModal from '../components/Modals/ShowListModal';
+import IncomesList from '../components/Incomes/IncomesList';
+import { getArrayForSelects, getElementForSelect, stringToCurrency } from '../helpers/Functions';
+import ListaEntradas from '../components/EntradasYSalidas/Entradas/ListaEntradas';
+import ListaSalidas from '../components/EntradasYSalidas/Salidas/ListaSalidas';
+import ShowBalance from '../components/ShowBalance';
+import StockList from '../components/Stock/StockList';
+import Switch from '../components/Switch';
 
-export default function RegistroCuentaDiaria() {
+export default function RegistroCuentaDiaria({ edit = true, _branchReport = null, _branch = null }) {
 
   const { currentUser, company } = useSelector((state) => state.user)
   const paramsDate = useParams().date
   let datePickerValue = (paramsDate ? new Date(paramsDate) : new Date())
   let stringDatePickerValue = formatDate(datePickerValue)
   let today = formatDate(datePickerValue) == formatDate(new Date()) ? true : false
-  const [branchId, setBranchId] = useState(useParams().branchId || null)
+  const [branchId, setBranchId] = useState((useParams().branchId || _branch?._id) || null)
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
   const { employees } = useEmployees({ companyId: company._id })
   const { branches } = useBranches({ companyId: company._id })
-  const { branchPrices } = useBranchPrices({ branchId, date: stringDatePickerValue })
   const { roles } = useRoles()
-  const [inputsIsOpen, setInputsIsOpen] = useState(false)
-  const [outputsIsOpen, setOutputsIsOpen] = useState(false)
-  const [incomesIsOpen, setIncomesIsOpen] = useState(false)
   const { products } = useProducts({ companyId: company._id })
   const [selectedEmployee, setSelectedEmployee] = useState()
   const [selectedAssistant, setSelectedAssistant] = useState(null)
-  const [selectedBranch, setSelectedBranch] = useState(null)
-  const [autoChangeEmployee, setAutoChangeEmployee] = useState(true)
+  const [selectedBranch, setSelectedBranch] = useState(_branch)
   const [selectBranch, setSelectBranch] = useState(false)
   const navigate = useNavigate()
   const reportDate = (paramsDate ? new Date(paramsDate) : new Date()).toLocaleDateString('es-mx', { weekday: 'long', year: 'numeric', month: '2-digit', day: '2-digit' })
   const {
     branchReport,
+    onUpdateBranchReport,
+    modifyBalance,
+    prices,
+    onChangePrices,
+    initialStockWeight,
+    initialStockAmount,
     initialStock,
-    initialStockTotal,
     incomes,
     incomesTotal,
     inputs,
@@ -61,28 +67,32 @@ export default function RegistroCuentaDiaria() {
     providerInputsAmount: providerInputsTotal,
     providerInputsWeight,
     stock,
-    totalStock,
+    stockAmount,
+    stockWeight,
     onAddStock,
     onDeleteStock,
     outgoings,
     outgoingsTotal,
     onAddOutgoing,
     onDeleteOutgoing
-  } = useBranchReport({ branchId, date: stringDatePickerValue })
+  } = useBranchReport({ branchId, date: stringDatePickerValue, _branchReport })
 
   const isLoading = useLoading()
 
+  const [isEditing, setIsEditing] = useState(edit)
+  const isAuthorized = roles && currentUser.role == roles.managerRole._id
+
   useEffect(() => {
 
-    if (!branchId) {
+
+    if ((!branchId && !selectedBranch)) {
       setSelectBranch(true)
     }
 
-  }, [branchId])
+  }, [branchId, selectedBranch])
 
   const handleEmployeeSelectChange = (employee) => {
 
-    setAutoChangeEmployee(false)
     setSelectedEmployee(employee)
   }
 
@@ -141,8 +151,8 @@ export default function RegistroCuentaDiaria() {
           assistant: assistant,
           branch: selectedBranch.value,
           company: company._id,
-          initialStock: initialStock,
-          finalStock: totalStock,
+          initialStock: initialStockAmount,
+          finalStock: stockAmount,
           inputs: inputsTotal,
           providerInputs: providerInputsTotal,
           outputs: outputsTotal,
@@ -190,8 +200,8 @@ export default function RegistroCuentaDiaria() {
           branchReport: branchReport,
           employee: selectedEmployee._id,
           assistant: assistant,
-          initialStock: branchReport.initialStock != 0 ? initialStock : initialStock,
-          finalStock: totalStock,
+          initialStock: initialStockAmount,
+          finalStock: stockAmount,
           inputs: inputsWeight,
           providerInputs: providerInputsTotal,
           outputs: outputsWeight,
@@ -225,43 +235,11 @@ export default function RegistroCuentaDiaria() {
 
   useEffect(() => {
 
-
     if (!employees.length > 0 || !branchReport) return
 
-    if (branchReport.employee) {
+    setSelectedEmployee(branchReport.employee ? branchReport.employee : currentUser)
 
-      const employeeTempOption = employees.find((employee) =>
-
-        employee._id == branchReport.employee
-      )
-
-      if (employeeTempOption) {
-
-        setSelectedEmployee(employeeTempOption)
-
-      }
-
-    } else {
-
-      if (autoChangeEmployee) {
-
-        setSelectedEmployee(currentUser)
-      }
-    }
-
-    const assistantTempOption = employees.find((assistant) => assistant._id == branchReport.assistant)
-
-
-    if (assistantTempOption) {
-
-      setSelectedAssistant(assistantTempOption)
-
-    } else {
-
-      setSelectedAssistant(null)
-    }
-
-  }, [branchReport, employees, currentUser, autoChangeEmployee])
+  }, [branchReport, employees, currentUser])
 
   useEffect(() => {
 
@@ -269,18 +247,21 @@ export default function RegistroCuentaDiaria() {
 
     branches.forEach(branch => {
 
-      if (branchId == branch.value) {
+      if (branchId == branch._id) {
 
         setSelectedBranch(branch)
       }
     })
+
   }, [branchId, branches])
+
+  console.log(branchReport)
 
   useEffect(() => {
 
     if (selectedBranch != null && stringDatePickerValue != null) {
 
-      document.title = selectedBranch.label + ' ' + '(' + (new Date(stringDatePickerValue).toLocaleDateString()) + ')'
+      document.title = selectedBranch.branch + ' ' + '(' + (new Date(stringDatePickerValue).toLocaleDateString()) + ')'
     }
   }, [selectedBranch, stringDatePickerValue])
 
@@ -291,260 +272,155 @@ export default function RegistroCuentaDiaria() {
           {isLoading ?
             <Loading></Loading>
             : ''}
-          {roles.managerRole._id == currentUser.role ?
-            <FechaDePagina changeDay={changeDay} stringDatePickerValue={stringDatePickerValue} changeDatePickerValue={changeDatePickerValue} ></FechaDePagina>
-            : ''}
-          <h1 className='text-3xl text-center font-semibold mt-7'>
-            Formato
-            <br />
-          </h1>
-          <p className='text-center mb-7'>{reportDate}</p>
+          <div className={' sticky  z-30' + (isEditing ? ' top-16' : ' -top-4')}>
+
+            {roles.managerRole._id == currentUser.role ?
+              <div>
+                <FechaDePagina changeDay={changeDay} stringDatePickerValue={stringDatePickerValue} changeDatePickerValue={changeDatePickerValue} ></FechaDePagina>
+                {isAuthorized && (
+                  <Switch isOn={isEditing} handleToggle={() => setIsEditing((prev) => !prev)} />
+                )}
+              </div>
+              : ''}
+            {branchReport && (
+              <div className='sticky top-20'>
+                <ShowBalance balance={branchReport.balance}></ShowBalance>
+              </div>
+            )}
+          </div>
           <SectionHeader label={'Información básica'} />
           <div className="grid grid-cols-12 items-center mt-1 mb-2">
             <p className='col-span-12 justify-self-center text-lg font-semibold mb-2'>Sucursal</p>
-            <div className='col-span-12'>
-              <BranchSelect branches={branches} modalStatus={selectBranch} selectedBranch={selectedBranch} ableToClose={selectedBranch ? true : false} selectBranch={handleBranchSelectChange}></BranchSelect>
-            </div>
+            <h1 className='col-span-12 text-3xl text-center font-semibold mt-7'>
+              <div className='col-span-12'>
+                {branches && (
+                  <BranchSelect
+                    branches={getArrayForSelects(branches, (branch) => branch.branch)}
+                    modalStatus={selectBranch}
+                    selectedBranch={getElementForSelect({ label: ((selectedBranch?.branch || '') + ' (' + reportDate + ')'), ...selectedBranch }, (selectedBranch) => selectedBranch.label)}
+                    ableToClose={selectedBranch ? true : false}
+                    selectBranch={handleBranchSelectChange}
+                    isEditing={edit}
+                  />
+                )}
+              </div>
+            </h1>
           </div>
-          <div className="grid grid-cols-12 items-center mt-1 ">
-            <p className='col-span-4'>Encargado:</p>
-            <div className='col-span-8'>
-              <EmployeesSelect defaultLabel={'Encargado'} employees={employees} selectedEmployee={selectedEmployee} handleEmployeeSelectChange={handleEmployeeSelectChange}></EmployeesSelect>
-            </div>
-          </div>
-          <div className="grid grid-cols-12 items-center mt-1 ">
-            <p className='col-span-4'>Auxiliar:</p>
-            <div className='col-span-8'>
-              <EmployeesSelect defaultLabel={'Sin Auxiliar'} employees={employees} selectedEmployee={selectedAssistant} handleEmployeeSelectChange={handleAssistantSelectChange}></EmployeesSelect>
-            </div>
-          </div>
-
-          <div>
-            <BranchPrices
-              prices={branchPrices}
-              pricesDate={branchReport.pricesDate ?? branchReport.createdAt}
-              branch={branchId}
-            />
-          </div>
-
-          {branchId ?
+          {branchReport && (
             <div>
-              <div className="flex items-center justify-between">
-                <p>Sobrante inicial: </p>
-                <p className=' bg-white p-3 rounded-lg'>{initialStock ? initialStock.toLocaleString("es-Mx", { style: 'currency', currency: 'MXN' }) : '$0.00'}</p>
-              </div>
-              <AddOutgoing
-                outgoings={outgoings}
-                employee={selectedEmployee}
-                onAddOutgoing={onAddOutgoing}
-                onDeleteOutgoing={onDeleteOutgoing}
-                outgoingsTotal={outgoingsTotal}
-                branch={branchId}
-                date={stringDatePickerValue}
-              />
-              <AddStock
-                stock={stock}
-                products={products}
-                onAddStock={onAddStock}
-                onDeleteStock={onDeleteStock}
-                branchPrices={branchPrices}
-                branch={branchId}
-                employee={selectedEmployee}
-                date={stringDatePickerValue}
-              />
-            </div>
-            : ''}
-
-          {inputs && inputs.length > 0 ?
-            <div className='border bg-white p-3 mt-4'>
-
-              <div className='flex gap-4 display-flex justify-between' onClick={() => setInputsIsOpen(!inputsIsOpen)} >
-
-                <SectionHeader label={'Entradas'} />
-                {inputsIsOpen ? <MdKeyboardArrowDown className='text-5xl' /> : <MdKeyboardArrowRight className='text-5xl' />}
-
-              </div>
-
-              <div className={inputsIsOpen ? '' : 'hidden'} >
-
-                <div id='header' className='grid grid-cols-12 items-center justify-around font-semibold my-4'>
-                  <p className='col-span-3 text-center'>Encargado</p>
-                  <p className='col-span-3 text-center'>Producto</p>
-                  <p className='col-span-2 text-center'>Piezas</p>
-                  <p className='col-span-2 text-center'>Kg</p>
-                  <p className='col-span-2 text-center'>Monto</p>
+              <div className="grid grid-cols-12 items-center mt-1 ">
+                <p className='col-span-4'>Encargado:</p>
+                <div className='col-span-8'>
+                  <EmployeesSelect defaultLabel={'Encargado'} isEditing={isEditing} employees={employees} selectedEmployee={selectedEmployee} handleEmployeeSelectChange={handleEmployeeSelectChange}></EmployeesSelect>
                 </div>
-
-                {inputs && inputs.length > 0 && inputs.map((input) => (
-
-                  <div key={input._id}>
-                    <div className={(input.specialPrice ? 'border border-red-500' : 'border border-black') + ' grid grid-cols-12 items-center border-opacity-70 rounded-lg shadow-sm mb-2 py-3'}>
-                      <div id='list-element' className='flex col-span-12 items-center'>
-                        <p className='text-center text-xs w-3/12'>{input.employee.name + ' ' + input.employee.lastName}</p>
-                        <p className='text-center text-xs w-3/12'>{input.product.name}</p>
-                        <p className='text-center text-xs w-2/12'>{input.pieces}</p>
-                        <p className='text-center text-xs w-2/12'>{input.weight}</p>
-                        <p className='text-center text-xs w-2/12'>{input.amount.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
-                      </div>
-
-                      <div className='col-span-12'>
-                        <p className='text-m text-center font-semibold'>{input.comment}</p>
-                      </div>
-
-                    </div>
-                  </div>
-                ))}
-
               </div>
-
-              {inputs && inputs.length > 0 ?
-
-                <div className='flex mt-4 border-black border rounded-lg p-3 shadow-lg border-opacity-30'>
-                  <p className='w-6/12 text-center'>Total:</p>
-                  <p className='w-6/12 text-center font-bold'>{inputsTotal.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
-
+              <div className="grid grid-cols-12 items-center mt-1 ">
+                <p className='col-span-4'>Auxiliar:</p>
+                <div className='col-span-8'>
+                  <EmployeesSelect isEditing={isEditing} defaultLabel={'Sin Auxiliar'} employees={employees} selectedEmployee={selectedAssistant} handleEmployeeSelectChange={handleAssistantSelectChange}></EmployeesSelect>
                 </div>
-
-                : ''}
-            </div>
-
-            : ''}
-
-          <ProviderInputsList
-            inputs={providerInputs}
-            totalAmount={providerInputsTotal}
-            totalWeight={providerInputsWeight}
-          />
-
-          {outputs && outputs.length > 0 ?
-            <div className='border bg-white p-3 mt-4'>
-
-              <div className='flex gap-4 display-flex justify-between' onClick={() => setOutputsIsOpen(!outputsIsOpen)} >
-
-                <SectionHeader label={'Salidas'} />
-                {outputsIsOpen ? <MdKeyboardArrowDown className='text-5xl' /> : <MdKeyboardArrowRight className='text-5xl' />}
-
               </div>
-
-              <div className={outputsIsOpen ? '' : 'hidden'} >
-
-                <div id='header' className='grid grid-cols-12 items-center justify-around font-semibold mt-4'>
-                  <p className='col-span-3 text-center'>Supervisor</p>
-                  <p className='col-span-3 text-center'>Producto</p>
-                  <p className='col-span-2 text-center'>Piezas</p>
-                  <p className='col-span-2 text-center'>Kg</p>
-                  <p className='col-span-2 text-center'>Monto</p>
-                </div>
-
-                {outputs && outputs.length > 0 && outputs.map((output) => (
-
-
-                  <div key={output._id} className={(output.specialPrice ? 'border border-red-500' : 'border border-black') + ' grid grid-cols-12 items-center border-opacity-70 rounded-lg shadow-sm mb-2 py-3'}>
-                    <div id='list-element' className='flex col-span-12 items-center '>
-                      <p className='text-center text-xs w-3/12'>{output.employee.name + ' ' + output.employee.lastName}</p>
-                      <p className='text-center text-xs w-3/12'>{output.product.name}</p>
-                      <p className='text-center text-xs w-2/12'>{output.pieces}</p>
-                      <p className='text-center text-xs w-2/12'>{output.weight}</p>
-                      <p className='text-center text-xs w-2/12'>{output.amount.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
-                    </div>
-                    <div className='col-span-12'>
-                      <p className='text-m text-center font-semibold'>{output.comment}</p>
-                    </div>
-                  </div>
-
-                ))}
-
+              <div className='my-2'>
+                <BranchPrices
+                  onUpdateBranchReport={onUpdateBranchReport}
+                  prices={prices}
+                  pricesDate={branchReport.pricesDate}
+                  branch={branchId || selectedBranch?._id || null}
+                  onChange={isEditing ? onChangePrices : false}
+                  date={stringDatePickerValue}
+                />
               </div>
-              {outputs && outputs.length > 0 ?
-
-                <div className='flex mt-4 border-black border rounded-lg p-3 border-opacity-30 shadow-lg'>
-                  <p className='w-6/12 text-center'>Total:</p>
-                  <p className='w-6/12 text-center font-bold'>{outputsWeight.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
-
-                </div>
-
-                : ''}
-            </div>
-
-            : ''}
-
-
-          {incomes && incomes.length > 0 ?
-
-            <div className='border bg-white p-3 mt-4'>
-
-              <div className='flex gap-4 display-flex justify-between' onClick={() => setIncomesIsOpen(!incomesIsOpen)} >
-
-                <SectionHeader label={'Dinero Entregado'} />
-                {incomesIsOpen ? <MdKeyboardArrowDown className='text-5xl' /> : <MdKeyboardArrowRight className='text-5xl' />}
-
-              </div>
-
-              <div className={incomesIsOpen ? '' : 'hidden'} >
-
-                <div id='income-header' className='grid grid-cols-12 items-center justify-around font-semibold mt-4'>
-                  <p className='col-span-4 text-center'>Sucursal</p>
-                  <p className='col-span-2 text-center'>Tipo</p>
-                  <p className='col-span-3 text-center'>Supervisor</p>
-                  <p className='col-span-3 text-center'>Monto</p>
-                </div>
-
-                {incomes && incomes.length > 0 && incomes.map((income) => (
-
-
-                  <div key={incomes._id} className='grid grid-cols-12 items-center my-2 py-3 border border-black border-opacity-30 shadow-sm rounded-lg'>
-
-                    <div id='list-element' className=' flex col-span-12 items-center'>
-                      <p className='text-center text-xs w-4/12'>{income.branch.branch}</p>
-                      <p className='text-center text-xs w-2/12 truncate'>{income.partOfAPayment ? "Pago" : income.type.name ? income.type.name : income.type}</p>
-                      <p className='text-center text-xs w-3/12 truncate'>{income.employee.name}</p>
-                      <p className='text-center text-xs w-3/12'>{income.amount.toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
-                    </div>
-
-                  </div>
-
-                ))}
-
-              </div>
-
-              {incomes && incomes.length > 0 ?
-
-                <div className='flex mt-4 border-black border rounded-lg p-3 border-opacity-30 shadow-lg'>
-                  <p className='w-6/12 text-center'>Total:</p>
-                  <p className='w-6/12 text-center font-bold'>{incomesTotal.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
-
-                </div>
-
-                : ''}
-            </div>
-            : ''}
-
-          {branchId ?
-
-            <div className='flex flex-col gap-4 mt-4'>
-
-              {roles && branchReport ?
-
+              {branchReport ?
                 <div>
-
-                  {!branchReport.dateSent || currentUser.role == roles.managerRole._id ?
-
-                    <button disabled={loading} className='bg-slate-600 text-white p-3 rounded-lg uppercase hover:opacity-95 disabled:opacity-80 w-full' onClick={() => handleUpdate()}>Enviar formato</button>
-
-                    : ''}
-
+                  <div className="flex items-center justify-between">
+                    <p>Sobrante inicial: </p>
+                    <div className='flex items-center gap-4 justify-self-end'>
+                      <ShowListModal
+                        title={'Sobrante'}
+                        ListComponent={StockList}
+                        ListComponentProps={{ stock: initialStock, amount: initialStockAmount, weight: initialStockWeight }}
+                        clickableComponent={
+                          <p className=' font-bold text-md text-center p-3 bg-white border rounded-lg border-header'>{stringToCurrency({ amount: initialStockAmount })}</p>
+                        }
+                      />
+                    </div>
+                  </div>
+                  <AddOutgoing
+                    modifyBalance={modifyBalance}
+                    outgoings={outgoings}
+                    outgoingsTotal={outgoingsTotal}
+                    employee={selectedEmployee}
+                    onAddOutgoing={onAddOutgoing}
+                    onDeleteOutgoing={isEditing ? onDeleteOutgoing : null}
+                    branch={selectedBranch}
+                    date={stringDatePickerValue}
+                    isEditing={isEditing}
+                  />
+                  <AddStock
+                    stock={stock}
+                    modifyBalance={modifyBalance}
+                    amount={stockAmount}
+                    weight={stockWeight}
+                    products={products}
+                    onAddStock={onAddStock}
+                    onDeleteStock={isEditing ? onDeleteStock : null}
+                    branchPrices={prices}
+                    branch={selectedBranch}
+                    employee={selectedEmployee}
+                    date={stringDatePickerValue}
+                    isEditing={isEditing}
+                  />
                 </div>
-
-                :
-
-                <button disabled={loading} className='bg-slate-600 text-white p-3 rounded-lg uppercase hover:opacity-95 disabled:opacity-80' onClick={() => handleSubmit()}>Enviar formato</button>
-              }
-
-
+                : ''}
+              <ShowListModal
+                title={'Entradas de Proveedores'}
+                ListComponent={ProviderInputsList}
+                ListComponentProps={{ inputs: providerInputs, totalAmount: providerInputsTotal, totalWeight: providerInputsWeight }}
+                clickableComponent={
+                  <p className='font-bold text-lg text-center bg-white border rounded-lg p-1 border-header mt-2'>PROVEEDORES {stringToCurrency({ amount: providerInputsTotal ?? 0 })}</p>
+                }
+              />
+              <ShowListModal
+                title={'Entradas'}
+                ListComponent={ListaEntradas}
+                ListComponentProps={{ inputs, totalWeight: inputsWeight, totalAmount: inputsTotal }}
+                clickableComponent={
+                  <p className='font-bold text-lg text-center bg-white border rounded-lg p-1 border-header mt-2'>ENTRADAS {stringToCurrency({ amount: inputsTotal ?? 0 })}</p>
+                }
+              />
+              <ShowListModal
+                title={'Salidas'}
+                ListComponent={ListaSalidas}
+                ListComponentProps={{ outputs, totalWeight: outputsWeight, totalAmount: outputsTotal }}
+                clickableComponent={
+                  <p className='font-bold text-lg text-center bg-white border rounded-lg p-1 border-header mt-2'>SALIDAS {stringToCurrency({ amount: outputsTotal ?? 0 })}</p>
+                }
+              />
+              <ShowListModal
+                title={'Ingresos'}
+                ListComponent={IncomesList}
+                ListComponentProps={{ incomes, incomesTotal }}
+                clickableComponent={
+                  <p className='font-bold text-lg text-center bg-white border rounded-lg p-1 border-header mt-2'>EFECTIVOS {stringToCurrency({ amount: incomesTotal ?? 0 })}</p>
+                }
+              //Comparar con el monto para cubrir la nota de hoy.
+              />
+              {branchId ?
+                <div className='flex flex-col gap-4 mt-4'>
+                  {roles && branchReport ?
+                    <div>
+                      {!branchReport.dateSent || currentUser.role == roles.managerRole._id ?
+                        <button disabled={loading} className='bg-button text-white border border-black p-3 rounded-lg w-full' onClick={() => handleUpdate()}>Enviar Formato</button>
+                        : ''}
+                    </div>
+                    :
+                    <button disabled={loading} className='bg-button text-white border border-black p-3 rounded-lg uppercase' onClick={() => handleSubmit()}>Enviar Formato</button>
+                  }
+                </div>
+                : ''}
+              <p className='text-red-700 font-semibold'>{error}</p>
             </div>
-
-            : ''}
-          <p className='text-red-700 font-semibold'>{error}</p>
+          )}
         </div>
       )}
     </main>

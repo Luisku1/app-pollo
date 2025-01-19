@@ -79,7 +79,7 @@ export default function RegistroDueño() {
         <input type="tel" name="phoneNumber" id="phoneNumber" placeholder='Número de Teléfono' className='border p-3 rounded-lg'onChange={handleChange}/>
         <input type="password" name="password" id="password" placeholder='Contraseña' className='border p-3 rounded-lg'onChange={handleChange}/>
 
-        <button disabled={loading} className="bg-slate-700 text-white p-3 rounded-lg uppercase hover:opacity-95 disabled:opacity-80">
+        <button disabled={loading} className="bg-button text-white p-3 rounded-lg uppercase hover:opacity-95 disabled:opacity-80">
           {loading ? 'Cargando...' : 'Registrarse'}
         </button>
       </form>

@@ -142,8 +142,8 @@ export default function Sobrante({ date }) {
       <div className="bg-white p-3 mt-4 w-full">
 
         <div className="grid grid-cols-2 border w-full h-10 mb-4 border-black rounded-lg">
-          <button className={"h-full rounded-lg hover:shadow-xl " + (filterByBranch ? 'bg-slate-500 text-white' : 'bg-white')} onClick={() => { resetValues(), handleBranchFilterButton() }}>Sucursal</button>
-          <button className={"h-full rounded-lg hover:shadow-xl " + (filterByProduct ? 'bg-slate-500 text-white' : ' bg-white')} onClick={() => { resetValues(), handleProductFilterButton() }}>Producto</button>
+          <button className={"h-full rounded-lg hover:shadow-xl " + (filterByBranch ? 'bg-options-bar text-white' : 'bg-white')} onClick={() => { resetValues(), handleBranchFilterButton() }}>Sucursal</button>
+          <button className={"h-full rounded-lg hover:shadow-xl " + (filterByProduct ? 'bg-options-bar text-white' : ' bg-white')} onClick={() => { resetValues(), handleProductFilterButton() }}>Producto</button>
         </div>
 
         {filterByProduct ?
@@ -205,7 +205,7 @@ export default function Sobrante({ date }) {
               </div>
             ))}
 
-            <div className='grid grid-span-1 grid-cols-2 max-w-lg mx-auto text-center w-full border border-opacity-30 shadow-lg border-black fixed bottom-0 left-0 rounded-lg p-2 bg-slate-500 text-white text-m'>
+            <div className='grid grid-span-1 grid-cols-2 max-w-lg mx-auto text-center w-full border border-opacity-30 shadow-lg border-black fixed bottom-0 left-0 rounded-lg p-2 bg-button text-white text-m'>
               <p className='text-center'>Total:</p>
               <p className='text-center'>{totalInMoney.toLocaleString('es-Mx', {style: 'currency', currency: 'MXN'})}</p>
 

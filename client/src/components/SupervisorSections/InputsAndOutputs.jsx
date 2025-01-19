@@ -59,34 +59,30 @@ export default function InputsAndOutputs({ companyId, date, roles, currentUser, 
 
   return (
     <div>
-      {products && (
-        <div>
-          <EntradasYSalidas
-            products={products}
-            branchAndCustomerSelectOptions={branchAndCustomerSelectOptions}
-            date={date}
-            roles={roles}
-          />
-          <EntradaInicial
-            date={date}
-            branchAndCustomerSelectOptions={branchAndCustomerSelectOptions}
-            products={products}
-            roles={roles}
-          />
+      <div>
+        <EntradasYSalidas
+          products={products || []}
+          branchAndCustomerSelectOptions={branchAndCustomerSelectOptions}
+          date={date}
+          roles={roles}
+        />
+        <EntradaInicial
+          date={date}
+          branchAndCustomerSelectOptions={branchAndCustomerSelectOptions}
+          products={products || []}
+          roles={roles}
+        />
+      </div>
+      <div className='border bg-white shadow-lg p-3 mt-4'>
+
+        <div className='flex gap-4 display-flex justify-between' onClick={() => setDifferencesIsOpen(!differencesIsOpen)} >
+
+          <SectionHeader label={'Diferencia neta'} />
+          {differencesIsOpen ? <MdKeyboardArrowDown className='text-5xl' /> : <MdKeyboardArrowRight className='text-5xl' />}
+
         </div>
-      )}
 
-      {Object.values(netDifference) && Object.values(netDifference).length > 0 ?
-
-        <div className='border bg-white shadow-lg p-3 mt-4'>
-
-          <div className='flex gap-4 display-flex justify-between' onClick={() => setDifferencesIsOpen(!differencesIsOpen)} >
-
-            <SectionHeader label={'Diferencia neta'} />
-            {differencesIsOpen ? <MdKeyboardArrowDown className='text-5xl' /> : <MdKeyboardArrowRight className='text-5xl' />}
-
-          </div>
-
+        {Object.values(netDifference) && Object.values(netDifference).length > 0 ?
           <div className={differencesIsOpen ? '' : 'hidden'} >
 
             {Object.values(netDifference) && Object.values(netDifference).length > 0 && Object.values(netDifference).map((employeeDifferences) => (
@@ -133,21 +129,21 @@ export default function InputsAndOutputs({ companyId, date, roles, currentUser, 
               </div>
             ))}
 
+
+          </div>
+          : ''
+        }
+        {roles && currentUser.role == roles.managerRole._id ?
+
+          <div className='flex mt-4 border-black border border-opacity-30 shadow-lg rounded-lg p-3'>
+            <p className='w-6/12 text-center'>Total:</p>
+            <p className={'w-6/12 text-center ' + (totalNetDifference < 0 ? 'text-red-500' : '')}>{Math.abs(totalNetDifference)}</p>
+
           </div>
 
-          {roles && currentUser.role == roles.managerRole._id ?
+          : ''}
+      </div>
 
-            <div className='flex mt-4 border-black border border-opacity-30 shadow-lg rounded-lg p-3'>
-              <p className='w-6/12 text-center'>Total:</p>
-              <p className={'w-6/12 text-center ' + (totalNetDifference < 0 ? 'text-red-500' : '')}>{Math.abs(totalNetDifference)}</p>
-
-            </div>
-
-            : ''}
-
-        </div>
-        : ''
-      }
 
     </div>
   )

@@ -4,7 +4,6 @@ import ReportData from '../models/accounts/report.data.model.js'
 import EmployeeDailyBalance from '../models/employees/employee.daily.balance.js'
 import { errorHandler } from '../utils/error.js'
 import { getDayRange } from '../utils/formatDate.js'
-import { getInitialStockValue } from './stock.controller.js'
 import { getBranchIncomes } from './income.controller.js'
 import Stock from '../models/accounts/stock.model.js'
 import Input from '../models/accounts/input.model.js'
@@ -12,9 +11,97 @@ import ProviderInput from '../models/providers/provider.input.model.js'
 import Output from '../models/accounts/output.model.js'
 import Outgoing from '../models/accounts/outgoings/outgoing.model.js'
 import IncomeCollected from '../models/accounts/incomes/income.collected.model.js'
-import { updateEmployeeDailyBalancesBalance } from './employee.controller.js'
+import { updateEmployeeDailyBalances } from './employee.controller.js'
 import SupervisorReport from '../models/accounts/supervisor.report.model.js'
 import { supervisorsInfoQuery } from './report.controller.js'
+import { getBranchPricesFetch } from '../../client/src/services/Prices/getBranchPrices.js'
+import { getPrices, newPrices, pricesAggregate } from './price.controller.js'
+import Branch from '../models/branch.model.js'
+
+export const branchLookup = {
+  $lookup: {
+    from: 'branches',
+    localField: 'branch',
+    foreignField: '_id',
+    as: 'branch',
+  },
+};
+
+export const unwindBranch = {
+  $unwind: {
+    path: '$branch',
+    preserveNullAndEmptyArrays: true,
+  }
+}
+
+export const employeeLookup = {
+  $lookup: {
+    from: 'employees',
+    localField: 'employee',
+    foreignField: '_id',
+    as: 'employee',
+    pipeline: [
+      {
+        $project: {
+          password: 0
+        }
+      }
+    ]
+  },
+};
+
+export const unwindEmployee = {
+  $unwind: {
+    path: '$employee',
+    preserveNullAndEmptyArrays: true,
+  }
+}
+
+export const assistantLookup = {
+  $lookup: {
+    from: 'employees',
+    localField: 'assistant',
+    foreignField: '_id',
+    as: 'assistant',
+    pipeline: [
+      {
+        $project: {
+          password: 0
+        }
+      }
+    ]
+  }
+};
+
+export const unwindAssistant = {
+  $unwind: {
+    path: '$assistant',
+    preserveNullAndEmptyArrays: true,
+  }
+}
+
+export const senderLookup = {
+  $lookup: {
+    from: 'employees',
+    localField: 'sender',
+    foreignField: '_id',
+    as: 'sender',
+    pipeline: [
+      {
+        $project: {
+          password: 0
+        }
+      }
+    ]
+  }
+};
+
+export const unwindSender = {
+  $unwind: {
+    path: '$sender',
+    preserveNullAndEmptyArrays: true,
+  }
+}
 
 export const createBranchReport = async (req, res, next) => {
 
@@ -105,7 +192,7 @@ export const updateReportsAndBalancesAccounts = async ({ branchReport, updateIns
 
     if (updatedBranchReport.employee) {
 
-      updatedEmployeeDailyBalance = await updateEmployeeDailyBalancesBalance({ branchReport: updatedBranchReport })
+      updatedEmployeeDailyBalance = await updateEmployeeDailyBalances({ branchReport: updatedBranchReport })
 
       if (!updatedEmployeeDailyBalance) throw new Error("No se pudo actualizar la cuenta del empleado");
     }
@@ -156,7 +243,7 @@ export const pushOrPullBranchReportRecord = async ({
   })
 }
 
-export const fetchOrCreateBranchReport = async ({ branchId, companyId, date }) => {
+export const fetchOrCreateBranchReport = async ({ branchId, companyId = null, date }) => {
 
   let branchReport = null
 
@@ -166,7 +253,7 @@ export const fetchOrCreateBranchReport = async ({ branchId, companyId, date }) =
 
     if (!branchReport) {
 
-      branchReport = await createDefaultBranchReport({ branchId, date, companyId })
+      branchReport = await createDefaultBranchReport({ branchId, date, companyId: companyId || await getBranchCompany(branchId) })
     }
 
     if (!branchReport) throw new Error("No se encontró ni se pudo crear el reporte");
@@ -179,163 +266,25 @@ export const fetchOrCreateBranchReport = async ({ branchId, companyId, date }) =
   }
 }
 
+export const getBranchCompany = async (branchId) => {
+
+  return (await Branch.findById(branchId)).company
+}
+
 export const createDefaultBranchReport = async ({ branchId, date, companyId }) => {
 
   const { bottomDate } = getDayRange(date)
 
-  const newBranchReport = await BranchReport.create({ branch: branchId, createdAt: bottomDate, company: companyId })
+  const newBranchReport = await BranchReport.create({ branch: branchId, createdAt: bottomDate, company: companyId, pricesDate: bottomDate })
 
   return newBranchReport
 }
-
-export const addRecordToBranchReportArrays = async ({ branchId, company, record, recordType }) => {
-
-  let branchReport = await fetchBranchReport({ branchId, date: record.createdAt })
-
-  if (!branchReport) {
-
-    branchReport = await new BranchReport({ branch: branchId, company })
-  }
-
-  switch (recordType) {
-    case 'income':
-      branchReport.incomesArray.push(record._id);
-      break;
-    case 'input':
-      branchReport.inputsArray.push(record._id);
-      break;
-    case 'providerInput':
-      branchReport.providerInputsArray.push(record._id);
-      break;
-    case 'output':
-      branchReport.outputsArray.push(record._id);
-      break;
-    case 'outgoing':
-      branchReport.outgoingsArray.push(record._id);
-      break;
-    case 'finalStock':
-      branchReport.finalStockArray.push(record._id);
-      const date = new Date(record.createdAt)
-      date.setDate(date.getDate() + 1)
-      const nextDayBranchReport = await fetchBranchReport({ branchId: branchId, date })
-      cleanBranchReportReferences(nextDayBranchReport)
-      break;
-    default:
-      throw new Error('Tipo de registro no soportado');
-  }
-
-  await branchReport.save()
-  await cleanBranchReportReferences(branchReport)
-}
-
-export const removeRecordFromBranchReport = async ({ recordId, recordType }) => {
-
-  let recordDeleted = null;
-
-  switch (recordType) {
-    case 'income':
-      recordDeleted = await IncomeCollected.findByIdAndDelete(recordId);
-      break;
-    case 'input':
-      recordDeleted = await Input.findByIdAndDelete(recordId);
-      break;
-    case 'providerInput':
-      recordDeleted = await ProviderInput.findByIdAndDelete(recordId);
-      break;
-    case 'output':
-      recordDeleted = await Output.findByIdAndDelete(recordId);
-      break;
-    case 'outgoing':
-      recordDeleted = await Outgoing.findByIdAndDelete(recordId);
-      break;
-    case 'finalStock':
-      recordDeleted = await Stock.findByIdAndDelete(recordId)
-      const date = new Date(recordDeleted.createdAt)
-      date.setDate(date.getDate() + 1)
-      const branchReport = await fetchBranchReport({ branchId: recordDeleted.branch, date })
-      if (branchReport) {
-        cleanBranchReportReferences(branchReport)
-      }
-      break;
-    default:
-      throw new Error('Tipo de registro no válido');
-  }
-
-  if (!recordDeleted) {
-
-    throw new Error('No se pudo encontrar o eliminar el registro');
-  }
-
-  let branchReport = await fetchBranchReport({ branchId: recordDeleted.branch, date: recordDeleted.createdAt })
-
-  if (!branchReport) {
-
-    throw new Error("No se encontró el reporte");
-
-  }
-
-  switch (recordType) {
-    case 'income':
-      branchReport.incomesArray = branchReport.incomesArray.filter(id => !id.equals(recordDeleted._id));
-      break;
-    case 'input':
-      branchReport.inputsArray = branchReport.inputsArray.filter(id => !id.equals(recordDeleted._id));
-      break;
-    case 'providerInput':
-      branchReport.providerInputsArray = branchReport.providerInputsArray.filter(id => !id.equals(recordDeleted._id));
-      break;
-    case 'output':
-      branchReport.outputsArray = branchReport.outputsArray.filter(id => !id.equals(recordDeleted._id));
-      break;
-    case 'outgoing':
-      branchReport.outgoingsArray = branchReport.outgoingsArray.filter(id => !id.equals(recordDeleted._id));
-      break;
-    case 'finalStock':
-      branchReport.finalStockArray = branchReport.finalStockArray.filter(id => !id.equals(recordDeleted._id));
-      break;
-    default:
-      throw new Error('Tipo de registro no soportado');
-  }
-
-  await cleanBranchReportReferences(branchReport)
-}
-
-export const cleanBranchReportReferences = async (branchReport) => {
-
-  if (branchReport) {
-
-
-    // Verificar y eliminar referencias huérfanas en incomesArray
-    const validIncomes = await getBranchIncomes({ branchId: branchReport.branch._id, date: branchReport.createdAt })
-    branchReport.incomesArray = validIncomes.map(income => income._id);
-
-    // Hacer lo mismo para otros arrays
-    const validInputs = await Input.find({ _id: { $in: branchReport.inputsArray } });
-    branchReport.inputsArray = validInputs.map(input => input._id);
-
-    const validProviderInputs = await ProviderInput.find({ _id: { $in: branchReport.providerInputsArray } });
-    branchReport.providerInputsArray = validProviderInputs.map(providerInput => providerInput._id);
-
-    const validOutputs = await Output.find({ _id: { $in: branchReport.outputsArray } });
-    branchReport.outputsArray = validOutputs.map(output => output._id);
-
-    const validOutgoings = await Outgoing.find({ _id: { $in: branchReport.outgoingsArray } });
-    branchReport.outgoingsArray = validOutgoings.map(outgoing => outgoing._id);
-
-    const validInitialStock = await Stock.find({ _id: { $in: branchReport.initialStockArray } })
-    branchReport.initialStockArray = validInitialStock.map(stock => stock._id)
-
-    // Guardar los cambios en el BranchReport
-    await branchReport.save();
-    await recalculateBranchReport({ branchId: branchReport.branch, date: branchReport.createdAt })
-  }
-};
 
 export const recalculateBranchReport = async ({ branchReport: paramsBranchReport }) => {
 
   if (paramsBranchReport) {
 
-    const populatedBranchReport = await fetchBranchReport({ branchId: paramsBranchReport.branch, date: paramsBranchReport.createdAt, populate: true })
+    const populatedBranchReport = await fetchBranchReportInfo(paramsBranchReport?.branch?._id ? paramsBranchReport.branch._id : paramsBranchReport.branch, paramsBranchReport.createdAt)
 
     const incomes = populatedBranchReport.incomesArray?.length > 0
       ? populatedBranchReport.incomesArray.reduce((total, income) => total + income.amount, 0)
@@ -362,12 +311,14 @@ export const recalculateBranchReport = async ({ branchReport: paramsBranchReport
       : 0
     paramsBranchReport.providerInputs = providerInputs
 
+    const initialStock = populatedBranchReport.initialStockArray?.length > 0 ? populatedBranchReport.initialStockArray.reduce((total, initialStock) => total + initialStock.amount, 0) : 0
+
+    paramsBranchReport.initialStock = initialStock
+
     const finalStock = populatedBranchReport.finalStockArray?.length > 0
       ? populatedBranchReport.finalStockArray.reduce((total, finalStock) => total + finalStock.amount, 0)
       : 0
     paramsBranchReport.finalStock = finalStock
-
-    const initialStock = await getInitialStockValue({ branchId: paramsBranchReport.branch, date: paramsBranchReport.createdAt })
 
     const newBalance = ((outgoings + finalStock + outputs + incomes) - (initialStock + inputs + providerInputs))
 
@@ -376,7 +327,7 @@ export const recalculateBranchReport = async ({ branchReport: paramsBranchReport
 
     if (updatedBranchReport.employee) {
 
-      await updateEmployeeDailyBalancesBalance({ branchReport: updatedBranchReport })
+      await updateEmployeeDailyBalances({ branchReport: updatedBranchReport })
     }
   }
 }
@@ -385,21 +336,12 @@ export const updateBranchReport = async (req, res, next) => {
 
   const { branchReport, employee, assistant } = req.body
   let updatedBranchReport = null
-  const { topDate: branchReportSentDay } = getDayRange(branchReport.sentDate ? branchReport.sentDate : new Date())
-  const { topDate: branchReportCreatedDay } = getDayRange(branchReport.createdAt)
 
   try {
 
-    if (branchReport.employee && branchReport.employee != employee) {
+    if (branchReport.employee && branchReport?.employee?._id ? branchReport.employee._id : branchReport.employee != employee) {
 
-      await updateEmployeeDailyBalancesBalance({ branchReport: branchReport, changedEmployee: true })
-    }
-
-    if (branchReportSentDay != branchReportCreatedDay) {
-
-      updatedBranchReport = await BranchReport.findByIdAndUpdate(branchReport._id, {
-        $set: { dateSent: branchReport.createdAt }
-      })
+      await updateEmployeeDailyBalances({ branchReport: branchReport, changedEmployee: true })
     }
 
     if (branchReport.dateSent) {
@@ -417,7 +359,6 @@ export const updateBranchReport = async (req, res, next) => {
 
     if (updatedBranchReport) {
 
-      await cleanBranchReportReferences(updatedBranchReport)
       await recalculateBranchReport({ branchReport: updatedBranchReport })
 
       res.status(200).json('Branch report updated successfully')
@@ -436,7 +377,7 @@ export const getBranchReport = async (req, res, next) => {
 
   try {
 
-    const branchReport = await fetchBranchReport({ branchId, date })
+    const branchReport = await fetchBranchReportInfo(branchId, date)
 
     if (branchReport) {
 
@@ -452,6 +393,393 @@ export const getBranchReport = async (req, res, next) => {
     next(error)
   }
 }
+
+export const changePricesDate = async (branchId, reportDate, pricesDate) => {
+
+  let branchReport = null
+  let updatedBranchReport = null
+
+  try {
+    branchReport = await fetchBranchReportInfo(branchId, reportDate)
+
+    if (!branchReport) throw new Error("No se encontró el reporte, asegúrate de registrar algo antes");
+
+    const newPricesBranchReport = await updateBranchReportPrices(branchReport, pricesDate)
+
+    updatedBranchReport = await BranchReport.findByIdAndUpdate(newPricesBranchReport._id, {
+      initialStock: newPricesBranchReport.initialStock,
+      finalStock: newPricesBranchReport.finalStock,
+      inputs: newPricesBranchReport.inputs,
+      outputs: newPricesBranchReport.outputs,
+      providerInputs: newPricesBranchReport.providerInputs,
+      balance: newPricesBranchReport.balance,
+      pricesDate: pricesDate
+    }, { new: true })
+
+    if (!updatedBranchReport) throw new Error("No se pudo actualizar el reporte con las nuevas fechas de precios");
+
+    return newPricesBranchReport
+
+  } catch (error) {
+
+    if (branchReport) {
+
+      await BranchReport.findByIdAndUpdate(branchReport._id, branchReport)
+    }
+
+    throw error
+  }
+}
+
+const updateBranchReportPrices = async (branchReport, pricesDate) => {
+
+  const session = await BranchReport.startSession();
+  session.startTransaction();
+
+  try {
+    const prices = await pricesAggregate(branchReport.branch._id, pricesDate);
+
+    console.log(prices, prices[0].latestPrice, prices[0].productId, prices[0].productId.toString(), branchReport)
+
+    const outputsArray = await Promise.all(
+      branchReport.outputsArray.map(async (output) => {
+        if (output.specialPrice) return output
+        const price = (prices.find((price) => price.productId.toString() === output.product._id.toString())).latestPrice;
+        if (price == output.price) return output
+        const amount = output.weight * price;
+        await Output.findByIdAndUpdate(output._id, { price: price, amount });
+        return { ...output, price: price, amount };
+      })
+    );
+
+    const outputs = outputsArray.reduce((acc, output) => acc + output.amount, 0);
+
+    const inputsArray = await Promise.all(
+      branchReport.inputsArray.map(async (input) => {
+        if (input.specialPrice) return input
+        const price = (prices.find((price) => price.productId.toString() === input.product._id.toString())).latestPrice;
+        if (price == input.price) return input
+        const amount = input.weight * price;
+        await Input.findByIdAndUpdate(input._id, { price: price, amount });
+        return { ...input, price: price, amount };
+      })
+    );
+
+    const inputs = inputsArray.reduce((acc, input) => acc + input.amount, 0);
+
+    const providerInputsArray = await Promise.all(
+      branchReport.providerInputsArray.map(async (providerInput) => {
+        if (providerInput.specialPrice) return providerInput
+        const price = (prices.find((price) => price.productId.toString() === providerInput.product._id.toString())).latestPrice;
+        if (price == providerInput.price) return providerInput
+        const amount = providerInput.weight * price;
+        await ProviderInput.findByIdAndUpdate(providerInput._id, { price: price, amount });
+        return { ...providerInput, price: price, amount };
+      })
+    );
+
+    const providerInputs = providerInputsArray.reduce((acc, providerInput) => acc + providerInput.amount, 0);
+
+    const finalStockArray = await Promise.all(
+      branchReport.finalStockArray.map(async (finalStock) => {
+        const price = (prices.find((price) => price.productId.toString() === finalStock.product._id.toString())).latestPrice;
+        if (price == finalStock.price) return finalStock
+        const amount = finalStock.weight * price;
+        await Stock.findByIdAndUpdate(finalStock._id, { price: price, amount });
+        return { ...finalStock, price: price, amount };
+      })
+    );
+
+    const finalStock = finalStockArray.reduce((acc, finalStock) => acc + finalStock.amount, 0);
+
+    const initialStockArray = await Promise.all(
+      branchReport.initialStockArray.map(async (initialStock) => {
+        const price = (prices.find((price) => price.productId.toString() === initialStock.product._id.toString())).latestPrice;
+        if (price == initialStock.price) return initialStock
+        const amount = initialStock.weight * price;
+        await Stock.findByIdAndUpdate(initialStock._id, { price: price, amount });
+        return { ...initialStock, price: price, amount };
+      })
+    );
+
+    const initialStock = initialStockArray.reduce((acc, initialStock) => acc + initialStock.amount, 0);
+
+
+    const incomes = branchReport.incomesArray.reduce((acc, income) => acc + income.amount, 0);
+    const balance = (outputs + finalStock + incomes) - (initialStock + inputs + providerInputs);
+
+    await session.commitTransaction();
+    session.endSession();
+
+    return {
+      ...branchReport,
+      balance,
+      outputsArray,
+      inputsArray,
+      providerInputsArray,
+      initialStockArray,
+      finalStockArray,
+      outputs,
+      inputs,
+      providerInputs,
+      initialStock,
+      finalStock
+    };
+
+  } catch (error) {
+
+    await session.abortTransaction();
+    session.endSession();
+    throw error;
+  }
+}
+
+const fetchBranchReportInfo = async (branchId, date) => {
+
+  const { bottomDate, topDate } = getDayRange(date);
+
+  try {
+    const branchReport = await BranchReport.aggregate([
+      {
+        $match: {
+          createdAt: { $lt: new Date(topDate), $gte: new Date(bottomDate) },
+          branch: new Types.ObjectId(branchId),
+        },
+      },
+      {
+        $lookup: {
+          from: 'stocks',
+          localField: 'finalStockArray',
+          foreignField: '_id',
+          as: 'finalStockArray',
+          pipeline: [
+            branchLookup,
+            unwindBranch,
+            {
+              $lookup: {
+                from: 'products',
+                localField: 'product',
+                foreignField: '_id',
+                as: 'product',
+              },
+            },
+            {
+              $unwind: {
+                path: '$product',
+                preserveNullAndEmptyArrays: true,
+              },
+            },
+            employeeLookup,
+            unwindEmployee
+          ],
+        },
+      },
+      {
+        $lookup: {
+          from: 'stocks',
+          localField: 'initialStockArray',
+          foreignField: '_id',
+          as: 'initialStockArray',
+          pipeline: [
+            branchLookup,
+            unwindBranch,
+            {
+              $lookup: {
+                from: 'products',
+                localField: 'product',
+                foreignField: '_id',
+                as: 'product',
+              },
+            },
+            {
+              $unwind: {
+                path: '$product',
+                preserveNullAndEmptyArrays: true,
+              },
+            },
+            employeeLookup,
+            unwindEmployee
+          ],
+        }
+      },
+      {
+        $lookup: {
+          from: 'inputs',
+          localField: 'inputsArray',
+          foreignField: '_id',
+          as: 'inputsArray',
+          pipeline: [
+            branchLookup,
+            unwindBranch,
+            {
+              $lookup: {
+                from: 'products',
+                localField: 'product',
+                foreignField: '_id',
+                as: 'product',
+              },
+            },
+            {
+              $unwind: {
+                path: '$product',
+                preserveNullAndEmptyArrays: true,
+              },
+            },
+            employeeLookup,
+            unwindEmployee
+          ],
+        },
+      },
+      {
+        $lookup: {
+          from: 'providerinputs',
+          localField: 'providerInputsArray',
+          foreignField: '_id',
+          as: 'providerInputsArray',
+          pipeline: [
+            branchLookup,
+            unwindBranch,
+            {
+              $lookup: {
+                from: 'products',
+                localField: 'product',
+                foreignField: '_id',
+                as: 'product',
+              },
+            },
+            {
+              $unwind: {
+                path: '$product',
+                preserveNullAndEmptyArrays: true,
+              },
+            },
+            employeeLookup,
+            unwindEmployee
+          ],
+        },
+      },
+      {
+        $lookup: {
+          from: 'outputs',
+          localField: 'outputsArray',
+          foreignField: '_id',
+          as: 'outputsArray',
+          pipeline: [
+            branchLookup,
+            unwindBranch,
+            {
+              $lookup: {
+                from: 'products',
+                localField: 'product',
+                foreignField: '_id',
+                as: 'product',
+              },
+            },
+            {
+              $unwind: {
+                path: '$product',
+                preserveNullAndEmptyArrays: true,
+              },
+            },
+            employeeLookup,
+            unwindEmployee,
+          ],
+        },
+      },
+      {
+        $lookup: {
+          from: 'outgoings',
+          localField: 'outgoingsArray',
+          foreignField: '_id',
+          as: 'outgoingsArray',
+          pipeline: [
+            employeeLookup,
+            unwindEmployee
+          ],
+        },
+      },
+      {
+        $lookup: {
+          from: 'incomecollecteds',
+          localField: 'incomesArray',
+          foreignField: '_id',
+          as: 'incomesArray',
+          pipeline: [
+            branchLookup,
+            unwindBranch,
+            employeeLookup,
+            unwindEmployee,
+            {
+              $lookup: {
+                from: 'incometypes',
+                localField: 'type',
+                foreignField: '_id',
+                as: 'type',
+              },
+            },
+            {
+              $unwind: {
+                path: '$type',
+                preserveNullAndEmptyArrays: true,
+              },
+            },
+          ],
+        },
+      },
+      {
+        $lookup: {
+          from: 'branches',
+          localField: 'branch',
+          foreignField: '_id',
+          as: 'branch',
+        },
+      },
+      {
+        $unwind: {
+          path: '$branch',
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      employeeLookup,
+      unwindEmployee,
+      assistantLookup,
+      unwindAssistant,
+      senderLookup,
+      unwindSender,
+      {
+        $project: {
+          company: 1,
+          pricesDate: 1,
+          dateSent: 1,
+          balance: 1,
+          employee: 1,
+          assistant: 1,
+          sender: 1,
+          initialStockArray: 1,
+          initialStock: 1,
+          finalStockArray: 1,
+          finalStock: 1,
+          inputsArray: 1,
+          inputs: 1,
+          providerInputsArray: 1,
+          providerInputs: 1,
+          outputsArray: 1,
+          outputs: 1,
+          outgoingsArray: 1,
+          outgoings: 1,
+          incomesArray: 1,
+          incomes: 1,
+          createdAt: 1,
+          branch: 1,
+        },
+      },
+    ]);
+
+    return branchReport.length > 0 ? branchReport[0] : await fetchOrCreateBranchReport({ branchId, date });
+  } catch (error) {
+    throw error;
+  }
+};
 
 export const fetchBranchReport = async ({ branchId, date, populate = false }) => {
 
@@ -486,6 +814,7 @@ export const fetchBranchReport = async ({ branchId, date, populate = false }) =>
 
   } catch (error) {
 
+    console.log(error)
     throw error
   }
 }

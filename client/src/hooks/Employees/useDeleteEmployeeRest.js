@@ -6,19 +6,19 @@ export const useDeleteEmployeeRest = () => {
 
   const [loading, setLoading] = useState(false)
 
-  const deleteEmployeeRest = (employeeRest, index, spliceEmployeeRest) => {
+  const deleteEmployeeRest = async (employeeRest) => {
 
     setLoading(true)
-
     ToastSuccess('Descanso cancelado')
-    spliceEmployeeRest({ index })
 
-    deleteEmployeeRestFetch({ employeeRestId: employeeRest._id }).catch((error) => {
-
-      ToastDanger(error.message)
-    })
-
-    setLoading(false)
+    try {
+      await deleteEmployeeRestFetch(employeeRest._id)
+    } catch (error) {
+      ToastDanger('No se pudo cancelar el descanso, inténtalo de nuevo.')
+      throw error
+    } finally {
+      setLoading(false)
+    }
   }
 
   return { deleteEmployeeRest, loading }

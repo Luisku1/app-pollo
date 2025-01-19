@@ -1,0 +1,23 @@
+.show-balance {
+  position: sticky;
+  top: 8rem; /* Adjust this value based on your header height */
+  padding: 5px; /* Make it more compact */
+  border-bottom: 1px solid #dee2e6;
+  z-index: 10; /* Ensure it stays below the modals */
+  text-align: center;
+  font-size: 1em; /* Adjust font size for compactness */
+  width: fit-content; /* Reduce the width */
+  margin: 0 auto; /* Center the component */
+}
+
+.show-balance .balance {
+  color: #ffffff; /* Default text color */
+}
+
+.show-balance.positive {
+  background-color: rgba(40, 167, 69, 0.9); /* Green background for positive balance */
+}
+
+.show-balance.negative {
+  background-color: rgba(220, 53, 69, 0.9); /* Red background for negative balance */
+}

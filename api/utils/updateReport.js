@@ -1,5 +1,5 @@
 import { fetchBranchReport } from "../controllers/branch.report.controller.js"
-import { updateEmployeeDailyBalancesBalance } from "../controllers/employee.controller.js"
+import { updateEmployeeDailyBalances } from "../controllers/employee.controller.js"
 
 export const updateReportIncomes = async (branchId, reportDate, amount) => {
 
@@ -16,7 +16,7 @@ export const updateReportIncomes = async (branchId, reportDate, amount) => {
 
         await branchReport.save()
 
-        await updateEmployeeDailyBalancesBalance(branchReport.employee, reportDate, branchReport.balance)
+        await updateEmployeeDailyBalances(branchReport.employee, reportDate, branchReport.balance)
       }
     }
 
@@ -38,7 +38,7 @@ export const updateReportOutgoings = async (branchId, reportDate, amount) => {
       branchReport.balance += parseFloat(amount)
 
       await branchReport.save()
-      await updateEmployeeDailyBalancesBalance(branchReport.employee, reportDate, branchReport.balance)
+      await updateEmployeeDailyBalances(branchReport.employee, reportDate, branchReport.balance)
     }
   }
 }
@@ -55,7 +55,7 @@ export const updateReportInputs = async (branchId, reportDate, amount) => {
       branchReport.balance -= parseFloat(amount)
 
       await branchReport.save()
-      await updateEmployeeDailyBalancesBalance(branchReport.employee, reportDate, branchReport.balance)
+      await updateEmployeeDailyBalances(branchReport.employee, reportDate, branchReport.balance)
     }
   }
 }
@@ -72,7 +72,7 @@ export const updateReportOutputs = async (branchId, reportDate, amount) => {
       branchReport.balance += parseFloat(amount)
 
       await branchReport.save()
-      await updateEmployeeDailyBalancesBalance(branchReport.employee, reportDate, branchReport.balance)
+      await updateEmployeeDailyBalances(branchReport.employee, reportDate, branchReport.balance)
     }
   }
 }
@@ -89,7 +89,7 @@ export const updateReportProviderInputs = async (branchId, reportDate, amount) =
       branchReport.balance -= parseFloat(amount)
 
       await branchReport.save()
-      await updateEmployeeDailyBalancesBalance(branchReport.employee, reportDate, branchReport.balance)
+      await updateEmployeeDailyBalances(branchReport.employee, reportDate, branchReport.balance)
     }
   }
 }
@@ -106,7 +106,7 @@ export const updateReportStock = async (branchId, reportDate, amount) => {
       branchReport.balance += parseFloat(amount)
 
       await branchReport.save()
-      await updateEmployeeDailyBalancesBalance(branchReport.employee, reportDate, branchReport.balance)
+      await updateEmployeeDailyBalances(branchReport.employee, reportDate, branchReport.balance)
 
     }
   }
@@ -124,7 +124,7 @@ export const updateReportStock = async (branchId, reportDate, amount) => {
       nextBranchReport.balance -= parseFloat(amount)
 
       await nextBranchReport.save()
-      await updateEmployeeDailyBalancesBalance(branchReport.employee, nextReportDate, branchReport.balance)
+      await updateEmployeeDailyBalances(branchReport.employee, nextReportDate, branchReport.balance)
 
     }
   }

@@ -4,7 +4,7 @@ import Product from '../models/product.model.js'
 import Branch from '../models/branch.model.js'
 import { Types } from "mongoose";
 import { getDayRange, today } from "../utils/formatDate.js";
-import { fetchBranchReport } from "./branch.report.controller.js";
+import { changePricesDate, fetchBranchReport } from "./branch.report.controller.js";
 import ProviderInput from "../models/providers/provider.input.model.js";
 import Input from "../models/accounts/input.model.js";
 import Output from "../models/accounts/output.model.js";
@@ -20,6 +20,35 @@ export const newPrice = async (req, res, next) => {
 
     await newPrice.save()
     res.status(200).json('New price created')
+
+  } catch (error) {
+
+    next(error)
+  }
+}
+
+export const changeBranchPrices = async (req, res, next) => {
+
+  const branchId = req.params.branchId
+  const { date, pricesDate } = req.body
+
+  console.log(date, branchId, pricesDate)
+  if (!date || !branchId || !pricesDate) {
+
+    next(errorHandler(400, 'Faltan datos necesarios'))
+  }
+
+  try {
+
+    const updatedBranchReport = await changePricesDate(branchId, date, pricesDate)
+
+    if (!updatedBranchReport) next(errorHandler(404, 'No se pudo realizar el cambio de precios'))
+
+    res.status(200).json({
+      success: true,
+      message: 'Precios actualizados correctamente',
+      data: updatedBranchReport
+    })
 
   } catch (error) {
 
@@ -115,38 +144,34 @@ export const initializeBranchPrices = async (req, res, next) => {
 
 export const getBranchCurrentPrices = async (req, res, next) => {
 
-  const branchId = req.params.branchId
-  const date = new Date(req.params.date)
+  const branchId = req.params.branchId;
+  const date = new Date(req.params.date);
+  const pricesDate = req.params.pricesDate != "null" ? new Date(req.params.pricesDate) : null;
+  const sortOrder = req.params.sortOrder == "null" ? null : req.params.sortOrder;
 
   try {
-
-    const currentPrices = await getPrices(branchId, date)
+    const currentPrices = await getPrices({branchId, date, pricesDate, sortOrder});
 
     if (currentPrices) {
-
-      res.status(200).json({ branchPrices: currentPrices })
-
+      res.status(200).json({ branchPrices: currentPrices });
     } else {
-
-      next(errorHandler(404, 'Error Ocurred'))
+      next(errorHandler(404, 'Error Ocurred'));
     }
 
   } catch (error) {
-
-    next(error)
+    next(error);
   }
 }
 
-const getPrices = async (branchId, date) => {
+export const getPrices = async ({branchId, date, pricesDate = null, sortOrder = null}) => {
 
-  let finalDate
+  let finalDate = null
 
   const branchReport = await fetchBranchReport({ branchId, date })
-  const { topDate } = getDayRange(date)
 
-  finalDate = branchReport.dateSent ? branchReport.dateSent : topDate
+  finalDate = !branchReport ? getDayRange(new Date(date)).bottomDate : (pricesDate ? new Date(pricesDate) : (branchReport.pricesDate ? new Date(branchReport.pricesDate) : getDayRange(new Date(date)).bottomDate))
 
-  const productsPrice = await pricesAggregate(branchId, finalDate)
+  const productsPrice = await pricesAggregate(branchId, finalDate, sortOrder)
 
   return productsPrice
 }
@@ -379,7 +404,7 @@ export const getProductPrice = async (productId, branchId, topDate = new Date())
       $and: [
         {
           createdAt: {
-            $lt: topDate
+            $lte: topDate
           }
         },
         {
@@ -399,13 +424,31 @@ export const getProductPrice = async (productId, branchId, topDate = new Date())
   }
 }
 
-export const pricesAggregate = async (branchId, topDate) => {
+export const pricesAggregate = async (branchId, topDate, sortOrder = null) => {
 
+  let actualPricesDate = topDate
+
+  if (sortOrder === 'next') {
+    const nextPrice = await Price.findOne({ branch: branchId, createdAt: { $gt: new Date(topDate) } })
+      .sort({ createdAt: 1 })
+      .limit(1);
+    actualPricesDate = nextPrice ? nextPrice.createdAt : topDate;
+  } else if (sortOrder === 'prev') {
+    const prevPrice = await Price.findOne({ branch: branchId, createdAt: { $lt: new Date(topDate) } })
+      .sort({ createdAt: -1 })
+      .limit(1);
+    actualPricesDate = prevPrice ? prevPrice.createdAt : topDate;
+  }
 
   try {
 
     const prices = await Branch.aggregate([
 
+      {
+        $match: {
+          "_id": new Types.ObjectId(branchId)
+        }
+      },
       {
         $lookup: {
           from: "prices",
@@ -413,7 +456,8 @@ export const pricesAggregate = async (branchId, topDate) => {
           foreignField: "branch",
           as: "prices",
           pipeline: [
-            { $match: { createdAt: { $lt: new Date(topDate) } } }
+            { $match: { createdAt: { $lte: new Date(actualPricesDate) } } },
+            { $sort: { createdAt: -1 } }
           ]
         }
       },
@@ -421,14 +465,6 @@ export const pricesAggregate = async (branchId, topDate) => {
         $unwind: {
           path: "$prices",
         }
-      },
-      {
-        $match: {
-          "_id": new Types.ObjectId(branchId)
-        }
-      },
-      {
-        $sort: { "prices.createdAt": -1 } // Ordenamos por fecha de creación de forma descendente para obtener el precio más reciente primero
       },
       {
         $group: {
@@ -479,11 +515,10 @@ export const pricesAggregate = async (branchId, topDate) => {
       }
     ])
 
-    return prices[0].prices ?? null
+    return prices[0]?.prices || null;
 
   } catch (error) {
-
-    throw error
+    console.error('Error in pricesAggregate:', error);
+    throw error;
   }
-
 }

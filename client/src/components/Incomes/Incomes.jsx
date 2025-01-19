@@ -7,7 +7,7 @@ import { customSelectStyles } from '../../helpers/Constants'
 import Select from 'react-select'
 import BranchAndCustomerSelect from '../Select/BranchAndCustomerSelect'
 import { useRoles } from '../../context/RolesContext'
-import { stringToCurrency } from '../../helpers/Functions'
+import { getArrayForSelects, stringToCurrency } from '../../helpers/Functions'
 import { FaListAlt } from 'react-icons/fa'
 import ShowListModal from '../Modals/ShowListModal'
 import IncomesList from './IncomesList'
@@ -153,12 +153,12 @@ export default function Incomes({ incomes, incomesTotal, onAddIncome, onDeleteIn
             styles={customSelectStyles}
             value={selectedIncomeType}
             onChange={handleTypesSelectChange}
-            options={incomeTypes}
+            options={getArrayForSelects(incomeTypes, (type) => { return type.name })}
             placeholder={'Tipo'}
             isSearchable={true}
           />
           <input type="number" name="amount" id="income-amount" placeholder='$0.00' step={0.10} className='border border-black p-2 rounded-lg' required onInput={incomesButtonControl} onChange={handleIncomesInputsChange} />
-          <button type='submit' id='incomeButton' disabled className='bg-slate-500 text-white p-3 rounded-lg col-span-3 mt-4'>Agregar</button>
+          <button type='submit' id='incomeButton' disabled className='bg-button text-white p-3 rounded-lg col-span-3 mt-4'>Agregar</button>
         </form>
       </div>
     </div>

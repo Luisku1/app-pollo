@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import Modal from '../Modals/Modal'
 import SearchBar from '../SearchBar'
 
-export default function BranchSelect({ branches, selectBranch, ableToClose, selectedBranch, modalStatus = false }) {
+export default function BranchSelect({ branches, selectBranch, ableToClose, selectedBranch, modalStatus = false, isEditing }) {
 
   const [searchText, setSearchText] = useState('')
   const [preSelect, setPreSelect] = useState(selectedBranch || null)
@@ -48,7 +48,7 @@ export default function BranchSelect({ branches, selectBranch, ableToClose, sele
   const renderBranchElemet = (branch) => {
     return (
       <button key={branch.value} id={branch.value} className={`w-full py-2 border border-black rounded-lg border-opacity-25 ${preSelect && preSelect.value == branch.value ? 'bg-green-300' : ''}`} onClick={() => { handlePreSelect(branch) }}>
-        <p className='w-full text-center font-semibold'>{branch.label}</p>
+        <p className='w-full text-center font-semibold text-base'>{branch.label}</p>
       </button>
     )
   }
@@ -56,14 +56,14 @@ export default function BranchSelect({ branches, selectBranch, ableToClose, sele
   const renderBranchList = () => {
     return (
       <div className="relative">
-        <div className='sticky top-0 bg-white'>
+        <div className='sticky text-sm top-0 bg-white'>
           <SearchBar ref={searchBarRef} handleFilterTextChange={setSearchText} placeholder={'Busca tu sucursal'}></SearchBar>
         </div>
         {filteredBranches.length > 0 && (
           filteredBranches.map(renderBranchElemet)
         )}
         {preSelect && (
-          <div className="fixed bottom-10 right-4 p-4">
+          <div className="fixed bottom-10 right-4 p-4 max-w-lg lg:max-w-full lg:right-10">
             <button
               className="bg-white hover:bg-gray-100 p-3 border border-black rounded-full active:bg-green-300"
               onClick={() => { handleSelectBranch(preSelect) }}>
@@ -77,10 +77,11 @@ export default function BranchSelect({ branches, selectBranch, ableToClose, sele
 
   return (
     <div>
-      <div className="w-full bg-slate-400 rounded-lg border border-black">
+      <div className="w-full bg-button rounded-lg border text-md border-black">
         <button
           className="p-2 w-full rounded-md shadow-md text-center text-white text-xl font-semibold"
           onClick={changeShowModal}
+          disabled={!isEditing}
         >
           {selectedBranch ? selectedBranch.label : 'Selecciona tu sucursal'}
         </button>

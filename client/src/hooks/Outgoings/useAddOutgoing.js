@@ -6,22 +6,14 @@ export const useAddOutgoing = () => {
 
   const [error, setError] = useState(null)
 
-  const addOutgoing = async ({ outgoing, pushOutgoing, spliceOutgoing, updateOutgoingId }) => {
-
-    console.log(outgoing)
-    pushOutgoing({ outgoing })
-    ToastSuccess(`Se agregó el gasto de "${outgoing.concept}"`)
-
-    addOutgoingFetch({ outgoing }).then((response) => {
-
-      updateOutgoingId(outgoing._id, response._id)
-
-    }).catch((error) => {
-
-      spliceOutgoing(0)
+  const addOutgoing = async (outgoing) => {
+    try {
+      ToastSuccess(`Se agregó el gasto de "${outgoing.concept}"`)
+      await addOutgoingFetch(outgoing)
+    } catch (error) {
       ToastDanger(`No se agregó el gasto de "${outgoing.concept}"`)
       setError(error)
-    })
+    }
   }
 
   return { addOutgoing, error }

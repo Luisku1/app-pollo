@@ -21,7 +21,7 @@ export const useAddOutput = () => {
           pieces: output.pieces,
           specialPrice: output.specialPrice,
           company: output.company,
-          product: output.product.value,
+          product: output.product._id,
           employee: output.employee._id,
           branch: output.branch?.value || null,
           customer: output.customer?.value || null,

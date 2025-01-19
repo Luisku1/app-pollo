@@ -181,7 +181,7 @@ export default function RegistroSucursal() {
 
           ))}
         </select>
-          <button disabled={loading} className="bg-slate-700 text-white p-3 rounded-lg uppercase hover:opacity-95 disabled:opacity-80">
+          <button disabled={loading} className="bg-button text-white p-3 rounded-lg uppercase hover:opacity-95 disabled:opacity-80">
             {loading ? 'Cargando...' : 'Registrar'}
           </button>
         </form>

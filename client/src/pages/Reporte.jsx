@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import { IoReload } from "react-icons/io5";
 import { useEffect, useState } from "react"
 import { useSelector } from "react-redux"
@@ -7,7 +8,7 @@ import { formatDate } from "../helpers/DatePickerFunctions"
 import TarjetaCuenta from "../components/TarjetaCuenta"
 import Sobrante from "../pages/Sobrante"
 import { useBranchReports } from "../hooks/BranchReports.js/useBranchReports";
-import { stringToCurrency } from "../helpers/Functions";
+import { getArrayForSelects, stringToCurrency } from "../helpers/Functions";
 import PieChart from "../components/Charts/PieChart";
 import RegistrarDineroReportado from "../components/RegistrarDineroReportado";
 import EmployeeMultiSelect from "../components/Select/EmployeeMultiSelect";
@@ -17,7 +18,7 @@ import ExtraOutgoingsList from "../components/Outgoings/ExtraOutgoingsList.jsx";
 import ShowIncomesModal from "../components/Incomes/ShowIncomesModal.jsx";
 import ShowListModal from "../components/Modals/ShowListModal.jsx";
 
-export default function Reporte() {
+export default function Reporte({ untitled = false }) {
 
   const { company, currentUser } = useSelector((state) => state.user)
   let paramsDate = useParams().date
@@ -79,7 +80,11 @@ export default function Reporte() {
     setMissingIncomes((prev) => (prev - (reportedDeposits - prevReportedDeposits)))
   }
 
-  console.log()
+  useEffect(() => {
+
+    setEmployees(supervisorsInfo)
+
+  }, [supervisorsInfo])
 
   useEffect(() => {
 
@@ -136,17 +141,6 @@ export default function Reporte() {
     ])
 
   }, [supervisorsInfo, deposits, extraOutgoings, missingIncomes, netIncomes, verifiedCash, terminalIncomes, totalIncomes, verifiedDeposits, verifiedIncomes, cashArray, terminalIncomesArray, depositsArray, extraOutgoingsArray])
-
-  useEffect(() => {
-
-    if (!supervisorsInfo || !supervisorsInfo.length > 0) return
-
-    setEmployees(supervisorsInfo.map((supervisor) => ({
-      value: supervisor._id,
-      label: `${supervisor.name} ${supervisor.lastName}`
-    })))
-
-  }, [supervisorsInfo])
 
   const changeDatePickerValue = (e) => {
 
@@ -223,6 +217,8 @@ export default function Reporte() {
 
   useEffect(() => {
 
+    if (untitled) return
+
     document.title = 'Reporte (' + new Date(stringDatePickerValue).toLocaleDateString() + ')'
   })
 
@@ -277,17 +273,13 @@ export default function Reporte() {
                     <th className="text-sm">Balance</th>
                   </tr>
                 </thead>
-
                 {branchReports.map((branchReport, index) => (
-
                   <tbody key={branchReport._id} className={branchReport.balance < 0 ? 'bg-pastel-pink' : ''}>
-
-
                     <tr className={'border-x ' + (index + 1 != branchReports.length ? "border-b " : '') + 'border-black border-opacity-40'}>
                       <td className="group">
                         <Link className='' to={'/formato/' + branchReport.createdAt + '/' + branchReport.branch._id}>
                           <p className={`${branchReport.employee ? 'text-gray-700' : 'text-red-600'} text-sm`}>{branchReport.branch.branch}</p>
-                          <div className="hidden group-hover:block group-hover:fixed group-hover:overflow-hidden group-hover:mt-2 ml-24 bg-slate-600 text-white shadow-2xl rounded-md p-2">
+                          <div className="hidden group-hover:block group-hover:fixed group-hover:overflow-hidden group-hover:mt-2 ml-24 bg-button text-white shadow-2xl rounded-md p-2">
                             <p>{branchReport.employee != null ? branchReport.employee.name + ' ' + branchReport.employee.lastName : 'Sin empleado'}</p>
                             {branchReport.assistant != null ?
                               <p>{branchReport.assistant.name + ' ' + branchReport.assistant.lastName}</p>
@@ -302,8 +294,6 @@ export default function Reporte() {
                     </tr>
                   </tbody>
                 ))}
-
-
                 <tfoot className="border border-black text-sm">
                   <tr className="mt-2">
                     <td className="text-center text-m font-bold">Totales:</td>
@@ -313,27 +303,20 @@ export default function Reporte() {
                     <td className={(totalBalance < 0 ? 'text-red-500' : 'text-green-500') + ' text-center text-m font-bold'}>{totalBalance.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
                   </tr>
                 </tfoot>
-
               </table>
-
               <div className={!showStock ? 'hidden' : ''}>
                 <Sobrante date={stringDatePickerValue}></Sobrante>
               </div>
-
               <div className={!showCards ? 'hidden' : ''} >
                 <TarjetaCuenta reportArray={branchReports} currentUser={currentUser}></TarjetaCuenta>
               </div>
             </div>
           </div>
-
         </div>
         : ''}
-
       {supervisorsInfo && showTable && supervisorsInfo.length > 0 ?
         <div className="items-center">
-
           <div className="my-2 mx-auto">
-
             <h3 className="text-3xl font-bold">Ingresos del día</h3>
             <div>
               <h4 className="text-2xl font-bold">Brutos: {stringToCurrency({ amount: grossCash + deposits })}</h4>
@@ -343,21 +326,15 @@ export default function Reporte() {
               </div>
             </div>
             <h4 className="text-2xl font-bold mb-3">Netos: {stringToCurrency({ amount: (netIncomes) })}</h4>
-
             <PieChart chartInfo={pieChartInfo} netIncomes={netIncomes} verifiedIncomes={verifiedIncomes}></PieChart>
           </div>
-
-
-          <div className="my-1 border border-slate-500 border-spacing-4 p-2 mt-0 sticky top-0 bg-white z-5 rounded-lg mb-5">
-            <div id="filterBySupervisor" className="w-full">
+          <div className="my-1 border border-slate-500 border-spacing-4 p-2 bg-white z-5 rounded-lg mb-5">
+            <div id="filterBySupervisor" className="w-full sticky top-16 bg-white z-10">
               <p className="text-lg font-semibold p-3 text-red-600">Filtro de Supervisores</p>
-              <EmployeeMultiSelect employees={employees} setSelectedEmployees={setSelectedSupervisors}></EmployeeMultiSelect>
-
+              <EmployeeMultiSelect employees={getArrayForSelects(employees, (employee) => `${employee.name} ${employee.lastName}`)} setSelectedEmployees={setSelectedSupervisors}></EmployeeMultiSelect>
             </div>
-
             {selectedSupervisors && supervisorsInfo.map((supervisor) => (
               <div key={supervisor._id}>
-
                 {(selectedSupervisors.some(selected => selected.value.toString() === supervisor._id.toString()) || selectedSupervisors.length == 0) && (
                   <div className={`border ${negativeBalances.has(supervisor._id) ? 'bg-pastel-pink' : 'bg-white'} p-3 mt-4 rounded-lg border-black`}>
 
@@ -365,7 +342,7 @@ export default function Reporte() {
 
                       <div className="grid grid-cols-1">
 
-                        <button className="text-2xl font-semibold my-4 p-2 shadow-sm text-white rounded-lg w-fit bg-slate-500 flex" onClick={() => { navigate(`/perfil/${supervisor._id}`) }}>{`${supervisor.name} ${supervisor.lastName}`}</button>
+                        <button className="text-2xl font-semibold my-4 p-2 shadow-sm text-white rounded-lg w-fit bg-button flex" onClick={() => { navigate(`/perfil/${supervisor._id}`) }}>{`${supervisor.name} ${supervisor.lastName}`}</button>
 
                         <div className="gap-2 space-y-1">
                           <div className="flex gap-2 items-center">
@@ -380,17 +357,6 @@ export default function Reporte() {
                             />
                           </div>
                           <div className="flex gap-2 items-center">
-                            <p className="text-lg font-bold">Efectivo:</p>
-                            <ShowIncomesModal
-                              title={'Efectivos'}
-                              clickableComponent={
-                                <p className="text-lg">{stringToCurrency({ amount: supervisor.cash })}
-                                </p>
-                              }
-                              incomes={supervisor.cashArray}
-                            />
-                          </div>
-                          <div className="flex gap-2 items-center">
                             <p className="text-lg font-bold">Gastos:</p>
                             <ShowListModal
                               ListComponent={ExtraOutgoingsList}
@@ -401,6 +367,16 @@ export default function Reporte() {
                                 </p>
                               }
                               data={supervisor.extraOutgoingsArray}
+                            />
+                          </div>
+                          <div className="flex gap-2 items-center">
+                            <p className="text-lg font-bold">Efectivo:</p>
+                            <ShowIncomesModal
+                              title={'Efectivos'}
+                              clickableComponent={
+                                <p className="text-lg">{`${stringToCurrency({ amount: supervisor.cash })}  `}<span className="text-green-500 font-bold">{(supervisor.cash - supervisor.extraOutgoings).toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</span></p>
+                              }
+                              incomes={supervisor.cashArray}
                             />
                           </div>
                           <p className="text-lg"><span className="font-bold">Efectivo neto: </span>{(supervisor.cash - supervisor.extraOutgoings).toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>

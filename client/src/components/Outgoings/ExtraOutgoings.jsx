@@ -3,7 +3,7 @@ import { FaListAlt } from 'react-icons/fa'
 import SectionHeader from '../SectionHeader'
 import EmployeesSelect from '../Select/EmployeesSelect'
 import Select from 'react-select'
-import { stringToCurrency } from '../../helpers/Functions'
+import { getArrayForSelects, getElementForSelect, stringToCurrency } from '../../helpers/Functions'
 import { isToday } from '../../helpers/DatePickerFunctions'
 import { useEffect, useState } from 'react'
 import { useEmployeesPayments } from '../../hooks/Employees/useEmployeesPayments'
@@ -170,7 +170,6 @@ export default function ExtraOutgoings({ date, pushIncome, employees, branches, 
 
   return (
     <div className='border p-3 mt-4 bg-white'>
-
       <SectionHeader label={'Gastos'} />
       <div className='border bg-white p-3 mt-4'>
         <div className='grid grid-cols-2'>
@@ -188,13 +187,10 @@ export default function ExtraOutgoings({ date, pushIncome, employees, branches, 
             />
           </div>
         </div>
-
         <form id='extra-outgoing-form' onSubmit={addExtraOutgoingSubmit} className="grid grid-cols-3 items-center gap-2">
-
           <input type="text" name="concept" id="extraOutgoingConcept" placeholder='Concepto' className='border border-black p-3 rounded-lg' required onInput={extraOutgoingsButtonControl} onChange={handleExtraOutgoingInputsChange} />
           <input type="number" name="amount" id="extraOutgoingAmount" placeholder='$0.00' step={0.01} className='border border-black p-3 rounded-lg' required onInput={extraOutgoingsButtonControl} onChange={handleExtraOutgoingInputsChange} />
-          <button type='submit' id='extraOutgoingButton' disabled className='bg-slate-500 text-white font-semibold p-3 rounded-lg'>Agregar</button>
-
+          <button type='submit' id='extraOutgoingButton' disabled className='bg-button text-white font-semibold p-3 rounded-lg'>Agregar</button>
         </form>
       </div>
       <div className='border bg-white p-3 mt-4'>
@@ -204,34 +200,28 @@ export default function ExtraOutgoings({ date, pushIncome, employees, branches, 
             <ShowListModal
               title={'Pagos a empleados'}
               ListComponent={EmployeePaymentsList}
-              ListComponentProps={{ payments, total: totalEmployeesPayments, onDeletePayment: onDeleteEmployeePayment, spliceIncome: spliceIncomeById, spliceExtraOutgoingById }}
+              ListComponentProps={{ payments, total: totalEmployeesPayments, onDeletePayment: onDeleteEmployeePayment, spliceIncome: spliceIncomeById, spliceExtraOutgoing: spliceExtraOutgoingById }}
               clickableComponent={<p className='font-bold text-lg text-center'>{stringToCurrency({ amount: totalEmployeesPayments })}</p>}
             />
           </div>
         </div>
-
         <form onSubmit={addEmployeePaymentSubmit} className="grid grid-cols-1 items-center justify-between gap-3">
-
           <div className=''>
-
             <EmployeesSelect defaultLabel={'¿A quién le pagas?'} employees={employees} handleEmployeeSelectChange={handleEmployeeSelectChange} selectedEmployee={selectedEmployee}></EmployeesSelect>
-
           </div>
-
           <div>
             <p className='text-xs text-red-700'>Si ya tenías el dinero deja vacío el campo de sucursal</p>
             <Select
               id='branchSelect'
               styles={customSelectStyles}
-              value={selectedBranch}
+              value={getElementForSelect(selectedBranch, (branch) => branch.branch)}
               onChange={handleBranchSelectChange}
-              options={branches}
+              options={getArrayForSelects(branches, (branch) => branch.branch)}
               isClearable={true}
               placeholder='¿De qué sucursal salió el dinero?'
               isSearchable={true}
             />
           </div>
-
           <div className='relative'>
             <input type="number" name="paymentAmount" id="paymentAmount" placeholder='$0.00' step={0.01} className='w-full col-span-1 border p-3 rounded-lg border-black' required onInput={paymentsButtonControl} />
             <label htmlFor="compact-input" className=" -translate-y-full px-1 absolute top-1/4 left-2 rounded-sm bg-white text-red-700 text-sm font-semibold">
@@ -242,82 +232,9 @@ export default function ExtraOutgoings({ date, pushIncome, employees, branches, 
             <p className='text-xs text-red-700'>Especifíca el motivo del pago</p>
             <input type="text" name="paymentDetail" id="paymentDetail" placeholder='Pago de Nómina, Préstamo, Pollo, etc...' className='col-span-1 p-3 border border-black rounded-lg' required onInput={paymentsButtonControl} />
           </div>
-
-          <button type='submit' id='paymentButton' disabled className='bg-slate-500 text-white p-3 rounded-lg col-span-1 mt-4'>Agregar</button>
-
+          <button type='submit' id='paymentButton' disabled className='bg-button text-white p-3 rounded-lg col-span-1 mt-4'>Agregar</button>
         </form>
-
-
       </div>
-
-      {/* {employeePaymentsIsOpen && payments && payments.length > 0 ?
-        <div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center max-w-lg my-auto mx-auto z-10'>
-          <div className=' bg-white p-5 rounded-lg justify-center items-center h-5/6 my-auto mx-auto w-11/12 overflow-y-scroll'>
-            <button className="" onClick={() => { setEmployeePaymentsIsOpen(false) }}><MdCancel className="h-7 w-7" /></button>
-            < div className='bg-white mt-4 mb-4'>
-
-              <SectionHeader label={'Pagos a empleados'} />
-
-              <div>
-
-                {payments && payments.length > 0 ?
-                  <div id='header' className='grid grid-cols-11 gap-4 items-center justify-around font-semibold mt-4'>
-                    <p className='p-3 rounded-lg col-span-3 text-center'>Supervisor</p>
-                    <p className='p-3 rounded-lg col-span-3 text-center'>Trabajador</p>
-                    <p className='p-3 rounded-lg col-span-3 text-center'>Monto</p>
-                  </div>
-                  : ''}
-                {payments && payments.length > 0 && payments.map((employeePayment, index) => (
-                  <div key={employeePayment._id}>
-                    {(roles.managerRole._id == currentUser.role || employeePayment.employee._id == currentUser._id) && (
-                      <div className={(currentUser._id == employeePayment.supervisor._id || currentUser.role == roles.managerRole._id ? '' : 'py-3 ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
-
-                        <div id='list-element' className='flex col-span-10 items-center justify-around'>
-                          <p className='text-center text-sm w-3/12'>{`${(employeePayment.supervisor?.name + employeePayment.supervisor?.lastName)}`}</p>
-                          <p className='text-center text-sm w-3/12'>{employeePayment.employee.label ?? employeePayment.employee.name}</p>
-                          <p className='text-center text-sm w-3/12'>{stringToCurrency({ amount: employeePayment.amount })}</p>
-                        </div>
-
-                        {currentUser._id == employeePayment.supervisor._id || currentUser.role == roles.managerRole._id ?
-
-                          <div>
-                            <button id={employeePayment._id} onClick={() => { setIsOpen(!isOpen), setButtonId(employeePayment._id) }} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
-                              <span>
-                                <FaTrash className='text-red-700 m-auto' />
-                              </span>
-                            </button>
-
-                            {isOpen && employeePayment._id == buttonId ?
-                              <div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center items-center'>
-                                <div className='bg-white p-5 rounded-lg flex flex-col justify-center items-center gap-5'>
-                                  <div>
-                                    <p className='text-3xl font-semibold'>¿Estás seguro de borrar este registro?</p>
-                                  </div>
-                                  <div className='flex gap-10'>
-                                    <div>
-                                      <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteEmployeePayment({ employeePayment, spliceEmployeePayment, spliceIncomeById, spliceExtraOutgoingById, index }), setIsOpen(!isOpen) }}>Si</button>
-                                    </div>
-                                    <div>
-                                      <button className='rounded-lg border shadow-lg w-20 h-10' onClick={() => { setIsOpen(!isOpen) }}>No</button>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                              : ''}
-                          </div>
-                          : ''}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-        : ''
-      } */}
     </div>
-
-
   )
 }

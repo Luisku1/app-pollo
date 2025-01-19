@@ -12,14 +12,18 @@ export const useDeleteEmployeePayment = () => {
     setLoading(true)
 
     try {
+
       ToastSuccess(`Se borró el pago a ${employeePayment.employee.label ?? employeePayment.employee.name + ' ' + employeePayment.employee.lastName} por ${stringToCurrency({ amount: employeePayment.amount })}`)
 
-      await deleteEmployeePaymentFetch({ employeePaymentId: employeePayment._id, incomeId: (employeePayment.income._id ? employeePayment.income._id : employeePayment.income) ?? false, extraOutgoingId: employeePayment.extraOutgoing._id ? employeePayment.extraOutgoing._id : employeePayment.extraOutgoing})
+      await deleteEmployeePaymentFetch({ employeePaymentId: employeePayment._id, incomeId: (employeePayment?.income?._id ? employeePayment.income._id : employeePayment.income) ?? null, extraOutgoingId: employeePayment.extraOutgoing._id ? employeePayment.extraOutgoing._id : employeePayment.extraOutgoing})
 
     } catch (error) {
+
       ToastDanger(`No se borró el pago a ${employeePayment.employee.label ?? employeePayment.employee.name + ' ' + employeePayment.employee.lastName} por ${stringToCurrency({ amount: employeePayment.amount })}`)
       console.log(error)
+
     } finally {
+
       setLoading(false)
     }
 

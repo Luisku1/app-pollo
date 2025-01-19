@@ -81,7 +81,7 @@ export default function RegistroEmpresa() {
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <input type="text" name="name" id="name" placeholder="Nombre de tu empresa" className='border p-3 rounded-lg' onChange={handleChange} />
-          <button disabled={loading} className="bg-slate-700 text-white p-3 rounded-lg uppercase hover:opacity-95 disabled:opacity-80">
+          <button disabled={loading} className="bg-button text-white p-3 rounded-lg uppercase hover:opacity-95 disabled:opacity-80">
             {loading ? 'Cargando...' : 'Registrar'}
           </button>
         </form>

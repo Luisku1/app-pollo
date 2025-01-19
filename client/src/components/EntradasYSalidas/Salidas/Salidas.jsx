@@ -8,11 +8,9 @@ import Select from 'react-select'
 import { customSelectStyles } from "../../../helpers/Constants"
 import { isToday } from "../../../helpers/DatePickerFunctions"
 import BranchAndCustomerSelect from "../../Select/BranchAndCustomerSelect"
-import { useLoading } from "../../../hooks/loading"
-import Loading from "../../Loading"
 import { ToastDanger } from "../../../helpers/toastify"
 import { useBranchCustomerProductPrice } from "../../../hooks/Prices/useBranchCustomerProductPrice"
-import { priceShouldNotBeZero } from "../../../helpers/Functions"
+import { getArrayForSelects, getElementForSelect, priceShouldNotBeZero } from "../../../helpers/Functions"
 import ShowListModal from "../../Modals/ShowListModal"
 
 export default function Salidas({ branchAndCustomerSelectOptions, products, date, selectedProduct, setSelectedProduct, setSelectedProductToNull }) {
@@ -23,6 +21,7 @@ export default function Salidas({ branchAndCustomerSelectOptions, products, date
     outputs,
     totalWeight,
     onAddOutput,
+    totalAmount,
     onDeleteOutput
   } = useOutput({ companyId: company._id, date })
   const [selectedCustomerBranchOption, setSelectedCustomerBranchOption] = useState(null)
@@ -30,7 +29,6 @@ export default function Salidas({ branchAndCustomerSelectOptions, products, date
   const { price, loading: priceIsLoading } = useBranchCustomerProductPrice({ branchCustomerId: selectedCustomerBranchOption ? selectedCustomerBranchOption.value : null, productId: selectedProduct ? selectedProduct.value : null, date, group: selectedGroup == '' ? null : selectedGroup })
   const [amount, setAmount] = useState('$0.00')
   const [loading, setLoading] = useState(false)
-  const isLoading = useLoading(false)
 
   const generarMonto = () => {
 
@@ -182,97 +180,67 @@ export default function Salidas({ branchAndCustomerSelectOptions, products, date
     setSelectedCustomerBranchOption(option)
   }
 
-  if (isLoading) {
-
-    return <Loading></Loading>
-
-  } else {
-
-    return (
-
-      <div>
-
-        <div className='border bg-white p-3 mt-4'>
-
-          <div className='grid grid-cols-2'>
-            <SectionHeader label={'Salidas'} />
-            <div className='flex items-center gap-4 justify-self-end mr-12'>
-              <ShowListModal
-                title={'Salidas'}
-                ListComponent={ListaSalidas}
-                ListComponentProps={{ outputs, totalWeight, onDeleteOutput }}
-                clickableComponent={<p className='font-bold text-lg text-center'>{(totalWeight ? totalWeight.toFixed(2) : '0.00') + ' Kg'}</p>}
-              />
-            </div>
-
+  return (
+    <div>
+      <div className='border bg-white p-3 mt-4'>
+        <div className='grid grid-cols-2'>
+          <SectionHeader label={'Salidas'} />
+          <div className='flex items-center gap-4 justify-self-end mr-12'>
+            <ShowListModal
+              title={'Salidas'}
+              ListComponent={ListaSalidas}
+              ListComponentProps={{ outputs, totalWeight, totalAmount, onDeleteOutput }}
+              clickableComponent={<p className='font-bold text-lg text-center border border-header rounded-lg p-1'>{(totalWeight ? totalWeight.toFixed(2) : '0.00') + ' Kg'}</p>}
+            />
           </div>
-
-          <form onSubmit={addOutputSubmitButton} className="flex flex-col space-y-2">
-
-            <div>
-
-              <BranchAndCustomerSelect options={branchAndCustomerSelectOptions} defaultLabel={'Sucursal o Cliente'} selectedOption={selectedCustomerBranchOption} handleSelectChange={handleBranchCustomerSelectChange}></BranchAndCustomerSelect>
-
-            </div>
-
-            <div className=" border-black rounded-lg">
-              <Select
-                styles={customSelectStyles}
-                value={selectedProduct}
-                onChange={handleProductSelectChange}
-                options={products}
-                placeholder={'Producto'}
-                isSearchable={true}
-              />
-            </div>
-
-
-            <div className="grid grid-cols-3 gap-2">
-
-              <div className="relative">
-                <input type="number" name="pieces" id="output-pieces" placeholder='0.00' step={0.01} className='border border-black p-3 rounded-lg w-full' required onInput={outputButtonControl} onChange={handleOutputInputsChange} />
-                <label htmlFor="compact-input" className="-translate-y-full px-1 absolute top-1/4 left-2 transform rounded-sm bg-white text-black text-sm font-semibold">
-                  Piezas <span>*</span>
-                </label>
-              </div>
-
-              <div className="relative">
-                <input type="number" name="weight" id="output-weight" placeholder='0.000 kg' step={0.001} className='border border-black p-3 rounded-lg w-full' required onInput={outputButtonControl} onChange={handleOutputInputsChange} />
-                <label htmlFor="compact-input" className="-translate-y-full px-1 absolute top-1/4 left-2 transform rounded-sm bg-white text-black text-sm font-semibold">
-                  Kilos <span>*</span>
-                </label>
-              </div>
-
-              <div className="relative">
-                <span className="absolute text-red-700 font-semibold left-3 top-3">$</span>
-                <input className='pl-6 w-full rounded-lg p-3 text-red-700 font-semibold border border-red-600' name='price' placeholder={price.toFixed(2)} id='output-price' step={0.01} type="number" onChange={(e) => { handleOutputInputsChange(e), generarMonto() }} />
-                <label htmlFor="compact-input" className="-translate-y-full px-1 absolute top-1/4 left-2 transform rounded-sm bg-white text-black text-sm font-semibold">
-                  Precio
-                </label>
-              </div>
-
-            </div>
-
-            <div className='grid grid-cols-4 gap-1'>
-
-              <input className='col-span-3 text-sm border border-black rounded-lg p-3 ' name="comment" id="output-comment" placeholder='Comentario del producto (Opcional)' onChange={handleOutputInputsChange}></input>
-
-              <div className='relative'>
-                <p type="text" name="amount" id="output-amount" className='text-green-700 w-full border border-black rounded-md p-3' >{amount}</p>
-                <label htmlFor="compact-input" className=" -translate-y-full px-1 absolute top-1/4 left-2 rounded-sm bg-white text-green-700 text-sm font-bold">
-                  Total
-                </label>
-              </div>
-            </div>
-
-            <button type='submit' id='outputButton' disabled className='bg-slate-500 text-white p-3 rounded-lg col-span-12 mt-8'>Agregar</button>
-
-          </form>
-
-
         </div>
-
+        <form onSubmit={addOutputSubmitButton} className="flex flex-col space-y-2">
+          <div>
+            <BranchAndCustomerSelect options={branchAndCustomerSelectOptions} defaultLabel={'Sucursal o Cliente'} selectedOption={selectedCustomerBranchOption} handleSelectChange={handleBranchCustomerSelectChange}></BranchAndCustomerSelect>
+          </div>
+          <div className=" border-black rounded-lg">
+            <Select
+              styles={customSelectStyles}
+              onChange={handleProductSelectChange}
+              value={getElementForSelect(selectedProduct, (product) => product.name)}
+              options={getArrayForSelects(products, (product) => product.name)}
+              placeholder={'Producto'}
+              isSearchable={true}
+            />
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            <div className="relative">
+              <input type="number" name="pieces" id="output-pieces" placeholder='0.00' step={0.01} className='border border-black p-3 rounded-lg w-full' required onInput={outputButtonControl} onChange={handleOutputInputsChange} />
+              <label htmlFor="compact-input" className="-translate-y-full px-1 absolute top-1/4 left-2 transform rounded-sm bg-white text-black text-sm font-semibold">
+                Piezas <span>*</span>
+              </label>
+            </div>
+            <div className="relative">
+              <input type="number" name="weight" id="output-weight" placeholder='0.000 kg' step={0.001} className='border border-black p-3 rounded-lg w-full' required onInput={outputButtonControl} onChange={handleOutputInputsChange} />
+              <label htmlFor="compact-input" className="-translate-y-full px-1 absolute top-1/4 left-2 transform rounded-sm bg-white text-black text-sm font-semibold">
+                Kilos <span>*</span>
+              </label>
+            </div>
+            <div className="relative">
+              <span className="absolute text-red-700 font-semibold left-3 top-3">$</span>
+              <input className='pl-6 w-full rounded-lg p-3 text-red-700 font-semibold border border-red-600' name='price' placeholder={price.toFixed(2)} id='output-price' step={0.01} type="number" onChange={(e) => { handleOutputInputsChange(e), generarMonto() }} />
+              <label htmlFor="compact-input" className="-translate-y-full px-1 absolute top-1/4 left-2 transform rounded-sm bg-white text-black text-sm font-semibold">
+                Precio
+              </label>
+            </div>
+          </div>
+          <div className='grid grid-cols-4 gap-1'>
+            <input className='col-span-3 text-sm border border-black rounded-lg p-3 ' name="comment" id="output-comment" placeholder='Comentario del producto (Opcional)' onChange={handleOutputInputsChange}></input>
+            <div className='relative'>
+              <p type="text" name="amount" id="output-amount" className='text-green-700 w-full border border-black rounded-md p-3' >{amount}</p>
+              <label htmlFor="compact-input" className=" -translate-y-full px-1 absolute top-1/4 left-2 rounded-sm bg-white text-green-700 text-sm font-bold">
+                Total
+              </label>
+            </div>
+          </div>
+          <button type='submit' id='outputButton' disabled className='bg-button text-white p-3 rounded-lg col-span-12 mt-8'>Agregar</button>
+        </form>
       </div>
-    )
-  }
+    </div>
+  )
 }

@@ -7,31 +7,64 @@ import { useInitialStock } from "../Stock/useInitialStock"
 import { useOutput } from "../Outputs/useOutput"
 import { useInputs } from "../Inputs/useInputs"
 import { useProviderInputs } from "../ProviderInputs/useProviderInputs"
-import { updateBranchReport } from "../../services/BranchReports/updateBranchReport"
+import { useBranchPrices } from "../Prices/useBranchPrices"
 
-export const useBranchReport = ({ branchId, date }) => {
+export const useBranchReport = ({ branchId = null, date = null, _branchReport = null }) => {
 
-  const [branchReport, setBranchReport] = useState({})
-  const { outgoings, outgoingsTotal, onAddOutgoing, onDeleteOutgoing, loading: outgoingsLoading } = useOutgoings({ initialOutgoings: branchReport.outgoings })
-  const { incomes, incomesTotal, loading: incomesLoading } = useIncomes({ initialIncomes: branchReport.incomes })
-  const { stock, totalStock, onAddStock, onDeleteStock, loading: stockLoading } = useStock({ initialStock: branchReport.stock })
-  const { initialStock, initialStockTotal } = useInitialStock({ initialArray: branchReport.initialStock })
-  const { outputs, totalWeight: outputsWeight, totalAmount: outputsAmount, loading: outputsLoading } = useOutput({ initialOutputs: branchReport.outputs })
-  const { inputs, totalWeight: inputsWeight, totalAmount: inputsAmount, loading: inputsLoading } = useInputs({ initialInputs: branchReport.inputs })
-  const { providerInputs, providerInputsWeight, providerInputsAmount, loading: providerLoading } = useProviderInputs({ initialProviderInputs: branchReport.providerInputs })
+  const [branchReport, setBranchReport] = useState()
+  const { outgoings, outgoingsTotal, onAddOutgoing, onDeleteOutgoing, loading: outgoingsLoading } = useOutgoings({ initialOutgoings: branchReport?.outgoingsArray || [] })
+  const { incomes, incomesTotal, loading: incomesLoading } = useIncomes({ initialIncomes: branchReport?.incomesArray || [] })
+  const { stock , stockAmount, stockWeight, onAddStock, onDeleteStock, loading: stockLoading } = useStock({ initialStock: branchReport?.finalStockArray || [] })
+  const { initialStock, initialStockWeight, initialStockAmount } = useInitialStock({ initialArray: branchReport?.initialStockArray || [] })
+  const { outputs , totalWeight: outputsWeight, totalAmount: outputsAmount, loading: outputsLoading } = useOutput({ initialOutputs: branchReport?.outputsArray || [] })
+  const { inputs, totalWeight: inputsWeight, totalAmount: inputsAmount, loading: inputsLoading } = useInputs({ initialInputs: branchReport?.inputsArray || [] })
+  const { providerInputs , providerInputsWeight, providerInputsAmount, loading: providerLoading } = useProviderInputs({ initialInputs: branchReport?.providerInputsArray || [] })
   const [loading, setLoading] = useState(false)
+  const [fetchBranchReport, setFetchBranchReport] = useState(false)
+  const { prices, onChangePrices } = useBranchPrices({ branchId: (branchId || _branchReport?.branch._id) || null, date: (date || _branchReport?.createdAt) || null })
 
-  const onUpdateBranchReport = async (branchReport) => {
+  const onUpdateBranchReport = async () => {
     try {
-      await updateBranchReport(branchReport)
+      setFetchBranchReport(true)
     } catch (error) {
       console.log(error)
     }
   }
 
+  const modifyBalance = (amount, operation) => {
+
+    setBranchReport((prevBranchReport) => {
+
+      const newBranchReport = { ...prevBranchReport }
+      newBranchReport.balance = operation === 'add' ? newBranchReport.balance + amount : newBranchReport.balance - amount
+      return newBranchReport
+    })
+  }
+
   useEffect(() => {
 
-    if (!branchId || !date) return
+    if (_branchReport) {
+
+      setBranchReport(_branchReport)
+    }
+
+  }, [_branchReport])
+
+  useEffect(() => {
+
+    if ((!branchId || !date || _branchReport) && !fetchBranchReport) return
+
+    setBranchReport({
+      initialStockArray: [],
+      finalStockArray: [],
+      outgoingsArray: [],
+      incomesArray: [],
+      outputsArray: [],
+      inputsArray: [],
+      providerInputsArray: [],
+    })
+
+    setFetchBranchReport(false)
 
     const fetchBranchReport = async () => {
       setLoading(true)
@@ -47,19 +80,22 @@ export const useBranchReport = ({ branchId, date }) => {
 
     fetchBranchReport()
 
-  }, [branchId, date])
+  }, [branchId, date, _branchReport, fetchBranchReport])
 
   return {
     branchReport,
+    setBranchReport,
     onUpdateBranchReport,
     outgoings,
     outgoingsTotal,
     incomes,
     incomesTotal,
     stock,
-    totalStock,
+    stockAmount,
+    stockWeight,
     initialStock,
-    initialStockTotal,
+    initialStockWeight,
+    initialStockAmount,
     outputs,
     outputsAmount,
     outputsWeight,
@@ -72,6 +108,9 @@ export const useBranchReport = ({ branchId, date }) => {
     onAddOutgoing,
     onDeleteOutgoing,
     onAddStock,
+    modifyBalance,
+    prices,
+    onChangePrices,
     onDeleteStock,
     loading: loading || outgoingsLoading || incomesLoading || stockLoading || outputsLoading || inputsLoading || providerLoading,
   }

@@ -129,7 +129,7 @@ export default function Sucursales() {
 
       <div className="w-full">
 
-        <button className='w-full bg-slate-500 text-white p-3 rounded-lg uppercase ' onClick={() => navigate('/registro-sucursal')}>Registra una sucursal</button>
+        <button className='w-full bg-button text-white p-3 rounded-lg uppercase ' onClick={() => navigate('/registro-sucursal')}>Registra una sucursal</button>
 
       </div>
 

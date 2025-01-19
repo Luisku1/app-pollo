@@ -7,7 +7,7 @@ import DeleteButton from '../../Buttons/DeleteButton'
 import { stringToCurrency } from '../../../helpers/Functions'
 import ShowDetails from '../../ShowDetails'
 
-export default function ListaEntradas({ inputs, totalWeight, onDeleteInput }) {
+export default function ListaEntradas({ inputs, totalWeight, totalAmount, onDeleteInput }) {
 
   const { currentUser } = useSelector((state) => state.user)
   const { roles } = useRoles()
@@ -30,7 +30,7 @@ export default function ListaEntradas({ inputs, totalWeight, onDeleteInput }) {
     return (
       <div className='justify-self-end'>
         <p className='text-green-800 font-bold text-lg'>
-          {`${totalWeight.toFixed(3)} Kg`}
+          {`${totalWeight.toFixed(3)} Kg - ${stringToCurrency({ amount: totalAmount })}`}
         </p>
       </div>
     )
@@ -52,11 +52,13 @@ export default function ListaEntradas({ inputs, totalWeight, onDeleteInput }) {
   }
 
   const renderInputItem = ({ input, index }) => {
+
     const { branch, customer, weight, employee, product, _id } = input
     const branchInfo = branch?.branch || branch?.label
     const customerInfo = `${customer?.name || ''} ${customer?.lastName || ''}`.trim() || customer?.label
     const employeeName = `${employee.name} ${employee.lastName}`
     const isAuthorized = currentUser._id === employee._id || currentUser.role === roles.managerRole._id
+    const deletable = isAuthorized && onDeleteInput
 
     return (
       isAuthorized && (
@@ -68,12 +70,10 @@ export default function ListaEntradas({ inputs, totalWeight, onDeleteInput }) {
               <p className='text-center text-xs w-3/12'>{product.name || product.label}</p>
               <p className='text-center text-xs w-1/12'>{weight}</p>
             </button>
-            {isAuthorized && (
+            {deletable && (
               <DeleteButton
                 id={_id}
-                item={input}
-                index={index}
-                deleteFunction={onDeleteInput}
+                deleteFunction={() => onDeleteInput(input, index)}
               />
             )}
           </div>
@@ -85,6 +85,7 @@ export default function ListaEntradas({ inputs, totalWeight, onDeleteInput }) {
   const renderInputsList = () => {
     return (
       <div>
+        {renderTotal()}
         {renderListHeader()}
         {inputs && inputs.length > 0 && inputs.map((input, index) => renderInputItem({ input, index }))}
       </div>
@@ -93,7 +94,6 @@ export default function ListaEntradas({ inputs, totalWeight, onDeleteInput }) {
 
   return (
     <div>
-      {renderTotal()}
       {renderInputsList()}
       {selectedInput && movementDetailsIsOpen && (
         <ShowDetails

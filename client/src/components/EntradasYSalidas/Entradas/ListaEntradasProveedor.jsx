@@ -7,7 +7,7 @@ import DeleteButton from '../../Buttons/DeleteButton'
 import { stringToCurrency } from '../../../helpers/Functions'
 import ShowDetails from '../../ShowDetails'
 
-export default function ListaEntradas({ inputs, totalWeight, onDeleteInput }) {
+export default function ListaEntradasProveedor({ inputs, totalWeight, onDeleteInput }) {
 
   const { currentUser } = useSelector((state) => state.user)
   const { roles } = useRoles()
@@ -71,9 +71,7 @@ export default function ListaEntradas({ inputs, totalWeight, onDeleteInput }) {
             {isAuthorized && (
               <DeleteButton
                 id={_id}
-                item={input}
-                index={index}
-                deleteFunction={onDeleteInput}
+                deleteFunction={() => onDeleteInput(input, index)}
               />
             )}
           </div>

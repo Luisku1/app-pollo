@@ -8,7 +8,8 @@ import ShowDetails from '../../ShowDetails';
 import DeleteButton from '../../Buttons/DeleteButton'
 import { getEmployeeFullName, stringToCurrency } from '../../../helpers/Functions'
 
-export default function ListaSalidas({ outputs, totalWeight, onDeleteOutput }) {
+export default function ListaSalidas({ outputs, totalWeight, totalAmount, onDeleteOutput }) {
+
   const { currentUser } = useSelector((state) => state.user);
   const { roles } = useRoles();
   const [selectedOutput, setSelectedOutput] = useState(null);
@@ -30,7 +31,7 @@ export default function ListaSalidas({ outputs, totalWeight, onDeleteOutput }) {
     return (
       <div className='justify-self-end'>
         <p className='text-green-800 font-bold text-lg'>
-          {`${totalWeight.toFixed(3)} Kg`}
+          {`${totalWeight.toFixed(3)} Kg - ${stringToCurrency({ amount: totalAmount })}`}
         </p>
       </div>
     );
@@ -52,11 +53,13 @@ export default function ListaSalidas({ outputs, totalWeight, onDeleteOutput }) {
   };
 
   const renderOutputItem = ({ output, index }) => {
+
     const { branch, employee, product, weight, _id } = output;
     const branchInfo = branch?.branch || branch?.label;
     const employeeName = `${employee.name} ${employee.lastName}`;
     const productName = product.name || product.label;
     const isAuthorized = currentUser._id === employee._id || currentUser.role === roles.managerRole._id;
+    const deletable = isAuthorized && onDeleteOutput
 
     return (
       isAuthorized && (
@@ -68,12 +71,10 @@ export default function ListaSalidas({ outputs, totalWeight, onDeleteOutput }) {
               <p className='text-center text-xs w-3/12'>{productName}</p>
               <p className='text-center text-xs w-1/12'>{weight}</p>
             </button>
-            {isAuthorized && (
+            {deletable && (
               <DeleteButton
                 id={_id}
-                item={output}
-                index={index}
-                deleteFunction={onDeleteOutput}
+                deleteFunction={() => onDeleteOutput(output, index)}
               />
             )}
           </div>
@@ -82,9 +83,10 @@ export default function ListaSalidas({ outputs, totalWeight, onDeleteOutput }) {
     );
   };
 
-    const renderOutputsList = () => {
+  const renderOutputsList = () => {
     return (
       <div>
+        {renderTotal()}
         {renderListHeader()}
         {outputs && outputs.length > 0 && outputs.map((output, index) => renderOutputItem({ output, index }))}
       </div>
@@ -93,7 +95,6 @@ export default function ListaSalidas({ outputs, totalWeight, onDeleteOutput }) {
 
   return (
     <div>
-      {renderTotal()}
       {renderOutputsList()}
       {selectedOutput && movementDetailsIsOpen && (
         <ShowDetails

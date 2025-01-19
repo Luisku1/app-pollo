@@ -1,4 +1,4 @@
-export const addOutgoingFetch = async ({ outgoing }) => {
+export const addOutgoingFetch = async (outgoing) => {
 
   const res = await fetch('/api/outgoing/create', {
     method: 'POST',

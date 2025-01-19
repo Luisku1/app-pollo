@@ -4,37 +4,26 @@ import { useAddOutput } from "./useAddOutput"
 import { useDeleteOutput } from "./useDeleteOutput"
 import { Types } from "mongoose"
 
-export const useOutput = ({ companyId = null, date = null, initialOutputs = [] }) => {
+export const useOutput = ({ companyId = null, date = null, initialOutputs = null }) => {
 
-  const [outputs, setOutputs] = useState(initialOutputs)
-  const [totalWeight, setTotalWeight] = useState(
-    initialOutputs.reduce((acc, output) => acc + output.weight, 0)
-  )
-  const [totalAmount, setTotalAmount] = useState(
-    initialOutputs.reduce((acc, output) => acc + output.amount, 0)
-  )
+  const [outputs, setOutputs] = useState([])
   const { addOutput, loading: addLoading } = useAddOutput()
-  const {deleteOutput, loading: deleteLoading} = useDeleteOutput()
+  const { deleteOutput, loading: deleteLoading } = useDeleteOutput()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
-  const calculateTotal = (outputsList) => {
-
-    setTotalAmount(outputsList.reduce((acc, output) => acc + output.amount, 0))
-    setTotalWeight(outputsList.reduce((acc, output) => acc + output.weight, 0))
-  }
+  const initialize = (initialArray) => {
+    setOutputs(initialArray);
+  };
 
   const pushOutput = (output) => {
 
     setOutputs((prevOutputs) => [output, ...prevOutputs])
-    setTotalWeight((prevTotal) => prevTotal + output.weight)
   }
 
   const spliceOutput = (index) => {
     setOutputs((prevOutputs) => {
-      const removedOutput = prevOutputs[index];
       const newOutputs = prevOutputs.filter((_, i) => i !== index);
-      setTotalWeight((prevTotal) => prevTotal - removedOutput.weight);
       return newOutputs;
     });
   };
@@ -71,6 +60,43 @@ export const useOutput = ({ companyId = null, date = null, initialOutputs = [] }
     }
   }
 
+  useEffect(() => {
+    if (!initialOutputs) return
+    initialize(initialOutputs)
+  }, [initialOutputs, outputs])
+
+  useEffect(() => {
+
+    if (!companyId || !date) return
+
+    const fetchOutputs = async () => {
+      setLoading(true)
+      setOutputs([])
+
+      try {
+        const response = await getOutputs({ companyId, date })
+        setOutputs(response.outputs)
+      } catch (error) {
+        setError(error)
+
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchOutputs()
+
+  }, [companyId, date])
+
+  const { totalWeight, totalAmount } = useMemo(() => {
+
+    const totalWeight = outputs.reduce((acc, output) => acc + output.weight, 0)
+    const totalAmount = outputs.reduce((acc, output) => acc + output.amount, 0)
+
+    return { totalWeight, totalAmount }
+
+  }, [outputs])
+
   const sortedOutputs = useMemo(() => {
 
     const clientsOutputs = outputs.filter((output) => !output.branch)
@@ -82,41 +108,16 @@ export const useOutput = ({ companyId = null, date = null, initialOutputs = [] }
 
   }, [outputs])
 
-  useEffect(() => {
-
-    if (!companyId || !date) return
-    if (initialOutputs.length > 0) return
-
-    const fetchOutputs = async () => {
-      setLoading(true)
-      setOutputs([])
-      setTotalWeight(0.0)
-
-      try {
-        const response = await getOutputs({ companyId, date })
-        setOutputs(response.outputs)
-        calculateTotal(response.outputs)
-      } catch (error) {
-        setError(error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchOutputs()
-
-  }, [companyId, date, initialOutputs.length])
-
-
   return {
     outputs: sortedOutputs,
     totalWeight,
     totalAmount,
     onAddOutput,
     onDeleteOutput,
-    loading : loading || addLoading || deleteLoading,
+    loading: loading || addLoading || deleteLoading,
     error,
     pushOutput,
-    spliceOutput
+    spliceOutput,
+    initialize
   }
 }

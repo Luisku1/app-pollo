@@ -46,7 +46,6 @@ export const useEmployeesPayments = ({ companyId = null, date = null, employeeId
       createdAt: date,
     }
     const extraOutgoingId = new Types.ObjectId().toHexString()
-    console.log(incomeId, extraOutgoingId)
     const extraOutgoing = {
       _id: extraOutgoingId,
       amount: employeePayment.amount,

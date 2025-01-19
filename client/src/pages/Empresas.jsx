@@ -20,7 +20,7 @@ export default function Empresas() {
 
         <div className="w-full">
 
-          <button className='w-full bg-slate-700 text-white p-3 rounded-lg uppercase hover:opacity-95 disabled:opacity-80 ' onClick={() => navigate('/registro-empresa')}>Registra tu empresa</button>
+          <button className='w-full bg-button text-white p-3 rounded-lg uppercase hover:opacity-95 disabled:opacity-80 ' onClick={() => navigate('/registro-empresa')}>Registra tu empresa</button>
 
         </div>
 

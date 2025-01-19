@@ -2,38 +2,43 @@
 
 import ChangeBranchPrices from "./ChangeBranchPrices"
 
-export default function BranchPrices({ prices, pricesDate, branch, onChange }) {
+export default function BranchPrices({ prices, pricesDate, branch, onChange, onUpdateBranchReport, date }) {
 
-  const isEmpty = prices.length === 0
+  const isEmpty = !prices || prices.length === 0;
 
-  const renderProductPrice = (price) => {
-
+  const renderProductPrice = (price, index) => {
     return (
-      <div key={price.priceId} className='grid grid-cols-2 bg-white gap-2 p-1 mt-1 shadow-sm'>
-        <p className='truncate'>{price.product}:</p>
-        <p className=''>{price.latestPrice}</p>
-      </div>
-    )
-  }
+      <li
+        key={price.priceId}
+        className={`flex justify-between gap-2 p-2 mt-1 shadow-sm ${index % 2 === 0 ? "bg-gray-100" : "bg-white"
+          } border-b border-gray-300`}
+      >
+        <span className="truncate">{price.product}:</span>
+        <span>{price.latestPrice}</span>
+      </li>
+    );
+  };
 
   const renderPrices = () => {
     return (
-      <div>
-        {!isEmpty && prices.map((price) => renderProductPrice(price))}
-      </div>
-    )
-  }
+      <ul className="grid grid-cols-2">
+        {!isEmpty || !onChange && <li className="col-span-2 my-auto font-bold">Precios:</li>}
+        {!isEmpty && prices.map((price, index) => renderProductPrice(price, index))}
+      </ul>
+    );
+  };
 
   return (
-    <div className='grid grid-cols-5'>
-      <ChangeBranchPrices
-        onChange={onChange}
-        branch={branch}
-        pricesDate={pricesDate}
-      >
-        {prices && prices.length > 0 ? <p className='col-span-2 my-auto'>Precios:</p> : ''}
-        {renderPrices()}
-      </ChangeBranchPrices>
+    <div className="p-4 border rounded-lg shadow-md">
+      {onChange ?
+        <ChangeBranchPrices onUpdateBranchReport={onUpdateBranchReport} onChange={onChange} branch={branch} date={date} pricesDate={pricesDate}>
+          {renderPrices()}
+        </ChangeBranchPrices>
+        :
+        <div>
+          {renderPrices()}
+        </div>
+      }
     </div>
-  )
+  );
 }

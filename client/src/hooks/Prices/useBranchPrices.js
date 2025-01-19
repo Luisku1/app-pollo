@@ -1,27 +1,50 @@
 import { useEffect, useState } from "react"
 import { getBranchPricesFetch } from "../../services/Prices/getBranchPrices"
+import useChangePrices from "./useChangePrices"
 
 export const useBranchPrices = ({ branchId, date }) => {
 
-  const [branchPrices, setBranchPrices] = useState(null)
+  const [prices, setPrices] = useState(null)
+  const { changePrices } = useChangePrices()
   const [loading, setLoading] = useState(false)
+
+  const onChangePrices = async (newPrices, date, newPricesDate, onUpdateBranchReport) => {
+
+    let tempPrices = [...prices]
+
+    try {
+
+      await changePrices(branchId, date, newPricesDate)
+      setPrices(newPrices)
+      await onUpdateBranchReport()
+
+    } catch (error) {
+
+      setPrices(tempPrices)
+      console.log(error)
+    }
+  }
 
   useEffect(() => {
 
+    if (!branchId || !date) return
+
     setLoading(true)
 
-    getBranchPricesFetch({ branchId, date }).then((response) => {
+    const fetchPrices = async () => {
+      try {
+        const response = await getBranchPricesFetch(branchId, date)
+        setPrices(response.branchPrices)
+      } catch (error) {
+        console.log(error)
+      } finally {
+        setLoading(false)
+      }
+    }
 
-      setBranchPrices(response.branchPrices)
-
-    }).catch((error) => {
-
-      console.log(error)
-    })
-
-    setLoading(false)
+    fetchPrices()
 
   }, [branchId, date])
 
-  return { branchPrices, loading }
+  return { prices, onChangePrices, loading }
 }

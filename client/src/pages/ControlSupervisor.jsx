@@ -17,8 +17,9 @@ import IncomesAndOutgoings from '../components/SupervisorSections/IncomesAndOutg
 import InputsAndOutputs from '../components/SupervisorSections/InputsAndOutputs';
 import SectionsMenu from '../components/SectionsMenu';
 import { useEmployeesDailyBalances } from '../hooks/Employees/useEmployeesDailyBalances';
+import { getArrayForSelects } from '../helpers/Functions';
 
-export default function ControlSupervisor() {
+export default function ControlSupervisor({ hideFechaDePagina = false }) {
 
   let paramsDate = useParams().date
   let datePickerValue = (paramsDate ? new Date(paramsDate) : new Date())
@@ -44,11 +45,11 @@ export default function ControlSupervisor() {
     setBranchAndCustomerSelectOptions([
       {
         label: 'Sucursales',
-        options: branches
+        options: getArrayForSelects(branches, (branch) => branch.branch)
       },
       {
         label: 'Clientes',
-        options: customers
+        options: getArrayForSelects(customers, (customer) => customer.name + ' ' + (customer?.lastName ?? ''))
       }])
 
   }, [branches, customers])
@@ -71,9 +72,11 @@ export default function ControlSupervisor() {
 
   useEffect(() => {
 
+    if (hideFechaDePagina) return
+
     document.title = 'Supervisión (' + new Date(stringDatePickerValue).toLocaleDateString() + ')'
 
-  }, [stringDatePickerValue])
+  }, [stringDatePickerValue, hideFechaDePagina])
 
   if (isLoading) {
 
@@ -82,19 +85,16 @@ export default function ControlSupervisor() {
   } else {
 
     return (
-
       <main id='supervisor-main' className={"p-3 max-w-lg mx-auto"} >
         <div>
-          {roles && roles.managerRole && roles.managerRole._id == currentUser.role ?
+          <div className={`w-fit mx-auto sticky ${hideFechaDePagina ? '-top-[4rem]' : 'top-16'} bg-opacity-60 bg-menu z-10 mb-2`}>
+            {roles && roles.managerRole && roles.managerRole._id == currentUser.role && !hideFechaDePagina ?
 
-            <FechaDePagina changeDay={changeDay} stringDatePickerValue={stringDatePickerValue} changeDatePickerValue={changeDatePickerValue} ></FechaDePagina>
+              <FechaDePagina changeDay={changeDay} stringDatePickerValue={stringDatePickerValue} changeDatePickerValue={changeDatePickerValue} higherZ={true}></FechaDePagina>
 
-            : ''}
+              : ''}
 
-          <h1 className='text-3xl text-center font-semibold mt-7 '>
-            Supervisión
-          </h1>
-
+          </div>
           <SectionsMenu
             handleShowSections={handleShowSections}
             selectedSection={selectedSection}

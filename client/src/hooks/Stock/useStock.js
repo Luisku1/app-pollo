@@ -4,77 +4,79 @@ import { useDeleteStock } from "./useDeleteStock"
 import { useAddStock } from "./useAddStock"
 import { Types } from "mongoose"
 
-export const useStock = ({ branchId, date, initialStock = [] }) => {
+export const useStock = ({ branchId, date, initialStock = null }) => {
 
-  const [stock, setStock] = useState(initialStock)
-  const [totalStock, setTotalStock] = useState(
-    initialStock.reduce((acc, item) => acc + item.amount, 0)
-  )
+  const [stock, setStock] = useState([])
   const [loading, setLoading] = useState(false)
   const { deleteStock } = useDeleteStock()
   const { addStock } = useAddStock()
 
-  const pushStock = (stock) => {
+  const initialize = (initialArray) => {
+    setStock(initialArray);
+  };
 
-    setStock((prevStock) => [stock, ...prevStock])
-    setTotalStock((prevTotal) => prevTotal + stock.amount)
+  const pushStock = (stock) => {
+    setStock((prevStock) => {
+      const newStock = [stock, ...prevStock];
+      return newStock;
+    });
   }
 
   const spliceStock = (index) => {
-
-    const removedStock = stock.splice(index, 1)
-    setTotalStock((prevTotal) => prevTotal - removedStock[0].amount)
+    setStock((prevStock) => {
+      const newStock = [...prevStock];
+      newStock.splice(index, 1);
+      return newStock;
+    });
   }
 
-  const onAddStock = async (stock) => {
-
-    const tempId = new Types.ObjectId().toHexString()
-
+  const onAddStock = async (stock, modifyBalance) => {
+    const tempId = new Types.ObjectId().toHexString();
     try {
+      const tempStock = { ...stock, _id: tempId };
 
-      const tempStock = { ...stock, _id: tempId }
+      console.log(tempStock)
 
-      pushStock(tempStock)
-      await addStock(tempStock)
-
+      modifyBalance(tempStock.amount, "add");
+      pushStock(tempStock);
+      await addStock(tempStock);
     } catch (error) {
-
-      spliceStock(stock.findIndex((stock) => stock._id === tempId))
-      console.log(error)
+      spliceStock(stock.findIndex((stock) => stock._id === tempId));
+      console.log(error);
     }
   }
 
-  const onDeleteStock = async (stock, index) => {
-
+  const onDeleteStock = async (stock, index, modifyBalance) => {
     try {
 
-      spliceStock(index)
-      await deleteStock(stock)
-
+      spliceStock(index);
+      modifyBalance(stock.amount, "subtract");
+      await deleteStock(stock);
     } catch (error) {
-
-      pushStock(stock)
-      console.log(error)
+      pushStock(stock);
+      console.log(error);
     }
   }
-
-  const sortedStock = useMemo(() => stock.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt)), [stock])
 
   useEffect(() => {
 
-    if (initialStock.length > 0) return
+    if (!initialStock) return
+
+    initialize(initialStock)
+
+  }, [initialStock])
+
+  useEffect(() => {
+
     if (!branchId || !date) return
 
     setLoading(true)
-    setStock([])
-    setTotalStock(0.0)
 
     const fetchStock = async () => {
 
       try {
         const response = await getStockFetch(branchId, date);
         setStock(response.stock);
-        setTotalStock(response.totalStock);
       } catch (error) {
         console.log(error);
       } finally {
@@ -84,15 +86,28 @@ export const useStock = ({ branchId, date, initialStock = [] }) => {
 
     fetchStock()
 
-  }, [branchId, date, initialStock])
+  }, [branchId, date])
+
+  const { stockWeight, stockAmount } = useMemo(() => {
+
+    const stockWeight = stock.reduce((acc, stock) => acc + stock.weight, 0)
+    const stockAmount = stock.reduce((acc, stock) => acc + stock.amount, 0)
+
+    return { stockWeight, stockAmount }
+
+  }, [stock])
+
+  const sortedStock = useMemo(() => stock.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt)), [stock])
 
   return {
     stock: sortedStock,
-    totalStock,
+    stockAmount,
+    stockWeight,
     pushStock,
     onAddStock,
     onDeleteStock,
     spliceStock,
-    loading
+    loading,
+    initialize
   }
 }

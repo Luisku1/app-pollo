@@ -34,8 +34,8 @@ const SearchBar = forwardRef(({ handleFilterTextChange, placeholder, onFocus }, 
   }
 
   return (
-    <div className="w-full">
-      <div className="border rounded-lg flex items-center p-2">
+    <div className="w-full bg-menu">
+      <div className="border rounded-lg flex items-center p-2 bg-white">
         <CiSearch className=" h-8 w-8 border-r pr-2" />
         <input ref={ref} onFocus={handleOnFocus} value={searchTerm} placeholder={placeholder ?? 'Búsqueda...'} autoComplete="off" className=" h-full w-full p-2 outline-none" type="text" name="searchBar" id="searchBar" onChange={handleSearchBarChange} />
         <button className="h-8 w-8" onClick={clearSearchBar}>

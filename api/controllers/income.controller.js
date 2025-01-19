@@ -5,7 +5,7 @@ import { errorHandler } from "../utils/error.js";
 import { getDayRange } from "../utils/formatDate.js";
 import { pushOrPullBranchReportRecord } from "./branch.report.controller.js";
 import { pushOrPullCustomerReportRecord } from "./customer.controller.js";
-import { addSupervisorReportIncome, deleteSupervisorReportIncome, pushOrPullSupervsorReportRecord } from "./employee.controller.js";
+import { addSupervisorReportIncome, pushOrPullSupervisorReportRecord } from "./employee.controller.js";
 
 export const newBranchIncomeQuery = async (req, res, next) => {
 
@@ -353,8 +353,8 @@ export const deleteIncome = async (incomeId) => {
       })
     }
 
-    await pushOrPullSupervsorReportRecord({
-      employeeId: deletedIncome.employee,
+    await pushOrPullSupervisorReportRecord({
+      supervisorId: deletedIncome.employee,
       date: deletedIncome.createdAt,
       record: deletedIncome,
       affectsBalancePositively: false,
@@ -363,13 +363,14 @@ export const deleteIncome = async (incomeId) => {
       amountField: 'incomes'
     })
 
+
     return deletedIncome
 
   } catch (error) {
 
     if (deletedIncome) {
 
-      await IncomeCollected.create(deletedIncome)
+      await newBranchIncomeFunction(deletedIncome)
     }
 
     throw error

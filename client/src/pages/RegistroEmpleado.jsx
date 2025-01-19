@@ -232,7 +232,7 @@ export default function RegistroEmpleadoNuevo({ employee, setEmployee }) {
 
         <button
           disabled={loading}
-          className="bg-slate-700 text-white p-2 rounded-lg uppercase hover:opacity-95 disabled:opacity-80"
+          className="bg-button text-white p-2 rounded-lg uppercase hover:opacity-95 disabled:opacity-80"
         >
           {loading ? 'Cargando...' : !employee ? 'Registrar' : 'Actualizar Información'}
         </button>

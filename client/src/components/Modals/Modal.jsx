@@ -2,20 +2,20 @@
 import { MdCancel } from 'react-icons/md'
 import SectionHeader from '../SectionHeader'
 
-export default function Modal({ content, title, closeModal, ref, ableToClose = true, extraInformation }) {
+export default function Modal({ content, title, closeModal, ref, ableToClose = true, extraInformation, lowerZIndex = false }) {
 
   const renderModal = () => {
 
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex items-center justify-center z-10 max-w-lg mx-auto">
+      <div className={`fixed inset-0 ${lowerZIndex ? 'z-[40]' : 'z-[9000]'} ${lowerZIndex ? '' : 'bg-black bg-opacity-30 backdrop-blur-sm'} flex items-center justify-center pt-16`}>
         <div
           ref={ref}
-          className="bg-white p-5 rounded-lg shadow-lg w-11/12 h-auto max-h-[90vh] overflow-y-auto relative"
+          className={`bg-white p-5 rounded-lg shadow-lg w-full max-w-lg h-auto max-h-[calc(100vh-4rem)] overflow-y-auto relative`}
         >
           {/* Botón para cerrar */}
           {ableToClose && (
             <button
-              className="sticky top-0 right-0 text-gray-600 hover:text-gray-800 z-10"
+              className="sticky top-0 right-0 text-gray-600 hover:text-gray-800 z-30"
               style={{ float: 'right', margin: '10px' }}
               onClick={closeModal}
             >

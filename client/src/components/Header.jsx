@@ -6,6 +6,9 @@ import DropdownItem from './DropdownItem'
 import { MdOutlineMenu } from "react-icons/md";
 import '../assets/dropdown.css'
 import { useRoles } from '../context/RolesContext'
+import ControlSupervisor from '../pages/ControlSupervisor'
+import Modal from './Modals/Modal'
+import Reporte from '../pages/Reporte'
 
 export default function Header() {
 
@@ -13,6 +16,11 @@ export default function Header() {
   const [open, setOpen] = useState(false);
   const { roles } = useRoles()
   let menuRef = useRef()
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false)
+
+  const toggleModal = () => setIsModalOpen((prev) => !prev)
+  const toggleReportModal = () => setIsReportModalOpen((prev) => !prev)
 
   useEffect(() => {
 
@@ -32,57 +40,84 @@ export default function Header() {
   }, [currentUser, company])
 
   return (
+    <>
+      <header className='bg-header shadow-md sticky top-0 z-[10000]'>
+        <div className='flex justify-between items-center mx-auto p-3 max-w-full'>
+          <Link to='/'>
+            <h1 className='font-bold text-sm sm:text-xl flex flex-wrap space-x-1 items-center'>
+              <span className='text-orange-700'>{company ? company.name : 'Pio App'}</span>
+              <GiChicken className='text-orange-400 h-7 w-7' />
+            </h1>
+          </Link>
+          {roles && currentUser && currentUser.role == roles?.supervisorRole?._id || currentUser.role == roles?.managerRole?._id &&
+            <button onClick={toggleModal} className='flex-grow h-10 mx-4 bg-supervisor-button rounded transition-colors duration-300 font-semibold'>
+              Supervisión
+            </button>
+          }
+          {roles && currentUser && currentUser.role == roles?.managerRole?._id &&
+            <button onClick={toggleReportModal} className='flex-grow h-10 bg-supervisor-button mx-4 bg-report-button rounded transition-colors duration-300 font-semibold'>
+              Reporte
+            </button>
+          }
+          <div className='menu-container z-[10000]' ref={menuRef}>
+            <div className="menu-trigger" onClick={() => { setOpen(!open) }}>
+              <MdOutlineMenu className='w-5 h-5 mdoutline text-menu' />
+            </div>
+            <div className={`dropdown-menu z-[10000] ${open ? 'active' : 'inactive'}`} >
+              <ul>
+                {currentUser && roles ? (
+                  <div>
+                    <DropdownItem text={'Perfil'} link={'/perfil/' + currentUser._id} onClick={() => { setOpen(!open) }} />
+                    <DropdownItem text={"Crear formato"} link={'/formato'} onClick={() => { setOpen(!open) }} />
+                    {(currentUser.role == roles.supervisorRole._id || currentUser.role == roles.managerRole._id) && (
+                      <div>
+                        <DropdownItem text={'Supervisión'} link={'/supervision-diaria'} onClick={() => { setOpen(!open) }} />
+                        <DropdownItem text={'Registro Empleado'} link={'/registro-empleado'} onClick={() => { setOpen(!open) }} />
+                        <DropdownItem text={'Registro Cliente'} link={'/registro-cliente'} onClick={() => { setOpen(!open) }} />
+                        <DropdownItem text={'Registro Proveedor'} link={'/registro-proveedor'} onClick={() => { setOpen(!open) }} />
+                        <DropdownItem text={'Sucursales'} link={'/sucursales'} onClick={() => { setOpen(!open) }} />
+                        <DropdownItem text={"Reporte"} link={'/reporte'} onClick={() => { setOpen(!open) }} />
+                      </div>
+                    )}
 
-    <header className='bg-header shadow-md sticky top-0 z-10'>
-      <div className='flex justify-between items-center mx-auto p-3'>
-        <Link to='/'>
-          <h1 className='font-bold text-sm sm:text-xl flex flex-wrap space-x-1 items-center'>
-            <span className='text-orange-700'>{company ? company.name : 'Pio App'}</span>
-            <GiChicken className='text-orange-400 h-7 w-7' />
-          </h1>
-        </Link>
+                    {(currentUser.role == roles.managerRole._id) && (
+                      <div>
+                        <DropdownItem text={"Nomina"} link={'/nomina'} onClick={() => { setOpen(!open) }} />
+                        <DropdownItem text={"Cuentas"} link={'/listado-de-cuentas'} onClick={() => { setOpen(!open) }} />
+                        <DropdownItem text={'Empleados'} link={'/empleados'} onClick={() => { setOpen(!open) }} />
+                        <DropdownItem text={'Productos'} link={'/productos'} onClick={() => { setOpen(!open) }} />
+                        <DropdownItem text={'Precios'} link={'/precios'} onClick={() => { setOpen(!open) }} />
+                        <DropdownItem text={'Empresa'} link={'/empresas'} onClick={() => { setOpen(!open) }} />
+                      </div>
 
-        <div className='menu-container z-30' ref={menuRef}>
-          <div className="menu-trigger" onClick={() => { setOpen(!open) }}>
-            <MdOutlineMenu className='w-5 h-5 mdoutline text-menu' />
+                    )}
+                  </div>
+                ) : (
+                  <DropdownItem text={'Inicio de Sesión'} link={'/inicio-sesion'} onClick={() => { setOpen(!open) }} />
+                )}
+              </ul>
+            </div>
           </div>
-          <div className={`dropdown-menu ${open ? 'active' : 'inactive'}`} >
-            <ul>
-              {currentUser && roles ? (
-                <div>
-                  <DropdownItem text={'Perfil'} link={'/perfil/' + currentUser._id} onClick={() => { setOpen(!open) }} />
-                  <DropdownItem text={"Crear formato"} link={'/formato'} onClick={() => { setOpen(!open) }} />
-                  {(currentUser.role == roles.supervisorRole._id || currentUser.role == roles.managerRole._id) && (
-                    <div>
-                      <DropdownItem text={'Supervisión'} link={'/supervision-diaria'} onClick={() => { setOpen(!open) }} />
-                      <DropdownItem text={'Registro Empleado'} link={'/registro-empleado'} onClick={() => { setOpen(!open) }} />
-                      <DropdownItem text={'Registro Cliente'} link={'/registro-cliente'} onClick={() => { setOpen(!open) }} />
-                      <DropdownItem text={'Registro Proveedor'} link={'/registro-proveedor'} onClick={() => { setOpen(!open) }} />
-                      <DropdownItem text={'Sucursales'} link={'/sucursales'} onClick={() => { setOpen(!open) }} />
-                      <DropdownItem text={"Reporte"} link={'/reporte'} onClick={() => { setOpen(!open) }} />
-                    </div>
-                  )}
+        </div >
+      </header >
 
-                  {(currentUser.role == roles.managerRole._id) && (
-                    <div>
-                      <DropdownItem text={"Nomina"} link={'/nomina'} onClick={() => { setOpen(!open) }} />
-                      <DropdownItem text={"Cuentas"} link={'/listado-de-cuentas'} onClick={() => { setOpen(!open) }} />
-                      <DropdownItem text={'Empleados'} link={'/empleados'} onClick={() => { setOpen(!open) }} />
-                      <DropdownItem text={'Productos'} link={'/productos'} onClick={() => { setOpen(!open) }} />
-                      <DropdownItem text={'Precios'} link={'/precios'} onClick={() => { setOpen(!open) }} />
-                      <DropdownItem text={'Empresa'} link={'/empresas'} onClick={() => { setOpen(!open) }} />
-                    </div>
+      {isModalOpen && (
+        <Modal
+          content={<ControlSupervisor hideFechaDePagina={true} />}
+          closeModal={toggleModal}
+          ableToClose={true}
+          lowerZIndex={true}
+        />
+      )}
 
-                  )}
-                </div>
-              ) : (
-                <DropdownItem text={'Inicio de Sesión'} link={'/inicio-sesion'} onClick={() => { setOpen(!open) }} />
-              )}
-            </ul>
-          </div>
-        </div>
-      </div >
-    </header >
-
+      {isReportModalOpen && (
+        <Modal
+          content={<Reporte untitled={true} />}
+          closeModal={toggleReportModal}
+          ableToClose={true}
+          lowerZIndex={true}
+        />
+      )}
+    </>
   )
 }

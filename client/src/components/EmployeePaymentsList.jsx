@@ -52,12 +52,8 @@ export default function EmployeePaymentsList({ payments, total, onDeletePayment,
             </div>
             {isAuthorized && (
               <DeleteButton
-                deleteFunction={onDeletePayment}
+                deleteFunction={() => onDeletePayment(employeePayment, index, spliceIncome, spliceExtraOutgoing)}
                 id={_id}
-                index={index}
-                item={employeePayment}
-                spliceIncome={spliceIncome}
-                spliceExtraOutgoing={spliceExtraOutgoing}
               />
             )}
           </div>

@@ -11,7 +11,7 @@ export default function MenuSucursal({ branchAndCustomerSelectOptions, date, sel
   const { currentUser, company } = useSelector((state) => state.user)
   const [selectedBranchCustomerOption, setSelectedBranchCustomerOption] = useState(null)
   const [selectedGroup, setSelectedGroup] = useState('')
-  const { price } = useBranchCustomerProductPrice({ branchCustomerId: selectedBranchCustomerOption ? selectedBranchCustomerOption.value : null, productId: selectedProduct ? selectedProduct.value : null, date, group: selectedGroup == '' ? null : selectedGroup })
+  const { price } = useBranchCustomerProductPrice({ branchCustomerId: selectedBranchCustomerOption ? selectedBranchCustomerOption.value : null, productId: selectedProduct ? selectedProduct._id : null, date, group: selectedGroup == '' ? null : selectedGroup })
   const [providerInputFormData, setProviderInputFormData] = useState({})
   const [amount, setAmount] = useState(0)
 
@@ -194,7 +194,7 @@ export default function MenuSucursal({ branchAndCustomerSelectOptions, date, sel
           </label>
         </div>
       </div>
-      <button type='submit' id='providerInputButton' disabled className='bg-slate-500 text-white p-3 rounded-lg col-span-4 mt-8'>Agregar</button>
+      <button type='submit' id='providerInputButton' disabled className='bg-button text-white p-3 rounded-lg col-span-4 mt-8'>Agregar</button>
 
     </form>
   )

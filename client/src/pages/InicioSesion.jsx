@@ -182,7 +182,7 @@ export default function InicioSesion() {
         <input type="tel" name="phoneNumber" id="phoneNumber" placeholder='Número telefónico' className='border p-3 rounded-lg' onChange={handleChange}/>
         <input type="password" name="password" id="password" placeholder='Contraseña' className='border p-3 rounded-lg' onChange={handleChange}/>
 
-        <button disabled={loading} className="bg-slate-700 text-white p-3 rounded-lg uppercase hover:opacity-95 disabled:opacity-80">
+        <button disabled={loading} className="bg-button text-white p-3 rounded-lg uppercase hover:opacity-95 disabled:opacity-80">
           {loading ? 'Cargando...' : 'Iniciar Sesión'}
         </button>
       </form>

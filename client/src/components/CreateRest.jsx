@@ -1,21 +1,19 @@
 /* eslint-disable react/prop-types */
 import { useEffect, useState } from 'react'
 import EmployeesSelect from './Select/EmployeesSelect'
-import { useAddEmployeeRest } from '../hooks/Employees/useAddEmployeeRest'
 import { useSelector } from 'react-redux'
 import SectionHeader from './SectionHeader'
-import ShowListButton from './Buttons/ShowListButton'
 import RestsList from './RestsList'
 import { formatDate } from '../../../api/utils/formatDate'
+import ShowListModal from './Modals/ShowListModal'
 
-export default function CreateRest({ employees, pushPendingEmployeeRest, splicePendingEmployeeRest, updateLastEmployeeRestId, pendingEmployeesRests }) {
+export default function CreateRest({ employees, pendingEmployeesRests, onAddEmployeeRest, onDeleteEmployeeRest }) {
 
   const [datePickerValue, setDatePickerValue] = useState('')
   const [replacements, setReplacements] = useState(employees)
   const { company } = useSelector((state) => state.user)
   const [selectedEmployee, setSelectedEmployee] = useState(null)
   const [selectedReplacement, setSelectedReplacement] = useState(null)
-  const { addEmployeeRest } = useAddEmployeeRest()
 
   useEffect(() => {
 
@@ -29,7 +27,7 @@ export default function CreateRest({ employees, pushPendingEmployeeRest, spliceP
 
     setReplacements((prev) => prev.map((replacement) =>
 
-      (selectedEmployee && replacement.value == selectedEmployee.value) ? { ...replacement, isDisabled: true } : { ...replacement, isDisabled: false }
+      (selectedEmployee && replacement._id == selectedEmployee._id) ? { ...replacement, isDisabled: true } : { ...replacement, isDisabled: false }
     ))
   }
 
@@ -40,22 +38,20 @@ export default function CreateRest({ employees, pushPendingEmployeeRest, spliceP
 
   const changeDatePickerValue = (e) => {
 
-    setDatePickerValue(e.target.value)
+    setDatePickerValue(e.target._id)
 
   }
 
   useEffect(() => {
 
-    let button = null
+    let button = document.getElementById('create-rest')
 
-    if (!selectedEmployee || !datePickerValue || formatDate(datePickerValue) < formatDate(new Date)) {
+    if (!selectedEmployee || !datePickerValue || formatDate(datePickerValue) < formatDate(new Date())) {
 
-      button = document.getElementById('create-rest')
       button.disabled = true
 
     } else {
 
-      button = document.getElementById('create-rest')
       button.disabled = false
     }
 
@@ -76,24 +72,32 @@ export default function CreateRest({ employees, pushPendingEmployeeRest, spliceP
     setSelectedReplacement(null)
     setReplacements(employees)
 
-    addEmployeeRest({ employeeRest, pushPendingEmployeeRest, splicePendingEmployeeRest, updateLastEmployeeRestId })
+    onAddEmployeeRest(employeeRest)
   }
 
   return (
-
     <div className='w-full bg-white p-3 mt-4'>
-      <div className='flex'>
-        <SectionHeader label={'Descansos'}></SectionHeader>
-        <div className='ml-auto mr-auto'>
-          <ShowListButton listTitle={'Descansos'} ListComponent={pendingEmployeesRests.length > 0 ? <RestsList rests={pendingEmployeesRests} spliceEmployeeRest={splicePendingEmployeeRest}></RestsList> : ''}></ShowListButton>
+      <div className='grid grid-cols-2'>
+        <SectionHeader label={'Descansos'} />
+        <div className='flex items-center gap-4 justify-self-end mr-12'>
+          <ShowListModal
+            title={'Descansos'}
+            ListComponent={RestsList}
+            ListComponentProps={{ rests: pendingEmployeesRests, onDelete: onDeleteEmployeeRest }}
+            clickableComponent={
+
+              <p className='font-bold text-lg text-center p-1 border border-header rounded-md'>{`${pendingEmployeesRests.length} ${pendingEmployeesRests.length == 0 || pendingEmployeesRests.length > 1 ? 'Pendientes' : 'Pendiente'}`}</p>
+            }
+          />
         </div>
       </div>
-
       <form action="submit" className='' onSubmit={handleSubmit}>
         <EmployeesSelect employees={employees} selectedEmployee={selectedEmployee} defaultLabel={'¿Quién descansa?'} handleEmployeeSelectChange={handleEmployeeSelectChange}></EmployeesSelect>
-        <input className="p-3 border border-black rounded-lg w-full" type="date" name="date" id="date" onChange={changeDatePickerValue} defaultValue={datePickerValue} />
-        <EmployeesSelect employees={replacements} selectedEmployee={selectedReplacement} defaultLabel={'Remplazos'} handleEmployeeSelectChange={handleReplacementSelectChange}></EmployeesSelect>
-        <button type='submit' id='create-rest' disabled className='bg-slate-500 text-white p-3 rounded-lg w-full mt-8'>Agregar</button>
+        <input className="p-3 border border-black rounded-lg w-full" type="date" min={new Date().toISOString().split('T')[0]} name="date" id="date" onChange={changeDatePickerValue} defaultValue={datePickerValue} />
+        <div className='z-60'>
+          <EmployeesSelect employees={replacements} selectedEmployee={selectedReplacement} defaultLabel={'Remplazos'} handleEmployeeSelectChange={handleReplacementSelectChange}></EmployeesSelect>
+        </div>
+        <button type='submit' id='create-rest' className='bg-button text-white p-3 rounded-lg w-full mt-8'>Agregar</button>
       </form >
     </div>
   )

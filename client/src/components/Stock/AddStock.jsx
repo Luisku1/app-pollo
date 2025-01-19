@@ -6,9 +6,9 @@ import Select from 'react-select'
 import SectionHeader from "../SectionHeader"
 import ShowListModal from "../Modals/ShowListModal"
 import StockList from "./StockList"
-import { stringToCurrency } from "../../helpers/Functions"
+import { getArrayForSelects, getElementForSelect, stringToCurrency } from "../../helpers/Functions"
 
-export default function AddStock({ stock, amount, products, onAddStock, onDeleteStock, branch, employee, date, branchPrices }) {
+export default function AddStock({ modifyBalance, stock, weight, amount, products, onAddStock, onDeleteStock, branch, employee, date, branchPrices, isEditing }) {
 
   const { company } = useSelector((state) => state.user)
   const [selectedProduct, setSelectedProduct] = useState(null)
@@ -83,8 +83,8 @@ export default function AddStock({ stock, amount, products, onAddStock, onDelete
       const { pieces, weight } = stockFormData
 
       const stock = {
-        pieces,
-        weight,
+        pieces: parseFloat(pieces),
+        weight: parseFloat(weight),
         amount: amount,
         price,
         employee: employee,
@@ -94,7 +94,7 @@ export default function AddStock({ stock, amount, products, onAddStock, onDelete
         company: company._id
       }
 
-      onAddStock(stock)
+      onAddStock(stock, modifyBalance)
 
       weightInput.value = ''
       piecesInput.value = ''
@@ -147,43 +147,45 @@ export default function AddStock({ stock, amount, products, onAddStock, onDelete
   }
 
   return (
-    <div className='border bg-white p-3 mt-4'>
-      <SectionHeader label={'Sobrante'} />
-      <div className='flex items-center gap-4 justify-self-end mr-12'>
+    <div className='border border-header rounded-md bg-white p-3 mt-4'>
+      <div className='grid grid-cols-1'>
+        <SectionHeader label={'Sobrante'} />
+      </div>
+      {isEditing && (
+        <form onSubmit={addStockItem} className="grid grid-cols-4">
+          <Select
+            styles={customStockSelectStyles}
+            options={getArrayForSelects(products, (product) => { return product.name })}
+            isSearchable={true}
+            value={getElementForSelect(selectedProduct, (product) => { return product.name }) || null}
+            onChange={handleProductSelectChange}
+            placeholder={'Productos'}
+          />
+          <div className='relative'>
+            <input type="number" name="pieces" id="pieces" placeholder='Piezas' step={0.1} className='w-full border border-black p-3 rounded-lg' required onInput={stockButtonControl} onChange={handleStockInputsChange} />
+            <label htmlFor="compact-input" className="-translate-y-full px-1 absolute top-1/4 left-2 transform rounded-sm bg-white text-black text-sm font-semibold">
+              Piezas <span>*</span>
+            </label>
+          </div>
+          <div className='relative'>
+            <input type="number" name="weight" id="weight" placeholder='0.00 kg' step={0.001} className='w-full border border-black p-3 rounded-lg' required onInput={stockButtonControl} onChange={handleStockInputsChange} />
+            <label htmlFor="compact-input" className="-translate-y-full px-1 absolute top-1/4 left-2 transform rounded-sm bg-white text-black text-sm font-semibold">
+              Kilos<span>*</span>
+            </label>
+          </div>
+          <button type='submit' id='stock-button' disabled className='bg-button text-white p-3 rounded-lg'>Agregar</button>
+        </form>
+      )}
+      <div className='w-full mt-2'>
         <ShowListModal
           title={'Sobrante'}
           ListComponent={StockList}
-          ListComponentProps={{ stock, total: amount, onDeleteStock }}
+          ListComponentProps={{ stock, weight, amount, onDeleteStock, modifyBalance }}
           clickableComponent={
-              <p className='font-bold text-lg text-center'>{stringToCurrency({ amount: amount ?? 0 })}</p>
+            <p className='font-bold text-lg text-center rounded-lg border p-1 border-header'>{stringToCurrency({ amount: amount ?? 0 })}</p>
           }
-        //Comparar con el monto para cubrir la nota de hoy.
         />
       </div>
-
-      <form onSubmit={addStockItem} className="grid grid-cols-4">
-        <Select
-          styles={customStockSelectStyles}
-          options={products}
-          isSearchable={true}
-          value={selectedProduct}
-          onChange={handleProductSelectChange}
-          placeholder={'Productos'}
-        />
-        <div className='relative'>
-          <input type="number" name="pieces" id="pieces" placeholder='Piezas' step={0.1} className='w-full border border-black p-3 rounded-lg' required onInput={stockButtonControl} onChange={handleStockInputsChange} />
-          <label htmlFor="compact-input" className="-translate-y-full px-1 absolute top-1/4 left-2 transform rounded-sm bg-white text-black text-sm font-semibold">
-            Piezas <span>*</span>
-          </label>
-        </div>
-        <div className='relative'>
-          <input type="number" name="weight" id="weight" placeholder='0.00 kg' step={0.001} className='w-full border border-black p-3 rounded-lg' required onInput={stockButtonControl} onChange={handleStockInputsChange} />
-          <label htmlFor="compact-input" className="-translate-y-full px-1 absolute top-1/4 left-2 transform rounded-sm bg-white text-black text-sm font-semibold">
-            Kilos<span>*</span>
-          </label>
-        </div>
-        <button type='submit' id='stock-button' disabled className='bg-slate-500 text-white p-3 rounded-lg'>Agregar</button>
-      </form>
     </div>
   )
 }
