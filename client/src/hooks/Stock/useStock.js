@@ -35,7 +35,7 @@ export const useStock = ({ branchId, date, initialStock = null }) => {
     try {
       const tempStock = { ...stock, _id: tempId };
 
-      modifyBalance(tempStock.amount, "add");
+      modifyBalance(tempStock.amount, "add", 'stockArray');
       pushStock(tempStock);
       await addStock(tempStock);
     } catch (error) {

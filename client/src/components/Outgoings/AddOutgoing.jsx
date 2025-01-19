@@ -14,14 +14,10 @@ export default function AddOutgoing({ outgoings, modifyBalance, outgoingsTotal, 
   const [loading, setLoading] = useState(false)
 
   const handleOutgoingInputsChange = (e) => {
-
     setOutgoingFormData({
-
       ...outgoingFormData,
       [e.target.id]: e.target.value,
-
     })
-
   }
 
   const outgoingsButtonControl = () => {
@@ -34,16 +30,12 @@ export default function AddOutgoing({ outgoings, modifyBalance, outgoingsTotal, 
 
     let filledInputs = true
 
-    if (amountInput.value == '') {
-
+    if (amountInput.value == '')
       filledInputs = false
 
-    }
 
-    if (conceptInput.value == '') {
-
+    if (conceptInput.value == '')
       filledInputs = false
-    }
 
     if (filledInputs && branchSelect && employeeSelect && !loading) {
 
@@ -115,7 +107,7 @@ export default function AddOutgoing({ outgoings, modifyBalance, outgoingsTotal, 
         <ShowListModal
           title={'Gastos'}
           ListComponent={OutgoingsList}
-          ListComponentProps={{ outgoings, amount: outgoingsTotal, onDeleteOutgoing }}
+          ListComponentProps={{ outgoings, amount: outgoingsTotal, onDeleteOutgoing, modifyBalance }}
           clickableComponent={
             <p className='font-bold text-lg text-center rounded-lg p-1 border border-header'>{stringToCurrency({ amount: outgoingsTotal ?? 0 })}</p>
           }

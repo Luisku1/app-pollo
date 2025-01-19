@@ -33,10 +33,13 @@ export const useBranchReport = ({ branchId = null, date = null, _branchReport = 
 
   const modifyBalance = (amount, operation) => {
 
+    console.log(amount, operation)
+
     setBranchReport((prevBranchReport) => {
 
       const newBranchReport = { ...prevBranchReport }
-      newBranchReport.balance = operation === 'add' ? newBranchReport.balance + amount : newBranchReport.balance - amount
+      newBranchReport.balance = operation === 'add' ? newBranchReport.balance + parseFloat(amount) : newBranchReport.balance - parseFloat(amount) || 0
+
       return newBranchReport
     })
   }

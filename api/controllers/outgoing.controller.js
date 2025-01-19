@@ -10,11 +10,11 @@ import { pushOrPullSupervisorReportRecord } from "./employee.controller.js"
 
 export const newOutgoing = async (req, res, next) => {
 
-  const { amount, concept, company, branch, employee, createdAt } = req.body
+  const {_id, amount, concept, company, branch, employee, createdAt } = req.body
 
   try {
 
-    const outgoing = await newOutgoingAndUpdateBranchReport({ amount, concept, company, branch, employee, createdAt })
+    const outgoing = await newOutgoingAndUpdateBranchReport({_id, amount, concept, company, branch, employee, createdAt })
 
     res.status(201).json({ message: 'New outgoing created successfully', outgoing: outgoing })
 
@@ -24,13 +24,18 @@ export const newOutgoing = async (req, res, next) => {
   }
 }
 
-export const newOutgoingAndUpdateBranchReport = async ({ amount, concept, company, branch, employee, createdAt }) => {
+export const newOutgoingAndUpdateBranchReport = async ({_id, amount, concept, company, branch, employee, createdAt }) => {
 
   let outgoing = null
 
+  const outgoingData = { amount, concept, company, branch, employee, createdAt }
+
+  if (_id) outgoingData._id = _id
+
+
   try {
 
-    const outgoing = await Outgoing.create({ amount, concept, company, branch, employee, createdAt })
+    const outgoing = await Outgoing.create(outgoingData)
 
     if (!outgoing) throw new Error("No se logró crear el registro")
 
@@ -53,6 +58,7 @@ export const newOutgoingAndUpdateBranchReport = async ({ amount, concept, compan
 
       await Outgoing.findByIdAndDelete(outgoing._id)
     }
+    console.log(error)
 
     throw error;
   }

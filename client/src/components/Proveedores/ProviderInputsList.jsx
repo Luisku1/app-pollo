@@ -57,7 +57,7 @@ export default function ProviderInputsList({ inputs, totalWeight = 0, totalAmoun
       isAuthorized(employee) && (
         <div className="grid grid-cols-12" key={input._id}>
           {input.weight != 0 ?
-            <div className={`grid ${deletable ? 'col-span-10' : 'col-span-12'} items-center border border-black border-opacity-30 rounded-lg shadow-sm mb-2 py-3`}>
+              <div className={`grid ${deletable ? 'col-span-10' : 'col-span-12'} items-center border border-black border-opacity-30 rounded-lg shadow-sm mb-2 py-3`}>
               <button onClick={() => { setSelectedInput(input); setMovementDetailsIsOpen(!movementDetailsIsOpen); }} id='list-element' className='grid grid-cols-12 items-center'>
                 <div id='list-element' className='flex col-span-12 items-center justify-around'>
                   <p className='text-center text-xs w-3/12'>{getEmployeeFullName(employee)}</p>

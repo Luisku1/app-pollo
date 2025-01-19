@@ -31,12 +31,13 @@ export const useOutgoings = ({ branchId = null, date = null, initialOutgoings = 
 
       const tempOutgoing = { ...outgoing, _id: tempId }
 
-      modifyBalance(tempOutgoing.amount, 'add')
       pushOutgoing(tempOutgoing)
+      modifyBalance(tempOutgoing.amount, 'add')
       await addOutgoing(tempOutgoing)
 
     } catch (error) {
 
+      console.log('hey')
       spliceOutgoing(outgoings.findIndex((outgoing) => outgoing._id === tempId))
       console.log(error)
     }
@@ -45,9 +46,8 @@ export const useOutgoings = ({ branchId = null, date = null, initialOutgoings = 
   const onDeleteOutgoing = async (outgoing, index, modifyBalance) => {
 
     try {
-
-      modifyBalance(outgoing.amount, 'subtract')
       spliceOutgoing(index)
+      modifyBalance(outgoing.amount, 'subtract')
       await deleteOutgoing(outgoing)
 
     } catch (error) {
@@ -63,11 +63,11 @@ export const useOutgoings = ({ branchId = null, date = null, initialOutgoings = 
 
   useEffect(() => {
 
-    if (!initialOutgoings || initialOutgoings == outgoings) return
+    if (!initialOutgoings) return
 
     setOutgoings(initialOutgoings)
 
-  }, [initialOutgoings, outgoings])
+  }, [initialOutgoings])
 
   useEffect(() => {
 
@@ -93,7 +93,7 @@ export const useOutgoings = ({ branchId = null, date = null, initialOutgoings = 
   }, [outgoings])
 
   const sortedOutgoings = useMemo(() => {
-    return outgoings.sort((a, b) => a.amount - b.amount)
+    return outgoings.sort((a, b) => b.amount - a.amount)
   }, [outgoings])
 
   return {
