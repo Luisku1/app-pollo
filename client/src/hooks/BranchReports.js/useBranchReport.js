@@ -20,12 +20,12 @@ export const useBranchReport = ({ branchId = null, date = null, _branchReport = 
   const { inputs, totalWeight: inputsWeight, totalAmount: inputsAmount, loading: inputsLoading } = useInputs({ initialInputs: branchReport?.inputsArray || [] })
   const { providerInputs , providerInputsWeight, providerInputsAmount, loading: providerLoading } = useProviderInputs({ initialInputs: branchReport?.providerInputsArray || [] })
   const [loading, setLoading] = useState(false)
-  const [fetchBranchReport, setFetchBranchReport] = useState(false)
+  const [shouldFetchBranchReport, setShouldFetchBranchReport] = useState(false)
   const { prices, onChangePrices } = useBranchPrices({ branchId: (branchId || _branchReport?.branch._id) || null, date: (date || _branchReport?.createdAt) || null })
 
   const onUpdateBranchReport = async () => {
     try {
-      setFetchBranchReport(true)
+      setShouldFetchBranchReport(true)
     } catch (error) {
       console.log(error)
     }
@@ -52,7 +52,7 @@ export const useBranchReport = ({ branchId = null, date = null, _branchReport = 
 
   useEffect(() => {
 
-    if ((!branchId || !date || _branchReport) && !fetchBranchReport) return
+    if ((!branchId || !date || _branchReport) && !shouldFetchBranchReport) return
 
     setBranchReport({
       initialStockArray: [],
@@ -64,7 +64,7 @@ export const useBranchReport = ({ branchId = null, date = null, _branchReport = 
       providerInputsArray: [],
     })
 
-    setFetchBranchReport(false)
+    setShouldFetchBranchReport(false)
 
     const fetchBranchReport = async () => {
       setLoading(true)
@@ -80,7 +80,7 @@ export const useBranchReport = ({ branchId = null, date = null, _branchReport = 
 
     fetchBranchReport()
 
-  }, [branchId, date, _branchReport, fetchBranchReport])
+  }, [branchId, date, _branchReport, shouldFetchBranchReport])
 
   return {
     branchReport,

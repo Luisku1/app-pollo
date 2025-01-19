@@ -12,6 +12,8 @@ import { useProviderInputs } from "../hooks/ProviderInputs/useProviderInputs";
 import { getArrayForSelects, getElementForSelect, stringToCurrency } from "../helpers/Functions";
 import DeleteButton from "../components/Buttons/DeleteButton";
 import Modal from "../components/Modals/Modal";
+import ShowListModal from "../components/Modals/ShowListModal";
+import ProviderInputsList from "../components/Proveedores/ProviderInputsList";
 
 export default function EntradaInicial({ date, branchAndCustomerSelectOptions, products, roles }) {
 
@@ -29,14 +31,9 @@ export default function EntradaInicial({ date, branchAndCustomerSelectOptions, p
 
   }, [products])
 
-  const showProviderInputsFunction = async () => {
+  const toggleProviderInputs = async () => {
 
-    setShowProviderInputs(true)
-  }
-
-  const hideProviderInputs = async () => {
-
-    setShowProviderInputs(false)
+    setShowProviderInputs((prev) => !prev)
   }
 
   const handleProductSelectChange = (product) => {
@@ -59,8 +56,17 @@ export default function EntradaInicial({ date, branchAndCustomerSelectOptions, p
         <div className="grid grid-rows-2">
           <div className="flex gap-3 justify-self-end items-center">
             <div className="flex gap-3">
-              <button className="w-10 h-10" onClick={showProviderInputsFunction}><FaListAlt className="h-full w-full text-red-600" />
-              </button>
+              <ShowListModal
+                title={'Entradas de proveedor'}
+                ListComponent={ProviderInputsList}
+                ListComponentProps={{ inputs: providerInputs, totalWeight: providerInputsWeight, totalAmount: providerInputsAmount, onDelete: onDeleteProviderInput }}
+                clickableComponent={
+                  <div className="w-10 h-10"><FaListAlt className="h-full w-full text-red-600" />
+                  </div>
+                }
+                toggleComponent={toggleProviderInputs}
+                modalIsOpen={showProviderInputs}
+              />
               <button className="w-10 h-10 rounded-lg shadow-lg" onClick={() => setShowProviderInputsStats(true)}><BsInfoSquare className="h-full w-full text-red-600" />
               </button>
               {showProviderInputsStats && providerInputs && providerInputs.length > 0 ?
@@ -107,11 +113,10 @@ export default function EntradaInicial({ date, branchAndCustomerSelectOptions, p
           date={date}
           branchAndCustomerSelectOptions={branchAndCustomerSelectOptions}
           onAddProviderInput={onAddProviderInput}
-
           selectedProduct={selectedProduct}>
         </MenuSucursal>
       </div>
-      <div className="grid my-4 grid-cols-1 rounded-lg">
+      {/* <div className="grid my-4 grid-cols-1 rounded-lg">
         {providerInputs && providerInputs.length > 0 && showProviderInputs ?
           <div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center max-w-lg my-auto mx-auto z-10'>
             <div className=' bg-white p-5 rounded-lg justify-center items-center h-5/6 my-auto mx-auto w-11/12 overflow-y-scroll'>
@@ -148,7 +153,7 @@ export default function EntradaInicial({ date, branchAndCustomerSelectOptions, p
             </div>
           </div>
           : ''}
-      </div>
+      </div> */}
     </main>
   )
 }

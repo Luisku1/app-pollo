@@ -7,12 +7,14 @@ import { formatTime } from "../../helpers/DatePickerFunctions";
 import { useState } from "react";
 import ShowDetails from "../ShowDetails";
 
-export default function ProviderInputsList({ inputs, totalWeight = 0, totalAmount = 0, onDelete }) {
+export default function ProviderInputsList({ inputs, totalWeight = 0, totalAmount = 0, onDelete = null }) {
 
   const { currentUser } = useSelector((state) => state.user);
   const { roles } = useRoles();
   const [selectedInput, setSelectedInput] = useState(null)
   const [movementDetailsIsOpen, setMovementDetailsIsOpen] = useState(false)
+  const isAuthorized = (employee) => currentUser._id === employee._id || currentUser.role === roles.managerRole._id
+  const deletable = onDelete ? isAuthorized : false
 
   const fields = [
     { key: 'weight', label: 'Peso', format: (data) => `${data.weight.toFixed(2)} Kg` },
@@ -50,27 +52,33 @@ export default function ProviderInputsList({ inputs, totalWeight = 0, totalAmoun
   const renderInputItem = (input, index) => {
 
     const { employee, product, pieces, weight, amount } = input
-    const isAuthorized = currentUser._id === employee._id || currentUser.role === roles.managerRole._id
-    const deletable = onDelete ? isAuthorized : false
 
     return (
-      isAuthorized && (
-        <div key={input._id}>
+      isAuthorized(employee) && (
+        <div className="grid grid-cols-12" key={input._id}>
           {input.weight != 0 ?
-            <div className='grid grid-cols-12 items-center border border-black border-opacity-30 rounded-lg shadow-sm mb-2 py-3'>
-              <button onClick={() => { setSelectedInput(input); setMovementDetailsIsOpen(!movementDetailsIsOpen); }} id='list-element' className='flex col-span-12 items-center'>
-                <p className='text-center text-xs w-3/12'>{getEmployeeFullName(employee)}</p>
-                <p className='text-center text-xs w-3/12'>{product.name}</p>
-                <p className='text-center text-xs w-2/12'>{pieces}</p>
-                <p className='text-center text-xs w-2/12'>{weight}</p>
-                <p className='text-center text-xs w-2/12'>{amount.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
-                <div className='w-full'>
+            <div className={`grid ${deletable ? 'col-span-10' : 'col-span-12'} items-center border border-black border-opacity-30 rounded-lg shadow-sm mb-2 py-3`}>
+              <button onClick={() => { setSelectedInput(input); setMovementDetailsIsOpen(!movementDetailsIsOpen); }} id='list-element' className='grid grid-cols-12 items-center'>
+                <div id='list-element' className='flex col-span-12 items-center justify-around'>
+                  <p className='text-center text-xs w-3/12'>{getEmployeeFullName(employee)}</p>
+                  <p className='text-center text-xs w-3/12'>{product.name}</p>
+                  <p className={`text-center text-xs ${deletable ? 'w-2/12' : 'w-3/12'}`}>{pieces}</p>
+                  <p className={`text-center text-xs ${deletable ? 'w-2/12' : 'w-3/12'}`}>{weight}</p>
+                  {!deletable &&
+                    <p className='text-center text-xs w-2/12'>{amount.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
+                  }
+                </div>
+                <div className='grid col-span-12'>
                   <p className='text-m text-center font-semibold'>{`${input.provider || 'Sin proveedor'}`}</p>
                 </div>
               </button>
             </div>
             : ''}
-          {deletable && (<DeleteButton id={input._id} deleteFunction={() => onDelete(input, index)} />)}
+          {deletable && (
+            <div className="col-span-2">
+              <DeleteButton id={input._id} deleteFunction={() => onDelete(input, index)} />
+            </div>
+          )}
         </div>
       )
     )
