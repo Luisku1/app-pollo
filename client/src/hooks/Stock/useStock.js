@@ -35,8 +35,6 @@ export const useStock = ({ branchId, date, initialStock = null }) => {
     try {
       const tempStock = { ...stock, _id: tempId };
 
-      console.log(tempStock)
-
       modifyBalance(tempStock.amount, "add");
       pushStock(tempStock);
       await addStock(tempStock);

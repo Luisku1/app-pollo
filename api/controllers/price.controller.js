@@ -32,7 +32,6 @@ export const changeBranchPrices = async (req, res, next) => {
   const branchId = req.params.branchId
   const { date, pricesDate } = req.body
 
-  console.log(date, branchId, pricesDate)
   if (!date || !branchId || !pricesDate) {
 
     next(errorHandler(400, 'Faltan datos necesarios'))

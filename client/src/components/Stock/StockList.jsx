@@ -27,7 +27,6 @@ export default function StockList({ stock, weight, amount, onDeleteStock, modify
   ]
 
   const renderTotal = () => {
-    console.log(weight)
     return (
       <div className='justify-self-end'>
         <p className='text-green-800 font-bold text-lg'>

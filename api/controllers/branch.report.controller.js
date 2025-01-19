@@ -439,8 +439,6 @@ const updateBranchReportPrices = async (branchReport, pricesDate) => {
   try {
     const prices = await pricesAggregate(branchReport.branch._id, pricesDate);
 
-    console.log(prices, prices[0].latestPrice, prices[0].productId, prices[0].productId.toString(), branchReport)
-
     const outputsArray = await Promise.all(
       branchReport.outputsArray.map(async (output) => {
         if (output.specialPrice) return output

@@ -1,7 +1,5 @@
 export const deleteEmployeePaymentFetch = async ({ employeePaymentId, incomeId, extraOutgoingId }) => {
 
-  console.log(employeePaymentId, incomeId, extraOutgoingId)
-
   const res = await fetch('/api/employee/delete-employee-payment/' + employeePaymentId + '/' + incomeId + '/' + extraOutgoingId, {
 
     method: 'DELETE'

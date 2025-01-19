@@ -255,8 +255,6 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
 
   }, [branchId, branches])
 
-  console.log(branchReport)
-
   useEffect(() => {
 
     if (selectedBranch != null && stringDatePickerValue != null) {
