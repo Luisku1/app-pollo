@@ -101,11 +101,13 @@ export default function ChangeBranchPrices({ children, onChange, branch, date, o
     <div>
       {children && (
         <div>
-          {ableToModify ?
+          {ableToModify ? (
             <button className="w-full h-full border rounded-lg border-black shadow-md" onClick={() => { togglePriceChanger() }}>
               {children}
             </button>
-            : { children }}
+          ) : (
+            children
+          )}
           {isChanging && (
             <Modal
               title='Cambiar Precios'
