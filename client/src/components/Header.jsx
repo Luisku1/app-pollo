@@ -49,12 +49,12 @@ export default function Header() {
               <GiChicken className='text-orange-400 h-7 w-7' />
             </h1>
           </Link>
-          {roles && currentUser && (currentUser.role == roles?.supervisorRole?._id || currentUser.role == roles?.managerRole?._id) &&
+          {roles && currentUser && (currentUser.role == roles?.supervisorRole?._id || currentUser?.role == roles?.managerRole?._id) &&
             <button onClick={toggleModal} className='flex-grow h-10 mx-4 bg-supervisor-button rounded transition-colors duration-300 font-semibold'>
               Supervisión
             </button>
           }
-          {roles && currentUser && currentUser.role == roles?.managerRole?._id &&
+          {roles && currentUser && currentUser?.role == roles?.managerRole?._id &&
             <button onClick={toggleReportModal} className='flex-grow h-10 bg-supervisor-button mx-4 bg-report-button rounded transition-colors duration-300 font-semibold'>
               Reporte
             </button>
