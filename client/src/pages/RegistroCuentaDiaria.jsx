@@ -33,7 +33,7 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
   let datePickerValue = (paramsDate ? new Date(paramsDate) : new Date())
   let stringDatePickerValue = formatDate(datePickerValue)
   let today = formatDate(datePickerValue) == formatDate(new Date()) ? true : false
-  const [branchId, setBranchId] = useState((useParams().branchId || _branch?._id) || null)
+  const [branchId, setBranchId] = useState((useParams()?.branchId || _branch?._id) || null)
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
   const { employees } = useEmployees({ companyId: company._id })

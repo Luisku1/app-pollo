@@ -11,7 +11,7 @@ import ProviderInput from '../models/providers/provider.input.model.js'
 import Output from '../models/accounts/output.model.js'
 import Outgoing from '../models/accounts/outgoings/outgoing.model.js'
 import IncomeCollected from '../models/accounts/incomes/income.collected.model.js'
-import { updateEmployeeDailyBalances } from './employee.controller.js'
+import { updateEmployee, updateEmployeeDailyBalances } from './employee.controller.js'
 import SupervisorReport from '../models/accounts/supervisor.report.model.js'
 import { supervisorsInfoQuery } from './report.controller.js'
 import { getBranchPricesFetch } from '../../client/src/services/Prices/getBranchPrices.js'
@@ -336,26 +336,37 @@ export const updateBranchReport = async (req, res, next) => {
 
   const { branchReport, employee, assistant } = req.body
   let updatedBranchReport = null
-  const employeeId = branchReport?.employee?._id ? branchReport.employee._id : branchReport.employee
+  const actualEmployeeId = employee?._id ? employee._id : employee
+  const previousEmployeeId = branchReport?.employee?._id ? branchReport.employee._id : branchReport.employee
 
   try {
 
-    console.log(branchReport)
-    if (branchReport.employee && employeeId != employee) {
+    if (actualEmployeeId != previousEmployeeId) {
 
-      await updateEmployeeDailyBalances({ branchReport: branchReport, changedEmployee: true })
+      if (previousEmployeeId) {
+
+        console.log('1-updateBranchReport', branchReport)
+        await updateEmployeeDailyBalances({ branchReport: branchReport, changedEmployee: true })
+      }
+
+      branchReport.employee = employee
+
+      console.log('2-updateBranchReport', branchReport)
+
+      await updateEmployeeDailyBalances({ branchReport: branchReport })
     }
+
 
     if (branchReport.dateSent) {
 
       updatedBranchReport = await BranchReport.findByIdAndUpdate(branchReport._id, {
-        $set: { employee: employeeId, assistant: assistant }
+        $set: { employee: actualEmployeeId, assistant: assistant }
       })
 
     } else {
 
       updatedBranchReport = await BranchReport.findByIdAndUpdate(branchReport._id, {
-        $set: { employee: employeeId, assistant: assistant, dateSent: new Date() }
+        $set: { employee: actualEmployeeId, assistant: assistant, dateSent: new Date() }
       })
     }
 
@@ -368,6 +379,7 @@ export const updateBranchReport = async (req, res, next) => {
 
   } catch (error) {
 
+    console.log(error)
     next(error)
   }
 }
@@ -380,6 +392,8 @@ export const getBranchReport = async (req, res, next) => {
   try {
 
     const branchReport = await fetchBranchReportInfo(branchId, date)
+
+    console.log(branchReport)
 
     if (branchReport) {
 
