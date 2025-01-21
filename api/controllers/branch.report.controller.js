@@ -515,7 +515,7 @@ const updateBranchReportPrices = async (branchReport, pricesDate) => {
 
 
     const incomes = branchReport.incomesArray.reduce((acc, income) => acc + income.amount, 0);
-    const balance = (outputs + finalStock + incomes) - (initialStock + inputs + providerInputs);
+    const balance = (outputs + finalStock + incomes + branchReport.outgoings) - (initialStock + inputs + providerInputs);
 
     await session.commitTransaction();
     session.endSession();
