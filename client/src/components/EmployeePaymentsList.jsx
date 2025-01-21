@@ -9,7 +9,7 @@ export default function EmployeePaymentsList({ payments, total, onDeletePayment,
 
   const { currentUser } = useSelector((state) => state.user)
   const { roles } = useRoles()
-  const isEmpty = payments.length === 0
+  const isEmpty = !payments || payments.length === 0
 
   const renderTotal = () => {
     return (

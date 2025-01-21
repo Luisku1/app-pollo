@@ -161,14 +161,8 @@ export default function Empleados() {
                         </div>
                       }
                     </button>
-
-                    <button type="submit" onClick={() => console.log('editing')} disabled={loading} className='bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3 '>
-                      <span >
-                        <MdEdit className='text-blue-700 m-auto' />
-                      </span>
-                    </button>
-                      <button className="" onClick={toggleEditEmployee}>
-                        <FaEdit className="text-blue-500" />
+                      <button className="border shadow-lg rounded-lg text-center h-10 w-10 m-3" onClick={toggleEditEmployee}>
+                        <FaEdit className="text-blue-500 m-auto h-fit w-fit" />
                       </button>
 
                     {editEmployee && (

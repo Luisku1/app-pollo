@@ -28,6 +28,8 @@ export default function ExtraOutgoings({ date, pushIncome, employees, branches, 
   const [selectedBranch, setSelectedBranch] = useState(null)
   const [selectedEmployee, setSelectedEmployee] = useState(null)
 
+  console.log(payments, totalEmployeesPayments)
+
   const paymentsButtonControl = () => {
 
     const amountInput = document.getElementById('paymentAmount')
