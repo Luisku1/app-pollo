@@ -345,13 +345,10 @@ export const updateBranchReport = async (req, res, next) => {
 
       if (previousEmployeeId) {
 
-        console.log('1-updateBranchReport', branchReport)
         await updateEmployeeDailyBalances({ branchReport: branchReport, changedEmployee: true })
       }
 
       branchReport.employee = employee
-
-      console.log('2-updateBranchReport', branchReport)
 
       await updateEmployeeDailyBalances({ branchReport: branchReport })
     }
@@ -392,8 +389,6 @@ export const getBranchReport = async (req, res, next) => {
   try {
 
     const branchReport = await fetchBranchReportInfo(branchId, date)
-
-    console.log(branchReport)
 
     if (branchReport) {
 

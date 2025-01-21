@@ -1634,8 +1634,6 @@ export const updateEmployeeDailyBalances = async ({ branchReport = null, supervi
 
 	try {
 
-		console.log("updateEmployeeDailyBalances", branchReport, changedEmployee)
-
 		return branchReport ? await updateAccountBalance(branchReport, changedEmployee) : await updateSupervisorBalance(supervisorReport)
 
 	} catch (error) {
@@ -1668,8 +1666,6 @@ export const fetchOrCreateDailyBalance = async ({ companyId, employeeId, date })
 
 	try {
 
-		console.log(companyId, employeeId, date)
-
 		let dailyBalance = await fetchDailyBalance({ companyId, employeeId, date })
 
 		if (!dailyBalance) {
@@ -1693,8 +1689,6 @@ export const fetchOrCreateDailyBalance = async ({ companyId, employeeId, date })
 export const updateAccountBalance = async (branchReport, changedEmployee) => {
 
 	try {
-
-		console.log("updateAccountBalance", branchReport, changedEmployee)
 
 		let dailyBalance = await fetchOrCreateDailyBalance({ companyId: branchReport.company, employeeId: branchReport?.employee?._id ? branchReport.employee._id : branchReport.employee, date: branchReport.createdAt })
 
