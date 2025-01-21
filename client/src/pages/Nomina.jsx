@@ -75,6 +75,7 @@ export default function Nomina() {
                             data={employeePayroll.employeePaymentsArray}
                             title={`Pagos a ${getEmployeeFullName(employeePayroll.employee)}`}
                             ListComponent={EmployeePaymentsList}
+                            ListComponentProps={{ payments: employeePayroll.employeePaymentsArray, total: employeePayroll.employeePaymentsAmount }}
                             clickableComponent={<p className="font-bold">{stringToCurrency({ amount: employeePayroll.employeePaymentsAmount })}</p>}
                             sortFunction={(a, b) => b.amount - a.amount}
                           />

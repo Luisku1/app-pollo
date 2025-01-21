@@ -198,7 +198,7 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
         },
         body: JSON.stringify({
           branchReport: branchReport,
-          employee: selectedEmployee._id,
+          employee: selectedEmployee,
           assistant: assistant,
           initialStock: initialStockAmount,
           finalStock: stockAmount,
@@ -207,7 +207,6 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
           outputs: outputsWeight,
           outgoings: outgoingsTotal,
           incomes: incomesTotal,
-
         })
       })
 

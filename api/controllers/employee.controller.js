@@ -1690,6 +1690,8 @@ export const updateAccountBalance = async (branchReport, changedEmployee) => {
 
 	try {
 
+		console.log("updateAccountBalance", branchReport, changedEmployee)
+
 		let dailyBalance = await fetchOrCreateDailyBalance({ companyId: branchReport.company, employeeId: branchReport?.employee?._id ? branchReport.employee._id : branchReport.employee, date: branchReport.createdAt })
 
 		const updatedDailyBalance = await EmployeeDailyBalance.findByIdAndUpdate(dailyBalance._id, { accountBalance: changedEmployee ? 0 : branchReport.balance }, { new: true })

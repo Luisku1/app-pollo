@@ -336,10 +336,12 @@ export const updateBranchReport = async (req, res, next) => {
 
   const { branchReport, employee, assistant } = req.body
   let updatedBranchReport = null
+  const employeeId = branchReport?.employee?._id ? branchReport.employee._id : branchReport.employee
 
   try {
 
-    if (branchReport.employee && branchReport?.employee?._id ? branchReport.employee._id : branchReport.employee != employee) {
+    console.log(branchReport)
+    if (branchReport.employee && employeeId != employee) {
 
       await updateEmployeeDailyBalances({ branchReport: branchReport, changedEmployee: true })
     }
@@ -347,13 +349,13 @@ export const updateBranchReport = async (req, res, next) => {
     if (branchReport.dateSent) {
 
       updatedBranchReport = await BranchReport.findByIdAndUpdate(branchReport._id, {
-        $set: { employee: employee, assistant: assistant }
+        $set: { employee: employeeId, assistant: assistant }
       })
 
     } else {
 
       updatedBranchReport = await BranchReport.findByIdAndUpdate(branchReport._id, {
-        $set: { employee: employee, assistant: assistant, dateSent: new Date() }
+        $set: { employee: employeeId, assistant: assistant, dateSent: new Date() }
       })
     }
 
