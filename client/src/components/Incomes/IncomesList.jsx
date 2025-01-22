@@ -62,7 +62,7 @@ export default function IncomesList({ incomes, incomesTotal, onDeleteIncome }) {
     const employeeName = employee ? `${employee.name} ${employee.lastName}` : '';
     const typeName = partOfAPayment ? 'Pago' : type.name ?? type.label;
     const formattedAmount = stringToCurrency({ amount });
-    const isAuthorized = currentUser._id === employee?._id || currentUser.role === roles.managerRole._id;
+    const isAuthorized = currentUser._id === employee?._id || currentUser.role === roles.managerRole._id || !onDeleteIncome;
     const deletable = onDeleteIncome ? (isAuthorized && !partOfAPayment) : false;
 
     return (

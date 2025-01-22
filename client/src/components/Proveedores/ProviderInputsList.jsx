@@ -13,7 +13,7 @@ export default function ProviderInputsList({ inputs, totalWeight = 0, totalAmoun
   const { roles } = useRoles();
   const [selectedInput, setSelectedInput] = useState(null)
   const [movementDetailsIsOpen, setMovementDetailsIsOpen] = useState(false)
-  const isAuthorized = (employee) => currentUser._id === employee._id || currentUser.role === roles.managerRole._id
+  const isAuthorized = (employee) => currentUser._id === employee._id || currentUser.role === roles.managerRole._id || !onDelete
   const deletable = onDelete ? isAuthorized : false
 
   const fields = [

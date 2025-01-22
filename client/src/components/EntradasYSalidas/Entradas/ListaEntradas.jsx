@@ -57,7 +57,7 @@ export default function ListaEntradas({ inputs, totalWeight, totalAmount, onDele
     const branchInfo = branch?.branch || branch?.label
     const customerInfo = `${customer?.name || ''} ${customer?.lastName || ''}`.trim() || customer?.label
     const employeeName = `${employee.name} ${employee.lastName}`
-    const isAuthorized = currentUser._id === employee._id || currentUser.role === roles.managerRole._id
+    const isAuthorized = (currentUser._id === employee._id || currentUser.role === roles.managerRole._id) || !onDeleteInput
     const deletable = isAuthorized && onDeleteInput
 
     return (

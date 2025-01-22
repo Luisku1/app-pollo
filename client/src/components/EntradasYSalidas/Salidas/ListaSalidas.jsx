@@ -58,7 +58,7 @@ export default function ListaSalidas({ outputs, totalWeight, totalAmount, onDele
     const branchInfo = branch?.branch || branch?.label;
     const employeeName = `${employee.name} ${employee.lastName}`;
     const productName = product.name || product.label;
-    const isAuthorized = currentUser._id === employee._id || currentUser.role === roles.managerRole._id;
+    const isAuthorized = currentUser._id === employee._id || currentUser.role === roles.managerRole._id || !onDeleteOutput;
     const deletable = isAuthorized && onDeleteOutput
 
     return (
