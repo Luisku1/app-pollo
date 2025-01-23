@@ -350,6 +350,9 @@ export const getTotalStockByProduct = async (req, res, next) => {
         },
         {
           company: companyId
+        },
+        {
+          isInitial: false
         }
       ]
     }).populate({ path: 'branch', select: 'branch position' }).populate({ path: 'product', select: 'name createdAt' })
@@ -446,6 +449,9 @@ export const getTotalStockByBranch = async (req, res, next) => {
         },
         {
           company: companyId
+        },
+        {
+          isInitial: false
         }
       ]
     }).populate({ path: 'branch', select: 'branch position' }).populate({ path: 'product', select: 'name createdAt' })
@@ -503,7 +509,6 @@ const groupStockByBranchFunction = (stock) => {
     } else {
 
       result[stock.branch._id].stockItems.push({
-
         product: stock.product,
         pieces: stock.pieces,
         weight: stock.weight

@@ -59,7 +59,6 @@ export default function ListaEntradas({ inputs, totalWeight, totalAmount, onDele
     const employeeName = `${employee.name} ${employee.lastName}`
     const isAuthorized = (currentUser._id === employee._id || currentUser.role === roles.managerRole._id) || !onDeleteInput
     const deletable = isAuthorized && onDeleteInput
-
     return (
       isAuthorized && (
         <div key={_id || index}>
