@@ -51,7 +51,7 @@ export default function EntradaInicial({ date, branchAndCustomerSelectOptions, p
 
   return (
     <main className="max-w-lg mx-auto">
-      <div className='border bg-white p-3 mt-4'>
+      <div className='border bg-providers border-black rounded-md p-3 mt-4'>
         <SectionHeader label={'Entradas de Proveedor'} />
         <div className="grid grid-rows-2">
           <div className="flex gap-3 justify-self-end items-center">
@@ -116,44 +116,6 @@ export default function EntradaInicial({ date, branchAndCustomerSelectOptions, p
           selectedProduct={selectedProduct}>
         </MenuSucursal>
       </div>
-      {/* <div className="grid my-4 grid-cols-1 rounded-lg">
-        {providerInputs && providerInputs.length > 0 && showProviderInputs ?
-          <div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center max-w-lg my-auto mx-auto z-10'>
-            <div className=' bg-white p-5 rounded-lg justify-center items-center h-5/6 my-auto mx-auto w-11/12 overflow-y-scroll'>
-              <button className="" onClick={hideProviderInputs}><MdCancel className="h-7 w-7" /></button>
-              < div className='bg-white mt-4 mb-4'>
-                <SectionHeader label={'Entradas de ' + selectedProduct.name} />
-                <div>
-                  {providerInputs && providerInputs.length > 0 ?
-                    <div id='header' className='grid grid-cols-12 items-center justify-around font-semibold sticky top-0 bg-white'>
-                      <p className='col-span-3 text-center'>Sucursal</p>
-                      <p className='col-span-3 text-center'>Encargado</p>
-                      <p className='col-span-3 text-center'>Piezas</p>
-                      <p className='col-span-1 text-center'>Kg</p>
-                    </div>
-                    : ''}
-                  {providerInputs && providerInputs.length > 0 && providerInputs.map((providerInput, index) => (
-                    <div key={providerInput._id} className={(currentUser._id == providerInput.employee || currentUser.role == roles.managerRole._id ? '' : 'py-3 ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
-                      <div id='list-element' className='flex col-span-10 items-center justify-around'>
-                        <p className='text-center text-xs  w-3/12'>{`${providerInput.branch?.branch || providerInput.branch?.label || (`${providerInput.customer?.name} ${providerInput.customer?.lastName}`)}`}</p>
-                        <p className='text-center text-xs w-3/12'>{providerInput.employee.name + ' ' + providerInput.employee.lastName}</p>
-                        <p className='text-center text-xs w-3/12'>{providerInput.pieces}</p>
-                        <p className='text-center text-xs w-1/12'>{`${providerInput.weight.toFixed(2)}`}</p>
-                      </div>
-                      {providerInput.employee._id == currentUser._id || roles.managerRole._id == currentUser.role ?
-                        <DeleteButton
-                          deleteFunction={() => onDeleteProviderInput(providerInput, index)}
-                          id={providerInput._id}
-                        />
-                        : ''}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-          : ''}
-      </div> */}
     </main>
   )
 }

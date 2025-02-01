@@ -182,7 +182,7 @@ export default function Salidas({ branchAndCustomerSelectOptions, products, date
 
   return (
     <div>
-      <div className='border bg-white p-3 mt-4'>
+      <div className='border border-black rounded-md bg-outputs p-3 mt-4'>
         <div className='grid grid-cols-2'>
           <SectionHeader label={'Salidas'} />
           <div className='flex items-center gap-4 justify-self-end mr-12'>
@@ -232,7 +232,7 @@ export default function Salidas({ branchAndCustomerSelectOptions, products, date
           <div className='grid grid-cols-4 gap-1'>
             <input className='col-span-3 text-sm border border-black rounded-lg p-3 ' name="comment" id="output-comment" placeholder='Comentario del producto (Opcional)' onChange={handleOutputInputsChange}></input>
             <div className='relative'>
-              <p type="text" name="amount" id="output-amount" className='text-green-700 w-full border border-black rounded-md p-3' >{amount}</p>
+              <p type="text" name="amount" id="output-amount" className='text-green-700 bg-gray-100 w-full border border-black rounded-md p-3' >{amount}</p>
               <label htmlFor="compact-input" className=" -translate-y-full px-1 absolute top-1/4 left-2 rounded-sm bg-white text-green-700 text-sm font-bold">
                 Total
               </label>

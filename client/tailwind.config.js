@@ -14,7 +14,10 @@ export default {
         'menu': '#E4E4E4',
         'button': '#A36A63',
         'options-bar': '#415D43',
-        'supervisor-button': '#CCCCCC'
+        'supervisor-button': '#CCCCCC',
+        'inputs': '#FCE8E6',
+        'outputs': '#E6F4F1',
+        'providers': '#FAF3F3',
       },
     },
   },
