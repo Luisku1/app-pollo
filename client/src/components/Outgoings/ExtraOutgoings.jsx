@@ -180,7 +180,7 @@ export default function ExtraOutgoings({ date, pushIncome, employees, branches, 
             <ShowListModal
               title={'Gastos'}
               ListComponent={ExtraOutgoingsList}
-              ListComponentProps={{ extraOutgoings, totalExtraOutgoings, onDeleteExtraOutgoing }}
+              ListComponentProps={{ extraOutgoings, totalExtraOutgoings, onDelete: onDeleteExtraOutgoing }}
               clickableComponent={
                 roles && roles.managerRole && currentUser.role == roles.managerRole._id ?
                   <p className='font-bold text-lg text-center'>{stringToCurrency({ amount: totalExtraOutgoings })}</p>

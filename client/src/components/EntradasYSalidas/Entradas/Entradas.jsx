@@ -189,7 +189,7 @@ export default function Entradas({ branchAndCustomerSelectOptions, products, dat
             <ShowListModal
               title={'Entradas'}
               ListComponent={ListaEntradas}
-              ListComponentProps={{ inputs, totalWeight, totalAmount, onDeleteInput }}
+              ListComponentProps={{ inputs, totalWeight, totalAmount, onDelete: onDeleteInput }}
               clickableComponent={<p className='font-bold text-lg text-center border border-header rounded-lg p-1'>{(totalWeight ? totalWeight.toFixed(2) : '0.00') + ' Kg'}</p>}
             />
           </div>

@@ -1,19 +1,24 @@
 /* eslint-disable react/no-unknown-property */
 /* eslint-disable react/prop-types */
-import DeleteButton from '../Buttons/DeleteButton';
 import { useSelector } from 'react-redux';
 import { useRoles } from '../../context/RolesContext';
 import { getEmployeeFullName, stringToCurrency } from '../../helpers/Functions';
 import { useState } from 'react';
 import { formatTime } from '../../helpers/DatePickerFunctions';
 import ShowDetails from '../ShowDetails';
+import RowItem from '../RowItem';
+import ConfirmationButton from '../Buttons/ConfirmationButton';
+import { CgProfile } from 'react-icons/cg';
+import MoneyBag from '../Icons/MoneyBag';
+import { MdPendingActions, MdStorefront } from 'react-icons/md';
+import DeleteButton from '../Buttons/DeleteButton';
 
 export default function IncomesList({ incomes, incomesTotal, onDeleteIncome }) {
   const { currentUser } = useSelector((state) => state.user);
   const { roles } = useRoles();
   const isEmpty = !incomes || incomes.length === 0;
   const [selectedIncome, setSelectedIncome] = useState(null);
-  const [incomeDetailsIsOpen, setIncomeDetailsIsOpen] = useState(false);
+  const deletable = onDeleteIncome
 
   const fields = [
     { key: 'amount', label: 'Monto', className: (data) => (data.partOfAPayment ? 'text-orange-700' : 'text-green-700') + ' text-center text-md font-semibold', format: (data) => stringToCurrency({ amount: data.amount }) },
@@ -36,74 +41,79 @@ export default function IncomesList({ incomes, incomesTotal, onDeleteIncome }) {
     );
   };
 
-  const renderListHeader = () => {
-    return (
-      <div>
-        {!isEmpty && (
-          <div
-            id="header"
-            className="grid grid-cols-12 items-center justify-around font-semibold mt-4 border-b border-gray-300"
-          >
-            <p className="col-span-2 text-center">Monto</p>
-            <p className="col-span-2 text-center">Tipo</p>
-            <p className="col-span-3 text-center">Sucursal o Cliente</p>
-            <p className="col-span-3 text-center">Encargado</p>
-            <p className="col-span-2 text-center">Acciones</p>
-          </div>
-        )}
-      </div>
-    );
-  };
-
   const renderIncomeItem = ({ income, index }) => {
     const { branch, customer, employee, type, amount, partOfAPayment, _id } = income;
     const branchInfo = branch?.branch || branch?.label;
     const customerInfo = `${customer?.name || ''} ${customer?.lastName || ''}`.trim() || customer?.label;
-    const employeeName = employee ? `${employee.name} ${employee.lastName}` : '';
+    const employeeName = employee ? `${employee.name}` : '';
     const typeName = partOfAPayment ? 'Pago' : type.name ?? type.label;
     const formattedAmount = stringToCurrency({ amount });
     const isAuthorized = currentUser._id === employee?._id || currentUser.role === roles.managerRole._id || !onDeleteIncome;
-    const deletable = onDeleteIncome ? (isAuthorized && !partOfAPayment) : false;
 
     return (
       isAuthorized && (
-        <div key={_id || index}>
+        <div key={_id || index} className=''>
           <div
             className={
-              'grid grid-cols-12 items-center rounded-lg border border-gray-300 shadow-sm mt-2'
+              'grid grid-cols-12 border border-black border-opacity-30 rounded-2xl shadow-sm mb-2 py-1'
             }
           >
             {/* Botón principal que ocupa 10/12 columnas */}
             <button
-              onClick={() => { setSelectedIncome(income); setIncomeDetailsIsOpen(!incomeDetailsIsOpen); }}
-              className="grid grid-cols-10 items-center justify-around col-span-10 h-full w-full"
+              onClick={() => { setSelectedIncome({ ...income, index }) }}
+              className="col-span-10 items-center"
             >
-              <p className={(partOfAPayment ? 'text-orange-700' : 'text-green-700') + ' text-center text-md font-semibold col-span-2'}>{formattedAmount}</p>
-              <p className="text-center text-xs col-span-2">{typeName}</p>
-              <p className="text-center text-xs col-span-3 whitespace-normal break-words">{branchInfo || customerInfo}</p>
-              <p className="text-center text-xs col-span-3 whitespace-normal break-words">{employeeName}</p>
-            </button>
-
-            {/* Botón de eliminar que ocupa 2/12 columnas */}
-            {deletable && (
-              <div className="col-span-2 flex justify-center">
-                <DeleteButton
-                  id={_id}
-                  deleteFunction={() => onDeleteIncome(income, index)}
-                />
+              <div className='col-span-12 items-center'>
+                <div className='w-full text-red-800'>
+                  <RowItem>
+                    <p className="text-md font-bold flex gap-1 items-center"><MdStorefront />{branchInfo || customerInfo}</p>
+                    <p className="text-md font-bold flex gap-1 items-center truncate"><CgProfile />{employeeName}</p>
+                  </RowItem>
+                </div>
+                <div>
+                  <RowItem>
+                    <p className={(partOfAPayment ? 'text-orange-700' : 'text-green-700') + ' text-center text-md font-semibold flex gap-1 items-center'}><MoneyBag />{formattedAmount}</p>
+                    <p className="text-md items-center flex gap-1 font-semibold">{(partOfAPayment && <MdPendingActions />)}{typeName}</p>
+                  </RowItem>
+                </div>
               </div>
-            )}
+            </button>
+            <div className="col-span-2 my-auto">
+                {deletable && (
+                  <DeleteButton
+                    deleteFunction={() => onDeleteIncome({ ...income, index })}
+                  />
+                )}
+              </div>
           </div>
         </div>
       )
     );
   };
 
+  const renderActions = () => {
+    return (
+      <div>
+        <div className="w-full flex justify-center">
+          {deletable && selectedIncome && (
+            <div className="w-full flex flex-col gap-2">
+              <ConfirmationButton onConfirm={() => onDeleteIncome(selectedIncome)} className="bg-delete-button  text-white w-10/12 rounded-xl">
+                Eliminar
+              </ConfirmationButton>
+              <ConfirmationButton onConfirm={() => onDeleteIncome(selectedIncome)} className="bg-update-button  text-white w-10/12 rounded-xl">
+                Actualizar
+              </ConfirmationButton>
+            </div>
+          )}
+        </div>
+      </div>
+    )
+  }
+
   const renderIncomesList = () => {
     return (
       <div>
-        {renderListHeader()}
-        {incomes && incomes.length > 0 && incomes.map((income, index) => renderIncomeItem({ income, index }))}
+        {!isEmpty && incomes.map((income, index) => renderIncomeItem({ income, index }))}
       </div>
     );
   };
@@ -112,12 +122,13 @@ export default function IncomesList({ incomes, incomesTotal, onDeleteIncome }) {
     <div>
       {renderTotal()}
       {renderIncomesList()}
-      {selectedIncome && incomeDetailsIsOpen && (
+      {selectedIncome && (
         <ShowDetails
           data={selectedIncome}
+          actions={renderActions}
           fields={fields}
           title={selectedIncome?.employeePayment ? `Detalles del Pago de ${getEmployeeFullName(selectedIncome.employeePayment.employee)}` : 'Detalles del Ingreso'}
-          closeModal={() => setIncomeDetailsIsOpen(false)}
+          closeModal={() => setSelectedIncome(null)}
         >
         </ShowDetails>
       )}

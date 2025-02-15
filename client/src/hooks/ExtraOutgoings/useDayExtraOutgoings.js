@@ -63,11 +63,11 @@ export const useDayExtraOutgoings = ({ companyId = null, date = null, initialExt
     }
   }
 
-  const onDeleteExtraOutgoing = async (extraOutgoing, index) => {
+  const onDeleteExtraOutgoing = async (extraOutgoing) => {
 
     try {
 
-      spliceExtraOutgoingByIndex(index)
+      spliceExtraOutgoingByIndex(extraOutgoing.index)
       await deleteExtraOutgoing(extraOutgoing)
 
     } catch (error) {

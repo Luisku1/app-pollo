@@ -46,11 +46,11 @@ export const useOutput = ({ companyId = null, date = null, initialOutputs = null
     }
   }
 
-  const onDeleteOutput = async (output, index) => {
+  const onDeleteOutput = async (output) => {
 
     try {
 
-      spliceOutput(index)
+      spliceOutput(output.index)
       await deleteOutput(output)
 
     } catch (error) {

@@ -18,6 +18,8 @@ export default {
         'inputs': '#FCE8E6',
         'outputs': '#E6F4F1',
         'providers': '#FAF3F3',
+        'delete-button': '#B22222',
+        'update-button': '#2B6CB0',
       },
     },
   },

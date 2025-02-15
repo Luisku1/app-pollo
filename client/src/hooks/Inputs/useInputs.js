@@ -53,11 +53,11 @@ export const useInputs = ({ companyId = null, date = null, initialInputs = null 
     }
   }
 
-  const onDeleteInput = async (input, index) => {
+  const onDeleteInput = async (input) => {
 
     try {
 
-      spliceInput(index)
+      spliceInput(input.index)
       await deleteInput(input)
 
     } catch (error) {

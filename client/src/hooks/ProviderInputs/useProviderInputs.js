@@ -56,11 +56,11 @@ export const useProviderInputs = ({ companyId = null, productId = null, date = n
     }
   }
 
-  const onDeleteProviderInput = async (providerInput, index) => {
+  const onDeleteProviderInput = async (providerInput) => {
 
     try {
 
-      spliceProviderInput(index)
+      spliceProviderInput(providerInput.index)
       await deleteProviderInput(providerInput)
 
     } catch (error) {

@@ -189,7 +189,7 @@ export default function Salidas({ branchAndCustomerSelectOptions, products, date
             <ShowListModal
               title={'Salidas'}
               ListComponent={ListaSalidas}
-              ListComponentProps={{ outputs, totalWeight, totalAmount, onDeleteOutput }}
+              ListComponentProps={{ outputs, totalWeight, totalAmount, onDelete: onDeleteOutput }}
               clickableComponent={<p className='font-bold text-lg text-center border border-header rounded-lg p-1'>{(totalWeight ? totalWeight.toFixed(2) : '0.00') + ' Kg'}</p>}
             />
           </div>

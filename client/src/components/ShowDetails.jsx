@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import Modal from './Modals/Modal';
 
-export default function ShowDetails({ data, fields, title, closeModal, children, payment }) {
+export default function ShowDetails({ data, fields, title, closeModal, children, payment, actions }) {
   const renderData = () => {
     if (children) return children;
 
@@ -15,6 +15,13 @@ export default function ShowDetails({ data, fields, title, closeModal, children,
             )}
           </div>
         ))}
+        <div className='w-full'>
+          {actions && (
+            <div className='w-full'>
+              {actions(data)}
+            </div>
+          )}
+        </div>
       </>
     );
   };

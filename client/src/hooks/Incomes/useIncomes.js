@@ -54,9 +54,9 @@ export const useIncomes = ({ companyId = null, date = null, initialIncomes = nul
     }
   };
 
-  const onDeleteIncome = async (income, index) => {
+  const onDeleteIncome = async (income) => {
     try {
-      spliceIncome(index);
+      spliceIncome(income.index);
       await deleteIncome(income);
     } catch (error) {
       pushIncome(income);
