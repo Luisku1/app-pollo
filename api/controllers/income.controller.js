@@ -5,7 +5,7 @@ import { errorHandler } from "../utils/error.js";
 import { getDayRange } from "../utils/formatDate.js";
 import { pushOrPullBranchReportRecord } from "./branch.report.controller.js";
 import { pushOrPullCustomerReportRecord } from "./customer.controller.js";
-import { addSupervisorReportIncome, pushOrPullSupervisorReportRecord } from "./employee.controller.js";
+import { pushOrPullSupervisorReportRecord } from "./employee.controller.js";
 
 export const newBranchIncomeQuery = async (req, res, next) => {
 
@@ -47,7 +47,15 @@ export const newBranchIncomeFunction = async ({ _id = null, amount, company, bra
       amountField: 'incomes'
     })
 
-    await addSupervisorReportIncome({ income, date: income.createdAt })
+    await pushOrPullSupervisorReportRecord({
+      supervisorId: income.employee,
+      date: income.createdAt,
+      record: income,
+      affectsBalancePositively: false,
+      operation: '$addToSet',
+      arrayField: 'incomesArray',
+      amountField: 'incomes'
+    })
 
     return income
 
@@ -82,7 +90,15 @@ export const newCustomerIncomeFunction = async ({ amount, company, customer, emp
       amountField: 'paymentsAmount'
     })
 
-    await addSupervisorReportIncome({ income: income, date: income.createdAt })
+    await pushOrPullSupervisorReportRecord({
+      supervisorId: income.employee,
+      date: income.createdAt,
+      record: income,
+      affectsBalancePositively: false,
+      operation: '$addToSet',
+      arrayField: 'incomesArray',
+      amountField: 'incomes'
+    })
 
     return income
 
@@ -166,12 +182,79 @@ export const getBranchIncomes = async ({ branchId, date }) => {
 
   const { bottomDate, topDate } = getDayRange(new Date(date))
 
-  return IncomeCollected.find({
-
-    createdAt: { $gte: bottomDate, $lt: topDate },
-    branch: branchId
-  }).populate({ path: 'employee', select: 'name lastName' }).populate({ path: 'branch', select: 'branch' }).populate({ path: 'type', select: 'name' }).sort({ createdAt: -1 })
-
+  return IncomeCollected.aggregate([
+    {
+      $match: {
+        "createdAt": { $gte: new Date(bottomDate), $lt: new Date(topDate) },
+        "company": new Types.ObjectId(companyId),
+        "branch": new Types.ObjectId(branchId)
+      }
+    },
+    {
+      $lookup: {
+        from: 'employeepayments',
+        localField: '_id',
+        foreignField: 'income',
+        as: 'employeePayment',
+        pipeline: [
+          {
+            $lookup: {
+              from: 'employees',
+              localField: 'employee',
+              foreignField: '_id',
+              as: 'employee'
+            }
+          },
+          { $unwind: { path: '$employee', preserveNullAndEmptyArrays: true } }
+        ]
+      }
+    },
+    {
+      $lookup: {
+        from: 'employees',
+        localField: 'employee',
+        foreignField: '_id',
+        as: 'employee'
+      }
+    },
+    {
+      $lookup: {
+        from: 'branches',
+        localField: 'branch',
+        foreignField: '_id',
+        as: 'branch'
+      }
+    },
+    {
+      $lookup: {
+        from: 'incometypes',
+        localField: 'type',
+        foreignField: '_id',
+        as: 'type'
+      }
+    },
+    {
+      $lookup: {
+        from: 'customers',
+        localField: 'customer',
+        foreignField: '_id',
+        as: 'customer'
+      }
+    },
+    { $unwind: { path: '$employeePayment', preserveNullAndEmptyArrays: true } },
+    {
+      $unwind: { path: '$employee', preserveNullAndEmptyArrays: true }
+    },
+    {
+      $unwind: { path: '$branch', preserveNullAndEmptyArrays: true }
+    },
+    {
+      $unwind: { path: '$type', preserveNullAndEmptyArrays: true }
+    },
+    {
+      $unwind: { path: '$customer', preserveNullAndEmptyArrays: true }
+    }
+  ]);
 }
 
 export const getIncomes = async (req, res, next) => {

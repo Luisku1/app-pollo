@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import { getEmployeesDailyBalancesFetch } from "../../services/employees/getEmployeesDailyBalances"
+import { getDayRange } from "../../helpers/DatePickerFunctions"
 
 export const useEmployeesDailyBalances = ({ companyId, date }) => {
 
@@ -10,8 +11,10 @@ export const useEmployeesDailyBalances = ({ companyId, date }) => {
   useEffect(() => {
 
     if (!(companyId && date)) return
+    if (getDayRange(new Date(date)).bottomDate > getDayRange(new Date()).bottomDate) return
 
     setLoading(true)
+
 
     getEmployeesDailyBalancesFetch({ companyId, date }).then((response) => {
 

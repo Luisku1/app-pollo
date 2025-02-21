@@ -7,7 +7,7 @@ const RowItem = ({ children, alignLeft = false }) => {
   const childrenArray = React.Children.toArray(children);
 
   return (
-    <div className={`flex flex-wrap ${alignLeft ? 'justify-start' : ''} items-center w-full h-8`}>
+    <div className={`flex flex-wrap ${alignLeft ? 'justify-start' : ''} items-center w-full`}>
       {childrenArray.map((child, index) => (
         <span key={index} className="flex-1 text-left px-2">
           {child}

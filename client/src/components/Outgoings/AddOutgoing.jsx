@@ -5,9 +5,8 @@ import { isToday } from '../../helpers/DatePickerFunctions'
 import SectionHeader from '../SectionHeader'
 import ShowListModal from '../Modals/ShowListModal'
 import OutgoingsList from './OutgoingsList'
-import { stringToCurrency } from '../../helpers/Functions'
 
-export default function AddOutgoing({ outgoings, modifyBalance, outgoingsTotal, onAddOutgoing, onDeleteOutgoing, employee, branch, date, isEditing }) {
+export default function AddOutgoing({ outgoings, modifyBalance, listButton, outgoingsTotal, onAddOutgoing, onDeleteOutgoing, employee, branch, date, isEditing }) {
 
   const { company } = useSelector((state) => state.user)
   const [outgoingFormData, setOutgoingFormData] = useState({})
@@ -107,10 +106,8 @@ export default function AddOutgoing({ outgoings, modifyBalance, outgoingsTotal, 
         <ShowListModal
           title={'Gastos'}
           ListComponent={OutgoingsList}
-          ListComponentProps={{ outgoings, amount: outgoingsTotal, onDeleteOutgoing, modifyBalance }}
-          clickableComponent={
-            <p className='font-bold text-lg text-center rounded-lg p-1 border border-header'>{stringToCurrency({ amount: outgoingsTotal ?? 0 })}</p>
-          }
+          ListComponentProps={{ outgoings, amount: outgoingsTotal, onDelete: onDeleteOutgoing, modifyBalance }}
+          clickableComponent={listButton}
         />
       </div>
     </div>

@@ -9,7 +9,7 @@ export default function DeleteButton({deleteFunction }) {
       confirmationMessage="¿Estás seguro de que deseas eliminar este elemento?"
       className='flex h-10 justify-center'
     >
-      <FaTrash className='text-red-700 m-auto' />
+      <FaTrash className='text-red-700 m-auto h-10' />
     </ConfirmationButton>
   );
 }

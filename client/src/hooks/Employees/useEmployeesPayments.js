@@ -73,11 +73,11 @@ export const useEmployeesPayments = ({ companyId = null, date = null, employeeId
     }
   }
 
-  const onDeleteEmployeePayment = async (employeePayment, index, spliceIncome, spliceExtraOutgoing) => {
+  const onDeleteEmployeePayment = async (employeePayment, spliceIncome, spliceExtraOutgoing) => {
 
     try {
 
-      spliceEmployeePaymentByIndex(index)
+      spliceEmployeePaymentByIndex(employeePayment.index)
       await deleteEmployeePayment(employeePayment)
 
       if (employeePayment.income) spliceIncome?.(employeePayment.income._id ? employeePayment.income._id : employeePayment.income)

@@ -7,6 +7,7 @@ import RowItem from "../RowItem"
 import { CgProfile } from "react-icons/cg"
 import ConfirmationButton from "../Buttons/ConfirmationButton"
 import DeleteButton from "../Buttons/DeleteButton"
+import { formatTime } from "../../helpers/DatePickerFunctions"
 
 /* eslint-disable react/prop-types */
 export default function ExtraOutgoingsList({ extraOutgoings, totalExtraOutgoings = 0, onDelete = null }) {
@@ -16,13 +17,12 @@ export default function ExtraOutgoingsList({ extraOutgoings, totalExtraOutgoings
   const isAuthorized = (employee) => currentUser._id === employee._id || currentUser.role === roles.managerRole._id || !onDelete
   const deletable = onDelete != null
 
-  console.log(selectedOutgoing)
-
   const fields = [
-    { key: 'concept', label: 'Concepto' },
-    { key: 'amount', label: 'Monto', format: (data) => stringToCurrency({ amount: data.amount }) },
     { key: 'employee.name', label: 'Encargado', format: (data) => data.employee.name },
-    ...(selectedOutgoing?.partOfAPayment ? [
+    { key: 'concept', label: 'Concepto' },
+    { key: 'amountt', label: 'Monto', format: (data) => stringToCurrency({ amount: data.amount }) },
+    { key: 'createdAt', label: 'Hora', format: (data) => formatTime(data.createdAt) },
+    ...(selectedOutgoing?.partOfAPayment && selectedOutgoing ? [
       { key: 'partOfAPayment', label: 'Parte de un pago', format: (data) => data.partOfAPayment ? 'Sí' : 'No' },
       { key: 'payment.employee', label: 'Deudor', format: (data) => data.employeePayment ? getEmployeeFullName(data.employeePayment.employee) : '' }
     ] : [])
@@ -40,8 +40,7 @@ export default function ExtraOutgoingsList({ extraOutgoings, totalExtraOutgoings
 
   const renderOutgoingItem = (outgoing, index) => {
     const { employee, concept, amount, partOfAPayment, employeePayment } = outgoing
-
-    console.log(outgoing)
+    const tempOutgoing = { ...outgoing, index }
 
     return (
       isAuthorized(employee) && (
@@ -49,7 +48,7 @@ export default function ExtraOutgoingsList({ extraOutgoings, totalExtraOutgoings
           <div className="grid grid-cols-12 border border-black border-opacity-30 rounded-2xl shadow-sm mb-2 py-1">
             <button
               onClick={() => {
-                setSelectedOutgoing({ ...outgoing, index })
+                setSelectedOutgoing(tempOutgoing)
               }}
               id="list-element"
               className="col-span-10 items-center"
@@ -58,13 +57,16 @@ export default function ExtraOutgoingsList({ extraOutgoings, totalExtraOutgoings
                 <div className='col-span-12'>
                   <div className="w-full text-red-800 mb-2">
                     <RowItem>
-                      <p className="font-bold text-md flex gap-1 items-center"><span><CgProfile /></span>{employee.name}</p>
-                      <p className={`text-md text-orange-500 font-bold`}>{stringToCurrency({ amount })}</p>
+                      <p className="font-bold text-md flex gap-1 items-center"><span><CgProfile className="text-xl" /></span>{employee.name}</p>
+                      <div className="text-sm text-black flex justify-self-end">
+                        {formatTime(outgoing.createdAt)}
+                      </div>
                     </RowItem>
                   </div>
                   <div className="w-full text-sm font-semibol mb-2">
                     <RowItem>
-                      <p className="text-md">{concept}</p>
+                      <p className="text-md font-semibold">{concept.split('[')[0]}</p>
+                      <p className={`text-md text-orange-500 font-bold`}>{stringToCurrency({ amount })}</p>
                     </RowItem>
                   </div>
                   {partOfAPayment && employeePayment && (
@@ -83,7 +85,7 @@ export default function ExtraOutgoingsList({ extraOutgoings, totalExtraOutgoings
             <div className="col-span-2 my-auto">
               {deletable && (
                 <DeleteButton
-                  deleteFunction={() => onDelete({ ...outgoing, index })}
+                  deleteFunction={() => onDelete(tempOutgoing)}
                 />
               )}
             </div>
@@ -108,10 +110,10 @@ export default function ExtraOutgoingsList({ extraOutgoings, totalExtraOutgoings
         <div className="w-full flex justify-center">
           {deletable && selectedOutgoing && (
             <div className="w-full flex flex-col gap-2">
-              <ConfirmationButton onConfirm={() => onDelete(selectedOutgoing)} className="bg-delete-button  text-white w-10/12 rounded-xl">
+              <ConfirmationButton onConfirm={() => onDelete(selectedOutgoing)} className="bg-delete-button text-white w-10/12 rounded-xl">
                 Eliminar
               </ConfirmationButton>
-              <ConfirmationButton onConfirm={() => onDelete(selectedOutgoing)} className="bg-update-button  text-white w-10/12 rounded-xl">
+              <ConfirmationButton onConfirm={() => console.log('Editing')} className="bg-update-button text-white w-10/12 rounded-xl">
                 Actualizar
               </ConfirmationButton>
             </div>

@@ -44,10 +44,10 @@ export const useStock = ({ branchId, date, initialStock = null }) => {
     }
   }
 
-  const onDeleteStock = async (stock, index, modifyBalance) => {
+  const onDeleteStock = async (stock, modifyBalance) => {
     try {
 
-      spliceStock(index);
+      spliceStock(stock.index);
       modifyBalance(stock.amount, "subtract");
       await deleteStock(stock);
     } catch (error) {

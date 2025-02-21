@@ -53,8 +53,7 @@ export default function RegistroEmpleadoNuevo({ employee, setEmployee }) {
 
   const updateEmployee = async (employee) => {
 
-    if(formData == employee)
-      return
+    if (formData == employee) return
 
     try {
 
@@ -100,7 +99,8 @@ export default function RegistroEmpleadoNuevo({ employee, setEmployee }) {
     }
 
     if (isEditing) {
-
+      data._id = employee._id
+      if (data.password === '') delete data.password
       await updateEmployee(data)
 
     } else {

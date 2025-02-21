@@ -43,7 +43,8 @@ export default function ListaSalidas({ outputs, totalWeight = 0, totalAmount = 0
   }
 
   const renderOutputItem = (output, index) => {
-    const { employee, product, pieces, weight, amount, branch, comment } = output
+    const { employee, product, pieces, weight, amount, branch, comment, createdAt } = output
+    const tempOutput = { ...output, index }
 
     return (
       isAuthorized(employee) && (
@@ -52,7 +53,7 @@ export default function ListaSalidas({ outputs, totalWeight = 0, totalAmount = 0
             <div className="grid grid-cols-12 border border-black border-opacity-30 rounded-2xl shadow-sm mb-2 py-1">
               <button
                 onClick={() => {
-                  setSelectedOutput({ ...output, index })
+                  setSelectedOutput(tempOutput)
                 }}
                 id="list-element"
                 className="col-span-10 items-center"
@@ -76,6 +77,9 @@ export default function ListaSalidas({ outputs, totalWeight = 0, totalAmount = 0
                     <div className="w-full">
                       <RowItem>
                         <p className="text-xs flex gap-1 items-center"><FaInfoCircle className="text-blue-800" />{comment || 'Sin observaciones.'}</p>
+                        <div className="text-sm text-black flex justify-self-end">
+                          {formatTime(createdAt)}
+                        </div>
                       </RowItem>
                     </div>
                   </div>
@@ -84,7 +88,7 @@ export default function ListaSalidas({ outputs, totalWeight = 0, totalAmount = 0
               <div className="col-span-2 my-auto">
                 {deletable && (
                   <DeleteButton
-                    deleteFunction={() => onDelete({ ...output, index })}
+                    deleteFunction={() => onDelete(tempOutput)}
                   />
                 )}
               </div>
@@ -115,7 +119,7 @@ export default function ListaSalidas({ outputs, totalWeight = 0, totalAmount = 0
               <ConfirmationButton onConfirm={() => onDelete(selectedOutput)} className="bg-delete-button  text-white w-10/12 rounded-xl">
                 Eliminar
               </ConfirmationButton>
-              <ConfirmationButton onConfirm={() => onDelete(selectedOutput)} className="bg-update-button  text-white w-10/12 rounded-xl">
+              <ConfirmationButton onConfirm={() => console.log('Editing')} className="bg-update-button  text-white w-10/12 rounded-xl">
                 Actualizar
               </ConfirmationButton>
             </div>

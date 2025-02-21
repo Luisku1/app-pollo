@@ -6,14 +6,18 @@ import { useRoles } from "../../context/RolesContext"
 import { useState } from "react"
 import ShowDetails from "../ShowDetails"
 import { formatTime } from "../../helpers/DatePickerFunctions"
+import RowItem from "../RowItem"
+import { CgProfile } from "react-icons/cg"
+import ConfirmationButton from "../Buttons/ConfirmationButton"
+import MoneyBag from "../Icons/MoneyBag"
 
-export default function OutgoingsList({ outgoings, amount, onDeleteOutgoing, modifyBalance }) {
-
+export default function OutgoingsList({ outgoings, amount, onDelete, modifyBalance }) {
   const { currentUser } = useSelector((state) => state.user)
   const { roles } = useRoles()
   const [selectedOutgoing, setSelectedOutgoing] = useState(null)
   const [movementDetailsIsOpen, setMovementDetailsIsOpen] = useState(false)
   const isEmpty = !outgoings || outgoings.length === 0
+  const deletable = onDelete
 
   const fields = [
     { key: 'amount', label: 'Monto', format: (data) => stringToCurrency({ amount: data.amount }) },
@@ -32,69 +36,67 @@ export default function OutgoingsList({ outgoings, amount, onDeleteOutgoing, mod
     )
   }
 
-  const renderListHeader = () => {
-    return (
-      <div>
-        {!isEmpty && (
-          <div id='header' className='grid grid-cols-12 gap-4 items-center justify-around font-semibold'>
-            <div className="flex col-span-10 items-center justify-around">
+  const renderOutgoingItem = ({ outgoing, index }) => {
+    const { _id, employee, concept, amount, createdAt } = outgoing
+    const tempOutgoing = { ...outgoing, index }
+    const employeeName = `${employee.name || employee}`
+    const isAuthorized = currentUser._id == employee._id || currentUser.role == roles.managerRole._id
+    const shouldRender = isAuthorized || currentUser.role === roles.managerRole._id
 
-              <p className='p-3 rounded-lg w-4/12 text-center'>Empleado</p>
-              <p className='p-3 rounded-lg w-4/12 text-center'>Concepto</p>
-              <p className='p-3 rounded-lg w-4/12 text-center'>Monto</p>
+    return (
+      shouldRender && (
+        <div key={_id} className='grid grid-cols-12 border border-black border-opacity-30 rounded-2xl shadow-sm mb-2 py-1'>
+          <button onClick={() => { setSelectedOutgoing(tempOutgoing); setMovementDetailsIsOpen(!movementDetailsIsOpen); }} id='list-element' className='col-span-10 items-center'>
+            <div id='list-element' className='w-full'>
+              <RowItem>
+                <p className='font-bold text-md flex gap-1 items-center text-red-800'><CgProfile className="text-xl" />{employeeName}</p>
+                <div className="text-sm text-black flex justify-self-end">
+                  {formatTime(createdAt)}
+                </div>
+              </RowItem>
+              <RowItem>
+                <p className='ml-1 text-md font-semibold'>{concept}</p>
+                <p className='flex gap-1 items-center text-orange-700'><MoneyBag />{stringToCurrency({ amount })}</p>
+              </RowItem>
             </div>
+          </button>
+          <div className="col-span-2 my-auto">
+            {deletable && (
+              <DeleteButton
+                id={outgoing._id}
+                deleteFunction={() => onDelete(tempOutgoing, modifyBalance)}
+              />
+            )}
           </div>
-        )}
-      </div>
+        </div>
+      )
     )
   }
 
-  const renderOutgoingItem = (outgoing, index) => {
-
-    const { _id, employee, concept, amount } = outgoing
-    const employeeName = `${employee.name || employee}`
-    const isAuthorized = currentUser._id == employee._id || currentUser.role == roles.managerRole._id
-    const shouldRender = isAuthorized || currentUser.role === roles.managerRole._id;
-    const shouldShowDeleteButton = isAuthorized && onDeleteOutgoing;
-
+  const renderActions = () => {
     return (
-      <div key={_id} >
-        {shouldRender && (
-          <div className={(currentUser._id == outgoing.employee || currentUser.role == roles.managerRole._id ? '' : 'py-3 ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-30 shadow-sm mt-2'}>
-
-            <div className="grid col-span-10 items-center">
-              <button onClick={() => { setSelectedOutgoing(outgoing); setMovementDetailsIsOpen(!movementDetailsIsOpen); }} id='list-element' className='grid grid-cols-12 items-center'>
-                <div id='' className='flex col-span-12 items-center justify-around'>
-                  <p className='text-center text-xs w-4/12'>{employeeName}</p>
-                  <p className='text-center text-xs w-4/12'>{concept}</p>
-                  <p className='text-center text-xs w-4/12'>{stringToCurrency({ amount })}</p>
-                </div>
-              </button>
+      <div>
+        <div className="w-full flex justify-center">
+          {deletable && selectedOutgoing && (
+            <div className="w-full flex flex-col gap-2">
+              <ConfirmationButton onConfirm={() => onDelete(selectedOutgoing, modifyBalance)} className="bg-delete-button text-white w-10/12 rounded-xl">
+                Eliminar
+              </ConfirmationButton>
+              <ConfirmationButton onConfirm={() => console.log('Editing')} className="bg-update-button text-white w-10/12 rounded-xl">
+                Actualizar
+              </ConfirmationButton>
             </div>
-
-            {shouldShowDeleteButton && (
-              <DeleteButton
-                id={outgoing._id}
-                deleteFunction={() => onDeleteOutgoing(outgoing, index, modifyBalance)}
-              />
-            )}
-
-
-          </div>
-        )}
+          )}
+        </div>
       </div>
     )
   }
 
   const renderOutgoingsList = () => {
-
-    const showTotal = currentUser.role === roles.managerRole._id
-
     return (
       <div>
-        {showTotal && renderTotal()}
-        {renderListHeader()}
-        {roles && roles.managerRole && !isEmpty && outgoings.map((outgoing, index) => renderOutgoingItem(outgoing, index))}
+        {renderTotal()}
+        {!isEmpty && roles?.managerRole && outgoings.map((outgoing, index) => renderOutgoingItem({ outgoing, index }))}
       </div>
     )
   }
@@ -105,6 +107,7 @@ export default function OutgoingsList({ outgoings, amount, onDeleteOutgoing, mod
       {selectedOutgoing && movementDetailsIsOpen && (
         <ShowDetails
           data={selectedOutgoing}
+          actions={renderActions}
           fields={fields}
           title={"Detalles del gasto de " + selectedOutgoing.employee.name}
           closeModal={() => setMovementDetailsIsOpen(false)}

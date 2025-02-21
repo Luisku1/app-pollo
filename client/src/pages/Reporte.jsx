@@ -17,6 +17,8 @@ import { useRoles } from "../context/RolesContext.jsx";
 import ExtraOutgoingsList from "../components/Outgoings/ExtraOutgoingsList.jsx";
 import ShowIncomesModal from "../components/Incomes/ShowIncomesModal.jsx";
 import ShowListModal from "../components/Modals/ShowListModal.jsx";
+import Modal from "../components/Modals/Modal";
+import RegistroCuentaDiaria from "./RegistroCuentaDiaria";
 
 export default function Reporte({ untitled = false }) {
 
@@ -65,6 +67,7 @@ export default function Reporte({ untitled = false }) {
   const navigate = useNavigate()
   const [pieChartInfo, setPieChartInfo] = useState([])
   const [negativeBalances, setNegativeBalances] = useState(new Set())
+  const [selectedBranchReport, setSelectedBranchReport] = useState(null);
 
   const updateReportedCash = ({ reportedCash, prevReportedCash, prevReportedIncomes }) => {
 
@@ -231,10 +234,7 @@ export default function Reporte({ untitled = false }) {
       <h1 className='text-3xl text-center font-semibold mt-7'>
         Reporte
       </h1>
-
-
       {branchReports && branchReports.length > 0 && roles && roles.managerRole ?
-
         <div>
           <div>
             <div>
@@ -277,15 +277,20 @@ export default function Reporte({ untitled = false }) {
                   <tbody key={branchReport._id} className={branchReport.balance < 0 ? 'bg-pastel-pink' : ''}>
                     <tr className={'border-x ' + (index + 1 != branchReports.length ? "border-b " : '') + 'border-black border-opacity-40'}>
                       <td className="group">
-                        <Link className='' to={'/formato/' + branchReport.createdAt + '/' + branchReport.branch._id}>
-                          <p className={`${branchReport.employee ? 'text-gray-700' : 'text-red-600'} text-sm`}>{branchReport.branch.branch}</p>
-                          <div className="hidden group-hover:block group-hover:fixed group-hover:overflow-hidden group-hover:mt-2 ml-24 bg-button text-white shadow-2xl rounded-md p-2">
-                            <p>{branchReport.employee != null ? branchReport.employee.name + ' ' + branchReport.employee.lastName : 'Sin empleado'}</p>
-                            {branchReport.assistant != null ?
-                              <p>{branchReport.assistant.name + ' ' + branchReport.assistant.lastName}</p>
-                              : ''}
-                          </div>
-                        </Link>
+                        <button
+                          className="text-sm text-gray-700"
+                          onClick={() => {
+                            setSelectedBranchReport(branchReport);
+                          }}
+                        >
+                          {branchReport.branch.branch}
+                        </button>
+                        <div className="hidden group-hover:block group-hover:fixed group-hover:overflow-hidden group-hover:mt-2 ml-24 bg-button text-white shadow-2xl rounded-md p-2">
+                          <p>{branchReport.employee != null ? branchReport.employee.name + ' ' + branchReport.employee.lastName : 'Sin empleado'}</p>
+                          {branchReport.assistant != null ? (
+                            <p>{branchReport.assistant.name + ' ' + branchReport.assistant.lastName}</p>
+                          ) : ''}
+                        </div>
                       </td>
                       <td className="text-center text-sm">{branchReport.outgoings.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</td>
                       <td className="text-center text-sm">{branchReport.finalStock.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</td>
@@ -392,6 +397,12 @@ export default function Reporte({ untitled = false }) {
         </div>
 
         : ''}
+      {selectedBranchReport && (
+        <Modal
+          content={<RegistroCuentaDiaria edit={false} _branchReport={selectedBranchReport} _branch={selectedBranchReport.branch} />}
+          closeModal={() => setSelectedBranchReport(null)}
+        />
+      )}
     </main >
   )
 }

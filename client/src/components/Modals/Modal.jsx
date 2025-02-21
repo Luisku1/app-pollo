@@ -10,7 +10,7 @@ export default function Modal({ content, title, closeModal, ref, ableToClose = t
       <div className={`fixed inset-0 ${lowerZIndex ? 'z-[40]' : 'z-[9000]'} ${lowerZIndex ? '' : 'bg-black bg-opacity-30 backdrop-blur-sm'} flex items-center justify-center pt-16`}>
         <div
           ref={ref}
-          className={`bg-white p-5 rounded-lg shadow-lg w-full max-w-lg h-auto max-h-[calc(100vh-4rem)] overflow-y-auto relative`}
+          className={`bg-white p-5 rounded-lg shadow-lg max-w-lg w-11/12 h-auto max-h-[calc(100vh-4rem)] overflow-y-auto relative`}
         >
           {/* Botón para cerrar */}
           {ableToClose && (

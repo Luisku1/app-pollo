@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { useParams, useNavigate } from 'react-router-dom';
-import { formatDate } from '../helpers/DatePickerFunctions';
+import { formatDate, getDayRange } from '../helpers/DatePickerFunctions';
 import FechaDePagina from '../components/FechaDePagina';
 import 'react-toastify/dist/ReactToastify.css';
 import { useProducts } from '../hooks/Products/useProducts';
@@ -95,41 +95,47 @@ export default function ControlSupervisor({ hideFechaDePagina = false }) {
               : ''}
 
           </div>
-          <SectionsMenu
-            handleShowSections={handleShowSections}
-            selectedSection={selectedSection}
-            setSelectedSection={setSelectedSection}
-            sections={
-              [
-                {
-                  label: 'Entradas y Salidas',
-                  component: <InputsAndOutputs
-                    companyId={company._id}
-                    date={stringDatePickerValue}
-                    roles={roles}
-                    currentUser={currentUser}
-                    products={products}
-                    branchAndCustomerSelectOptions={branchAndCustomerSelectOptions}
-                  />
-                },
-                {
-                  label: 'Efectivos y Gastos',
-                  component: <IncomesAndOutgoings
-                    date={stringDatePickerValue}
-                    companyId={company._id}
-                    currentUser={currentUser}
-                    roles={roles}
-                    branches={branches} branchAndCustomerSelectOptions={branchAndCustomerSelectOptions}
-                    employees={employees}
-                  />
-                },
-                {
-                  label: 'Empleados',
-                  component: <Employees dailyBalances={employeesDailyBalances} employees={employees} companyId={company._id} date={stringDatePickerValue} />
-                }
-              ]
-            }
-          />
+          {getDayRange(new Date(stringDatePickerValue)).bottomDate <= getDayRange(new Date()).bottomDate ?
+            <SectionsMenu
+              handleShowSections={handleShowSections}
+              selectedSection={selectedSection}
+              setSelectedSection={setSelectedSection}
+              sections={
+                [
+                  {
+                    label: 'Entradas y Salidas',
+                    component: <InputsAndOutputs
+                      companyId={company._id}
+                      date={stringDatePickerValue}
+                      roles={roles}
+                      currentUser={currentUser}
+                      products={products}
+                      branchAndCustomerSelectOptions={branchAndCustomerSelectOptions}
+                    />
+                  },
+                  {
+                    label: 'Efectivos y Gastos',
+                    component: <IncomesAndOutgoings
+                      date={stringDatePickerValue}
+                      companyId={company._id}
+                      currentUser={currentUser}
+                      roles={roles}
+                      branches={branches} branchAndCustomerSelectOptions={branchAndCustomerSelectOptions}
+                      employees={employees}
+                    />
+                  },
+                  {
+                    label: 'Empleados',
+                    component: <Employees dailyBalances={employeesDailyBalances} employees={employees} companyId={company._id} date={stringDatePickerValue} />
+                  }
+                ]
+              }
+            />
+            :
+            <div className='flex justify-center mt-4'>
+              <p className='text-red-800 font-bold text-lg'>No puedes ver información de días futuros</p>
+            </div>
+          }
         </div>
       </main >
     )

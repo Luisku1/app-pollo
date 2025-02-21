@@ -15,6 +15,7 @@ export const customSelectStyles = {
     borderRadius: '0.5rem',
     border: '1px solid black',
     padding: '.25rem',
+    fontWeight: 'bold',
     fontSize: '16px'
   }),
   singleValue: (provided) => ({
@@ -35,5 +36,6 @@ export const customSelectStyles = {
     ...provided,
     fontSize: '16px',
     color:'black',
+    fontWeight: 'bold',
   }),
 }

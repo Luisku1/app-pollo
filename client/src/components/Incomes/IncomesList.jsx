@@ -41,12 +41,13 @@ export default function IncomesList({ incomes, incomesTotal, onDeleteIncome }) {
     );
   };
 
-  const renderIncomeItem = ({ income, index }) => {
-    const { branch, customer, employee, type, amount, partOfAPayment, _id } = income;
+  const renderIncomeItem = (income, index) => {
+    const { branch, customer, employee, type, amount, partOfAPayment, _id, createdAt, employeePayment } = income;
+    const tempIncome = { ...income, index };
     const branchInfo = branch?.branch || branch?.label;
     const customerInfo = `${customer?.name || ''} ${customer?.lastName || ''}`.trim() || customer?.label;
     const employeeName = employee ? `${employee.name}` : '';
-    const typeName = partOfAPayment ? 'Pago' : type.name ?? type.label;
+    const typeName = partOfAPayment ? 'Pago' : type?.name ?? type?.label;
     const formattedAmount = stringToCurrency({ amount });
     const isAuthorized = currentUser._id === employee?._id || currentUser.role === roles.managerRole._id || !onDeleteIncome;
 
@@ -60,7 +61,7 @@ export default function IncomesList({ incomes, incomesTotal, onDeleteIncome }) {
           >
             {/* Botón principal que ocupa 10/12 columnas */}
             <button
-              onClick={() => { setSelectedIncome({ ...income, index }) }}
+              onClick={() => { setSelectedIncome(tempIncome) }}
               className="col-span-10 items-center"
             >
               <div className='col-span-12 items-center'>
@@ -76,15 +77,23 @@ export default function IncomesList({ incomes, incomesTotal, onDeleteIncome }) {
                     <p className="text-md items-center flex gap-1 font-semibold">{(partOfAPayment && <MdPendingActions />)}{typeName}</p>
                   </RowItem>
                 </div>
+                <div>
+                  <RowItem>
+                    {partOfAPayment && (
+                      <p className="text-red-800 text-sm flex gap-1"><p className='text-black font-semibold'>Pago a: </p>{employeePayment?.employee?.name ?? ''}</p>
+                    )}
+                    <p className='text-sm flex justify-self-end'>{formatTime(createdAt)}</p>
+                  </RowItem>
+                </div>
               </div>
             </button>
             <div className="col-span-2 my-auto">
-                {deletable && (
-                  <DeleteButton
-                    deleteFunction={() => onDeleteIncome({ ...income, index })}
-                  />
-                )}
-              </div>
+              {deletable && (
+                <DeleteButton
+                  deleteFunction={() => onDeleteIncome(tempIncome)}
+                />
+              )}
+            </div>
           </div>
         </div>
       )
@@ -97,10 +106,10 @@ export default function IncomesList({ incomes, incomesTotal, onDeleteIncome }) {
         <div className="w-full flex justify-center">
           {deletable && selectedIncome && (
             <div className="w-full flex flex-col gap-2">
-              <ConfirmationButton onConfirm={() => onDeleteIncome(selectedIncome)} className="bg-delete-button  text-white w-10/12 rounded-xl">
+              <ConfirmationButton onConfirm={() => onDeleteIncome(selectedIncome)} className="bg-delete-button text-white w-10/12 rounded-xl">
                 Eliminar
               </ConfirmationButton>
-              <ConfirmationButton onConfirm={() => onDeleteIncome(selectedIncome)} className="bg-update-button  text-white w-10/12 rounded-xl">
+              <ConfirmationButton onConfirm={() => console.log('Editing')} className="bg-update-button text-white w-10/12 rounded-xl">
                 Actualizar
               </ConfirmationButton>
             </div>
@@ -113,7 +122,7 @@ export default function IncomesList({ incomes, incomesTotal, onDeleteIncome }) {
   const renderIncomesList = () => {
     return (
       <div>
-        {!isEmpty && incomes.map((income, index) => renderIncomeItem({ income, index }))}
+        {!isEmpty && incomes.map(renderIncomeItem)}
       </div>
     );
   };

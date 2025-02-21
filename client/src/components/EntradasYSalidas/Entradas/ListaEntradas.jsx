@@ -43,7 +43,8 @@ export default function ListaEntradas({ inputs, totalWeight = 0, totalAmount = 0
   }
 
   const renderInputItem = (input, index) => {
-    const { employee, product, pieces, weight, amount, branch, comment, customer } = input
+    const { employee, product, pieces, weight, amount, branch, comment, customer, createdAt } = input
+    const tempInput = { ...input, index }
     const customerInfo = `${customer?.name || ''} ${customer?.lastName || ''}`.trim() || customer?.label
     const branchInfo = branch?.branch || ''
 
@@ -54,7 +55,7 @@ export default function ListaEntradas({ inputs, totalWeight = 0, totalAmount = 0
             <div className="grid grid-cols-12 border border-black border-opacity-30 rounded-2xl shadow-sm mb-2 py-1">
               <button
                 onClick={() => {
-                  setSelectedInput({ ...input, index })
+                  setSelectedInput(tempInput)
                 }}
                 id="list-element"
                 className="col-span-10 items-center"
@@ -68,7 +69,7 @@ export default function ListaEntradas({ inputs, totalWeight = 0, totalAmount = 0
                       </RowItem>
                     </div>
                     <div className="w-full text-sm font-semibold">
-                      <RowItem>
+                      <RowItem className=''>
                         <p className="flex gap-1 items-center font-semibold"><GiChickenOven />{product.name}</p>
                         <p className="">{`${pieces} pzs`}</p>
                         <p className="">{`${weight} kg`}</p>
@@ -78,6 +79,9 @@ export default function ListaEntradas({ inputs, totalWeight = 0, totalAmount = 0
                     <div className="w-full">
                       <RowItem>
                         <p className="text-xs flex gap-1 items-center"><FaInfoCircle className="text-blue-800" />{comment || 'Sin observaciones.'}</p>
+                        <div className="text-sm text-black flex justify-self-end">
+                          {formatTime(createdAt)}
+                        </div>
                       </RowItem>
                     </div>
                   </div>
@@ -86,7 +90,7 @@ export default function ListaEntradas({ inputs, totalWeight = 0, totalAmount = 0
               <div className="col-span-2 my-auto">
                 {deletable && (
                   <DeleteButton
-                    deleteFunction={() => onDelete({...input, index})}
+                    deleteFunction={() => onDelete(tempInput)}
                   />
                 )}
               </div>
@@ -117,7 +121,7 @@ export default function ListaEntradas({ inputs, totalWeight = 0, totalAmount = 0
               <ConfirmationButton onConfirm={() => onDelete(selectedInput)} className="bg-delete-button  text-white w-10/12 rounded-xl">
                 Eliminar
               </ConfirmationButton>
-              <ConfirmationButton onConfirm={() => onDelete(selectedInput)} className="bg-update-button  text-white w-10/12 rounded-xl">
+              <ConfirmationButton onConfirm={() => console.log('editing')} className="bg-update-button  text-white w-10/12 rounded-xl">
                 Actualizar
               </ConfirmationButton>
             </div>

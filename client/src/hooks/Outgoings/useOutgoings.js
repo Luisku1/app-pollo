@@ -37,16 +37,15 @@ export const useOutgoings = ({ branchId = null, date = null, initialOutgoings = 
 
     } catch (error) {
 
-      console.log('hey')
       spliceOutgoing(outgoings.findIndex((outgoing) => outgoing._id === tempId))
       console.log(error)
     }
   }
 
-  const onDeleteOutgoing = async (outgoing, index, modifyBalance) => {
+  const onDeleteOutgoing = async (outgoing, modifyBalance) => {
 
     try {
-      spliceOutgoing(index)
+      spliceOutgoing(outgoing.index)
       modifyBalance(outgoing.amount, 'subtract')
       await deleteOutgoing(outgoing)
 
