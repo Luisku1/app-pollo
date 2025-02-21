@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import { useSelector } from 'react-redux'
 import DeleteButton from './Buttons/DeleteButton'
-import { formatTime } from '../helpers/DatePickerFunctions'
+import { formatInformationDate, formatTime } from '../helpers/DatePickerFunctions'
 import { useRoles } from '../context/RolesContext'
 import { getEmployeeFullName, stringToCurrency } from '../helpers/Functions'
 import { useState, useMemo } from 'react'
@@ -24,7 +24,14 @@ export default function EmployeePaymentsList({ payments, total = 0, onDelete = n
     { key: 'employee.name', label: 'Encargado', format: (data) => data.employee.name },
     { key: 'detail', label: 'Concepto' },
     { key: 'amount', label: 'Monto', format: (data) => stringToCurrency({ amount: data.amount }) },
-    { key: 'createdAt', label: 'Hora', format: (data) => formatTime(data.createdAt) },
+    {
+      key: 'createdAt', label: 'Hora', format: (data) => {
+        return <div>
+          {formatInformationDate(data.createdAt)}
+          {formatTime(data.createdAt)}
+        </div>
+      }
+    },
     { key: 'payment.employee', label: 'Deudor', format: (data) => data.employee ? getEmployeeFullName(data.employee) : '' },
     ...(selectedPayment?.income ? [
       { key: 'income.branch.branch', label: 'Dinero de', format: (data) => data?.income?.branch?.branch ?? '' }
@@ -53,13 +60,13 @@ export default function EmployeePaymentsList({ payments, total = 0, onDelete = n
               onClick={() => {
                 setSelectedPayment(tempPayment)
               }}
-              className="col-span-10 items-center"
+              className="col-span-10 items-center flex-col"
             >
               <div className="text-red-800 mb-2">
                 <RowItem>
                   <p className="font-bold text-lg flex gap-1 items-center"><span><CgProfile className="text-xl" /></span>{supervisor.name}</p>
                   <div className="text-sm text-black flex justify-self-end">
-                    {formatTime(payment.createdAt)}
+                    {formatInformationDate(payment.createdAt)} {formatTime(payment.createdAt)}
                   </div>
                 </RowItem>
               </div>
@@ -73,7 +80,7 @@ export default function EmployeePaymentsList({ payments, total = 0, onDelete = n
                 </RowItem>
               </div>
               {income ? (
-                <div className=" mt-3">
+                <div className="">
                   <RowItem>
                     <div className="flex gap-1 items-center">
                       <p className="mr-2 text-md font-semibold">De: </p>

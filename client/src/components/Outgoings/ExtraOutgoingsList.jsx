@@ -65,7 +65,7 @@ export default function ExtraOutgoingsList({ extraOutgoings, totalExtraOutgoings
                   </div>
                   <div className="w-full text-sm font-semibol mb-2">
                     <RowItem>
-                      <p className="text-md font-semibold">{concept}</p>
+                      <p className="text-md font-semibold">{concept.split('[')[0]}</p>
                       <p className={`text-md text-orange-500 font-bold`}>{stringToCurrency({ amount })}</p>
                     </RowItem>
                   </div>

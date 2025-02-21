@@ -43,7 +43,7 @@ export default function ListaSalidas({ outputs, totalWeight = 0, totalAmount = 0
   }
 
   const renderOutputItem = (output, index) => {
-    const { employee, product, pieces, weight, amount, branch, comment } = output
+    const { employee, product, pieces, weight, amount, branch, comment, createdAt } = output
     const tempOutput = { ...output, index }
 
     return (
@@ -77,6 +77,9 @@ export default function ListaSalidas({ outputs, totalWeight = 0, totalAmount = 0
                     <div className="w-full">
                       <RowItem>
                         <p className="text-xs flex gap-1 items-center"><FaInfoCircle className="text-blue-800" />{comment || 'Sin observaciones.'}</p>
+                        <div className="text-sm text-black flex justify-self-end">
+                          {formatTime(createdAt)}
+                        </div>
                       </RowItem>
                     </div>
                   </div>

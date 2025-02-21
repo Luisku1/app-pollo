@@ -9,6 +9,7 @@ import ReportData from "../models/accounts/report.data.model.js"
 import { getDayRange } from "../utils/formatDate.js"
 import Outgoing from "../models/accounts/outgoings/outgoing.model.js"
 import Stock from "../models/accounts/stock.model.js"
+import { branchLookup, employeeLookup, unwindBranch, unwindEmployee } from "./branch.report.controller.js"
 
 export const getBranchReports = async (req, res, next) => {
 
@@ -31,23 +32,171 @@ export const getBranchReports = async (req, res, next) => {
           from: 'providerinputs',
           localField: 'providerInputsArray',
           foreignField: '_id',
-          as: 'providerInputsArray'
-        }
+          as: 'providerInputsArray',
+          pipeline: [
+            branchLookup,
+            unwindBranch,
+            {
+              $lookup: {
+                from: 'products',
+                localField: 'product',
+                foreignField: '_id',
+                as: 'product',
+              },
+            },
+            {
+              $unwind: {
+                path: '$product',
+                preserveNullAndEmptyArrays: true,
+              },
+            },
+            employeeLookup,
+            unwindEmployee
+          ],
+        },
       },
       {
         $lookup: {
-          from: 'incomecollecteds',
-          localField: 'incomesArray',
+          from: 'inputs',
+          localField: 'inputsArray',
           foreignField: '_id',
-          as: 'incomesArray' // Poblamos con documentos completos
-        }
+          as: 'inputsArray',
+          pipeline: [
+            branchLookup,
+            unwindBranch,
+            {
+              $lookup: {
+                from: 'products',
+                localField: 'product',
+                foreignField: '_id',
+                as: 'product',
+              },
+            },
+            {
+              $unwind: {
+                path: '$product',
+                preserveNullAndEmptyArrays: true,
+              },
+            },
+            employeeLookup,
+            unwindEmployee
+          ],
+        },
+      },
+      {
+        $lookup: {
+          from: 'outputs',
+          localField: 'outputsArray',
+          foreignField: '_id',
+          as: 'outputsArray',
+          pipeline: [
+            branchLookup,
+            unwindBranch,
+            {
+              $lookup: {
+                from: 'products',
+                localField: 'product',
+                foreignField: '_id',
+                as: 'product',
+              },
+            },
+            {
+              $unwind: {
+                path: '$product',
+                preserveNullAndEmptyArrays: true,
+              },
+            },
+            employeeLookup,
+            unwindEmployee,
+          ],
+        },
       },
       {
         $lookup: {
           from: 'outgoings',
           localField: 'outgoingsArray',
           foreignField: '_id',
-          as: 'outgoingsArray' // Poblamos con documentos completos
+          as: 'outgoingsArray',
+          pipeline: [
+            employeeLookup,
+            unwindEmployee
+          ],
+        },
+      },
+      {
+        $lookup: {
+          from: 'incomecollecteds',
+          localField: 'incomesArray',
+          foreignField: '_id',
+          as: 'incomesArray',
+          pipeline: [
+            branchLookup,
+            unwindBranch,
+            employeeLookup,
+            unwindEmployee,
+            {
+              $lookup: {
+                from: 'employeepayments',
+                localField: '_id',
+                foreignField: 'income',
+                as: 'employeePayment',
+                pipeline: [
+                  {
+                    $lookup: {
+                      from: 'employees',
+                      localField: 'employee',
+                      foreignField: '_id',
+                      as: 'employee'
+                    }
+                  },
+                  { $unwind: { path: '$employee', preserveNullAndEmptyArrays: true } }
+                ]
+              }
+            },
+            { $unwind: { path: '$employeePayment', preserveNullAndEmptyArrays: true } },
+            {
+              $lookup: {
+                from: 'incometypes',
+                localField: 'type',
+                foreignField: '_id',
+                as: 'type',
+              },
+            },
+            {
+              $unwind: {
+                path: '$type',
+                preserveNullAndEmptyArrays: true,
+              },
+            },
+          ],
+        },
+      },
+      {
+        $lookup: {
+          from: 'stocks',
+          localField: 'initialStockArray',
+          foreignField: '_id',
+          as: 'initialStockArray',
+          pipeline: [
+            branchLookup,
+            unwindBranch,
+            {
+              $lookup: {
+                from: 'products',
+                localField: 'product',
+                foreignField: '_id',
+                as: 'product',
+              },
+            },
+            {
+              $unwind: {
+                path: '$product',
+                preserveNullAndEmptyArrays: true,
+              },
+            },
+            employeeLookup,
+            unwindEmployee
+          ],
         }
       },
       {
@@ -55,7 +204,27 @@ export const getBranchReports = async (req, res, next) => {
           from: 'stocks',
           localField: 'finalStockArray',
           foreignField: '_id',
-          as: 'finalStockArray' // Poblamos con documentos completos
+          as: 'finalStockArray',
+          pipeline: [
+            branchLookup,
+            unwindBranch,
+            {
+              $lookup: {
+                from: 'products',
+                localField: 'product',
+                foreignField: '_id',
+                as: 'product',
+              },
+            },
+            {
+              $unwind: {
+                path: '$product',
+                preserveNullAndEmptyArrays: true,
+              },
+            },
+            employeeLookup,
+            unwindEmployee
+          ],
         }
       },
       {

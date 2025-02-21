@@ -43,7 +43,7 @@ export default function ListaEntradas({ inputs, totalWeight = 0, totalAmount = 0
   }
 
   const renderInputItem = (input, index) => {
-    const { employee, product, pieces, weight, amount, branch, comment, customer } = input
+    const { employee, product, pieces, weight, amount, branch, comment, customer, createdAt } = input
     const tempInput = { ...input, index }
     const customerInfo = `${customer?.name || ''} ${customer?.lastName || ''}`.trim() || customer?.label
     const branchInfo = branch?.branch || ''
@@ -69,7 +69,7 @@ export default function ListaEntradas({ inputs, totalWeight = 0, totalAmount = 0
                       </RowItem>
                     </div>
                     <div className="w-full text-sm font-semibold">
-                      <RowItem>
+                      <RowItem className=''>
                         <p className="flex gap-1 items-center font-semibold"><GiChickenOven />{product.name}</p>
                         <p className="">{`${pieces} pzs`}</p>
                         <p className="">{`${weight} kg`}</p>
@@ -79,6 +79,9 @@ export default function ListaEntradas({ inputs, totalWeight = 0, totalAmount = 0
                     <div className="w-full">
                       <RowItem>
                         <p className="text-xs flex gap-1 items-center"><FaInfoCircle className="text-blue-800" />{comment || 'Sin observaciones.'}</p>
+                        <div className="text-sm text-black flex justify-self-end">
+                          {formatTime(createdAt)}
+                        </div>
                       </RowItem>
                     </div>
                   </div>
