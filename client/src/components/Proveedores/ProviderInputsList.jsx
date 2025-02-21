@@ -59,7 +59,9 @@ export default function ProviderInputsList({ inputs, totalWeight = 0, totalAmoun
   // }
 
   const renderInputItem = (input, index) => {
-    const { employee, product, pieces, weight, amount, branch, comment } = input;
+    const { employee, product, pieces, weight, amount, branch, comment, createdAt } = input;
+
+    const tempInput = { ...input, index };
 
     return (
       isAuthorized(employee) && (
@@ -68,7 +70,7 @@ export default function ProviderInputsList({ inputs, totalWeight = 0, totalAmoun
             <div className="grid grid-cols-12 border border-black border-opacity-30 rounded-2xl shadow-sm mb-2 py-1">
               <button
                 onClick={() => {
-                  setSelectedInput({ ...input, index });
+                  setSelectedInput(tempInput);
                 }}
                 id="list-element"
                 className="col-span-10 items-center"
@@ -77,7 +79,10 @@ export default function ProviderInputsList({ inputs, totalWeight = 0, totalAmoun
                   <div className="w-full text-red-800">
                     <RowItem>
                       <p className="text-md font-bold flex gap-1 items-center"><MdStorefront />{branch.branch}</p>
-                      <p className="font-bold text-md flex gap-1 items-center"><span><CgProfile /></span>{employee.name}</p>
+                      <p className="font-bold text-md flex gap-1 items-center truncate"><span><CgProfile /></span>{employee.name}</p>
+                      <div>
+                        {formatTime(createdAt)}
+                      </div>
                     </RowItem>
                   </div>
                   <div className="w-full text-sm font-semibold">
@@ -98,7 +103,7 @@ export default function ProviderInputsList({ inputs, totalWeight = 0, totalAmoun
               <div className="col-span-2 my-auto">
                 {deletable && (
                   <DeleteButton
-                    deleteFunction={() => onDelete({ ...input, index })}
+                    deleteFunction={() => onDelete(tempInput)}
                   />
                 )}
               </div>
@@ -129,7 +134,7 @@ export default function ProviderInputsList({ inputs, totalWeight = 0, totalAmoun
               <ConfirmationButton onConfirm={() => onDelete(selectedInput)} className="bg-delete-button  text-white w-10/12 rounded-xl">
                 Eliminar
               </ConfirmationButton>
-              <ConfirmationButton onConfirm={() => onDelete(selectedInput)} className="bg-update-button  text-white w-10/12 rounded-xl">
+              <ConfirmationButton onConfirm={() => console.log('editing')} className="bg-update-button  text-white w-10/12 rounded-xl">
                 Actualizar
               </ConfirmationButton>
             </div>

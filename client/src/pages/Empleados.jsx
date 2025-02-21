@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { useSelector } from "react-redux"
-import { MdEdit } from "react-icons/md";
 import { weekDays } from "../helpers/Constants"
 import { FaEdit, FaTrash } from "react-icons/fa";
 import { Link } from "react-router-dom"
@@ -14,7 +13,7 @@ import RegistroEmpleadoNuevo from "./RegistroEmpleado";
 export default function Empleados() {
 
   const { company } = useSelector((state) => state.user)
-  const { employees, filterEmployees, changeEmployeeActiveStatus, onUpdateEmployee, spliceEmployee, loading, error } = useEmployees({ companyId: company._id, onlyActiveEmployees: false })
+  const { employees, setFilterString, changeEmployeeActiveStatus, onUpdateEmployee, spliceEmployee, loading, error } = useEmployees({ companyId: company._id, onlyActiveEmployees: false })
   const { deleteEmployee } = useDeleteEmployee()
   const [hoveredIndex, setHoveredIndex] = useState(null)
   const [isOpen, setIsOpen] = useState(false)
@@ -25,8 +24,6 @@ export default function Empleados() {
   const [editEmployee, setEditEmployee] = useState(null)
   const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 
-
-
   const handleChangeEmployeeStatus = (employee) => {
 
     changeEmployeeActiveStatus({ employee })
@@ -34,7 +31,7 @@ export default function Empleados() {
 
   const handleSearchBarChange = (value) => {
 
-    filterEmployees(value)
+    setFilterString(value)
   }
 
   const handleMouseEnter = useCallback((value) => {
@@ -72,7 +69,6 @@ export default function Empleados() {
 
   const stopSearching = () => {
 
-    filterEmployees()
     setSearching(false)
   }
 
@@ -92,20 +88,15 @@ export default function Empleados() {
 
       {error ? <p>{error}</p> : ''}
 
-      <div className="w-full bg-white  p-3 border rounded-lg">
-
-        <div className="border rounded-lg flex items-center w-full">
-
-          <SearchBar ref={searchBarRef} handleFilterTextChange={handleSearchBarChange} placeholder={'Busca a tus empleados (CTRL + b)'}></SearchBar>
-
-        </div>
-
-      </div>
-
       <div className="bg-white">
         <div className="grid grid-cols-2 border w-full mt-4 mb-4 rounded-lg">
           <button className={"h-full rounded-lg hover:shadow-xl p-3 " + (showActiveEmployees && !searching ? 'border border-black bg-green-600 opacity-85 text-white font-bold' : 'bg-green-600 text-white font-bold opacity-40')} onClick={() => { setShowActiveEmployees(true), stopSearching() }}>Empleados Activos</button>
           <button className={"h-full rounded-lg hover:shadow-xl p-3 " + (!showActiveEmployees && !searching ? 'bg-red-700 text-white font-bold border opacity-85 border-black' : 'bg-red-700 font-bold opacity-40 text-white')} onClick={() => { setShowActiveEmployees(false), stopSearching() }}>Empleados Inactivos</button>
+        </div>
+      </div>
+      <div className="w-full bg-white  p-3 border rounded-lg sticky top-16 z-10">
+        <div className="border rounded-lg flex items-center w-full">
+          <SearchBar ref={searchBarRef} handleFilterTextChange={handleSearchBarChange} placeholder={'Busca a tus empleados (CTRL + b)'}></SearchBar>
         </div>
       </div>
 
@@ -161,9 +152,9 @@ export default function Empleados() {
                         </div>
                       }
                     </button>
-                      <button className="border shadow-lg rounded-lg text-center h-10 w-10 m-3" onClick={toggleEditEmployee}>
-                        <FaEdit className="text-blue-500 m-auto h-fit w-fit" />
-                      </button>
+                    <button className="border shadow-lg rounded-lg text-center h-10 w-10 m-3" onClick={toggleEditEmployee}>
+                      <FaEdit className="text-blue-500 m-auto h-fit w-fit" />
+                    </button>
 
                     {editEmployee && (
                       <Modal

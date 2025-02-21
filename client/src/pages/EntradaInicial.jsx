@@ -2,7 +2,6 @@
 import { useEffect, useState } from "react"
 import { useSelector } from "react-redux"
 import SectionHeader from "../components/SectionHeader";
-import { MdCancel } from "react-icons/md";
 import { FaListAlt } from "react-icons/fa";
 import { BsInfoSquare } from "react-icons/bs";
 import Select from 'react-select'
@@ -10,14 +9,13 @@ import { customSelectStyles } from "../helpers/Constants";
 import MenuSucursal from "../components/EntradasDeProveedor/MenuSucursal";
 import { useProviderInputs } from "../hooks/ProviderInputs/useProviderInputs";
 import { getArrayForSelects, getElementForSelect, stringToCurrency } from "../helpers/Functions";
-import DeleteButton from "../components/Buttons/DeleteButton";
 import Modal from "../components/Modals/Modal";
 import ShowListModal from "../components/Modals/ShowListModal";
 import ProviderInputsList from "../components/Proveedores/ProviderInputsList";
 
-export default function EntradaInicial({ date, branchAndCustomerSelectOptions, products, roles }) {
+export default function EntradaInicial({ date, branchAndCustomerSelectOptions, products }) {
 
-  const { company, currentUser } = useSelector((state) => state.user)
+  const { company } = useSelector((state) => state.user)
   const [selectedProduct, setSelectedProduct] = useState(null)
   const { providerInputs, providerInputsWeight, providerInputsPieces, providerInputsAmount, onAddProviderInput, onDeleteProviderInput } = useProviderInputs({ companyId: company._id, productId: selectedProduct == null ? products.length > 0 ? products[0]._id : null : selectedProduct._id, date })
   const [showProviderInputs, setShowProviderInputs] = useState(false)

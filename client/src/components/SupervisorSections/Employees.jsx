@@ -84,7 +84,7 @@ export default function Employees({ companyId, employees, dailyBalances }) {
             </div>
             : ''}
           {dailyBalances && dailyBalances.length > 0 && dailyBalances.map((dailyBalance) => (
-            ((`${dailyBalance.employee.name} ${dailyBalance.employee.lastName}`).includes(dailyBalancesFilterText) || dailyBalancesFilterText == '') && (
+            ((`${dailyBalance.employee.name} ${dailyBalance.employee.lastName}`).toLowerCase().includes(dailyBalancesFilterText) || dailyBalancesFilterText == '') && (
               <div key={dailyBalance._id} className='grid grid-cols-12 items-center border border-black border-opacity-30 rounded-lg shadow-sm mt-2'>
                 <div id='list-element' className='flex col-span-12 items-center justify-around'>
                   <Link className='w-3/12' to={dailyBalance.employee != null ? '/perfil/' + dailyBalance.employee._id : ''}>

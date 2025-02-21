@@ -25,6 +25,7 @@ import ListaSalidas from '../components/EntradasYSalidas/Salidas/ListaSalidas';
 import ShowBalance from '../components/ShowBalance';
 import StockList from '../components/Stock/StockList';
 import Switch from '../components/Switch';
+import OutgoingsList from '../components/Outgoings/OutgoingsList';
 
 export default function RegistroCuentaDiaria({ edit = true, _branchReport = null, _branch = null }) {
 
@@ -55,7 +56,8 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
     initialStockWeight,
     initialStockAmount,
     initialStock,
-    incomes,
+    payments,
+    noPayments,
     incomesTotal,
     inputs,
     inputsAmount: inputsTotal,
@@ -337,36 +339,63 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
                         ListComponent={StockList}
                         ListComponentProps={{ stock: initialStock, amount: initialStockAmount, weight: initialStockWeight }}
                         clickableComponent={
-                          <p className=' font-bold text-md text-center p-3 bg-white border rounded-lg border-header'>{stringToCurrency({ amount: initialStockAmount })}</p>
+                          <p className=' font-bold text-md text-center p-3 bg-red-200 border rounded-lg border-header'>{stringToCurrency({ amount: initialStockAmount })}</p>
                         }
                       />
                     </div>
                   </div>
-                  <AddOutgoing
-                    modifyBalance={modifyBalance}
-                    outgoings={outgoings}
-                    outgoingsTotal={outgoingsTotal}
-                    employee={selectedEmployee}
-                    onAddOutgoing={onAddOutgoing}
-                    onDeleteOutgoing={isEditing ? onDeleteOutgoing : null}
-                    branch={selectedBranch}
-                    date={stringDatePickerValue}
-                    isEditing={isEditing}
-                  />
-                  <AddStock
-                    stock={stock}
-                    modifyBalance={modifyBalance}
-                    amount={stockAmount}
-                    weight={stockWeight}
-                    products={products}
-                    onAddStock={onAddStock}
-                    onDeleteStock={isEditing ? onDeleteStock : null}
-                    branchPrices={prices}
-                    branch={selectedBranch}
-                    employee={selectedEmployee}
-                    date={stringDatePickerValue}
-                    isEditing={isEditing}
-                  />
+                  {!isEditing ?
+                    <div className='w-full mt-2'>
+                      <ShowListModal
+                        title={'Gastos'}
+                        ListComponent={OutgoingsList}
+                        ListComponentProps={{ outgoings, amount: outgoingsTotal, onDelete: onDeleteOutgoing, modifyBalance }}
+                        clickableComponent={
+                          <p className='font-bold text-lg text-center bg-green-100 rounded-lg p-1 border border-header'>{stringToCurrency({ amount: outgoingsTotal ?? 0 })}</p>
+                        }
+                      />
+                    </div>
+                    :
+                    <AddOutgoing
+                      modifyBalance={modifyBalance}
+                      outgoings={outgoings}
+                      outgoingsTotal={outgoingsTotal}
+                      employee={selectedEmployee}
+                      onAddOutgoing={onAddOutgoing}
+                      onDeleteOutgoing={isEditing ? onDeleteOutgoing : null}
+                      branch={selectedBranch}
+                      date={stringDatePickerValue}
+                      isEditing={isEditing}
+                      listButton={<p className='font-bold text-lg text-center bg-green-100 rounded-lg p-1 border border-header'>{stringToCurrency({ amount: outgoingsTotal ?? 0 })}</p>}
+                    />
+                  }
+                  {isEditing ?
+
+                    <AddStock
+                      stock={stock}
+                      modifyBalance={modifyBalance}
+                      amount={stockAmount}
+                      weight={stockWeight}
+                      products={products}
+                      onAddStock={onAddStock}
+                      onDeleteStock={isEditing ? onDeleteStock : null}
+                      branchPrices={prices}
+                      branch={selectedBranch}
+                      employee={selectedEmployee}
+                      date={stringDatePickerValue}
+                      isEditing={isEditing}
+                      listButton={<p className='font-bold text-lg text-center bg-green-100 rounded-lg border p-1 border-header'>{stringToCurrency({ amount: stockAmount ?? 0 })}</p>}
+                    />
+                    :
+                    <div className='w-full mt-2'>
+                      <ShowListModal
+                        title={'Sobrante'}
+                        ListComponent={StockList}
+                        ListComponentProps={{ stock, weight: stockWeight, amount: stockAmount, onDelete: onDeleteStock, modifyBalance }}
+                        clickableComponent={<p className='font-bold text-lg text-center bg-green-100 rounded-lg border p-1 border-header'>{stringToCurrency({ amount: stockAmount ?? 0 })}</p>
+                        }
+                      />
+                    </div>}
                 </div>
                 : ''}
               <ShowListModal
@@ -374,7 +403,7 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
                 ListComponent={ProviderInputsList}
                 ListComponentProps={{ inputs: providerInputs, totalAmount: providerInputsTotal, totalWeight: providerInputsWeight }}
                 clickableComponent={
-                  <p className='font-bold text-lg text-center bg-white border rounded-lg p-1 border-header mt-2'>PROVEEDORES {stringToCurrency({ amount: providerInputsTotal ?? 0 })}</p>
+                  <p className='font-bold text-lg text-center bg-red-200 border rounded-lg p-1 border-header mt-2'>PROVEEDORES {stringToCurrency({ amount: providerInputsTotal ?? 0 })}</p>
                 }
               />
               <ShowListModal
@@ -382,7 +411,7 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
                 ListComponent={ListaEntradas}
                 ListComponentProps={{ inputs, totalWeight: inputsWeight, totalAmount: inputsTotal }}
                 clickableComponent={
-                  <p className='font-bold text-lg text-center bg-white border rounded-lg p-1 border-header mt-2'>ENTRADAS {stringToCurrency({ amount: inputsTotal ?? 0 })}</p>
+                  <p className='font-bold text-lg text-center bg-red-200 border rounded-lg p-1 border-header mt-2'>ENTRADAS {stringToCurrency({ amount: inputsTotal ?? 0 })}</p>
                 }
               />
               <ShowListModal
@@ -390,15 +419,24 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
                 ListComponent={ListaSalidas}
                 ListComponentProps={{ outputs, totalWeight: outputsWeight, totalAmount: outputsTotal }}
                 clickableComponent={
-                  <p className='font-bold text-lg text-center bg-white border rounded-lg p-1 border-header mt-2'>SALIDAS {stringToCurrency({ amount: outputsTotal ?? 0 })}</p>
+                  <p className='font-bold text-lg text-center bg-green-100 border rounded-lg p-1 border-header mt-2'>SALIDAS {stringToCurrency({ amount: outputsTotal ?? 0 })}</p>
                 }
+              />
+              <ShowListModal
+                title={'Pagos'}
+                ListComponent={IncomesList}
+                ListComponentProps={{ incomes: payments, incomesTotal: payments.reduce((acc, payment) => acc += payment.amount, 0) }}
+                clickableComponent={
+                  <p className='font-bold text-lg text-center bg-green-100 border rounded-lg p-1 border-header mt-2'>PAGOS {stringToCurrency({ amount: payments.reduce((acc, payment) => acc += payment.amount, 0) ?? 0 })}</p>
+                }
+              //Comparar con el monto para cubrir la nota de hoy.
               />
               <ShowListModal
                 title={'Ingresos'}
                 ListComponent={IncomesList}
-                ListComponentProps={{ incomes, incomesTotal }}
+                ListComponentProps={{ incomes: noPayments, incomesTotal: noPayments.reduce((acc, payment) => acc += payment.amount, 0) }}
                 clickableComponent={
-                  <p className='font-bold text-lg text-center bg-white border rounded-lg p-1 border-header mt-2'>EFECTIVOS {stringToCurrency({ amount: incomesTotal ?? 0 })}</p>
+                  <p className='font-bold text-lg text-center bg-green-100 border rounded-lg p-1 border-header mt-2'>EFECTIVOS {stringToCurrency({ amount: noPayments.reduce((acc, payment) => acc += payment.amount, 0) ?? 0 })}</p>
                 }
               //Comparar con el monto para cubrir la nota de hoy.
               />

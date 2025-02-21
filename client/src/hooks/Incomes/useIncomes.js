@@ -99,11 +99,16 @@ export const useIncomes = ({ companyId = null, date = null, initialIncomes = nul
     return [...branchesIncomes, ...clientsIncomes];
   }, [incomes]);
 
+  const payments = useMemo(() => incomes.filter((income) => income.partOfAPayment), [incomes]);
+  const noPayments = useMemo(() => incomes.filter((income) => !income.partOfAPayment), [incomes]);
+
   const incomesTotal = useMemo(() => incomes.reduce((acc, income) => acc + income.amount, 0), [incomes])
 
   return {
     incomes: sortedIncomes,
     incomesTotal,
+    payments,
+    noPayments,
     onAddIncome,
     onDeleteIncome,
     loading: loading || addLoading || deleteLoading,

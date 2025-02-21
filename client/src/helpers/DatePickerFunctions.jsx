@@ -1,3 +1,5 @@
+import { MdOutlineAccessTimeFilled } from "react-icons/md";
+
 export const formatDate = (date) => {
 
   const actualLocaleDate = new Date(date)
@@ -24,7 +26,7 @@ export const formatTime = (date) => {
 
   const pivotDate = new Date(date)
 
-  return pivotDate.toLocaleTimeString('es-Mx')
+  return <div className="flex items-center">{<MdOutlineAccessTimeFilled />} {pivotDate.toLocaleTimeString('es-MX', { hour12: false })}</div>
 }
 
 export const formatDateAndTime = (date) => {
@@ -37,4 +39,21 @@ export const formatDateAndTime = (date) => {
 export const isToday = (date) => {
 
   return formatDate(date) == formatDate((new Date())) ? true : false
+}
+
+export const getDayRange = (date, shiftDays = 0) => {
+
+  const formatedDate = formatDate(new Date(date || new Date()).toUTCString());
+  const principalDate = new Date(formatedDate)
+  principalDate.setDate(principalDate.getDate() + shiftDays)
+  const datePlusOne = new Date(principalDate.toISOString())
+  datePlusOne.setDate(datePlusOne.getDate() + 1)
+
+  if (principalDate.getUTCHours() == 0) {
+
+    principalDate.setHours(6, 0, 0)
+    datePlusOne.setHours(6, 0, 0)
+  }
+
+  return { bottomDate: principalDate.toISOString(), topDate: datePlusOne.toISOString() }
 }

@@ -6,9 +6,9 @@ import Select from 'react-select'
 import SectionHeader from "../SectionHeader"
 import ShowListModal from "../Modals/ShowListModal"
 import StockList from "./StockList"
-import { getArrayForSelects, getElementForSelect, stringToCurrency } from "../../helpers/Functions"
+import { getArrayForSelects, getElementForSelect } from "../../helpers/Functions"
 
-export default function AddStock({ modifyBalance, stock, weight, amount, products, onAddStock, onDeleteStock, branch, employee, date, branchPrices, isEditing }) {
+export default function AddStock({ modifyBalance, stock, listButton, weight, amount, products, onAddStock, onDeleteStock, branch, employee, date, branchPrices, isEditing }) {
 
   const { company } = useSelector((state) => state.user)
   const [selectedProduct, setSelectedProduct] = useState(null)
@@ -180,10 +180,8 @@ export default function AddStock({ modifyBalance, stock, weight, amount, product
         <ShowListModal
           title={'Sobrante'}
           ListComponent={StockList}
-          ListComponentProps={{ stock, weight, amount, onDeleteStock, modifyBalance }}
-          clickableComponent={
-            <p className='font-bold text-lg text-center rounded-lg border p-1 border-header'>{stringToCurrency({ amount: amount ?? 0 })}</p>
-          }
+          ListComponentProps={{ stock, weight, amount, onDelete: onDeleteStock, modifyBalance }}
+          clickableComponent={listButton}
         />
       </div>
     </div>

@@ -13,7 +13,7 @@ export const useBranchReport = ({ branchId = null, date = null, _branchReport = 
 
   const [branchReport, setBranchReport] = useState()
   const { outgoings, outgoingsTotal, onAddOutgoing, onDeleteOutgoing, loading: outgoingsLoading } = useOutgoings({ initialOutgoings: branchReport?.outgoingsArray || null })
-  const { incomes, incomesTotal, loading: incomesLoading } = useIncomes({ initialIncomes: branchReport?.incomesArray || null })
+  const { incomes, payments, noPayments, incomesTotal, loading: incomesLoading } = useIncomes({ initialIncomes: branchReport?.incomesArray || null })
   const { stock , stockAmount, stockWeight, onAddStock, onDeleteStock, loading: stockLoading } = useStock({ initialStock: branchReport?.finalStockArray || null })
   const { initialStock, initialStockWeight, initialStockAmount } = useInitialStock({ initialArray: branchReport?.initialStockArray || null })
   const { outputs , totalWeight: outputsWeight, totalAmount: outputsAmount, loading: outputsLoading } = useOutput({ initialOutputs: branchReport?.outputsArray || null})
@@ -88,6 +88,8 @@ export const useBranchReport = ({ branchId = null, date = null, _branchReport = 
     outgoings,
     outgoingsTotal,
     incomes,
+    payments,
+    noPayments,
     incomesTotal,
     stock,
     stockAmount,

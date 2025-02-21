@@ -22,13 +22,8 @@ export default function ExtraOutgoings({ date, pushIncome, employees, branches, 
   const [extraOutgoingFormData, setExtraOutgoingFormData] = useState({})
   const { extraOutgoings, spliceExtraOutgoingById, totalExtraOutgoings, onAddExtraOutgoing, onDeleteExtraOutgoing, pushExtraOutgoing } = useDayExtraOutgoings({ companyId: company._id, date })
   const { payments, total: totalEmployeesPayments, onAddEmployeePayment, onDeleteEmployeePayment } = useEmployeesPayments({ companyId: company._id, date })
-  // const [buttonId, setButtonId] = useState(null)
-  // const [isOpen, setIsOpen] = useState(false)
-  // const [employeePaymentsIsOpen, setEmployeePaymentsIsOpen] = useState(false)
   const [selectedBranch, setSelectedBranch] = useState(null)
   const [selectedEmployee, setSelectedEmployee] = useState(null)
-
-  console.log(payments, totalEmployeesPayments)
 
   const paymentsButtonControl = () => {
 
@@ -202,7 +197,7 @@ export default function ExtraOutgoings({ date, pushIncome, employees, branches, 
             <ShowListModal
               title={'Pagos a empleados'}
               ListComponent={EmployeePaymentsList}
-              ListComponentProps={{ payments, total: totalEmployeesPayments, onDeletePayment: onDeleteEmployeePayment, spliceIncome: spliceIncomeById, spliceExtraOutgoing: spliceExtraOutgoingById }}
+              ListComponentProps={{ payments, total: totalEmployeesPayments, onDelete: onDeleteEmployeePayment, spliceIncome: spliceIncomeById, spliceExtraOutgoing: spliceExtraOutgoingById }}
               clickableComponent={<p className='font-bold text-lg text-center'>{stringToCurrency({ amount: totalEmployeesPayments })}</p>}
             />
           </div>

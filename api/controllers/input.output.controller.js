@@ -2,7 +2,7 @@ import Output from '../models/accounts/output.model.js'
 import Input from '../models/accounts/input.model.js'
 import { errorHandler } from '../utils/error.js'
 import ProviderInput from '../models/providers/provider.input.model.js'
-import { getDayRange } from '../utils/formatDate.js'
+import { getDayRange, today } from '../utils/formatDate.js'
 import { Types } from 'mongoose'
 import { pushOrPullBranchReportRecord } from './branch.report.controller.js'
 import { pushOrPullCustomerReportRecord } from './customer.controller.js'
@@ -893,7 +893,7 @@ export const createBranchProviderInputAndUpdateBranchReport = async ({ _id, weig
 
   try {
 
-    const providerInputData = { weight, product, price, employee, branch, company, comment, pieces, amount, specialPrice, createdAt }
+    const providerInputData = { weight, product, price, employee, branch, company, comment, pieces, amount, specialPrice, createdAt: today(createdAt) ? new Date() : createdAt }
 
     if (_id) providerInputData._id = _id
 

@@ -7,29 +7,18 @@ import { Types } from "mongoose";
 export const useDayExtraOutgoings = ({ companyId = null, date = null, initialExtraOutgoings = [] }) => {
 
   const [extraOutgoings, setExtraOutgoings] = useState(initialExtraOutgoings)
-  const [totalExtraOutgoings, setTotalExtraOutgoings] = useState(
-    initialExtraOutgoings.reduce((acc, extraOutgoing) => acc + extraOutgoing.amount, 0)
-  )
   const { addExtraOutgoing } = useAddExtraOutgoing()
   const { deleteExtraOutgoing } = useDeleteExtraOutgoing()
   const [loading, setLoading] = useState(false)
 
-  const calculateTotal = (extraOutgoingsList) => {
-
-    setTotalExtraOutgoings(extraOutgoingsList.reduce((acc, extraOutgoing) => acc + extraOutgoing.amount, 0))
-  }
-
   const pushExtraOutgoing = (extraOutgoing) => {
 
     setExtraOutgoings((prevExtraOutgoings) => [extraOutgoing, ...prevExtraOutgoings])
-    setTotalExtraOutgoings((prevTotal) => prevTotal + extraOutgoing.amount)
   }
 
   const spliceExtraOutgoingByIndex = (index) => {
     setExtraOutgoings((prevExtraOutgoings) => {
-      const removed = prevExtraOutgoings[index];
       const newExtraOutgoings = prevExtraOutgoings.filter((_, i) => i !== index);
-      setTotalExtraOutgoings((prevTotal) => prevTotal - removed.amount);
       return newExtraOutgoings;
     });
   };
@@ -39,7 +28,6 @@ export const useDayExtraOutgoings = ({ companyId = null, date = null, initialExt
     setExtraOutgoings((prevExtraOutgoings) => {
 
       const filteredExtraOutgoings = prevExtraOutgoings.filter((extraOutgoing) => extraOutgoing._id !== extraOutgoingId)
-      setTotalExtraOutgoings(calculateTotal(filteredExtraOutgoings))
       return filteredExtraOutgoings
     })
 
@@ -83,6 +71,10 @@ export const useDayExtraOutgoings = ({ companyId = null, date = null, initialExt
 
   }, [extraOutgoings])
 
+  const totalExtraOutgoings = useMemo(() => {
+    return extraOutgoings.reduce((total, extraOutgoing) => total + extraOutgoing.amount, 0)
+  }, [extraOutgoings])
+
   useEffect(() => {
 
     if (!companyId || !date) return
@@ -90,12 +82,10 @@ export const useDayExtraOutgoings = ({ companyId = null, date = null, initialExt
     setLoading(true)
 
     setExtraOutgoings([])
-    setTotalExtraOutgoings(0.0)
 
     getDayExtraOutgoingsFetch({ companyId, date }).then((response) => {
 
       setExtraOutgoings(response.extraOutgoings)
-      setTotalExtraOutgoings(response.totalExtraOutgoings)
 
     }).catch((error) => {
 
