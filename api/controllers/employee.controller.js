@@ -952,6 +952,16 @@ export const getEmployeesDailyBalances = async (req, res, next) => {
 	const companyId = req.params.companyId
 
 	const { bottomDate, topDate } = getDayRange(date)
+	const employees = await Employee.find({
+		$and: [
+			{
+				company: companyId
+			},
+			{
+				active: true
+			}
+		]
+	}).select({ path: '_id' })
 
 	try {
 
@@ -963,6 +973,9 @@ export const getEmployeesDailyBalances = async (req, res, next) => {
 				},
 				{
 					createdAt: { $lt: topDate }
+				},
+				{
+					employee: { $in: employees.map(employee => employee._id) }
 				},
 				{
 					company: companyId
@@ -977,17 +990,6 @@ export const getEmployeesDailyBalances = async (req, res, next) => {
 		} else {
 
 			let bulkOps = []
-
-			const employees = await Employee.find({
-				$and: [
-					{
-						company: companyId
-					},
-					{
-						active: true
-					}
-				]
-			}).select({ path: '_id' })
 
 			employees.forEach((employee) => {
 
