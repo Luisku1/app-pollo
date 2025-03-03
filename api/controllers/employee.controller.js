@@ -836,8 +836,6 @@ export const fetchEmployeesPayroll = async ({ companyId, date }) => {
 			}
 		])
 
-		console.log(weeklyBalances)
-
 		return weeklyBalances || null
 
 	} catch (error) {

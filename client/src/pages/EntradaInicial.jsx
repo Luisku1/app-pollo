@@ -8,7 +8,7 @@ import Select from 'react-select'
 import { customSelectStyles } from "../helpers/Constants";
 import MenuSucursal from "../components/EntradasDeProveedor/MenuSucursal";
 import { useProviderInputs } from "../hooks/ProviderInputs/useProviderInputs";
-import { getArrayForSelects, getElementForSelect, stringToCurrency } from "../helpers/Functions";
+import { getArrayForSelects, getElementForSelect, currency } from "../helpers/Functions";
 import Modal from "../components/Modals/Modal";
 import ShowListModal from "../components/Modals/ShowListModal";
 import ProviderInputsList from "../components/Proveedores/ProviderInputsList";
@@ -90,7 +90,7 @@ export default function EntradaInicial({ date, branchAndCustomerSelectOptions, p
                 />
                 : ''}
             </div>
-            <p className='font-bold text-md'><span className=" text-red-700 text-center">{`${providerInputsWeight.toFixed(2)} Kg / ${providerInputsPieces}`}</span><sup className="text-red-700">u</sup><span>:</span><span className="text-green-700">{` ${stringToCurrency({ amount: providerInputsAmount })}`}</span></p>
+            <p className='font-bold text-md'><span className=" text-red-700 text-center">{`${providerInputsWeight.toFixed(2)} Kg / ${providerInputsPieces}`}</span><sup className="text-red-700">u</sup><span>:</span><span className="text-green-700">{` ${currency({ amount: providerInputsAmount })}`}</span></p>
           </div>
           <h2 className='text-2xl font-semibold mb-4 text-red-800'>
             <div className="">

@@ -3,7 +3,7 @@ import { FaListAlt } from 'react-icons/fa'
 import SectionHeader from '../SectionHeader'
 import EmployeesSelect from '../Select/EmployeesSelect'
 import Select from 'react-select'
-import { getArrayForSelects, getElementForSelect, stringToCurrency } from '../../helpers/Functions'
+import { getArrayForSelects, getElementForSelect, currency } from '../../helpers/Functions'
 import { isToday } from '../../helpers/DatePickerFunctions'
 import { useEffect, useState } from 'react'
 import { useEmployeesPayments } from '../../hooks/Employees/useEmployeesPayments'
@@ -178,7 +178,7 @@ export default function ExtraOutgoings({ date, pushIncome, employees, branches, 
               ListComponentProps={{ extraOutgoings, totalExtraOutgoings, onDelete: onDeleteExtraOutgoing }}
               clickableComponent={
                 roles && roles.managerRole && currentUser.role == roles.managerRole._id ?
-                  <p className='font-bold text-lg text-center'>{stringToCurrency({ amount: totalExtraOutgoings })}</p>
+                  <p className='font-bold text-lg text-center'>{currency({ amount: totalExtraOutgoings })}</p>
                   :
                   <FaListAlt className="h-10 w-10 text-red-600" />}
             />
@@ -198,7 +198,7 @@ export default function ExtraOutgoings({ date, pushIncome, employees, branches, 
               title={'Pagos a empleados'}
               ListComponent={EmployeePaymentsList}
               ListComponentProps={{ payments, total: totalEmployeesPayments, onDelete: onDeleteEmployeePayment, spliceIncome: spliceIncomeById, spliceExtraOutgoing: spliceExtraOutgoingById }}
-              clickableComponent={<p className='font-bold text-lg text-center'>{stringToCurrency({ amount: totalEmployeesPayments })}</p>}
+              clickableComponent={<p className='font-bold text-lg text-center'>{currency({ amount: totalEmployeesPayments })}</p>}
             />
           </div>
         </div>

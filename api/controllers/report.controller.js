@@ -596,6 +596,33 @@ export const supervisorsInfoQuery = async (companyId, topDate, bottomDate) => {
             },
             {
               $lookup: {
+                from: 'employeepayments',
+                localField: '_id',
+                foreignField: 'extraOutgoing',
+                as: 'employeePayment',
+                pipeline: [
+                  {
+                    $lookup: {
+                      from: 'employees',
+                      localField: 'employee',
+                      foreignField: '_id',
+                      as: 'employee'
+                    }
+                  },
+                  {
+                    $unwind: {
+                      path: '$employee',
+                      preserveNullAndEmptyArrays: true
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              $unwind: { path: '$employeePayment', preserveNullAndEmptyArrays: true }
+            },
+            {
+              $lookup: {
                 from: 'employees',
                 localField: 'employee',
                 foreignField: '_id',

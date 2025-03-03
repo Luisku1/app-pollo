@@ -7,7 +7,7 @@ import { customSelectStyles } from '../../helpers/Constants'
 import Select from 'react-select'
 import BranchAndCustomerSelect from '../Select/BranchAndCustomerSelect'
 import { useRoles } from '../../context/RolesContext'
-import { getArrayForSelects, stringToCurrency } from '../../helpers/Functions'
+import { getArrayForSelects, currency } from '../../helpers/Functions'
 import { FaListAlt } from 'react-icons/fa'
 import ShowListModal from '../Modals/ShowListModal'
 import IncomesList from './IncomesList'
@@ -139,7 +139,7 @@ export default function Incomes({ incomes, incomesTotal, onAddIncome, onDeleteIn
               ListComponentProps={{ incomes, incomesTotal, onDeleteIncome }}
               clickableComponent={
                 roles && roles.managerRole && currentUser.role == roles.managerRole._id ?
-                  <p className='font-bold text-lg text-center'>{stringToCurrency({ amount: incomesTotal ?? 0 })}</p>
+                  <p className='font-bold text-lg text-center'>{currency({ amount: incomesTotal ?? 0 })}</p>
                   :
                   <FaListAlt className="h-10 w-10 text-red-600" />
               }

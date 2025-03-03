@@ -4,7 +4,7 @@ import DeleteButton from '../Buttons/DeleteButton'
 import { useRoles } from '../../context/RolesContext'
 import ShowDetails from '../ShowDetails'
 import { useState } from 'react'
-import { stringToCurrency } from '../../helpers/Functions'
+import { currency } from '../../helpers/Functions'
 import { formatTime } from '../../helpers/DatePickerFunctions'
 import RowItem from '../RowItem'
 import { CgProfile } from 'react-icons/cg'
@@ -22,8 +22,8 @@ export default function StockList({ stock, weight, amount, onDelete, modifyBalan
   const fields = [
     { key: 'weight', label: 'Peso', format: (data) => `${data.weight.toFixed(2)} Kg` },
     { key: 'pieces', label: 'Piezas', format: (data) => data.pieces.toFixed(2) },
-    { key: 'price', label: 'Precio', format: (data) => stringToCurrency({ amount: data.price }) },
-    { key: 'amount', label: 'Monto', format: (data) => stringToCurrency({ amount: data.amount }) },
+    { key: 'price', label: 'Precio', format: (data) => currency({ amount: data.price }) },
+    { key: 'amount', label: 'Monto', format: (data) => currency({ amount: data.amount }) },
     { key: 'branch.branch', label: 'Entró a', format: (data) => data.branch.branch },
     { key: 'employee.name', label: 'Encargado', format: (data) => `${data.employee.name} ${data.employee.lastName}` },
     { key: 'createdAt', label: 'Hora', format: (data) => formatTime(data.createdAt) },
@@ -33,7 +33,7 @@ export default function StockList({ stock, weight, amount, onDelete, modifyBalan
     return (
       <div className='justify-self-end'>
         <p className='text-green-800 font-bold text-lg'>
-          {`${weight.toFixed(3)} Kg - ${stringToCurrency({ amount: amount })}`}
+          {`${weight.toFixed(3)} Kg - ${currency({ amount: amount })}`}
         </p>
       </div>
     )

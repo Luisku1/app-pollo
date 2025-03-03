@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import { IoReload } from "react-icons/io5";
-import { useEffect, useState } from "react"
+import { useContext, useEffect, useState } from "react"
 import { useSelector } from "react-redux"
 import { useParams, useNavigate, Link } from "react-router-dom"
 import FechaDePagina from "../components/FechaDePagina"
@@ -8,7 +8,7 @@ import { formatDate } from "../helpers/DatePickerFunctions"
 import TarjetaCuenta from "../components/TarjetaCuenta"
 import Sobrante from "../pages/Sobrante"
 import { useBranchReports } from "../hooks/BranchReports.js/useBranchReports";
-import { getArrayForSelects, stringToCurrency } from "../helpers/Functions";
+import { getArrayForSelects, currency } from "../helpers/Functions";
 import PieChart from "../components/Charts/PieChart";
 import RegistrarDineroReportado from "../components/RegistrarDineroReportado";
 import EmployeeMultiSelect from "../components/Select/EmployeeMultiSelect";
@@ -19,6 +19,7 @@ import ShowIncomesModal from "../components/Incomes/ShowIncomesModal.jsx";
 import ShowListModal from "../components/Modals/ShowListModal.jsx";
 import Modal from "../components/Modals/Modal";
 import RegistroCuentaDiaria from "./RegistroCuentaDiaria";
+import { ModalContext } from '../context/ModalContext';
 
 export default function Reporte({ untitled = false }) {
 
@@ -68,6 +69,7 @@ export default function Reporte({ untitled = false }) {
   const [pieChartInfo, setPieChartInfo] = useState([])
   const [negativeBalances, setNegativeBalances] = useState(new Set())
   const [selectedBranchReport, setSelectedBranchReport] = useState(null);
+  const { addModal, removeModal } = useContext(ModalContext);
 
   const updateReportedCash = ({ reportedCash, prevReportedCash, prevReportedIncomes }) => {
 
@@ -206,14 +208,9 @@ export default function Reporte({ untitled = false }) {
 
   useEffect(() => {
 
-    if (!roles?.managerRole) return
+    if (roles?.managerRole?._id != currentUser?.role) {
 
-    if (Object.getOwnPropertyNames(roles.managerRole).length > 0 && Object.getOwnPropertyNames(currentUser).length > 0) {
-
-      if (roles.managerRole._id != currentUser.role) {
-
-        handleShowStockButton()
-      }
+      handleShowStockButton()
     }
 
   }, [currentUser, roles?.managerRole])
@@ -281,6 +278,15 @@ export default function Reporte({ untitled = false }) {
                           className="text-sm text-gray-700"
                           onClick={() => {
                             setSelectedBranchReport(branchReport);
+                            addModal(
+                              <Modal
+                                content={<RegistroCuentaDiaria edit={false} _branchReport={branchReport} _branch={branchReport.branch} />}
+                                closeModal={() => {
+                                  setSelectedBranchReport(null);
+                                  removeModal();
+                                }}
+                              />
+                            );
                           }}
                         >
                           {branchReport.branch.branch}
@@ -302,7 +308,7 @@ export default function Reporte({ untitled = false }) {
                 <tfoot className="border border-black text-sm">
                   <tr className="mt-2">
                     <td className="text-center text-m font-bold">Totales:</td>
-                    <td className="text-center text-m font-bold">{stringToCurrency({ amount: totalOutgoings ?? 0 })}</td>
+                    <td className="text-center text-m font-bold">{currency({ amount: totalOutgoings ?? 0 })}</td>
                     <td className="text-center text-m font-bold">{totalStock.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
                     <td className="text-center text-m font-bold">{totalIncomes.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
                     <td className={(totalBalance < 0 ? 'text-red-500' : 'text-green-500') + ' text-center text-m font-bold'}>{totalBalance.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
@@ -310,7 +316,7 @@ export default function Reporte({ untitled = false }) {
                 </tfoot>
               </table>
               <div className={!showStock ? 'hidden' : ''}>
-                <Sobrante date={stringDatePickerValue}></Sobrante>
+                <Sobrante date={stringDatePickerValue} branchReports={branchReports}></Sobrante>
               </div>
               <div className={!showCards ? 'hidden' : ''} >
                 <TarjetaCuenta reportArray={branchReports} currentUser={currentUser}></TarjetaCuenta>
@@ -324,13 +330,13 @@ export default function Reporte({ untitled = false }) {
           <div className="my-2 mx-auto">
             <h3 className="text-3xl font-bold">Ingresos del día</h3>
             <div>
-              <h4 className="text-2xl font-bold">Brutos: {stringToCurrency({ amount: grossCash + deposits })}</h4>
+              <h4 className="text-2xl font-bold">Brutos: {currency({ amount: grossCash + deposits })}</h4>
               <div className="flex gap-3">
-                <p className="font-bold">Efectivo: <span style={{ color: '#206e09' }}>{`${stringToCurrency({ amount: grossCash })}`} </span></p>
-                <p className="font-bold">Depósitos: <span style={{ color: '#0c4e82' }}>{`${stringToCurrency({ amount: deposits })}`}</span></p>
+                <p className="font-bold">Efectivo: <span style={{ color: '#206e09' }}>{`${currency({ amount: grossCash })}`} </span></p>
+                <p className="font-bold">Depósitos: <span style={{ color: '#0c4e82' }}>{`${currency({ amount: deposits })}`}</span></p>
               </div>
             </div>
-            <h4 className="text-2xl font-bold mb-3">Netos: {stringToCurrency({ amount: (netIncomes) })}</h4>
+            <h4 className="text-2xl font-bold mb-3">Netos: {currency({ amount: (netIncomes) })}</h4>
             <PieChart chartInfo={pieChartInfo} netIncomes={netIncomes} verifiedIncomes={verifiedIncomes}></PieChart>
           </div>
           <div className="my-1 border border-slate-500 border-spacing-4 p-2 bg-white z-5 rounded-lg mb-5">
@@ -355,7 +361,7 @@ export default function Reporte({ untitled = false }) {
                             <ShowIncomesModal
                               title={'Depósitos'}
                               clickableComponent={
-                                <p className="text-lg">{stringToCurrency({ amount: supervisor.deposits + supervisor.terminalIncomes })}
+                                <p className="text-lg">{currency({ amount: supervisor.deposits + supervisor.terminalIncomes })}
                                 </p>
                               }
                               incomes={[...supervisor.terminalIncomesArray, ...supervisor.depositsArray]}
@@ -368,7 +374,7 @@ export default function Reporte({ untitled = false }) {
                               ListComponentProps={{ extraOutgoings: supervisor.extraOutgoingsArray, totalExtraOutgoings: supervisor.extraOutgoings }}
                               title={'Gastos'}
                               clickableComponent={
-                                <p className="text-lg">{stringToCurrency({ amount: supervisor.extraOutgoings })}
+                                <p className="text-lg">{currency({ amount: supervisor.extraOutgoings })}
                                 </p>
                               }
                               data={supervisor.extraOutgoingsArray}
@@ -379,7 +385,7 @@ export default function Reporte({ untitled = false }) {
                             <ShowIncomesModal
                               title={'Efectivos'}
                               clickableComponent={
-                                <p className="text-lg">{`${stringToCurrency({ amount: supervisor.cash })}  `}<span className="text-green-500 font-bold">{(supervisor.cash - supervisor.extraOutgoings).toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</span></p>
+                                <p className="text-lg">{`${currency({ amount: supervisor.cash })}  `}<span className="text-green-500 font-bold">{(supervisor.cash - supervisor.extraOutgoings).toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</span></p>
                               }
                               incomes={supervisor.cashArray}
                             />

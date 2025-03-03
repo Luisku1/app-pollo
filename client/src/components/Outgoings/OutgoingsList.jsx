@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import { useSelector } from "react-redux"
-import { stringToCurrency } from "../../helpers/Functions"
+import { currency } from "../../helpers/Functions"
 import DeleteButton from "../Buttons/DeleteButton"
 import { useRoles } from "../../context/RolesContext"
 import { useState } from "react"
@@ -20,7 +20,7 @@ export default function OutgoingsList({ outgoings, amount, onDelete, modifyBalan
   const deletable = onDelete
 
   const fields = [
-    { key: 'amount', label: 'Monto', format: (data) => stringToCurrency({ amount: data.amount }) },
+    { key: 'amount', label: 'Monto', format: (data) => currency({ amount: data.amount }) },
     { key: 'employee.name', label: 'Vendedor', format: (data) => `${data.employee.name} ${data.employee.lastName}` },
     { key: 'concept', label: 'Concepto' },
     { key: 'createdAt', label: 'Hora', format: (data) => formatTime(data.createdAt) },
@@ -30,7 +30,7 @@ export default function OutgoingsList({ outgoings, amount, onDelete, modifyBalan
     return (
       <div className='justify-self-end'>
         <p className='text-orange-500 font-bold text-lg'>
-          {stringToCurrency({ amount: amount })}
+          {currency({ amount: amount })}
         </p>
       </div>
     )
@@ -56,7 +56,7 @@ export default function OutgoingsList({ outgoings, amount, onDelete, modifyBalan
               </RowItem>
               <RowItem>
                 <p className='ml-1 text-md font-semibold'>{concept}</p>
-                <p className='flex gap-1 items-center text-orange-700'><MoneyBag />{stringToCurrency({ amount })}</p>
+                <p className='flex gap-1 items-center text-orange-700'><MoneyBag />{currency({ amount })}</p>
               </RowItem>
             </div>
           </button>

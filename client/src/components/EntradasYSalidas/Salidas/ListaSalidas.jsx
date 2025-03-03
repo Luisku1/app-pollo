@@ -3,7 +3,7 @@ import { useState, useMemo } from 'react'
 import { useSelector } from 'react-redux'
 import { formatTime } from '../../../helpers/DatePickerFunctions'
 import { useRoles } from '../../../context/RolesContext'
-import { getEmployeeFullName, stringToCurrency } from '../../../helpers/Functions'
+import { getEmployeeFullName, currency } from '../../../helpers/Functions'
 import ShowDetails from '../../ShowDetails'
 import RowItem from '../../RowItem'
 import { CgProfile } from 'react-icons/cg'
@@ -24,8 +24,8 @@ export default function ListaSalidas({ outputs, totalWeight = 0, totalAmount = 0
   const fields = [
     { key: 'weight', label: 'Peso', format: (data) => `${data.weight.toFixed(2)} Kg` },
     { key: 'pieces', label: 'Piezas', format: (data) => data.pieces.toFixed(2) },
-    { key: 'price', label: 'Precio', format: (data) => stringToCurrency({ amount: data.price }) },
-    { key: 'amount', label: 'Monto', format: (data) => stringToCurrency({ amount: data.amount }) },
+    { key: 'price', label: 'Precio', format: (data) => currency({ amount: data.price }) },
+    { key: 'amount', label: 'Monto', format: (data) => currency({ amount: data.amount }) },
     { key: 'branch.branch', label: 'Origen', format: (data) => data.branch.branch },
     { key: 'employee.name', label: 'Encargado', format: (data) => getEmployeeFullName(data.employee) },
     { key: 'comment', label: 'Comentario' },
@@ -36,7 +36,7 @@ export default function ListaSalidas({ outputs, totalWeight = 0, totalAmount = 0
     return (
       <div className='justify-self-end'>
         <p className='text-green-800 font-bold text-lg'>
-          {`${totalWeight.toFixed(3)} Kg - ${stringToCurrency({ amount: totalAmount })}`}
+          {`${totalWeight.toFixed(3)} Kg - ${currency({ amount: totalAmount })}`}
         </p>
       </div>
     )

@@ -2,7 +2,7 @@
 /* eslint-disable react/prop-types */
 import { useSelector } from 'react-redux';
 import { useRoles } from '../../context/RolesContext';
-import { getEmployeeFullName, stringToCurrency } from '../../helpers/Functions';
+import { getEmployeeFullName, currency } from '../../helpers/Functions';
 import { useState } from 'react';
 import { formatTime } from '../../helpers/DatePickerFunctions';
 import ShowDetails from '../ShowDetails';
@@ -21,7 +21,7 @@ export default function IncomesList({ incomes, incomesTotal, onDeleteIncome }) {
   const deletable = onDeleteIncome
 
   const fields = [
-    { key: 'amount', label: 'Monto', className: (data) => (data.partOfAPayment ? 'text-orange-700' : 'text-green-700') + ' text-center text-md font-semibold', format: (data) => stringToCurrency({ amount: data.amount }) },
+    { key: 'amount', label: 'Monto', className: (data) => (data.partOfAPayment ? 'text-orange-700' : 'text-green-700') + ' text-center text-md font-semibold', format: (data) => currency({ amount: data.amount }) },
     { key: null, label: 'Supervisor', format: (data) => getEmployeeFullName(data.employee) },
     { key: null, label: 'Origen', format: (data) => data.branch?.branch ?? data.customer?.name },
     { key: 'createdAt', label: 'Hora', format: (data) => formatTime(data.createdAt) },
@@ -35,7 +35,7 @@ export default function IncomesList({ incomes, incomesTotal, onDeleteIncome }) {
     return (
       <div className='justify-self-end'>
         <p className='text-green-800 font-bold text-lg'>
-          {stringToCurrency({ amount: incomesTotal })}
+          {currency({ amount: incomesTotal })}
         </p>
       </div>
     );
@@ -48,7 +48,7 @@ export default function IncomesList({ incomes, incomesTotal, onDeleteIncome }) {
     const customerInfo = `${customer?.name || ''} ${customer?.lastName || ''}`.trim() || customer?.label;
     const employeeName = employee ? `${employee.name}` : '';
     const typeName = partOfAPayment ? 'Pago' : type?.name ?? type?.label;
-    const formattedAmount = stringToCurrency({ amount });
+    const formattedAmount = currency({ amount });
     const isAuthorized = currentUser._id === employee?._id || currentUser.role === roles.managerRole._id || !onDeleteIncome;
 
     return (

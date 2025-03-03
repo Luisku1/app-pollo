@@ -2,7 +2,7 @@
 import './ShowBalance.css'
 import { useSelector } from 'react-redux'
 import { useRoles } from '../context/RolesContext'
-import { stringToCurrency } from '../helpers/Functions'
+import { currency } from '../helpers/Functions'
 
 export default function ShowBalance({ balance }) {
 
@@ -15,7 +15,7 @@ export default function ShowBalance({ balance }) {
 
   return (
     <div className={`show-balance ${balanceClass} z-10`}>
-      <h2><span className="balance">{stringToCurrency({ amount: balance })}</span></h2>
+      <h2><span className="balance">{currency({ amount: balance })}</span></h2>
     </div>
   )
 }

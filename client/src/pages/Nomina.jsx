@@ -5,7 +5,7 @@ import FechaDePagina from "../components/FechaDePagina";
 import { formatDate } from "../helpers/DatePickerFunctions";
 import { useEmployeesPayroll } from "../hooks/Employees/useEmployeesPayroll";
 import EmployeePaymentsList from "../components/EmployeePaymentsList";
-import { getEmployeeFullName, stringToCurrency } from "../helpers/Functions";
+import { getEmployeeFullName, currency } from "../helpers/Functions";
 import { useRoles } from "../context/RolesContext";
 import ShowListModal from "../components/Modals/ShowListModal";
 
@@ -76,7 +76,7 @@ export default function Nomina() {
                             title={`Pagos a ${getEmployeeFullName(employeePayroll.employee)}`}
                             ListComponent={EmployeePaymentsList}
                             ListComponentProps={{ payments: employeePayroll.employeePaymentsArray, total: employeePayroll.employeePaymentsAmount }}
-                            clickableComponent={<p className="font-bold">{stringToCurrency({ amount: employeePayroll.employeePaymentsAmount })}</p>}
+                            clickableComponent={<p className="font-bold">{currency({ amount: employeePayroll.employeePaymentsAmount })}</p>}
                             sortFunction={(a, b) => b.amount - a.amount}
                           />
                         </div>

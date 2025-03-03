@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { addExtraOutgoingFetch } from "../../services/ExtraOutgoings/addExtraOutgoing"
 import { ToastDanger, ToastSuccess } from "../../helpers/toastify"
-import { stringToCurrency } from "../../helpers/Functions"
+import { currency } from "../../helpers/Functions"
 
 export const useAddExtraOutgoing = () => {
   const [loading, setLoading] = useState(false);
@@ -10,7 +10,7 @@ export const useAddExtraOutgoing = () => {
     setLoading(true);
 
     try {
-      ToastSuccess(`Se registró el gasto de ${stringToCurrency({ amount: extraOutgoing.amount })}`);
+      ToastSuccess(`Se registró el gasto de ${currency({ amount: extraOutgoing.amount })}`);
 
       await addExtraOutgoingFetch(
         {
@@ -24,7 +24,7 @@ export const useAddExtraOutgoing = () => {
       );
 
     } catch (error) {
-      ToastDanger(`No se registró el gasto de ${stringToCurrency({ amount: extraOutgoing.amount })}`);
+      ToastDanger(`No se registró el gasto de ${currency({ amount: extraOutgoing.amount })}`);
       console.log(error);
     } finally {
       setLoading(false);

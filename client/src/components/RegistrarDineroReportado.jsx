@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react"
 import { useSupervisorReport } from "../hooks/Supervisors/useSupervisorReport"
 import { useSelector } from "react-redux"
-import { stringToCurrency } from "../helpers/Functions"
+import { currency } from "../helpers/Functions"
 import { useVerifyMoney } from "../hooks/Supervisors/useVerifyMoney"
 import { ToastWarning } from "../helpers/toastify"
 
@@ -117,11 +117,11 @@ export default function RegistrarDineroReportado({ setNegativeBalances, supervis
 
         {supervisorReport ?
           <div>
-            <p className="p-2"><span className="font-bold">Dinero a entregar: </span>{stringToCurrency({ amount: supervisorReport.incomes - supervisorReport.extraOutgoings })}</p>
+            <p className="p-2"><span className="font-bold">Dinero a entregar: </span>{currency({ amount: supervisorReport.incomes - supervisorReport.extraOutgoings })}</p>
             <p className="p-2">
-              <span className="font-bold">Dinero entregado: </span>{stringToCurrency({ amount: (supervisorReport.verifiedCash + supervisorReport.verifiedDeposits) || 0 })}
+              <span className="font-bold">Dinero entregado: </span>{currency({ amount: (supervisorReport.verifiedCash + supervisorReport.verifiedDeposits) || 0 })}
             </p>
-            <p className="p-2 font-bold">Balance: <span className={`${supervisorReport.balance < 0 ? 'text-red-700' : ''}`}>{stringToCurrency({ amount: supervisorReport.balance })}</span></p>
+            <p className="p-2 font-bold">Balance: <span className={`${supervisorReport.balance < 0 ? 'text-red-700' : ''}`}>{currency({ amount: supervisorReport.balance })}</span></p>
           </div>
           : ''}
       </div>

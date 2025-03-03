@@ -1,9 +1,11 @@
 import { ToastWarning } from "./toastify"
 
-export const stringToCurrency = ({ amount }) => {
+export const currency = (amount) => {
 
-  return amount.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })
-}
+  const value = typeof amount === 'object' && amount !== null ? amount.amount : amount;
+
+  return value.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
+};
 
 export const priceShouldNotBeZero = () => {
 
@@ -18,7 +20,7 @@ export const getEmployeeFullName = (employee) => {
 
 export const getElementForSelect = (element, getLabel) => {
 
-  if(!element || !getLabel) return null
+  if (!element || !getLabel) return null
 
   const value = element._id
   const label = getLabel(element)

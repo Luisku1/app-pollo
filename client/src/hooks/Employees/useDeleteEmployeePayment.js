@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { ToastDanger, ToastSuccess } from "../../helpers/toastify"
 import { deleteEmployeePaymentFetch } from "../../services/employees/deleteEmployeePayment"
-import { stringToCurrency } from "../../helpers/Functions"
+import { currency } from "../../helpers/Functions"
 
 export const useDeleteEmployeePayment = () => {
 
@@ -13,13 +13,13 @@ export const useDeleteEmployeePayment = () => {
 
     try {
 
-      ToastSuccess(`Se borró el pago a ${employeePayment.employee.label ?? employeePayment.employee.name + ' ' + employeePayment.employee.lastName} por ${stringToCurrency({ amount: employeePayment.amount })}`)
+      ToastSuccess(`Se borró el pago a ${employeePayment.employee.label ?? employeePayment.employee.name + ' ' + employeePayment.employee.lastName} por ${currency({ amount: employeePayment.amount })}`)
 
       await deleteEmployeePaymentFetch({ employeePaymentId: employeePayment._id, incomeId: (employeePayment?.income?._id ? employeePayment.income._id : employeePayment.income) ?? null, extraOutgoingId: employeePayment.extraOutgoing._id ? employeePayment.extraOutgoing._id : employeePayment.extraOutgoing})
 
     } catch (error) {
 
-      ToastDanger(`No se borró el pago a ${employeePayment.employee.label ?? employeePayment.employee.name + ' ' + employeePayment.employee.lastName} por ${stringToCurrency({ amount: employeePayment.amount })}`)
+      ToastDanger(`No se borró el pago a ${employeePayment.employee.label ?? employeePayment.employee.name + ' ' + employeePayment.employee.lastName} por ${currency({ amount: employeePayment.amount })}`)
       console.log(error)
 
     } finally {

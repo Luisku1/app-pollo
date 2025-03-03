@@ -19,7 +19,7 @@ import ProviderInputsList from '../components/Proveedores/ProviderInputsList';
 import BranchPrices from '../components/Prices/BranchPrices';
 import ShowListModal from '../components/Modals/ShowListModal';
 import IncomesList from '../components/Incomes/IncomesList';
-import { getArrayForSelects, getElementForSelect, stringToCurrency } from '../helpers/Functions';
+import { getArrayForSelects, getElementForSelect, currency } from '../helpers/Functions';
 import ListaEntradas from '../components/EntradasYSalidas/Entradas/ListaEntradas';
 import ListaSalidas from '../components/EntradasYSalidas/Salidas/ListaSalidas';
 import ShowBalance from '../components/ShowBalance';
@@ -235,9 +235,8 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
               )}
             </div>
           )}
-          <SectionHeader label={'Información básica'} />
+          <SectionHeader label={'Reporte'} />
           <div className="grid grid-cols-12 items-center mt-1 mb-2">
-            <p className='col-span-12 justify-self-center text-lg font-semibold mb-2'>Sucursal</p>
             <h1 className='col-span-12 text-3xl text-center font-semibold mt-7'>
               <div className='col-span-12'>
                 {branches && (
@@ -312,7 +311,7 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
                         ListComponent={StockList}
                         ListComponentProps={{ stock: initialStock, amount: initialStockAmount, weight: initialStockWeight }}
                         clickableComponent={
-                          <p className=' font-bold text-lg text-center p-1 bg-red-200 border rounded-lg border-header'>SOBRANTE INICIAL {stringToCurrency({ amount: initialStockAmount })}</p>
+                          <p className=' font-bold text-lg text-center p-1 bg-red-200 border rounded-lg border-header'>SOBRANTE INICIAL {currency({ amount: initialStockAmount })}</p>
                         }
                       />
                     </div>
@@ -324,7 +323,7 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
                         ListComponent={OutgoingsList}
                         ListComponentProps={{ outgoings, amount: outgoingsTotal, onDelete: onDeleteOutgoing, modifyBalance }}
                         clickableComponent={
-                          <p className='font-bold text-lg text-center bg-green-100 rounded-lg p-1 border border-header'>GASTOS {stringToCurrency({ amount: outgoingsTotal ?? 0 })}</p>
+                          <p className='font-bold text-lg text-center bg-green-100 rounded-lg p-1 border border-header'>GASTOS {currency({ amount: outgoingsTotal ?? 0 })}</p>
                         }
                       />
                     </div>
@@ -339,7 +338,7 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
                       branch={selectedBranch}
                       date={stringDatePickerValue}
                       isEditing={isEditing}
-                      listButton={<p className='font-bold text-lg text-center bg-green-100 rounded-lg p-1 border border-header'>{stringToCurrency({ amount: outgoingsTotal ?? 0 })}</p>}
+                      listButton={<p className='font-bold text-lg text-center bg-green-100 rounded-lg p-1 border border-header'>{currency({ amount: outgoingsTotal ?? 0 })}</p>}
                     />
                   }
                   {isEditing ?
@@ -357,7 +356,7 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
                       employee={selectedEmployee}
                       date={stringDatePickerValue}
                       isEditing={isEditing}
-                      listButton={<p className='font-bold text-lg text-center bg-green-100 rounded-lg border p-1 border-header'>{stringToCurrency({ amount: stockAmount ?? 0 })}</p>}
+                      listButton={<p className='font-bold text-lg text-center bg-green-100 rounded-lg border p-1 border-header'>{currency({ amount: stockAmount ?? 0 })}</p>}
                     />
                     :
                     <div className='w-full mt-2'>
@@ -365,7 +364,7 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
                         title={'Sobrante'}
                         ListComponent={StockList}
                         ListComponentProps={{ stock, weight: stockWeight, amount: stockAmount, onDelete: onDeleteStock, modifyBalance }}
-                        clickableComponent={<p className='font-bold text-lg text-center bg-green-100 rounded-lg border p-1 border-header'>SOBRANTE {stringToCurrency({ amount: stockAmount ?? 0 })}</p>
+                        clickableComponent={<p className='font-bold text-lg text-center bg-green-100 rounded-lg border p-1 border-header'>SOBRANTE {currency({ amount: stockAmount ?? 0 })}</p>
                         }
                       />
                     </div>}
@@ -376,7 +375,7 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
                 ListComponent={ProviderInputsList}
                 ListComponentProps={{ inputs: providerInputs, totalAmount: providerInputsTotal, totalWeight: providerInputsWeight }}
                 clickableComponent={
-                  <p className='font-bold text-lg text-center bg-red-200 border rounded-lg p-1 border-header mt-2'>PROVEEDORES {stringToCurrency({ amount: providerInputsTotal ?? 0 })}</p>
+                  <p className='font-bold text-lg text-center bg-red-200 border rounded-lg p-1 border-header mt-2'>PROVEEDORES {currency({ amount: providerInputsTotal ?? 0 })}</p>
                 }
               />
               <ShowListModal
@@ -384,7 +383,7 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
                 ListComponent={ListaEntradas}
                 ListComponentProps={{ inputs, totalWeight: inputsWeight, totalAmount: inputsTotal }}
                 clickableComponent={
-                  <p className='font-bold text-lg text-center bg-red-200 border rounded-lg p-1 border-header mt-2'>ENTRADAS {stringToCurrency({ amount: inputsTotal ?? 0 })}</p>
+                  <p className='font-bold text-lg text-center bg-red-200 border rounded-lg p-1 border-header mt-2'>ENTRADAS {currency({ amount: inputsTotal ?? 0 })}</p>
                 }
               />
               <ShowListModal
@@ -392,7 +391,7 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
                 ListComponent={ListaSalidas}
                 ListComponentProps={{ outputs, totalWeight: outputsWeight, totalAmount: outputsTotal }}
                 clickableComponent={
-                  <p className='font-bold text-lg text-center bg-green-100 border rounded-lg p-1 border-header mt-2'>SALIDAS {stringToCurrency({ amount: outputsTotal ?? 0 })}</p>
+                  <p className='font-bold text-lg text-center bg-green-100 border rounded-lg p-1 border-header mt-2'>SALIDAS {currency({ amount: outputsTotal ?? 0 })}</p>
                 }
               />
               <ShowListModal
@@ -400,7 +399,7 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
                 ListComponent={IncomesList}
                 ListComponentProps={{ incomes: payments, incomesTotal: payments.reduce((acc, payment) => acc += payment.amount, 0) }}
                 clickableComponent={
-                  <p className='font-bold text-lg text-center bg-green-100 border rounded-lg p-1 border-header mt-2'>PAGOS {stringToCurrency({ amount: payments.reduce((acc, payment) => acc += payment.amount, 0) ?? 0 })}</p>
+                  <p className='font-bold text-lg text-center bg-green-100 border rounded-lg p-1 border-header mt-2'>PAGOS {currency({ amount: payments.reduce((acc, payment) => acc += payment.amount, 0) ?? 0 })}</p>
                 }
               //Comparar con el monto para cubrir la nota de hoy.
               />
@@ -409,12 +408,12 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
                 ListComponent={IncomesList}
                 ListComponentProps={{ incomes: noPayments, incomesTotal: noPayments.reduce((acc, payment) => acc += payment.amount, 0) }}
                 clickableComponent={
-                  <p className='font-bold text-lg text-center bg-green-100 border rounded-lg p-1 border-header mt-2'>EFECTIVOS {stringToCurrency({ amount: noPayments.reduce((acc, payment) => acc += payment.amount, 0) ?? 0 })}</p>
+                  <p className='font-bold text-lg text-center bg-green-100 border rounded-lg p-1 border-header mt-2'>EFECTIVOS {currency({ amount: noPayments.reduce((acc, payment) => acc += payment.amount, 0) ?? 0 })}</p>
                 }
               //Comparar con el monto para cubrir la nota de hoy.
               />
               {(isAuthorized || branchReport?.balance < 0) &&
-                <p className={`${branchReport?.balance < 0 ? 'bg-red-200' : 'bg-green-100'} font-bold text-lg text-center border rounded-lg p-1 border-header mt-2`}>BALANCE: {stringToCurrency({ amount: branchReport?.balance ?? 0 })}</p>
+                <p className={`${branchReport?.balance < 0 ? 'bg-red-200' : 'bg-green-100'} font-bold text-lg text-center border rounded-lg p-1 border-header mt-2`}>BALANCE: {currency({ amount: branchReport?.balance ?? 0 })}</p>
               }
               {branchId ?
                 <div className='flex flex-col gap-4 mt-4'>
