@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { getEmployeesDailyBalancesFetch } from "../../services/employees/getEmployeesDailyBalances"
 import { getDayRange } from "../../helpers/DatePickerFunctions"
 
@@ -30,8 +30,14 @@ export const useEmployeesDailyBalances = ({ companyId, date }) => {
 
   }, [companyId, date])
 
+  const sortedEmployeesDailyBalances = useMemo(() => {
+
+    return employeesDailyBalances.sort((a, b) => a.employee.name.localeCompare(b.employee.name))
+
+  }, [employeesDailyBalances])
+
   return {
-    employeesDailyBalances,
+    employeesDailyBalances: sortedEmployeesDailyBalances,
     loading,
     error
   }
