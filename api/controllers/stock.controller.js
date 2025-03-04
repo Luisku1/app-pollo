@@ -8,9 +8,9 @@ import { Types } from "mongoose";
 
 export const createStock = async (req, res, next) => {
 
-  const { _id, pieces, weight, price, amount, branch, product, company, employee, createdAt } = req.body
+  const { _id, pieces, weight, price, amount, branch, product, company, employee, createdAt, midDay } = req.body
 
-  const stockData = { pieces, weight, price, amount, branch, product, company, employee, createdAt }
+  const stockData = { pieces, weight, price, amount, branch, product, company, employee, createdAt, midDay }
 
   if (_id) stockData._id = _id
 
@@ -39,11 +39,12 @@ export const createStockAndUpdateBranchReport = async (params) => {
     amount,
     branch,
     product,
+    midDay,
     company,
     createdAt
   } = params;
 
-  const stockData = { pieces, price, employee, weight, amount, branch, product, company, createdAt };
+  const stockData = { pieces, price, employee, weight, amount, branch, product, company, createdAt, midDay };
   if (_id) stockData._id = _id;
 
   let stock = null
@@ -74,10 +75,10 @@ const createNewStock = async (stockData) => {
     branchId: stockData.branch,
     date: stockData.createdAt,
     record: stock,
-    affectsBalancePositively: true,
+    affectsBalancePositively: stock.midDay ? null : true,
     operation: '$addToSet',
-    arrayField: 'finalStockArray',
-    amountField: 'finalStock'
+    arrayField: stock.midDay ? 'midDayStockArray' : 'finalStockArray',
+    amountField: stock.midDay ? 'midDayStock' : 'finalStock'
   });
 
   return stock;
@@ -288,10 +289,10 @@ const deleteStockAndUpdateBranchReport = async ({ stockId, isInitial = false, al
       branchId: deletedStock.branch,
       date: deletedStock.createdAt,
       record: deletedStock,
-      affectsBalancePositively: !isInitial,
+      affectsBalancePositively: deletedStock.midDay ? null : !isInitial,
       operation: '$pull',
-      arrayField: isInitial ? 'initialStockArray' : 'finalStockArray',
-      amountField: isInitial ? 'initialStock' : 'finalStock'
+      arrayField: deletedStock.midDay ? 'midDayStockArray' : isInitial ? 'initialStockArray' : 'finalStockArray',
+      amountField: deletedStock.midDay ? 'midDayStock': isInitial ? 'initialStock' : 'finalStock'
     });
 
     if (alsoDeleteInitial) {
@@ -519,20 +520,4 @@ const groupStockByBranchFunction = (stock) => {
   })
 
   return result
-}
-
-export const createAfternoonStock = async (req, res, next) => {
-
-  const { pieces, weight, amount, branch, product, company, employee, createdAt } = req.body
-
-  try {
-
-    const newStock = await Stock.create({ pieces, employee, weight, amount, branch, product, company, createdAt })
-
-    res.status(201).json({ stock: newStock })
-
-  } catch (error) {
-
-    next(error)
-  }
 }

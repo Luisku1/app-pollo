@@ -56,6 +56,14 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
     initialStockWeight,
     initialStockAmount,
     initialStock,
+    midDayStock,
+    midDayStockAmount,
+    midDayStockWeight,
+    onAddMidStock,
+    onDeleteMidStock,
+    stock,
+    stockAmount,
+    stockWeight,
     payments,
     noPayments,
     incomesTotal,
@@ -68,9 +76,6 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
     providerInputs,
     providerInputsAmount: providerInputsTotal,
     providerInputsWeight,
-    stock,
-    stockAmount,
-    stockWeight,
     onAddStock,
     onDeleteStock,
     outgoings,
@@ -342,8 +347,8 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
                     />
                   }
                   {isEditing ?
-
                     <AddStock
+                      title={'Sobrante'}
                       stock={stock}
                       modifyBalance={modifyBalance}
                       amount={stockAmount}
@@ -367,7 +372,36 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
                         clickableComponent={<p className='font-bold text-lg text-center bg-green-100 rounded-lg border p-1 border-header'>SOBRANTE {currency({ amount: stockAmount ?? 0 })}</p>
                         }
                       />
-                    </div>}
+                    </div>
+                  }
+                  {isEditing ?
+                    <AddStock
+                      title={'Sobrante de Medio Día'}
+                      stock={midDayStock}
+                      midDay={true}
+                      amount={midDayStockAmount}
+                      weight={midDayStockWeight}
+                      products={products}
+                      onAddStock={onAddMidStock}
+                      onDeleteStock={isEditing ? onDeleteMidStock : null}
+                      branchPrices={prices}
+                      branch={selectedBranch}
+                      employee={selectedEmployee}
+                      date={stringDatePickerValue}
+                      isEditing={isEditing}
+                      listButton={<p className='font-bold text-lg text-center bg-yellow-200 rounded-lg border p-1 border-header'>{currency({ amount: midDayStockAmount ?? 0 })}</p>}
+                    />
+                    :
+                    <div className='w-full mt-2'>
+                      <ShowListModal
+                        title={'Sobrante de Medio Día'}
+                        ListComponent={StockList}
+                        ListComponentProps={{ midDayStock, weight: midDayStockWeight, amount: midDayStockAmount, onDelete: onDeleteMidStock }}
+                        clickableComponent={<p className='font-bold text-lg text-center bg-yellow-200 rounded-lg border p-1 border-header'>SOBRANTE {currency({ amount: midDayStockAmount ?? 0 })}</p>
+                        }
+                      />
+                    </div>
+                  }
                 </div>
                 : ''}
               <ShowListModal
@@ -426,7 +460,7 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
                     :
                     <div>
                       {isAuthorized &&
-                        <button disabled={loading} className='bg-button text-white border border-black p-3 rounded-lg uppercase w-full' onClick={() => {navigate('/formato/' + stringDatePickerValue + '/' + branchReport.branch._id)}}>Editar Formato</button>
+                        <button disabled={loading} className='bg-button text-white border border-black p-3 rounded-lg uppercase w-full' onClick={() => { navigate('/formato/' + stringDatePickerValue + '/' + branchReport.branch._id) }}>Editar Formato</button>
                       }
                     </div>
                   }

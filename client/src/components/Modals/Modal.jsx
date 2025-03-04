@@ -5,21 +5,21 @@ import SectionHeader from '../SectionHeader';
 import { ModalContext } from '../../context/ModalContext';
 
 export default function Modal({ content, title, closeModal, ref, ableToClose = true, extraInformation }) {
-  const { modals, removeModal } = useContext(ModalContext);
+  const { modals, removeLastModal } = useContext(ModalContext);
   const zIndex = 10000 + modals.length * 10;
 
   useEffect(() => {
     const handleKeyDown = (event) => {
       if (event.key === 'Escape' && ableToClose) {
         closeModal();
-        removeModal();
+        removeLastModal();
       }
     };
 
     const handlePopState = () => {
       if (ableToClose) {
         closeModal();
-        removeModal();
+        removeLastModal();
       }
     };
 
@@ -30,7 +30,7 @@ export default function Modal({ content, title, closeModal, ref, ableToClose = t
       document.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('popstate', handlePopState);
     };
-  }, [ableToClose, closeModal, removeModal]);
+  }, [ableToClose, closeModal, removeLastModal]);
 
   const renderModal = () => {
     return (
@@ -45,7 +45,7 @@ export default function Modal({ content, title, closeModal, ref, ableToClose = t
               style={{ float: 'right', margin: '10px' }}
               onClick={() => {
                 closeModal();
-                removeModal();
+                removeLastModal();
               }}
             >
               <MdCancel className="h-7 w-7" />

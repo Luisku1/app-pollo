@@ -202,6 +202,34 @@ export const getBranchReports = async (req, res, next) => {
       {
         $lookup: {
           from: 'stocks',
+          localField: 'midDayStockArray',
+          foreignField: '_id',
+          as: 'midDayStockArray',
+          pipeline: [
+            branchLookup,
+            unwindBranch,
+            {
+              $lookup: {
+                from: 'products',
+                localField: 'product',
+                foreignField: '_id',
+                as: 'product',
+              },
+            },
+            {
+              $unwind: {
+                path: '$product',
+                preserveNullAndEmptyArrays: true,
+              },
+            },
+            employeeLookup,
+            unwindEmployee
+          ],
+        }
+      },
+      {
+        $lookup: {
+          from: 'stocks',
           localField: 'finalStockArray',
           foreignField: '_id',
           as: 'finalStockArray',
@@ -273,6 +301,8 @@ export const getBranchReports = async (req, res, next) => {
                 createdAt: 1,
                 initialStock: 1,
                 initialStockArray: 1,
+                mimeDayStock: 1,
+                midDayStockArray: 1,
                 finalStock: 1,
                 finalStockArray: 1,
                 inputs: 1,

@@ -227,7 +227,7 @@ export const pushOrPullBranchReportRecord = async ({
   if (!branchId || !date || !record || !arrayField || !amountField) throw new Error("Parámetros requeridos faltantes en pushOrPullBranchReportRecord")
 
   const branchReport = await fetchOrCreateBranchReport({ branchId, companyId: record.company, date });
-  const adjustedBalanceInc = affectsBalancePositively ? record.amount : -record.amount
+  const adjustedBalanceInc = affectsBalancePositively === null ? 0 : affectsBalancePositively ? record.amount : -record.amount
   const balanceAdjustment = operation === '$addToSet' ? adjustedBalanceInc : -adjustedBalanceInc
   const amountAdjustment = operation === '$addToSet' ? record.amount : -record.amount
 
@@ -586,6 +586,34 @@ const fetchBranchReportInfo = async (branchId, date) => {
       {
         $lookup: {
           from: 'stocks',
+          localField: 'midDayStockArray',
+          foreignField: '_id',
+          as: 'midDayStockArray',
+          pipeline: [
+            branchLookup,
+            unwindBranch,
+            {
+              $lookup: {
+                from: 'products',
+                localField: 'product',
+                foreignField: '_id',
+                as: 'product',
+              },
+            },
+            {
+              $unwind: {
+                path: '$product',
+                preserveNullAndEmptyArrays: true,
+              },
+            },
+            employeeLookup,
+            unwindEmployee
+          ],
+        }
+      },
+      {
+        $lookup: {
+          from: 'stocks',
           localField: 'initialStockArray',
           foreignField: '_id',
           as: 'initialStockArray',
@@ -786,6 +814,8 @@ const fetchBranchReportInfo = async (branchId, date) => {
           sender: 1,
           initialStockArray: 1,
           initialStock: 1,
+          midDayStock: 1,
+          midDayStockArray: 1,
           finalStockArray: 1,
           finalStock: 1,
           inputsArray: 1,

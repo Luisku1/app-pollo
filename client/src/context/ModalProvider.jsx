@@ -9,12 +9,12 @@ const ModalProvider = ({ children }) => {
     setModals((prevModals) => [...prevModals, modal]);
   }, []);
 
-  const removeModal = useCallback(() => {
+  const removeLastModal = useCallback(() => {
     setModals((prevModals) => prevModals.slice(0, -1));
   }, []);
 
   return (
-    <ModalContext.Provider value={{ modals, addModal, removeModal }}>
+    <ModalContext.Provider value={{ modals, addModal, removeLastModal }}>
       {children}
     </ModalContext.Provider>
   );

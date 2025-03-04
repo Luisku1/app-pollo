@@ -8,78 +8,52 @@ import ShowListModal from "../Modals/ShowListModal"
 import StockList from "./StockList"
 import { getArrayForSelects, getElementForSelect } from "../../helpers/Functions"
 
-export default function AddStock({ modifyBalance, stock, listButton, weight, amount, products, onAddStock, onDeleteStock, branch, employee, date, branchPrices, isEditing }) {
+export default function AddStock({ title, midDay, modifyBalance, stock, listButton, weight, amount, products, onAddStock, onDeleteStock, branch, employee, date, branchPrices, isEditing }) {
 
   const { company } = useSelector((state) => state.user)
   const [selectedProduct, setSelectedProduct] = useState(null)
-  const [stockFormData, setStockFormData] = useState({})
+  const [stockFormData, setStockFormData] = useState({ pieces: '', weight: '' })
+  const [isButtonDisabled, setIsButtonDisabled] = useState(true)
 
   const handleProductSelectChange = (option) => {
-
     setSelectedProduct(option)
   }
 
   const getProductPrice = (productId) => {
-
     const priceIndex = branchPrices.findIndex((price) => (price.productId == productId))
     return branchPrices[priceIndex].latestPrice
   }
 
   const handleStockInputsChange = (e) => {
-
     setStockFormData({
       ...stockFormData,
       [e.target.id]: e.target.value,
     })
   }
 
-  const stockButtonControl = () => {
+  useEffect(() => {
+    const stockButtonControl = () => {
+      const productSelect = selectedProduct != null
+      const branchSelect = branch != null
+      const employeeSelect = employee != null
+      const weightInput = stockFormData.weight !== ''
+      const piecesInput = stockFormData.pieces !== ''
 
-    const productSelect = selectedProduct != null
-    const branchSelect = branch != null
-    const employeeSelect = employee != null
-
-    if (branchSelect && employeeSelect && productSelect) {
-
-      const weightInput = document.getElementById('weight')
-      const button = document.getElementById('stock-button')
-
-      let filledInputs = true
-
-      if (weightInput.value == '') {
-
-        filledInputs = false
-      }
-
-      if (filledInputs) {
-
-        button.disabled = false
-
-      } else {
-
-        button.disabled = true
-      }
+      setIsButtonDisabled(!(productSelect && branchSelect && employeeSelect && weightInput && piecesInput))
     }
-  }
 
-  useEffect(stockButtonControl, [branch, employee, selectedProduct])
+    stockButtonControl()
+  }, [branch, employee, selectedProduct, stockFormData])
 
   const addStockItem = async (e) => {
-
     e.preventDefault()
+    setIsButtonDisabled(true)
 
-    const button = document.getElementById('stock-button')
-
-    button.disabled = true
-
-    const piecesInput = document.getElementById('pieces')
-    const weightInput = document.getElementById('weight')
     const price = getProductPrice(selectedProduct.value)
     const amount = parseFloat(price * stockFormData.weight)
     const createdAt = isToday(date) ? new Date().toISOString() : new Date(date).toISOString()
 
     try {
-
       const { pieces, weight } = stockFormData
 
       const stock = {
@@ -90,20 +64,19 @@ export default function AddStock({ modifyBalance, stock, listButton, weight, amo
         employee: employee,
         product: selectedProduct,
         branch: branch,
+        midDay,
         createdAt,
         company: company._id
       }
 
       onAddStock(stock, modifyBalance)
 
-      weightInput.value = ''
-      piecesInput.value = ''
-
-      button.disabled = false
-
+      setStockFormData({ pieces: '', weight: '' })
+      setSelectedProduct(null)
     } catch (error) {
-
-      button.disabled = false
+      console.log(error)
+    } finally {
+      setIsButtonDisabled(false)
     }
   }
 
@@ -149,7 +122,7 @@ export default function AddStock({ modifyBalance, stock, listButton, weight, amo
   return (
     <div className='border border-header rounded-md bg-white p-3 mt-4'>
       <div className='grid grid-cols-1'>
-        <SectionHeader label={'Sobrante'} />
+        <SectionHeader label={title} />
       </div>
       {isEditing && (
         <form onSubmit={addStockItem} className="grid grid-cols-4">
@@ -162,18 +135,18 @@ export default function AddStock({ modifyBalance, stock, listButton, weight, amo
             placeholder={'Productos'}
           />
           <div className='relative'>
-            <input type="number" name="pieces" id="pieces" placeholder='Piezas' step={0.1} className='w-full border border-black p-3 rounded-lg' required onInput={stockButtonControl} onChange={handleStockInputsChange} />
+            <input type="number" name="pieces" id="pieces" placeholder='Piezas' step={0.1} className='w-full border border-black p-3 rounded-lg' required value={stockFormData.pieces} onChange={handleStockInputsChange} />
             <label htmlFor="compact-input" className="-translate-y-full px-1 absolute top-1/4 left-2 transform rounded-sm bg-white text-black text-sm font-semibold">
               Piezas <span>*</span>
             </label>
           </div>
           <div className='relative'>
-            <input type="number" name="weight" id="weight" placeholder='0.00 kg' step={0.001} className='w-full border border-black p-3 rounded-lg' required onInput={stockButtonControl} onChange={handleStockInputsChange} />
+            <input type="number" name="weight" id="weight" placeholder='0.00 kg' step={0.001} className='w-full border border-black p-3 rounded-lg' required value={stockFormData.weight} onChange={handleStockInputsChange} />
             <label htmlFor="compact-input" className="-translate-y-full px-1 absolute top-1/4 left-2 transform rounded-sm bg-white text-black text-sm font-semibold">
               Kilos<span>*</span>
             </label>
           </div>
-          <button type='submit' id='stock-button' disabled className='bg-button text-white p-3 rounded-lg'>Agregar</button>
+          <button type='submit' id='stock-button' disabled={isButtonDisabled} className='bg-button text-white p-3 rounded-lg'>Agregar</button>
         </form>
       )}
       <div className='w-full mt-2'>

@@ -16,13 +16,15 @@ export default function StockByProduct({ stock }) {
           stockItems: [stockItem],
           weight: stockItem.weight,
           amount: stockItem.amount,
-          pieces: stockItem.pieces
+          pieces: stockItem.pieces,
+          price: stockItem.price
         }
       } else {
         acc[productId].stockItems.push(stockItem)
         acc[productId].weight += stockItem.weight
         acc[productId].amount += stockItem.amount
         acc[productId].pieces += stockItem.pieces
+        acc[productId].price += stockItem.price
       }
       return acc
     }, {})
@@ -36,6 +38,7 @@ export default function StockByProduct({ stock }) {
         setProductStockIsOpen((prev) => !prev)
       }
     } else {
+      setSelectedProductId(null)
       setProductStockIsOpen((prev) => !prev)
     }
   }
@@ -47,33 +50,39 @@ export default function StockByProduct({ stock }) {
 
   const totalInMoney = useMemo(() => {
     if (!stockByProductArray) return 0
-    return stockByProductArray.reduce((acc, stock) => acc + stock.total, 0)
+    return stockByProductArray.reduce((acc, stock) => acc + stock.amount, 0)
   }, [stockByProductArray])
 
   return (
     <div className="grid grid-cols-1 max-w-lg items-center mx-auto">
       {stockByProductArray && stockByProductArray.length > 0 && stockByProductArray.map((stock) => {
+        const averagePrice = stock.price / stock.stockItems.length
         return (
           <div key={stock.product._id} className="rounded-lg mb-1">
             <button className="p-2 shadow-sm rounded-md w-full hover:bg-slate-100 active:bg-gray-300 border" onClick={() => { selectedProduct(stock.product._id) }}>
               <RowItem>
                 <p className="font-bold text-red-800 mb-1 text-left">{stock.product.name}</p>
                 <p className="text-center">{stock.pieces} pz</p>
+                {Amount({ amount: averagePrice, className: 'items-center' })}
                 <p>{`${stock.weight.toFixed(2)} Kg`}</p>
-                <p>{`${stock.weight.toFixed(2)} Kg`}</p>
-                {Amount({ amount: stock.amount, className: 'items-center' })}
+                {Amount({ amount: stock.amount, className: 'items-center text-red-800 font-semibold' })}
               </RowItem>
             </button>
-            {stock.product._id === selectedProductId && stock.stockItems.length > 0 && stock.stockItems.map((stockItem) => (
-              <div key={stockItem._id} className={(productStockIsOpen ? '' : 'hidden ') + 'border-l border-black p-3 ml-2'}>
-                <RowItem>
-                  <p className="font-bold">{stockItem.branch.branch}</p>
-                  <p className="text-center">{stockItem.pieces} pz</p>
-                  <p>{stockItem.weight.toFixed(2) + ' Kg'}</p>
-                  {Amount({ amount: stockItem.amount, className: 'items-center' })}
-                </RowItem>
+            {stock.product._id === selectedProductId &&
+              <div className="border-b border-red-800">
+                {stock.product._id === selectedProductId && stock.stockItems.length > 0 && stock.stockItems.map((stockItem) => (
+                  <div key={stockItem._id} className={(productStockIsOpen ? '' : 'hidden ') + 'border-l border-red-800 py-2'}>
+                    <RowItem>
+                      <p className="font-bold">{stockItem.branch.branch}</p>
+                      <p className="text-center">{stockItem.pieces} pz</p>
+                      {Amount({ amount: stockItem.price, className: 'items-center' })}
+                      <p>{stockItem.weight.toFixed(2) + ' Kg'}</p>
+                      {Amount({ amount: stockItem.amount, className: 'items-center font-semibold' })}
+                    </RowItem>
+                  </div>
+                ))}
               </div>
-            ))}
+            }
           </div>
         )
       })}

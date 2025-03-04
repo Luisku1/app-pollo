@@ -20,6 +20,7 @@ import ShowListModal from "../components/Modals/ShowListModal.jsx";
 import Modal from "../components/Modals/Modal";
 import RegistroCuentaDiaria from "./RegistroCuentaDiaria";
 import { ModalContext } from '../context/ModalContext';
+import { useLoading } from "../hooks/loading.js";
 
 export default function Reporte({ untitled = false }) {
 
@@ -27,13 +28,14 @@ export default function Reporte({ untitled = false }) {
   let paramsDate = useParams().date
   let datePickerValue = (paramsDate ? new Date(paramsDate) : new Date())
   let stringDatePickerValue = formatDate(datePickerValue)
-  const { roles } = useRoles()
+  const { roles, loading: loadingRoles } = useRoles()
   const [showTable, setShowTable] = useState(true)
   const [showCards, setShowCards] = useState(false)
   const {
     supervisorsInfo,
     deposits,
     extraOutgoings,
+    loading: loadingSupervisors,
     grossCash,
     missingIncomes,
     setMissingIncomes,
@@ -60,11 +62,13 @@ export default function Reporte({ untitled = false }) {
     branchReports,
     getBranchReports,
     totalIncomes,
+    loading: loadingBranchReports,
     totalStock,
     totalOutgoings,
     totalBalance,
 
   } = useBranchReports({ companyId: company._id, date: stringDatePickerValue })
+  const { isLoading } = useLoading([loadingBranchReports, loadingSupervisors])
   const navigate = useNavigate()
   const [pieChartInfo, setPieChartInfo] = useState([])
   const [negativeBalances, setNegativeBalances] = useState(new Set())
@@ -208,12 +212,12 @@ export default function Reporte({ untitled = false }) {
 
   useEffect(() => {
 
-    if (roles?.managerRole?._id != currentUser?.role) {
+    if (!loadingRoles && roles?.managerRole && roles?.managerRole?._id != currentUser?.role) {
 
       handleShowStockButton()
     }
 
-  }, [currentUser, roles?.managerRole])
+  }, [currentUser, roles?.managerRole, loadingRoles])
 
   useEffect(() => {
 
@@ -228,9 +232,6 @@ export default function Reporte({ untitled = false }) {
 
       <FechaDePagina changeDay={changeDay} stringDatePickerValue={stringDatePickerValue} changeDatePickerValue={changeDatePickerValue} ></FechaDePagina>
 
-      <h1 className='text-3xl text-center font-semibold mt-7'>
-        Reporte
-      </h1>
       {branchReports && branchReports.length > 0 && roles && roles.managerRole ?
         <div>
           <div>
@@ -403,6 +404,12 @@ export default function Reporte({ untitled = false }) {
         </div>
 
         : ''}
+
+      {branchReports.length === 0 && supervisorsInfo.length === 0 && !isLoading && (
+        <div className="flex justify-center items-center h-96">
+          <p className="text-2xl">Aún no hay información de este día</p>
+        </div>
+      )}
       {selectedBranchReport && (
         <Modal
           content={<RegistroCuentaDiaria edit={false} _branchReport={selectedBranchReport} _branch={selectedBranchReport.branch} />}

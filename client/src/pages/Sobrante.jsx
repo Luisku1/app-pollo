@@ -9,17 +9,27 @@ export default function Sobrante({ branchReports }) {
   const [filterByBranch, setFilterByBranch] = useState(true)
   const [isInitial, setIsInitial] = useState(true)
   const [isFinal, setIsFinal] = useState(false)
+  const [isMidDay, setIsMidDay] = useState(false)
 
   const handleShowInitialStock = () => {
 
+    setIsMidDay(false)
     setIsInitial(true)
     setIsFinal(false)
   }
 
   const handleShowFinalStock = () => {
 
+    setIsMidDay(false)
     setIsInitial(false)
     setIsFinal(true)
+  }
+
+  const handleShowMidDayStock = () => {
+
+    setIsMidDay(true)
+    setIsInitial(false)
+    setIsFinal(false)
   }
 
   const handleProductFilterButton = () => {
@@ -41,6 +51,13 @@ export default function Sobrante({ branchReports }) {
     }).flat()
   }, [branchReports])
 
+  const midDayStock = useMemo(() => {
+    if (!branchReports) return
+    return branchReports.map((branchReport) => {
+      return branchReport.midDayStockArray
+    }).flat()
+  }, [branchReports])
+
   const finalStock = useMemo(() => {
     if (!branchReports) return
     return branchReports.map((branchReport) => {
@@ -49,33 +66,24 @@ export default function Sobrante({ branchReports }) {
   }, [branchReports])
 
   return (
-
     <main className="max-w-lg mx-auto">
-
       <div className="bg-white p-3 mt-4 w-full">
-
         <div className="grid grid-cols-3 border w-full mb-1 border-black rounded-lg">
-          <button className={"h-full rounded-tl-lg rounded-bl-lg hover:shadow-xl " + (isInitial ? 'bg-options-bar text-white' : 'bg-gray-300')} onClick={() => { handleShowInitialStock() }}>Inicial</button>
-          <button className={"h-full hover:shadow-xl " + (isFinal ? 'bg-options-bar text-white' : ' bg-gray-300 border-r border-black')} onClick={() => { handleShowFinalStock() }}>De Medio Día</button>
-          <button className={"h-full rounded-tr-lg rounded-br-lg hover:shadow-xl " + (isFinal ? 'bg-options-bar text-white' : ' bg-gray-300')} onClick={() => { handleShowFinalStock() }}>Final</button>
+          <button className={"h-full rounded-tl-lg rounded-bl-lg hover:shadow-xl text-md font-semibold " + (isInitial ? 'bg-options-bar text-white' : 'bg-gray-300')} onClick={() => { handleShowInitialStock() }}>Inicial</button>
+          <button className={"h-full hover:shadow-xl " + (isMidDay ? 'bg-options-bar text-white' : ' bg-gray-300 border-x border-black')} onClick={() => { handleShowMidDayStock() }}>De Medio Día</button>
+          <button className={"h-full rounded-tr-lg rounded-br-lg hover:shadow-xl text-md font-semibold " + (isFinal ? 'bg-options-bar text-white' : ' bg-gray-300')} onClick={() => { handleShowFinalStock() }}>Final</button>
         </div>
-
         <div className="grid grid-cols-2 border w-full mb-4 border-black rounded-lg">
-          <button className={"h-full rounded-tl-lg rounded-bl-lg hover:shadow-xl " + (filterByBranch ? 'bg-options-bar text-white' : 'bg-gray-300')} onClick={() => { handleBranchFilterButton() }}>Sucursal</button>
-          <button className={"h-full rounded-tr-lg rounded-br-lg hover:shadow-xl " + (filterByProduct ? 'bg-options-bar text-white' : ' bg-gray-300')} onClick={() => { handleProductFilterButton() }}>Producto</button>
+          <button className={"h-full rounded-tl-lg rounded-bl-lg hover:shadow-xl text-md font-semibold " + (filterByBranch ? 'bg-options-bar text-white' : 'bg-gray-300')} onClick={() => { handleBranchFilterButton() }}>Sucursal</button>
+          <button className={"h-full rounded-tr-lg rounded-br-lg hover:shadow-xl text-md font-semibold " + (filterByProduct ? 'bg-options-bar text-white' : ' bg-gray-300')} onClick={() => { handleProductFilterButton() }}>Producto</button>
         </div>
-
         {filterByProduct &&
-          <StockByProduct stock={isInitial ? initialStock : finalStock} />
+          <StockByProduct stock={isInitial ? initialStock : isMidDay ? midDayStock : finalStock} />
         }
-
-
         {filterByBranch &&
-          <StockByBranch stock={isInitial ? initialStock : finalStock} />
+          <StockByBranch stock={isInitial ? initialStock : isMidDay ? midDayStock : finalStock} />
         }
-
       </div>
-
     </main>
   )
 }

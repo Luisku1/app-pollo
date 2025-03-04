@@ -8,6 +8,7 @@ import { useOutput } from "../Outputs/useOutput"
 import { useInputs } from "../Inputs/useInputs"
 import { useProviderInputs } from "../ProviderInputs/useProviderInputs"
 import { useBranchPrices } from "../Prices/useBranchPrices"
+import { useMidDayStock } from "../Stock/useMidDayStock"
 
 export const useBranchReport = ({ branchId = null, date = null, _branchReport = null }) => {
 
@@ -16,6 +17,7 @@ export const useBranchReport = ({ branchId = null, date = null, _branchReport = 
   const { incomes, payments, noPayments, incomesTotal, loading: incomesLoading } = useIncomes({ initialIncomes: branchReport?.incomesArray || null })
   const { stock , stockAmount, stockWeight, onAddStock, onDeleteStock, loading: stockLoading } = useStock({ initialStock: branchReport?.finalStockArray || null })
   const { initialStock, initialStockWeight, initialStockAmount } = useInitialStock({ initialArray: branchReport?.initialStockArray || null })
+  const { midDayStock, midDayStockAmount, midDayStockWeight, onDeleteStock: onDeleteMidStock, onAddStock: onAddMidStock } = useMidDayStock({ initialArray: branchReport?.midDayStockArray || null })
   const { outputs , totalWeight: outputsWeight, totalAmount: outputsAmount, loading: outputsLoading } = useOutput({ initialOutputs: branchReport?.outputsArray || null})
   const { inputs, totalWeight: inputsWeight, totalAmount: inputsAmount, loading: inputsLoading } = useInputs({ initialInputs: branchReport?.inputsArray || null })
   const { providerInputs , providerInputsWeight, providerInputsAmount, loading: providerLoading } = useProviderInputs({ initialInputs: branchReport?.providerInputsArray || null })
@@ -94,6 +96,11 @@ export const useBranchReport = ({ branchId = null, date = null, _branchReport = 
     stock,
     stockAmount,
     stockWeight,
+    midDayStock,
+    midDayStockAmount,
+    midDayStockWeight,
+    onAddMidStock,
+    onDeleteMidStock,
     initialStock,
     initialStockWeight,
     initialStockAmount,
