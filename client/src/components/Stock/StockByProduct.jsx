@@ -60,8 +60,8 @@ export default function StockByProduct({ stock }) {
         return (
           <div key={stock.product._id} className="rounded-lg mb-1">
             <button className="p-2 shadow-sm rounded-md w-full hover:bg-slate-100 active:bg-gray-300 border" onClick={() => { selectedProduct(stock.product._id) }}>
+              <p className="font-bold text-red-800 mb-1 text-left">{stock.product.name}</p>
               <RowItem>
-                <p className="font-bold text-red-800 mb-1 text-left">{stock.product.name}</p>
                 <p className="text-center">{stock.pieces} pz</p>
                 {Amount({ amount: averagePrice, className: 'items-center' })}
                 <p>{`${stock.weight.toFixed(2)} Kg`}</p>
@@ -72,8 +72,8 @@ export default function StockByProduct({ stock }) {
               <div className="border-b border-red-800">
                 {stock.product._id === selectedProductId && stock.stockItems.length > 0 && stock.stockItems.map((stockItem) => (
                   <div key={stockItem._id} className={(productStockIsOpen ? '' : 'hidden ') + 'border-l border-red-800 py-2'}>
+                    <p className="font-bold">{stockItem.branch.branch}</p>
                     <RowItem>
-                      <p className="font-bold">{stockItem.branch.branch}</p>
                       <p className="text-center">{stockItem.pieces} pz</p>
                       {Amount({ amount: stockItem.price, className: 'items-center' })}
                       <p>{stockItem.weight.toFixed(2) + ' Kg'}</p>

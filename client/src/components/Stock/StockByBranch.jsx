@@ -60,11 +60,11 @@ export default function StockByBranch({ stock }) {
         return (
           <div key={stock.branch._id} className="rounded-lg mb-1">
             <button className="p-2 shadow-sm rounded-md w-full hover:bg-slate-100 active:bg-gray-300 border" onClick={() => { selectedBranch(stock.branch._id) }}>
+              <p className="font-bold text-red-800 mb-1 text-left">{stock.branch.branch}</p>
               <RowItem>
-                <p className="font-bold text-red-800 mb-1 text-left">{stock.branch.branch}</p>
                 <p className="text-center">{stock.pieces} pz</p>
                 <p>{`${stock.weight.toFixed(2)} Kg`}</p>
-              {Amount({ amount: stock.amount, className: 'items-center text-red-800 font-semibold' })}
+                {Amount({ amount: stock.amount, className: 'items-center text-red-800 font-semibold' })}
               </RowItem>
             </button>
             {stock.branch._id === selectedBranchId &&
@@ -73,8 +73,8 @@ export default function StockByBranch({ stock }) {
                   return (
 
                     <div key={stockItem._id} className={(branchStockIsOpen ? '' : 'hidden ') + 'border-red-800 border-l py-2'}>
+                      <p className="font-bold">{stockItem.product.name}</p>
                       <RowItem>
-                        <p className="font-bold">{stockItem.product.name}</p>
                         <p className="text-center">{stockItem.pieces} pz</p>
                         {Amount({ amount: stockItem.price, className: 'items-center' })}
                         <p>{stockItem.weight.toFixed(2) + ' Kg'}</p>
