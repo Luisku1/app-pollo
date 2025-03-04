@@ -1,13 +1,14 @@
 /* eslint-disable react/prop-types */
+import { currency } from "../../helpers/Functions";
 import MoneyBag from "../Icons/MoneyBag";
-import { currency } from "../helpers/Functions";
 
 const Amount = ({ amount, className }) => {
-  return (
-    <p className={`${className}`}>
-      <MoneyBag /> {currency(amount)}
+  return <div className={`flex gap-1 items-center w-full ${className}`}>
+    <MoneyBag />
+    <p>
+      {currency(amount)}
     </p>
-  );
+  </div>
 };
 
 export default Amount;

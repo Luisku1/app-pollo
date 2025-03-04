@@ -34,8 +34,6 @@ export default function Sobrante({ branchReports }) {
     setFilterByProduct(false)
   }
 
-
-
   const initialStock = useMemo(() => {
     if (!branchReports) return
     return branchReports.map((branchReport) => {
@@ -52,18 +50,19 @@ export default function Sobrante({ branchReports }) {
 
   return (
 
-    <main className="p-3 max-w-lg mx-auto">
+    <main className="max-w-lg mx-auto">
 
       <div className="bg-white p-3 mt-4 w-full">
 
-        <div className="grid grid-cols-2 border w-full h-10 mb-4 border-black rounded-lg">
-          <button className={"h-full rounded-lg hover:shadow-xl " + (isInitial ? 'bg-options-bar text-white' : 'bg-white')} onClick={() => { handleShowInitialStock() }}>Inicial</button>
-          <button className={"h-full rounded-lg hover:shadow-xl " + (isFinal ? 'bg-options-bar text-white' : ' bg-white')} onClick={() => { handleShowFinalStock() }}>Final</button>
+        <div className="grid grid-cols-3 border w-full mb-1 border-black rounded-lg">
+          <button className={"h-full rounded-tl-lg rounded-bl-lg hover:shadow-xl " + (isInitial ? 'bg-options-bar text-white' : 'bg-gray-300')} onClick={() => { handleShowInitialStock() }}>Inicial</button>
+          <button className={"h-full hover:shadow-xl " + (isFinal ? 'bg-options-bar text-white' : ' bg-gray-300 border-r border-black')} onClick={() => { handleShowFinalStock() }}>De Medio Día</button>
+          <button className={"h-full rounded-tr-lg rounded-br-lg hover:shadow-xl " + (isFinal ? 'bg-options-bar text-white' : ' bg-gray-300')} onClick={() => { handleShowFinalStock() }}>Final</button>
         </div>
 
-        <div className="grid grid-cols-2 border w-full h-10 mb-4 border-black rounded-lg">
-          <button className={"h-full rounded-lg hover:shadow-xl " + (filterByBranch ? 'bg-options-bar text-white' : 'bg-white')} onClick={() => { handleBranchFilterButton() }}>Sucursal</button>
-          <button className={"h-full rounded-lg hover:shadow-xl " + (filterByProduct ? 'bg-options-bar text-white' : ' bg-white')} onClick={() => { handleProductFilterButton() }}>Producto</button>
+        <div className="grid grid-cols-2 border w-full mb-4 border-black rounded-lg">
+          <button className={"h-full rounded-tl-lg rounded-bl-lg hover:shadow-xl " + (filterByBranch ? 'bg-options-bar text-white' : 'bg-gray-300')} onClick={() => { handleBranchFilterButton() }}>Sucursal</button>
+          <button className={"h-full rounded-tr-lg rounded-br-lg hover:shadow-xl " + (filterByProduct ? 'bg-options-bar text-white' : ' bg-gray-300')} onClick={() => { handleProductFilterButton() }}>Producto</button>
         </div>
 
         {filterByProduct &&

@@ -130,7 +130,7 @@ export default function PieChart({ verifiedIncomes = null, netIncomes = null, ch
       datalabels: {
         color: '#000', // Cambiar a un color que contraste bien
         formatter: (value, context) => {
-          return value === 0 ? '' : currency({ amount: value });
+          return !value ? '' : currency({ amount: value });
         },
         font: {
           weight: 'bold',
