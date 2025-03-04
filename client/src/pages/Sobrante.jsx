@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import StockByProduct from "../components/Stock/StockByProduct"
 import StockByBranch from "../components/Stock/StockByBranch"
 
@@ -7,7 +7,7 @@ export default function Sobrante({ branchReports }) {
 
   const [filterByProduct, setFilterByProduct] = useState(false)
   const [filterByBranch, setFilterByBranch] = useState(true)
-  const [isInitial, setIsInitial] = useState(true)
+  const [isInitial, setIsInitial] = useState(false)
   const [isFinal, setIsFinal] = useState(false)
   const [isMidDay, setIsMidDay] = useState(false)
 
@@ -64,6 +64,17 @@ export default function Sobrante({ branchReports }) {
       return branchReport.finalStockArray
     }).flat()
   }, [branchReports])
+
+  useEffect(() => {
+
+    if (!finalStock.length > 0 && initialStock.length > 0) {
+      setIsInitial(true)
+    }
+    if (finalStock.length > 0) {
+      setIsFinal(true)
+    }
+
+  }, [finalStock, initialStock])
 
   return (
     <main className="max-w-lg mx-auto">
