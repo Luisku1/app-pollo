@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux'
 import { formatTime } from '../../../helpers/DatePickerFunctions'
 import { useRoles } from '../../../context/RolesContext'
 import DeleteButton from '../../Buttons/DeleteButton'
-import { stringToCurrency } from '../../../helpers/Functions'
+import { currency } from '../../../helpers/Functions'
 import ShowDetails from '../../ShowDetails'
 
 export default function ListaEntradasProveedor({ inputs, totalWeight, onDeleteInput }) {
@@ -18,8 +18,8 @@ export default function ListaEntradasProveedor({ inputs, totalWeight, onDeleteIn
     // { key: 'product.name', label: 'Producto', format: (data) => data.product.name },
     { key: 'weight', label: 'Peso', format: (data) => `${data.weight.toFixed(2)} Kg` },
     { key: 'pieces', label: 'Piezas', format: (data) => data.pieces.toFixed(2) },
-    { key: 'price', label: 'Precio', format: (data) => stringToCurrency({ amount: data.price }) },
-    { key: 'amount', label: 'Monto', format: (data) => stringToCurrency({ amount: data.amount }) },
+    { key: 'price', label: 'Precio', format: (data) => currency({ amount: data.price }) },
+    { key: 'amount', label: 'Monto', format: (data) => currency({ amount: data.amount }) },
     { key: 'branch.branch', label: 'Entró a', format: (data) => data.branch.branch },
     { key: 'employee.name', label: 'Encargado', format: (data) => `${data.employee.name} ${data.employee.lastName}` },
     { key: 'comment', label: 'Comentario' },

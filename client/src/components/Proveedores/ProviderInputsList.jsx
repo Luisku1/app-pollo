@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import { useSelector } from "react-redux";
 import { useRoles } from "../../context/RolesContext";
-import { getEmployeeFullName, stringToCurrency } from "../../helpers/Functions";
+import { getEmployeeFullName, currency } from "../../helpers/Functions";
 import { formatTime } from "../../helpers/DatePickerFunctions";
 import { useMemo, useState } from "react";
 import ShowDetails from "../ShowDetails";
@@ -25,8 +25,8 @@ export default function ProviderInputsList({ inputs, totalWeight = 0, totalAmoun
   const fields = [
     { key: 'weight', label: 'Peso', format: (data) => `${data.weight.toFixed(2)} Kg` },
     { key: 'pieces', label: 'Piezas', format: (data) => data.pieces.toFixed(2) },
-    { key: 'price', label: 'Precio', format: (data) => stringToCurrency({ amount: data.price }) },
-    { key: 'amount', label: 'Monto', format: (data) => stringToCurrency({ amount: data.amount }) },
+    { key: 'price', label: 'Precio', format: (data) => currency({ amount: data.price }) },
+    { key: 'amount', label: 'Monto', format: (data) => currency({ amount: data.amount }) },
     { key: 'branch.branch', label: 'Entró a', format: (data) => data.branch.branch },
     { key: 'employee.name', label: 'Encargado', format: (data) => getEmployeeFullName(data.employee) },
     { key: 'comment', label: 'Comentario' },
@@ -40,7 +40,7 @@ export default function ProviderInputsList({ inputs, totalWeight = 0, totalAmoun
           {totalWeight.toFixed(2)} Kg:
         </p>
         <p className="text-green-800 font-bold text-lg ml-4">
-          {stringToCurrency({ amount: totalAmount })}
+          {currency({ amount: totalAmount })}
         </p>
       </div>
     )

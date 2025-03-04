@@ -27,6 +27,11 @@ const stockSchema = mongoose.Schema({
 		default: false
 	},
 
+	midDay: {
+		type: Boolean,
+		default: false
+	},
+
 	associatedStock: {
 		type: Schema.Types.ObjectId, ref: 'Stock'
 	},

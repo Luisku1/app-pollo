@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { getEmployeeFullName, stringToCurrency } from "../../helpers/Functions";
+import { getEmployeeFullName, currency } from "../../helpers/Functions";
 import { ToastSuccess, ToastDanger } from "../../helpers/toastify";
 import { addEmployeePaymentFetch } from "../../services/employees/addEmployeePayment";
 
@@ -11,7 +11,7 @@ export const useAddEmployeePayment = () => {
     setLoading(true);
 
     try {
-      ToastSuccess(`Se registró el pago a ${getEmployeeFullName(employeePayment)} por ${stringToCurrency({ amount: employeePayment.amount })}`);
+      ToastSuccess(`Se registró el pago a ${getEmployeeFullName(employeePayment)} por ${currency({ amount: employeePayment.amount })}`);
 
       await addEmployeePaymentFetch(
         {
@@ -30,7 +30,7 @@ export const useAddEmployeePayment = () => {
 
     } catch (error) {
       console.log(error);
-      ToastDanger(`No se registró el pago a ${employeePayment.employee.label} por ${stringToCurrency({ amount: employeePayment.amount })}`);
+      ToastDanger(`No se registró el pago a ${employeePayment.employee.label} por ${currency({ amount: employeePayment.amount })}`);
       throw new Error("No se registró el pago");
     } finally {
       setLoading(false);

@@ -12,6 +12,16 @@ const branchReportSchema = mongoose.Schema({
     default: []
   },
 
+  midDayStock: {
+    type: Number,
+    default: 0
+  },
+
+  midDayStockArray: {
+    type: [{ type: Schema.Types.ObjectId, ref: 'Stock' }],
+    default: []
+  },
+
   finalStock: {
     type: Number,
     default: 0

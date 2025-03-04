@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { ToastDanger, ToastSuccess } from "../../helpers/toastify"
-import { stringToCurrency } from "../../helpers/Functions"
+import { currency } from "../../helpers/Functions"
 import { deleteIncomeFetch } from "../../services/Incomes/deleteIncome"
 
 export const useDeleteIncome = () => {
@@ -12,11 +12,11 @@ export const useDeleteIncome = () => {
     setLoading(true)
 
     try {
-      ToastSuccess(`Se borró el efectivo de ${stringToCurrency({ amount: income.amount })}`)
+      ToastSuccess(`Se borró el efectivo de ${currency({ amount: income.amount })}`)
 
       await deleteIncomeFetch(income._id)
     } catch (error) {
-      ToastDanger(`No se borró el efectivo de ${stringToCurrency({ amount: income.amount })}`)
+      ToastDanger(`No se borró el efectivo de ${currency({ amount: income.amount })}`)
       console.log(error)
       throw error
     } finally {

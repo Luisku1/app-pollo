@@ -21,10 +21,19 @@ export const useBranchReports = ({ companyId, date }) => {
       setTotalOutgoings(response.totalOutgoings)
       setTotalStock(response.totalStock)
       setTotalBalance(response.totalBalance)
+      setLoading(false)
     })
 
-    setLoading(false)
 
+  }
+
+  const initializeInfo = () => {
+
+    setBranchReports([])
+    setTotalIncomes(0)
+    setTotalOutgoings(0)
+    setTotalStock(0)
+    setTotalBalance(0)
   }
 
   useEffect(() => {
@@ -32,6 +41,8 @@ export const useBranchReports = ({ companyId, date }) => {
     if (!companyId || !date) return
 
     setLoading(true)
+
+    initializeInfo()
 
     getBranchReportsFetch({ companyId, date }).then((response) => {
 

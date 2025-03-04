@@ -13,7 +13,7 @@ import { useSupervisorReports } from '../hooks/Supervisors/useSupervisorReports'
 import SupervisorReports from '../components/SupervisorReports'
 import SupervisorReport from '../components/SupervisorReportComp'
 import EmployeePaymentsList from '../components/EmployeePaymentsList'
-import { getEmployeeFullName, stringToCurrency } from '../helpers/Functions'
+import { getEmployeeFullName, currency } from '../helpers/Functions'
 import { useRoles } from '../context/RolesContext'
 import RegistroEmpleadoNuevo from "./RegistroEmpleado";
 import Modal from "../components/Modals/Modal";
@@ -194,7 +194,7 @@ export default function Perfil() {
                         data={payments}
                         title={`Pagos a ${getEmployeeFullName(employee)}`}
                         ListComponent={EmployeePaymentsList}
-                        clickableComponent={<p>{stringToCurrency({ amount: total })}</p>}
+                        clickableComponent={<p>{currency({ amount: total })}</p>}
                         sortFunction={(a, b) => b.amount - a.amount}
                       />
                     </div>

@@ -41,7 +41,7 @@ export default function Header() {
 
   return (
     <>
-      <header className='bg-header shadow-md sticky top-0 z-[10000]'>
+      <header className='bg-header shadow-md sticky top-0 z-[9999]'>
         <div className='flex justify-between items-center mx-auto p-3 max-w-full'>
           <Link to='/'>
             <h1 className='font-bold text-sm sm:text-xl flex flex-wrap space-x-1 items-center'>

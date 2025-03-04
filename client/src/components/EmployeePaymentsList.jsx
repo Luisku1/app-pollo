@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux'
 import DeleteButton from './Buttons/DeleteButton'
 import { formatInformationDate, formatTime } from '../helpers/DatePickerFunctions'
 import { useRoles } from '../context/RolesContext'
-import { getEmployeeFullName, stringToCurrency } from '../helpers/Functions'
+import { getEmployeeFullName, currency } from '../helpers/Functions'
 import { useState, useMemo } from 'react'
 import ShowDetails from "./ShowDetails"
 import RowItem from "./RowItem"
@@ -23,7 +23,7 @@ export default function EmployeePaymentsList({ payments, total = 0, onDelete = n
   const fields = [
     { key: 'employee.name', label: 'Encargado', format: (data) => data.employee.name },
     { key: 'detail', label: 'Concepto' },
-    { key: 'amount', label: 'Monto', format: (data) => stringToCurrency({ amount: data.amount }) },
+    { key: 'amount', label: 'Monto', format: (data) => currency({ amount: data.amount }) },
     {
       key: 'createdAt', label: 'Hora', format: (data) => {
         return <div>
@@ -42,7 +42,7 @@ export default function EmployeePaymentsList({ payments, total = 0, onDelete = n
     return (
       <div className='justify-self-end'>
         <p className='text-green-800 font-bold text-lg'>
-          {stringToCurrency({ amount: total })}
+          {currency({ amount: total })}
         </p>
       </div>
     )
@@ -76,7 +76,7 @@ export default function EmployeePaymentsList({ payments, total = 0, onDelete = n
                     <p className="mr-2 text-md font-semibold">Pago a: </p>
                     <p className="text-red-800 font-semibold">{getEmployeeFullName(employee) ?? ''}</p>
                   </div>
-                  <p className={`text-md text-orange-500 font-bold flex gap-1 items-center`}><MoneyBag />{stringToCurrency({ amount })}</p>
+                  <p className={`text-md text-orange-500 font-bold flex gap-1 items-center`}><MoneyBag />{currency({ amount })}</p>
                 </RowItem>
               </div>
               {income ? (

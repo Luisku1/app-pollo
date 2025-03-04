@@ -34,9 +34,9 @@ export const useStock = ({ branchId, date, initialStock = null }) => {
     const tempId = new Types.ObjectId().toHexString();
     try {
       const tempStock = { ...stock, _id: tempId };
-
-      modifyBalance(tempStock.amount, "add", 'stockArray');
       pushStock(tempStock);
+      if (!stock.midDay)
+        modifyBalance(tempStock.amount, "add", 'stockArray');
       await addStock(tempStock);
     } catch (error) {
       spliceStock(stock.findIndex((stock) => stock._id === tempId));
@@ -46,9 +46,9 @@ export const useStock = ({ branchId, date, initialStock = null }) => {
 
   const onDeleteStock = async (stock, modifyBalance) => {
     try {
-
       spliceStock(stock.index);
-      modifyBalance(stock.amount, "subtract");
+      if (!stock.midDay)
+        modifyBalance(stock.amount, "subtract");
       await deleteStock(stock);
     } catch (error) {
       pushStock(stock);

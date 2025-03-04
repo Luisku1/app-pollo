@@ -1,7 +1,7 @@
 import { useSelector } from "react-redux"
 import { useRoles } from "../../context/RolesContext"
 import { useState, useMemo } from "react"
-import { getEmployeeFullName, stringToCurrency } from "../../helpers/Functions"
+import { getEmployeeFullName, currency } from "../../helpers/Functions"
 import ShowDetails from "../ShowDetails"
 import RowItem from "../RowItem"
 import { CgProfile } from "react-icons/cg"
@@ -20,7 +20,7 @@ export default function ExtraOutgoingsList({ extraOutgoings, totalExtraOutgoings
   const fields = [
     { key: 'employee.name', label: 'Encargado', format: (data) => data.employee.name },
     { key: 'concept', label: 'Concepto' },
-    { key: 'amountt', label: 'Monto', format: (data) => stringToCurrency({ amount: data.amount }) },
+    { key: 'amountt', label: 'Monto', format: (data) => currency({ amount: data.amount }) },
     { key: 'createdAt', label: 'Hora', format: (data) => formatTime(data.createdAt) },
     ...(selectedOutgoing?.partOfAPayment && selectedOutgoing ? [
       { key: 'partOfAPayment', label: 'Parte de un pago', format: (data) => data.partOfAPayment ? 'Sí' : 'No' },
@@ -32,7 +32,7 @@ export default function ExtraOutgoingsList({ extraOutgoings, totalExtraOutgoings
     return (
       <div className='justify-self-end'>
         <p className='text-orange-500 font-bold text-lg'>
-          {stringToCurrency({ amount: totalExtraOutgoings })}
+          {currency({ amount: totalExtraOutgoings })}
         </p>
       </div>
     )
@@ -66,7 +66,7 @@ export default function ExtraOutgoingsList({ extraOutgoings, totalExtraOutgoings
                   <div className="w-full text-sm font-semibol mb-2">
                     <RowItem>
                       <p className="text-md font-semibold">{concept.split('[')[0]}</p>
-                      <p className={`text-md text-orange-500 font-bold`}>{stringToCurrency({ amount })}</p>
+                      <p className={`text-md text-orange-500 font-bold`}>{currency({ amount })}</p>
                     </RowItem>
                   </div>
                   {partOfAPayment && employeePayment && (

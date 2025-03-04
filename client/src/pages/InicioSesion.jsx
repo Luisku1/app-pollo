@@ -17,23 +17,23 @@ export default function InicioSesion() {
 
     const fetchRoles = async () => {
 
-       try {
+      try {
 
-          const res = await fetch('/api/role/get')
-          const data = await res.json()
+        const res = await fetch('/api/role/get')
+        const data = await res.json()
 
-          if (data.success === false) {
-            dispatch(signInFailiure(data.message))
-            return
-          }
-
-          setRoles(data.roles)
-
-        } catch (error) {
-
-          dispatch(signInFailiure(error.message))
-
+        if (data.success === false) {
+          dispatch(signInFailiure(data.message))
+          return
         }
+
+        setRoles(data.roles)
+
+      } catch (error) {
+
+        dispatch(signInFailiure(error.message))
+
+      }
     }
 
     fetchRoles()
@@ -49,7 +49,7 @@ export default function InicioSesion() {
 
   const handleChange = (e) => {
 
-    setFormData( {
+    setFormData({
 
       ...formData,
       [e.target.id]: e.target.value,
@@ -64,7 +64,7 @@ export default function InicioSesion() {
       const res = await fetch('/api/company/get-by-owner-id/' + ownerId)
       const data = await res.json()
 
-      if(data.success === false) {
+      if (data.success === false) {
 
         dispatch(signInFailiure(data.message))
         return
@@ -85,7 +85,7 @@ export default function InicioSesion() {
       const res = await fetch('/api/company/get-by-id/' + companyId)
       const data = await res.json()
 
-      if(data.success === false) {
+      if (data.success === false) {
 
         dispatch(signInFailiure(data.message))
         return
@@ -104,24 +104,22 @@ export default function InicioSesion() {
 
     e.preventDefault()
 
-    try
-    {
+    try {
       dispatch(signInStart())
 
-      if(formData.phoneNumber == undefined || formData.password == undefined)
-      {
+      if (formData.phoneNumber == undefined || formData.password == undefined) {
         dispatch(signInFailiure('Llena todos los campos'))
         return
       }
 
       const res = await fetch('/api/auth/sign-in',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData)
-      })
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(formData)
+        })
 
       const data = await res.json()
 
@@ -130,8 +128,7 @@ export default function InicioSesion() {
         return
       }
 
-      if(typeof data.company === 'undefined')
-      {
+      if (typeof data.company === 'undefined') {
         await fetchCompanyByOwnerId(data._id)
 
       } else {
@@ -142,13 +139,13 @@ export default function InicioSesion() {
       dispatch(signInSuccess(data))
 
 
-      if(data.role == sellerRole._id) {
+      if (data.role == sellerRole._id) {
 
         navigate('/formato')
         return
       }
 
-      if(data.company != null) {
+      if (data.company != null) {
 
         navigate('/')
         return
@@ -165,6 +162,8 @@ export default function InicioSesion() {
   useEffect(() => {
 
     document.title = 'Inicia Sesión'
+    const numberInput = document.getElementById('phoneNumber')
+    numberInput.focus()
   })
 
   return (
@@ -179,8 +178,8 @@ export default function InicioSesion() {
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
 
-        <input type="tel" name="phoneNumber" id="phoneNumber" placeholder='Número telefónico' className='border p-3 rounded-lg' onChange={handleChange}/>
-        <input type="password" name="password" id="password" placeholder='Contraseña' className='border p-3 rounded-lg' onChange={handleChange}/>
+        <input type="tel" name="phoneNumber" id="phoneNumber" placeholder='Número telefónico' className='border p-3 rounded-lg' onChange={handleChange} />
+        <input type="password" name="password" id="password" placeholder='Contraseña' className='border p-3 rounded-lg' onChange={handleChange} />
 
         <button disabled={loading} className="bg-button text-white p-3 rounded-lg uppercase hover:opacity-95 disabled:opacity-80">
           {loading ? 'Cargando...' : 'Iniciar Sesión'}

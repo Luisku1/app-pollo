@@ -3,7 +3,7 @@ import { Pie } from 'react-chartjs-2';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { useEffect, useState } from 'react';
-import { stringToCurrency } from '../../helpers/Functions';
+import { currency } from '../../helpers/Functions';
 import ShowListModal from '../Modals/ShowListModal';
 import IncomesList from '../Incomes/IncomesList';
 import ExtraOutgoingsList from '../Outgoings/ExtraOutgoingsList';
@@ -105,13 +105,13 @@ export default function PieChart({ verifiedIncomes = null, netIncomes = null, ch
             <div className='flex gap-2'>
               <p className='text-lg'>
                 <span className={`${verifiedIncomes < netIncomes ? 'text-red-600' : 'text-green-600'}`}>
-                  {stringToCurrency({ amount: verifiedIncomes })}
+                  {currency({ amount: verifiedIncomes })}
                 </span>
                 /
-                <span className='text-green-600'>{stringToCurrency({ amount: netIncomes })}</span>
+                <span className='text-green-600'>{currency({ amount: netIncomes })}</span>
               </p>
               {verifiedIncomes < netIncomes && (
-                <p className='text-red-500'>{`(${stringToCurrency({ amount: verifiedIncomes - netIncomes })})`}</p>
+                <p className='text-red-500'>{`(${currency({ amount: verifiedIncomes - netIncomes })})`}</p>
               )}
             </div>
           </div>
@@ -130,7 +130,7 @@ export default function PieChart({ verifiedIncomes = null, netIncomes = null, ch
       datalabels: {
         color: '#000', // Cambiar a un color que contraste bien
         formatter: (value, context) => {
-          return value === 0 ? '' : stringToCurrency({ amount: value });
+          return !value ? '' : currency({ amount: value });
         },
         font: {
           weight: 'bold',
@@ -142,7 +142,7 @@ export default function PieChart({ verifiedIncomes = null, netIncomes = null, ch
           label: function (tooltipItem) {
             const label = data.labels[tooltipItem.dataIndex] || '';
             const value = data.datasets[0].data[tooltipItem.dataIndex] || 0
-            return `${label}: ${stringToCurrency({ amount: value })}` // Muestra el label y el valor en el tooltip
+            return `${label}: ${currency({ amount: value })}` // Muestra el label y el valor en el tooltip
           },
         },
       },

@@ -5,22 +5,43 @@ import { ToastDanger } from "../../helpers/toastify"
 export const useSupervisorsReportInfo = ({ companyId, date }) => {
 
   const [supervisorsInfo, setSupervisorsInfo] = useState([])
-  const [grossCash, setGrossCash] = useState()
-  const [deposits, setDeposits] = useState()
-  const [netIncomes, setNetIncomes] = useState()
-  const [missingIncomes, setMissingIncomes] = useState()
-  const [extraOutgoings, setExtraOutgoings] = useState()
-  const [extraOutgoingsArray, setExtraOutgoingsArray] = useState()
-  const [verifiedCash, setVerifiedCash] = useState()
-  const [cashArray, setCashArray] = useState()
-  const [verifiedDeposits, setVerifiedDeposits] = useState()
-  const [depositsArray, setDepositsArray] = useState()
-  const [terminalIncomes, setTerminalIncomes] = useState()
-  const [terminalIncomesArray, setTerminalIncomesArray] = useState()
-  const [verifiedIncomes, setVerifiedIncomes] = useState()
+  const [loading, setLoading] = useState(false)
+  const [grossCash, setGrossCash] = useState(0)
+  const [deposits, setDeposits] = useState(0)
+  const [netIncomes, setNetIncomes] = useState(0)
+  const [missingIncomes, setMissingIncomes] = useState(0)
+  const [extraOutgoings, setExtraOutgoings] = useState(0)
+  const [extraOutgoingsArray, setExtraOutgoingsArray] = useState(0)
+  const [verifiedCash, setVerifiedCash] = useState(0)
+  const [cashArray, setCashArray] = useState(0)
+  const [verifiedDeposits, setVerifiedDeposits] = useState(0)
+  const [depositsArray, setDepositsArray] = useState(0)
+  const [terminalIncomes, setTerminalIncomes] = useState(0)
+  const [terminalIncomesArray, setTerminalIncomesArray] = useState(0)
+  const [verifiedIncomes, setVerifiedIncomes] = useState(0)
+
+  const initializeInfo = () => {
+
+    setSupervisorsInfo([])
+    setDeposits(0)
+    setExtraOutgoings(0)
+    setExtraOutgoingsArray(0)
+    setGrossCash(0)
+    setMissingIncomes(0)
+    setNetIncomes(0)
+    setVerifiedIncomes(0)
+    setCashArray(0)
+    setVerifiedCash(0)
+    setDepositsArray(0)
+    setVerifiedDeposits(0)
+    setTerminalIncomesArray(0)
+    setTerminalIncomes(0)
+  }
+
 
   const getSupervisorsInfo = ({ companyId, date }) => {
 
+    setLoading(true)
     getSupervisorsInfoReportFetch({ companyId, date }).then((response) => {
 
       setSupervisorsInfo(response.supervisors)
@@ -38,9 +59,7 @@ export const useSupervisorsReportInfo = ({ companyId, date }) => {
       setTerminalIncomesArray(response.terminalIncomesArray)
       setTerminalIncomes(response.terminalIncomes)
 
-    }).catch((error) => {
-
-      ToastDanger(error.message)
+      setLoading(false)
     })
   }
 
@@ -48,12 +67,16 @@ export const useSupervisorsReportInfo = ({ companyId, date }) => {
 
     if (!(companyId && date)) return
 
+
+    initializeInfo()
     getSupervisorsInfo({ companyId, date })
+
 
   }, [companyId, date])
 
   return {
     supervisorsInfo,
+    loading,
     deposits,
     setDeposits,
     extraOutgoings,
