@@ -48,11 +48,16 @@ export default function ControlSupervisor({ hideFechaDePagina = false }) {
         options: getArrayForSelects(branches, (branch) => branch.branch)
       },
       {
+        label: 'Empleados',
+        options: getArrayForSelects(employees.filter(employee => employee.withMoney), (employee) => employee.name + ' ' + employee.lastName)
+      },
+      {
         label: 'Clientes',
         options: getArrayForSelects(customers, (customer) => customer.name + ' ' + (customer?.lastName ?? ''))
-      }])
+      }
+    ])
 
-  }, [branches, customers])
+  }, [branches, customers, employees])
 
   const isLoading = useLoading(roleLoading, empLoading, branchLoading, custLoading, prodLoading)
 

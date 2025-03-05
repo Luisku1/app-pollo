@@ -2,7 +2,7 @@
 import Select from 'react-select'
 import { customSelectStyles } from '../../helpers/Constants'
 
-export default function BranchAndCustomerSelect({ options, defaultLabel,selectedOption, handleSelectChange }) {
+export default function BranchAndCustomerSelect({ options, defaultLabel, selectedOption, handleSelectChange }) {
   return (
     <div>
       <Select

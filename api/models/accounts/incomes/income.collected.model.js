@@ -27,6 +27,11 @@ const incomeCollectedSchema = mongoose.Schema({
     required: true
   },
 
+  transferred: {
+    type: Boolean,
+    default: false
+  },
+
   partOfAPayment: {
     type: Boolean,
     required: true,

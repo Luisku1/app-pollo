@@ -4,6 +4,7 @@ import { getIncomes, newIncomeType, getIncomeTypes, deleteIncomeQuery, newBranch
 const router = express.Router()
 
 router.post('/branch/create', newBranchIncomeQuery)
+router.post('/', )
 router.post('/customer/create', newCustomerIncomeQuery)
 router.post('/types/create', newIncomeType)
 router.get('/types/get', getIncomeTypes)

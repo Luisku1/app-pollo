@@ -21,6 +21,7 @@ export const useAddIncome = () => {
           branch: income.branch?.value || null,
           customer: income.customer?.value || null,
           employee: income.employee._id,
+          transferred: income.transferred,
           partOfAPayment: income.partOfAPayment,
           type: income.type.value,
           createdAt: income.createdAt
