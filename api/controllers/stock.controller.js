@@ -39,7 +39,7 @@ export const createStockAndUpdateBranchReport = async (params) => {
     amount,
     branch,
     product,
-    midDay,
+    midDay = null,
     company,
     createdAt
   } = params;
@@ -50,15 +50,18 @@ export const createStockAndUpdateBranchReport = async (params) => {
   let stock = null
   let initialStock = null
 
+
   try {
     stock = isInitial ? null : await createNewStock(stockData);
     initialStock = isInitial ? { isInitial, associatedStock, ...stockData } : await createInitialStock(stock, stockData, price, branch, product, createdAt);
 
-    if (!initialStock.isInitial || !initialStock.associatedStock) {
+
+    if (initialStock && (!initialStock.isInitial || !initialStock.associatedStock)) {
       throw new Error("Faltan campos para el sobrante inicial");
     }
 
-    await saveInitialStock(initialStock, branch, initialStock.createdAt);
+    if (!midDay)
+      await saveInitialStock(initialStock, branch, initialStock.createdAt);
 
     return stock;
   } catch (error) {
@@ -292,7 +295,7 @@ const deleteStockAndUpdateBranchReport = async ({ stockId, isInitial = false, al
       affectsBalancePositively: deletedStock.midDay ? null : !isInitial,
       operation: '$pull',
       arrayField: deletedStock.midDay ? 'midDayStockArray' : isInitial ? 'initialStockArray' : 'finalStockArray',
-      amountField: deletedStock.midDay ? 'midDayStock': isInitial ? 'initialStock' : 'finalStock'
+      amountField: deletedStock.midDay ? 'midDayStock' : isInitial ? 'initialStock' : 'finalStock'
     });
 
     if (alsoDeleteInitial) {
