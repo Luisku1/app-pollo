@@ -375,7 +375,7 @@ export default function Reporte({ untitled = false }) {
                               ListComponentProps={{ extraOutgoings: supervisor.extraOutgoingsArray, totalExtraOutgoings: supervisor.extraOutgoings }}
                               title={'Gastos'}
                               clickableComponent={
-                                <p className="text-lg">{currency({ amount: supervisor.extraOutgoings })}
+                                <p className="text-lg border border-black rounded-lg shadow-sm">{currency({ amount: supervisor.extraOutgoings })}
                                 </p>
                               }
                               data={supervisor.extraOutgoingsArray}
