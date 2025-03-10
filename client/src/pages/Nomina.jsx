@@ -66,36 +66,35 @@ export default function Nomina() {
                     <button className="w-fit text-2xl font-semibold my-4 p-2 shadow-sm text-white rounded-lg bg-slate-500 flex" onClick={() => { navigate(`/perfil/${employeePayroll.employee._id}`) }}>{`${employeePayroll.employee.name} ${employeePayroll.employee.lastName}`}</button>
 
                     <div className="">
-                      < div className=" text-lg mx-4 my-2">
-                        <div className="flex gap-2 justify-self-end">
+                      < div className=" text-lg mx-4 mt-2">
+                        <div className="grid grid-cols-2 text-left justify-self-end">
                           <p className="font-semibold">Salario: </p>
                           <p className={' my-auto'}>{Amount({ amount: (employeePayroll?.employee?.salary ?? 0) })}</p>
                         </div>
-                        <div className="flex gap-2 items-center">
-                          <p className="font-semibold">Pagos recibidos: </p>
+                        <div className="grid grid-cols-2 text-left">
+                          <p className="font-semibold">Saldo previo: </p>
+                          <p className={(employeePayroll.previousWeekBalance < 0 ? 'text-red-500 ' : ' ') + ' my-auto font-bold w-fit'}>{employeePayroll.previousWeekBalance.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>
+                        </div>
+                        <div className="grid grid-cols-2 text-left items-center">
+                          <p className="font-semibold">Saldo en la semana: </p>
+                          <ShowListModal
+                            title={`Reportes de ${getEmployeeFullName(employeePayroll.employee, (employee) => employee.name + ' ' + employee.lastName)}`}
+                            ListComponent={TarjetaCuenta}
+                            ListComponentProps={{ reportArray: employeePayroll.branchReports, currentUser }}
+                            clickableComponent={<p className={(employeePayroll.balance < 0 ? 'text-red-500' : '') + ' my-auto font-bold border border-black shadow-sm rounded-lg w-fit'}>{employeePayroll.balance.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>}
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 text-left items-center">
+                          <p className="font-semibold">Pagos en la semana: </p>
                           <ShowListModal
                             data={employeePayroll.employeePaymentsArray}
                             title={`Pagos a ${getEmployeeFullName(employeePayroll.employee)}`}
                             ListComponent={EmployeePaymentsList}
                             ListComponentProps={{ payments: employeePayroll.employeePaymentsArray, total: employeePayroll.employeePaymentsAmount }}
-                            clickableComponent={<p className="font-bold border border-black rounded-lg shadow-sm">{currency({ amount: employeePayroll.employeePaymentsAmount })}</p>}
+                            clickableComponent={<p className="font-bold border border-black rounded-lg shadow-sm w-fit">{currency({ amount: employeePayroll.employeePaymentsAmount })}</p>}
                             sortFunction={(a, b) => b.amount - a.amount}
                           />
                         </div>
-                        <div className="flex gap-2">
-                          <p className="font-semibold">Semana anterior: </p>
-                          <p className={(employeePayroll.previousWeekBalance < 0 ? 'text-red-500 ' : ' ') + ' my-auto font-bold'}>{employeePayroll.previousWeekBalance.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>
-                        </div>
-                        <div className="flex gap-2">
-                          <p className="font-semibold">Semana actual: </p>
-                          <p className={(employeePayroll.balance < 0 ? 'text-red-500' : '') + ' my-auto font-bold'}>{employeePayroll.balance.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>
-                        </div>
-                        <ShowListModal
-                          title={`Reportes de ${getEmployeeFullName(employeePayroll.employee, (employee) => employee.name + ' ' + employee.lastName)}`}
-                          ListComponent={TarjetaCuenta}
-                          ListComponentProps={{ reportArray: employeePayroll.branchReports, currentUser }}
-                          clickableComponent={<p className="font-bold border border-black rounded-lg shadow-sm">Reportes</p>}
-                        />
                       </div>
 
                       <div className="grid grid-cols-12 row-span-1 mt-3 text-center border-black">

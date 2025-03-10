@@ -134,13 +134,13 @@ export default function AddStock({ title, midDay, modifyBalance, stock, listButt
             onChange={handleProductSelectChange}
             placeholder={'Productos'}
           />
-          <div className='relative'>
+          <div className=''>
             <input type="number" name="pieces" id="pieces" placeholder='Piezas' step={0.1} className='w-full border border-black p-3 rounded-lg' required value={stockFormData.pieces} onChange={handleStockInputsChange} />
             <label htmlFor="compact-input" className="-translate-y-full px-1 absolute top-1/4 left-2 transform rounded-sm bg-white text-black text-sm font-semibold">
               Piezas <span>*</span>
             </label>
           </div>
-          <div className='relative'>
+          <div className=''>
             <input type="number" name="weight" id="weight" placeholder='0.00 kg' step={0.001} className='w-full border border-black p-3 rounded-lg' required value={stockFormData.weight} onChange={handleStockInputsChange} />
             <label htmlFor="compact-input" className="-translate-y-full px-1 absolute top-1/4 left-2 transform rounded-sm bg-white text-black text-sm font-semibold">
               Kilos<span>*</span>

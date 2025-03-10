@@ -25,7 +25,7 @@ const ShowListModal = ({
   return (
     <div>
       {clickableComponent && (
-        <button className="w-full h-full border rounded-lg shadow-md" onClick={changeListIsOpen}>
+        <button className="w-fit h-fit border rounded-lg shadow-md" onClick={changeListIsOpen}>
           {clickableComponent}
         </button>
       )}

@@ -280,55 +280,114 @@ export const createDefaultBranchReport = async ({ branchId, date, companyId }) =
   return newBranchReport
 }
 
-export const recalculateBranchReport = async ({ branchReport: paramsBranchReport }) => {
+export const recalculateBranchReportRequest = async (req, res, next) => {
 
-  if (paramsBranchReport) {
+  const branchReport = req.body
 
-    const populatedBranchReport = await fetchBranchReportInfo(paramsBranchReport?.branch?._id ? paramsBranchReport.branch._id : paramsBranchReport.branch, paramsBranchReport.createdAt)
+  console.log(branchReport)
 
-    const incomes = populatedBranchReport.incomesArray?.length > 0
-      ? populatedBranchReport.incomesArray.reduce((total, income) => total + income.amount, 0)
-      : 0
-    paramsBranchReport.incomes = incomes
+  let recalculatedBranchReport = null
 
-    const outgoings = populatedBranchReport.outgoingsArray?.length > 0
-      ? populatedBranchReport.outgoingsArray.reduce((total, outgoing) => total + outgoing.amount, 0)
-      : 0
-    paramsBranchReport.outgoings = outgoings
+  try {
 
-    const inputs = populatedBranchReport.inputsArray?.length > 0
-      ? populatedBranchReport.inputsArray.reduce((total, input) => total + input.amount, 0)
-      : 0
-    paramsBranchReport.inputs = inputs
+    recalculatedBranchReport = await recalculateBranchReport({ branchReport })
 
-    const outputs = populatedBranchReport.outputsArray?.length > 0
-      ? populatedBranchReport.outputsArray.reduce((total, output) => total + output.amount, 0)
-      : 0
-    paramsBranchReport.outputs = outputs
+    res.status(200).json({
+      message: 'Branch report recalculated successfully',
+      data: recalculatedBranchReport,
+      success: true
+    })
 
-    const providerInputs = populatedBranchReport.providerInputsArray?.length > 0
-      ? populatedBranchReport.providerInputsArray.reduce((total, providerInput) => total + providerInput.amount, 0)
-      : 0
-    paramsBranchReport.providerInputs = providerInputs
+  } catch (error) {
 
-    const initialStock = populatedBranchReport.initialStockArray?.length > 0 ? populatedBranchReport.initialStockArray.reduce((total, initialStock) => total + initialStock.amount, 0) : 0
+    next(error)
+  }
+}
 
-    paramsBranchReport.initialStock = initialStock
+export const recalculateBranchReport = async ({ branchReport: paramsBranchReport = null }) => {
 
-    const finalStock = populatedBranchReport.finalStockArray?.length > 0
-      ? populatedBranchReport.finalStockArray.reduce((total, finalStock) => total + finalStock.amount, 0)
-      : 0
-    paramsBranchReport.finalStock = finalStock
+  try {
 
-    const newBalance = ((outgoings + finalStock + outputs + incomes) - (initialStock + inputs + providerInputs))
+    if (paramsBranchReport) {
+
+      const { incomesArray, outgoingsArray, inputsArray, outputsArray, providerInputsArray, initialStockArray, finalStockArray, sender, createdAt, branch, employee, assistant, company, pricesDate, dateSent } = await fetchBranchReportInfo(paramsBranchReport?.branch?._id ? paramsBranchReport.branch._id : paramsBranchReport.branch, paramsBranchReport.createdAt)
+
+      const incomes = incomesArray?.length > 0
+        ? incomesArray.reduce((total, income) => total + income.amount, 0)
+        : 0
+      paramsBranchReport.incomes = incomes
+
+      const outgoings = outgoingsArray?.length > 0
+        ? outgoingsArray.reduce((total, outgoing) => total + outgoing.amount, 0)
+        : 0
+      paramsBranchReport.outgoings = outgoings
+
+      const inputs = inputsArray?.length > 0
+        ? inputsArray.reduce((total, input) => total + input.amount, 0)
+        : 0
+      paramsBranchReport.inputs = inputs
+
+      const outputs = outputsArray?.length > 0
+        ? outputsArray.reduce((total, output) => total + output.amount, 0)
+        : 0
+      paramsBranchReport.outputs = outputs
+
+      const providerInputs = providerInputsArray?.length > 0
+        ? providerInputsArray.reduce((total, providerInput) => total + providerInput.amount, 0)
+        : 0
+      paramsBranchReport.providerInputs = providerInputs
+
+      const initialStock = initialStockArray?.length > 0 ? initialStockArray.reduce((total, initialStock) => total + initialStock.amount, 0) : 0
+
+      paramsBranchReport.initialStock = initialStock
+
+      const finalStock = finalStockArray?.length > 0
+        ? finalStockArray.reduce((total, finalStock) => total + finalStock.amount, 0)
+        : 0
+      paramsBranchReport.finalStock = finalStock
+
+      const newBalance = ((outgoings + finalStock + outputs + incomes) - (initialStock + inputs + providerInputs))
 
 
-    const updatedBranchReport = await BranchReport.findByIdAndUpdate(paramsBranchReport._id, { balance: newBalance, initialStock: initialStock, finalStock, providerInputs, outputs, inputs, outgoings, incomes })
+      const updatedBranchReport = await BranchReport.findByIdAndUpdate(paramsBranchReport._id, { balance: newBalance, initialStock: initialStock, finalStock, providerInputs, outputs, inputs, outgoings, incomes })
 
-    if (updatedBranchReport.employee) {
+      if (updatedBranchReport.employee) {
 
-      await updateEmployeeDailyBalances({ branchReport: updatedBranchReport })
+        await updateEmployeeDailyBalances({ branchReport: updatedBranchReport })
+      }
+
+      console.log(providerInputsArray)
+
+      return {
+        balance: newBalance,
+        initialStock,
+        incomesArray,
+        incomes,
+        finalStock,
+        inputs,
+        outputs,
+        providerInputs,
+        incomes,
+        outgoings,
+        initialStockArray,
+        finalStockArray,
+        providerInputsArray,
+        outputsArray,
+        inputsArray,
+        employee,
+        assistant,
+        sender,
+        createdAt,
+        branch,
+        company,
+        pricesDate,
+        dateSent,
+        _id: paramsBranchReport._id
+      }
     }
+  } catch (error) {
+
+    throw error
   }
 }
 
@@ -338,6 +397,7 @@ export const updateBranchReport = async (req, res, next) => {
   let updatedBranchReport = null
   const actualEmployeeId = employee?._id ? employee._id : employee
   const previousEmployeeId = branchReport?.employee?._id ? branchReport.employee._id : branchReport.employee
+  const previousAssistantId = branchReport?.assistant?._id ? branchReport.assistant._id : branchReport.assistant
 
   try {
 
@@ -351,19 +411,23 @@ export const updateBranchReport = async (req, res, next) => {
       branchReport.employee = employee
 
       await updateEmployeeDailyBalances({ branchReport: branchReport })
+
+      updatedBranchReport = await BranchReport.findByIdAndUpdate(branchReport._id, {
+        $set: { employee: actualEmployeeId, dateSent: new Date() }
+      })
     }
 
+    if (previousAssistantId != assistant) {
+
+      updatedBranchReport = await BranchReport.findByIdAndUpdate(branchReport._id, {
+        $set: { assistant: assistant, dateSent: new Date() }
+      })
+    }
 
     if (branchReport.dateSent) {
 
       updatedBranchReport = await BranchReport.findByIdAndUpdate(branchReport._id, {
         $set: { employee: actualEmployeeId, assistant: assistant }
-      })
-
-    } else {
-
-      updatedBranchReport = await BranchReport.findByIdAndUpdate(branchReport._id, {
-        $set: { employee: actualEmployeeId, assistant: assistant, dateSent: new Date() }
       })
     }
 

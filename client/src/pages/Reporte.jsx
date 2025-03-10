@@ -62,6 +62,7 @@ export default function Reporte({ untitled = false }) {
     branchReports,
     getBranchReports,
     totalIncomes,
+    replaceReport,
     loading: loadingBranchReports,
     totalStock,
     totalOutgoings,
@@ -320,7 +321,7 @@ export default function Reporte({ untitled = false }) {
                 <Sobrante date={stringDatePickerValue} branchReports={branchReports}></Sobrante>
               </div>
               <div className={!showCards ? 'hidden' : ''} >
-                <TarjetaCuenta reportArray={branchReports} currentUser={currentUser}></TarjetaCuenta>
+                <TarjetaCuenta replaceReport={replaceReport} reportArray={branchReports} currentUser={currentUser}></TarjetaCuenta>
               </div>
             </div>
           </div>
