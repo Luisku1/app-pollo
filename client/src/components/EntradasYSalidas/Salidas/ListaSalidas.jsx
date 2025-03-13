@@ -14,12 +14,15 @@ import ConfirmationButton from '../../Buttons/ConfirmationButton'
 import DeleteButton from '../../Buttons/DeleteButton'
 import MoneyBag from '../../Icons/MoneyBag'
 
-export default function ListaSalidas({ outputs, totalWeight = 0, totalAmount = 0, onDelete = null }) {
+export default function ListaSalidas({ outputs, onDelete = null }) {
   const { currentUser } = useSelector((state) => state.user)
   const { isManager } = useRoles()
   const [selectedOutput, setSelectedOutput] = useState(null)
   const isAuthorized = (employee) => currentUser._id === employee._id || isManager(currentUser.role) || !onDelete
   const deletable = onDelete != null
+
+  const totalWeight = useMemo(() => outputs.reduce((acc, output) => acc + output.weight, 0), [outputs])
+  const totalAmount = useMemo(() => outputs.reduce((acc, output) => acc + output.amount, 0), [outputs])
 
   const fields = [
     { key: 'weight', label: 'Peso', format: (data) => `${data.weight.toFixed(2)} Kg` },

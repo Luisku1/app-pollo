@@ -13,12 +13,14 @@ import MoneyBag from '../Icons/MoneyBag';
 import { MdPendingActions, MdStorefront } from 'react-icons/md';
 import DeleteButton from '../Buttons/DeleteButton';
 
-export default function IncomesList({ incomes, incomesTotal, onDeleteIncome }) {
+export default function IncomesList({ incomes = [], onDeleteIncome }) {
   const { currentUser } = useSelector((state) => state.user);
   const { isManager } = useRoles();
   const isEmpty = !incomes || incomes.length === 0;
   const [selectedIncome, setSelectedIncome] = useState(null);
   const deletable = onDeleteIncome
+
+  const incomesTotal = incomes.reduce((acc, income) => acc + income.amount, 0);
 
   const fields = [
     { key: 'amount', label: 'Monto', className: (data) => (data.partOfAPayment ? 'text-orange-700' : 'text-green-700') + ' text-center text-md font-semibold', format: (data) => currency({ amount: data.amount }) },

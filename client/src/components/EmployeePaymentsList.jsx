@@ -53,7 +53,7 @@ export default function EmployeePaymentsList({ payments, total = 0, onDelete = n
     const tempPayment = { ...payment, index }
 
     return (
-      isAuthorized(employee) && (
+      isAuthorized(supervisor) && (
         <div className="" key={payment._id}>
           <div className="grid grid-cols-12 border border-black border-opacity-30 rounded-2xl shadow-sm mb-2 py-1">
             <button

@@ -3,7 +3,7 @@ import { useSelector } from "react-redux"
 import { currency } from "../../helpers/Functions"
 import DeleteButton from "../Buttons/DeleteButton"
 import { useRoles } from "../../context/RolesContext"
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import ShowDetails from "../ShowDetails"
 import { formatTime } from "../../helpers/DatePickerFunctions"
 import RowItem from "../RowItem"
@@ -11,13 +11,15 @@ import { CgProfile } from "react-icons/cg"
 import ConfirmationButton from "../Buttons/ConfirmationButton"
 import MoneyBag from "../Icons/MoneyBag"
 
-export default function OutgoingsList({ outgoings, amount, onDelete, modifyBalance }) {
+export default function OutgoingsList({ outgoings, onDelete, modifyBalance }) {
   const { currentUser } = useSelector((state) => state.user)
   const { roles, isManager } = useRoles()
   const [selectedOutgoing, setSelectedOutgoing] = useState(null)
   const [movementDetailsIsOpen, setMovementDetailsIsOpen] = useState(false)
   const isEmpty = !outgoings || outgoings.length === 0
   const deletable = onDelete
+
+  const amount = useMemo(() => outgoings.reduce((acc, outgoing) => acc + outgoing.amount, 0), [outgoings])
 
   const fields = [
     { key: 'amount', label: 'Monto', format: (data) => currency({ amount: data.amount }) },

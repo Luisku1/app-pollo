@@ -14,7 +14,7 @@ import ConfirmationButton from '../../Buttons/ConfirmationButton'
 import MoneyBag from '../../Icons/MoneyBag'
 import DeleteButton from '../../Buttons/DeleteButton'
 
-export default function ListaEntradas({ inputs, totalWeight = 0, totalAmount = 0, onDelete = null }) {
+export default function ListaEntradas({ inputs, onDelete = null }) {
   const { currentUser } = useSelector((state) => state.user)
   const { isManager } = useRoles()
   const [selectedInput, setSelectedInput] = useState(null)
@@ -31,6 +31,9 @@ export default function ListaEntradas({ inputs, totalWeight = 0, totalAmount = 0
     { key: 'comment', label: 'Comentario' },
     { key: 'createdAt', label: 'Hora', format: (data) => formatTime(data.createdAt) },
   ]
+
+  const totalWeight = useMemo(() => inputs.reduce((acc, input) => acc + input.weight, 0), [inputs])
+  const totalAmount = useMemo(() => inputs.reduce((acc, input) => acc + input.amount, 0), [inputs])
 
   const renderTotal = () => {
     return (

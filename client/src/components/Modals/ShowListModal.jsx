@@ -26,7 +26,7 @@ const ShowListModal = ({
   return (
     <div>
       {clickableComponent && (
-        <button className={className} onClick={changeListIsOpen}>
+        <button className={className} onClick={(e) => { changeListIsOpen(), e.stopPropagation() }}>
           {clickableComponent}
         </button>
       )}
