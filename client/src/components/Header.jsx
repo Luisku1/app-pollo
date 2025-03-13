@@ -31,14 +31,18 @@ export default function Header() {
   useEffect(() => {
     const getUserActualInfo = async () => {
       try {
-        const user = await getSignedUser(currentUser._id)
-        if (user.role !== currentUser.role) dispatch(signInSuccess(user))
+        const user = await getSignedUser(currentUser._id);
+        if (user?.role !== currentUser.role) {
+          dispatch(signInSuccess({ ...user, fetched: true }));
+        }
       } catch (error) {
         console.log(error);
       }
-    }
-    if (currentUser && dispatch) getUserActualInfo()
+    };
 
+    if (currentUser && !currentUser.fetched) {
+      getUserActualInfo();
+    }
   }, [currentUser, dispatch])
 
   useEffect(() => {

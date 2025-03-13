@@ -1,11 +1,10 @@
 /* eslint-disable react/prop-types */
 import { IoReload } from "react-icons/io5";
-import { useContext, useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { useSelector } from "react-redux"
 import { useParams, useNavigate, Link } from "react-router-dom"
 import FechaDePagina from "../components/FechaDePagina"
 import { formatDate } from "../helpers/DatePickerFunctions"
-import TarjetaCuenta from "../components/TarjetaCuenta"
 import Sobrante from "../pages/Sobrante"
 import { useBranchReports } from "../hooks/BranchReports.js/useBranchReports";
 import { getArrayForSelects, currency } from "../helpers/Functions";
@@ -18,7 +17,6 @@ import ExtraOutgoingsList from "../components/Outgoings/ExtraOutgoingsList.jsx";
 import ShowIncomesModal from "../components/Incomes/ShowIncomesModal.jsx";
 import ShowListModal from "../components/Modals/ShowListModal.jsx";
 import Modal from "../components/Modals/Modal";
-import { ModalContext } from '../context/ModalContext';
 import { useLoading } from "../hooks/loading.js";
 import BranchReportCard from "../components/BranchReportCard.jsx";
 import { BsFileBarGraph } from "react-icons/bs";
@@ -26,7 +24,6 @@ import { BsBoxes } from "react-icons/bs";
 import { FaTruck } from "react-icons/fa";
 import { FaUser } from "react-icons/fa";
 import { MdStorefront } from "react-icons/md";
-import MoneyBag from "../components/Icons/MoneyBag.jsx";
 
 export default function Reporte({ untitled = false }) {
 
@@ -80,7 +77,6 @@ export default function Reporte({ untitled = false }) {
   const [pieChartInfo, setPieChartInfo] = useState([])
   const [negativeBalances, setNegativeBalances] = useState(new Set())
   const [selectedBranchReport, setSelectedBranchReport] = useState(null);
-  const { removeModal } = useContext(ModalContext);
 
   const updateReportedCash = ({ reportedCash, prevReportedCash, prevReportedIncomes }) => {
 
@@ -450,7 +446,6 @@ export default function Reporte({ untitled = false }) {
           }
           closeModal={() => {
             setSelectedBranchReport(null);
-            removeModal();
           }}
         />
       )}
