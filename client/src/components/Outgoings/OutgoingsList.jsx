@@ -13,7 +13,7 @@ import MoneyBag from "../Icons/MoneyBag"
 
 export default function OutgoingsList({ outgoings, amount, onDelete, modifyBalance }) {
   const { currentUser } = useSelector((state) => state.user)
-  const { roles } = useRoles()
+  const { roles, isManager } = useRoles()
   const [selectedOutgoing, setSelectedOutgoing] = useState(null)
   const [movementDetailsIsOpen, setMovementDetailsIsOpen] = useState(false)
   const isEmpty = !outgoings || outgoings.length === 0
@@ -40,8 +40,8 @@ export default function OutgoingsList({ outgoings, amount, onDelete, modifyBalan
     const { _id, employee, concept, amount, createdAt } = outgoing
     const tempOutgoing = { ...outgoing, index }
     const employeeName = `${employee.name || employee}`
-    const isAuthorized = currentUser._id == employee._id || currentUser.role == roles.managerRole._id
-    const shouldRender = isAuthorized || currentUser.role === roles.managerRole._id
+    const isAuthorized = currentUser._id == employee._id || isManager(currentUser.role)
+    const shouldRender = isAuthorized || isManager(currentUser.role)
 
     return (
       shouldRender && (
@@ -96,7 +96,7 @@ export default function OutgoingsList({ outgoings, amount, onDelete, modifyBalan
     return (
       <div>
         {renderTotal()}
-        {!isEmpty && roles?.managerRole && outgoings.map((outgoing, index) => renderOutgoingItem({ outgoing, index }))}
+        {!isEmpty && roles?.manager && outgoings.map((outgoing, index) => renderOutgoingItem({ outgoing, index }))}
       </div>
     )
   }

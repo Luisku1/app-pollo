@@ -12,9 +12,9 @@ import { formatTime } from "../../helpers/DatePickerFunctions"
 /* eslint-disable react/prop-types */
 export default function ExtraOutgoingsList({ extraOutgoings, totalExtraOutgoings = 0, onDelete = null }) {
   const { currentUser } = useSelector((state) => state.user)
-  const { roles } = useRoles()
+  const { isManager } = useRoles()
   const [selectedOutgoing, setSelectedOutgoing] = useState(null)
-  const isAuthorized = (employee) => currentUser._id === employee._id || currentUser.role === roles.managerRole._id || !onDelete
+  const isAuthorized = (employee) => currentUser._id === employee._id || isManager(currentUser.role) || !onDelete
   const deletable = onDelete != null
 
   const fields = [

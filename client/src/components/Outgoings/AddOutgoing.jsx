@@ -106,6 +106,7 @@ export default function AddOutgoing({ outgoings, modifyBalance, listButton, outg
         <ShowListModal
           title={'Gastos'}
           ListComponent={OutgoingsList}
+          className={'w-full'}
           ListComponentProps={{ outgoings, amount: outgoingsTotal, onDelete: onDeleteOutgoing, modifyBalance }}
           clickableComponent={listButton}
         />

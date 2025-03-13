@@ -15,7 +15,7 @@ import IncomesList from './IncomesList'
 export default function Incomes({ incomes, incomesTotal, onAddIncome, onDeleteIncome, branchAndCustomerSelectOptions, date, companyId, currentUser }) {
 
   const [incomeFormData, setIncomeFormData] = useState({})
-  const { roles } = useRoles()
+  const { isManager } = useRoles()
   const { incomeTypes } = useIncomeTypes()
   const [selectedCustomerBranchIncomesOption, setSelectedCustomerBranchIncomesOption] = useState(null)
   const [selectedIncomeGroup, setSelectedIncomeGroup] = useState('')
@@ -138,7 +138,7 @@ export default function Incomes({ incomes, incomesTotal, onAddIncome, onDeleteIn
               ListComponent={IncomesList}
               ListComponentProps={{ incomes, incomesTotal, onDeleteIncome }}
               clickableComponent={
-                roles && roles.managerRole && currentUser.role == roles.managerRole._id ?
+                isManager(currentUser.role) ?
                   <p className='font-bold text-lg text-center'>{currency({ amount: incomesTotal ?? 0 })}</p>
                   :
                   <FaListAlt className="h-10 w-10 text-red-600" />

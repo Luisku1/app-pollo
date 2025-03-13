@@ -14,7 +14,7 @@ export default function Header() {
 
   const { currentUser, company } = useSelector((state) => state.user)
   const [open, setOpen] = useState(false);
-  const { roles } = useRoles()
+  const { roles, isSupervisor, isManager } = useRoles()
   let menuRef = useRef()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isReportModalOpen, setIsReportModalOpen] = useState(false)
@@ -49,12 +49,12 @@ export default function Header() {
               <GiChicken className='text-orange-400 h-7 w-7' />
             </h1>
           </Link>
-          {roles && currentUser && (currentUser.role == roles?.supervisorRole?._id || currentUser?.role == roles?.managerRole?._id) &&
+          {roles && currentUser && isSupervisor(currentUser.role) &&
             <button onClick={toggleModal} className='flex-grow h-10 mx-4 bg-supervisor-button rounded transition-colors duration-300 font-semibold'>
               Supervisión
             </button>
           }
-          {roles && currentUser && currentUser?.role == roles?.managerRole?._id &&
+          {roles && currentUser && isManager(currentUser.role) &&
             <button onClick={toggleReportModal} className='flex-grow h-10 bg-supervisor-button mx-4 bg-report-button rounded transition-colors duration-300 font-semibold'>
               Reporte
             </button>
@@ -69,7 +69,7 @@ export default function Header() {
                   <div>
                     <DropdownItem text={'Perfil'} link={'/perfil/' + currentUser._id} onClick={() => { setOpen(!open) }} />
                     <DropdownItem text={"Crear formato"} link={'/formato'} onClick={() => { setOpen(!open) }} />
-                    {(currentUser.role == roles.supervisorRole._id || currentUser.role == roles.managerRole._id) && (
+                    {isSupervisor(currentUser.role) && (
                       <div>
                         <DropdownItem text={'Supervisión'} link={'/supervision-diaria'} onClick={() => { setOpen(!open) }} />
                         <DropdownItem text={'Registro Empleado'} link={'/registro-empleado'} onClick={() => { setOpen(!open) }} />
@@ -80,7 +80,7 @@ export default function Header() {
                       </div>
                     )}
 
-                    {(currentUser.role == roles.managerRole._id) && (
+                    {isManager(currentUser.role) && (
                       <div>
                         <DropdownItem text={"Nomina"} link={'/nomina'} onClick={() => { setOpen(!open) }} />
                         <DropdownItem text={"Cuentas"} link={'/listado-de-cuentas'} onClick={() => { setOpen(!open) }} />

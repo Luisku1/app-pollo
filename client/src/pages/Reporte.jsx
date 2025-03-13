@@ -28,7 +28,7 @@ export default function Reporte({ untitled = false }) {
   let paramsDate = useParams().date
   let datePickerValue = (paramsDate ? new Date(paramsDate) : new Date())
   let stringDatePickerValue = formatDate(datePickerValue)
-  const { roles, loading: loadingRoles } = useRoles()
+  const { roles, loading: loadingRoles, isManager } = useRoles()
   const [showTable, setShowTable] = useState(true)
   const [showCards, setShowCards] = useState(false)
   const {
@@ -62,6 +62,7 @@ export default function Reporte({ untitled = false }) {
     branchReports,
     getBranchReports,
     totalIncomes,
+    replaceReport,
     loading: loadingBranchReports,
     totalStock,
     totalOutgoings,
@@ -155,13 +156,11 @@ export default function Reporte({ untitled = false }) {
 
     stringDatePickerValue = (e.target.value + 'T06:00:00.000Z')
     navigate('/reporte/' + stringDatePickerValue)
-
   }
 
   const changeDay = (date) => {
 
     navigate('/reporte/' + date)
-
   }
 
   const handleShowCardsButton = () => {
@@ -171,7 +170,6 @@ export default function Reporte({ untitled = false }) {
     setShowStock(false)
     setShowOutgoings(false)
     setShowEarnings(false)
-
   }
 
   const handleShowTableButton = () => {
@@ -212,12 +210,12 @@ export default function Reporte({ untitled = false }) {
 
   useEffect(() => {
 
-    if (!loadingRoles && roles?.managerRole && roles?.managerRole?._id != currentUser?.role) {
+    if (roles && !isManager(currentUser.role) && !loadingRoles) {
 
       handleShowStockButton()
     }
 
-  }, [currentUser, roles?.managerRole, loadingRoles])
+  }, [currentUser, roles, loadingRoles, isManager])
 
   useEffect(() => {
 
@@ -232,16 +230,16 @@ export default function Reporte({ untitled = false }) {
 
       <FechaDePagina changeDay={changeDay} stringDatePickerValue={stringDatePickerValue} changeDatePickerValue={changeDatePickerValue} ></FechaDePagina>
 
-      {branchReports && branchReports.length > 0 && roles && roles.managerRole ?
+      {branchReports && branchReports.length > 0 && roles && roles.manager ?
         <div>
           <div>
             <div>
               <div className="grid grid-cols-5 border bg-white border-black mx-auto my-auto w-full rounded-lg font-bold">
-                <button className={"h-full p-1 rounded-lg hover:shadow-xl hover:bg-slate-700 hover:text-white " + (showTable ? 'bg-slate-500 text-white' : 'bg-white')} disabled={currentUser.role != roles.managerRole._id} onClick={() => { handleShowTableButton() }}>Tabla</button>
+                <button className={"h-full p-1 rounded-lg hover:shadow-xl hover:bg-slate-700 hover:text-white " + (showTable ? 'bg-slate-500 text-white' : 'bg-white')} disabled={!isManager(currentUser.role)} onClick={() => { handleShowTableButton() }}>Tabla</button>
                 <button className={"h-full p-1 rounded-lg hover:shadow-xl hover:bg-slate-700 hover:text-white " + (showStock ? 'bg-slate-500 text-white' : ' bg-white')} onClick={() => { handleShowStockButton() }}>Sobrante</button>
-                <button className={"h-full p-1 rounded-lg hover:shadow-xl hover:bg-slate-700 hover:text-white " + (showEarnings ? 'bg-slate-500 text-white' : ' bg-white')} disabled={currentUser.role != roles.managerRole._id} onClick={() => { handleShowEarningsButton() }}>Efectivos</button>
-                <button className={"h-full p-1 rounded-lg hover:shadow-xl hover:bg-slate-700 hover:text-white " + (showOutgoings ? 'bg-slate-500 text-white' : ' bg-white')} disabled={currentUser.role != roles.managerRole._id} onClick={() => { handleShowOutgoingButton() }}>Gastos</button>
-                <button className={"h-full p-1 rounded-lg hover:shadow-xl hover:bg-slate-700 hover:text-white " + (showCards ? 'bg-slate-500 text-white' : ' bg-white')} disabled={currentUser.role != roles.managerRole._id} onClick={() => { handleShowCardsButton() }}>Tarjetas</button>
+                <button className={"h-full p-1 rounded-lg hover:shadow-xl hover:bg-slate-700 hover:text-white " + (showEarnings ? 'bg-slate-500 text-white' : ' bg-white')} disabled={!isManager(currentUser.role)} onClick={() => { handleShowEarningsButton() }}>Efectivos</button>
+                <button className={"h-full p-1 rounded-lg hover:shadow-xl hover:bg-slate-700 hover:text-white " + (showOutgoings ? 'bg-slate-500 text-white' : ' bg-white')} disabled={!isManager(currentUser.role)} onClick={() => { handleShowOutgoingButton() }}>Gastos</button>
+                <button className={"h-full p-1 rounded-lg hover:shadow-xl hover:bg-slate-700 hover:text-white " + (showCards ? 'bg-slate-500 text-white' : ' bg-white')} disabled={!isManager(currentUser.role)} onClick={() => { handleShowCardsButton() }}>Tarjetas</button>
               </div>
               <div className="grid grid-cols-3 mt-3 items-center">
                 <p className="col-span-1 font-bold">{'Formatos: ' + branchReports.length + '/20'}</p>
@@ -276,7 +274,7 @@ export default function Reporte({ untitled = false }) {
                     <tr className={'border-x ' + (index + 1 != branchReports.length ? "border-b " : '') + 'border-black border-opacity-40'}>
                       <td className="group">
                         <button
-                          className="text-sm text-gray-700"
+                          className="text-sm text-gray-700 w-full h-full"
                           onClick={() => {
                             setSelectedBranchReport(branchReport);
                             addModal(
@@ -291,18 +289,97 @@ export default function Reporte({ untitled = false }) {
                           }}
                         >
                           {branchReport.branch.branch}
+                          <div className="hidden group-hover:block group-hover:fixed group-hover:overflow-hidden group-hover:mt-2 ml-24 bg-button text-white shadow-2xl rounded-md p-2">
+                            <p>{branchReport.employee != null ? branchReport.employee.name + ' ' + branchReport.employee.lastName : 'Sin empleado'}</p>
+                            {branchReport.assistant != null ? (
+                              <p>{branchReport.assistant.name + ' ' + branchReport.assistant.lastName}</p>
+                            ) : ''}
+                          </div>
                         </button>
-                        <div className="hidden group-hover:block group-hover:fixed group-hover:overflow-hidden group-hover:mt-2 ml-24 bg-button text-white shadow-2xl rounded-md p-2">
-                          <p>{branchReport.employee != null ? branchReport.employee.name + ' ' + branchReport.employee.lastName : 'Sin empleado'}</p>
-                          {branchReport.assistant != null ? (
-                            <p>{branchReport.assistant.name + ' ' + branchReport.assistant.lastName}</p>
-                          ) : ''}
-                        </div>
                       </td>
-                      <td className="text-center text-sm">{branchReport.outgoings.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</td>
-                      <td className="text-center text-sm">{branchReport.finalStock.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</td>
-                      <td className="text-center text-sm">{branchReport.incomes.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</td>
-                      <td className={(branchReport.balance < 0 ? 'text-red-500' : 'text-green-500') + ' text-center text-sm'}>{branchReport.balance.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })} </td>
+                      <td className="text-center text-sm">
+
+                        <button
+                          className="text-sm text-gray-700 w-full h-full"
+                          onClick={() => {
+                            setSelectedBranchReport(branchReport);
+                            addModal(
+                              <Modal
+                                content={<RegistroCuentaDiaria edit={false} _branchReport={branchReport} _branch={branchReport.branch} />}
+                                closeModal={() => {
+                                  setSelectedBranchReport(null);
+                                  removeModal();
+                                }}
+                              />
+                            );
+                          }}
+                        >{branchReport.outgoings.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}
+
+                        </button>
+                      </td>
+                      <td className="text-center text-sm">
+
+                        <button
+                          className="text-sm text-gray-700 w-full h-full"
+                          onClick={() => {
+                            setSelectedBranchReport(branchReport);
+                            addModal(
+                              <Modal
+                                content={<RegistroCuentaDiaria edit={false} _branchReport={branchReport} _branch={branchReport.branch} />}
+                                closeModal={() => {
+                                  setSelectedBranchReport(null);
+                                  removeModal();
+                                }}
+                              />
+                            );
+                          }}
+                        >
+                          {branchReport.finalStock.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}
+
+                        </button>
+                      </td>
+                      <td className="text-center text-sm">
+
+                        <button
+                          className="text-sm text-gray-700 w-full h-full"
+                          onClick={() => {
+                            setSelectedBranchReport(branchReport);
+                            addModal(
+                              <Modal
+                                content={<RegistroCuentaDiaria edit={false} _branchReport={branchReport} _branch={branchReport.branch} />}
+                                closeModal={() => {
+                                  setSelectedBranchReport(null);
+                                  removeModal();
+                                }}
+                              />
+                            );
+                          }}
+                        >{branchReport.incomes.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}
+
+                        </button>
+                      </td>
+
+                      <td className={(branchReport.balance < 0 ? 'text-red-500' : 'text-green-500') + ' text-center text-sm'}>
+
+                        <button
+                          className="text-sm text-gray-700 w-full h-full"
+                          onClick={() => {
+                            setSelectedBranchReport(branchReport);
+                            addModal(
+                              <Modal
+                                content={<RegistroCuentaDiaria edit={false} _branchReport={branchReport} _branch={branchReport.branch} />}
+                                closeModal={() => {
+                                  setSelectedBranchReport(null);
+                                  removeModal();
+                                }}
+                              />
+                            );
+                          }}
+                        >
+                          {branchReport.balance.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}
+
+                        </button>
+                      </td>
                     </tr>
                   </tbody>
                 ))}
@@ -320,102 +397,109 @@ export default function Reporte({ untitled = false }) {
                 <Sobrante date={stringDatePickerValue} branchReports={branchReports}></Sobrante>
               </div>
               <div className={!showCards ? 'hidden' : ''} >
-                <TarjetaCuenta reportArray={branchReports} currentUser={currentUser}></TarjetaCuenta>
+                <TarjetaCuenta replaceReport={replaceReport} reportArray={branchReports} currentUser={currentUser}></TarjetaCuenta>
               </div>
             </div>
           </div>
-        </div>
-        : ''}
-      {supervisorsInfo && showTable && supervisorsInfo.length > 0 ?
-        <div className="items-center">
-          <div className="my-2 mx-auto">
-            <h3 className="text-3xl font-bold">Ingresos del día</h3>
-            <div>
-              <h4 className="text-2xl font-bold">Brutos: {currency({ amount: grossCash + deposits })}</h4>
-              <div className="flex gap-3">
-                <p className="font-bold">Efectivo: <span style={{ color: '#206e09' }}>{`${currency({ amount: grossCash })}`} </span></p>
-                <p className="font-bold">Depósitos: <span style={{ color: '#0c4e82' }}>{`${currency({ amount: deposits })}`}</span></p>
+        </div >
+        : ''
+      }
+      {
+        supervisorsInfo && showTable && supervisorsInfo.length > 0 ?
+          <div className="items-center">
+            <div className="my-2 mx-auto">
+              <h3 className="text-3xl font-bold">Ingresos del día</h3>
+              <div>
+                <h4 className="text-2xl font-bold">Brutos: {currency({ amount: grossCash + deposits })}</h4>
+                <div className="flex gap-3">
+                  <p className="font-bold">Efectivo: <span style={{ color: '#206e09' }}>{`${currency({ amount: grossCash })}`} </span></p>
+                  <p className="font-bold">Depósitos: <span style={{ color: '#0c4e82' }}>{`${currency({ amount: deposits })}`}</span></p>
+                </div>
               </div>
+              <h4 className="text-2xl font-bold mb-3">Netos: {currency({ amount: (netIncomes) })}</h4>
+              <PieChart chartInfo={pieChartInfo} netIncomes={netIncomes} verifiedIncomes={verifiedIncomes}></PieChart>
             </div>
-            <h4 className="text-2xl font-bold mb-3">Netos: {currency({ amount: (netIncomes) })}</h4>
-            <PieChart chartInfo={pieChartInfo} netIncomes={netIncomes} verifiedIncomes={verifiedIncomes}></PieChart>
-          </div>
-          <div className="my-1 border border-slate-500 border-spacing-4 p-2 bg-white z-5 rounded-lg mb-5">
-            <div id="filterBySupervisor" className="w-full sticky top-16 bg-white z-10">
-              <p className="text-lg font-semibold p-3 text-red-600">Filtro de Supervisores</p>
-              <EmployeeMultiSelect employees={getArrayForSelects(employees, (employee) => `${employee.name} ${employee.lastName}`)} setSelectedEmployees={setSelectedSupervisors}></EmployeeMultiSelect>
-            </div>
-            {selectedSupervisors && supervisorsInfo.map((supervisor) => (
-              <div key={supervisor._id}>
-                {(selectedSupervisors.some(selected => selected.value.toString() === supervisor._id.toString()) || selectedSupervisors.length == 0) && (
-                  <div className={`border ${negativeBalances.has(supervisor._id) ? 'bg-pastel-pink' : 'bg-white'} p-3 mt-4 rounded-lg border-black`}>
+            <div className="my-1 border border-slate-500 border-spacing-4 p-2 bg-white z-5 rounded-lg mb-5">
+              <div id="filterBySupervisor" className="w-full sticky top-16 bg-white z-10">
+                <p className="text-lg font-semibold p-3 text-red-600">Filtro de Supervisores</p>
+                <EmployeeMultiSelect employees={getArrayForSelects(employees, (employee) => `${employee.name} ${employee.lastName}`)} setSelectedEmployees={setSelectedSupervisors}></EmployeeMultiSelect>
+              </div>
+              {selectedSupervisors && supervisorsInfo.map((supervisor) => (
+                <div key={supervisor._id}>
+                  {(selectedSupervisors.some(selected => selected.value.toString() === supervisor._id.toString()) || selectedSupervisors.length == 0) && (
+                    <div className={`border ${negativeBalances.has(supervisor._id) ? 'bg-pastel-pink' : 'bg-white'} p-3 mt-4 rounded-lg border-black`}>
 
-                    <div className="">
+                      <div className="">
 
-                      <div className="grid grid-cols-1">
+                        <div className="grid grid-cols-1">
 
-                        <button className="text-2xl font-semibold my-4 p-2 shadow-sm text-white rounded-lg w-fit bg-button flex" onClick={() => { navigate(`/perfil/${supervisor._id}`) }}>{`${supervisor.name} ${supervisor.lastName}`}</button>
+                          <button className="text-2xl font-semibold my-4 p-2 shadow-sm text-white rounded-lg w-fit bg-button flex" onClick={() => { navigate(`/perfil/${supervisor._id}`) }}>{`${supervisor.name} ${supervisor.lastName}`}</button>
 
-                        <div className="gap-2 space-y-1">
-                          <div className="flex gap-2 items-center">
-                            <p className="text-lg font-bold">Depósitos:</p>
-                            <ShowIncomesModal
-                              title={'Depósitos'}
-                              clickableComponent={
-                                <p className="text-lg">{currency({ amount: supervisor.deposits + supervisor.terminalIncomes })}
-                                </p>
-                              }
-                              incomes={[...supervisor.terminalIncomesArray, ...supervisor.depositsArray]}
-                            />
+                          <div className="gap-2 space-y-1">
+                            <div className="flex gap-2 items-center">
+                              <p className="text-lg font-bold">Depósitos:</p>
+                              <ShowIncomesModal
+                                title={'Depósitos'}
+                                clickableComponent={
+                                  <p className="text-lg">{currency({ amount: supervisor.deposits + supervisor.terminalIncomes })}
+                                  </p>
+                                }
+                                incomes={[...supervisor.terminalIncomesArray, ...supervisor.depositsArray]}
+                              />
+                            </div>
+                            <div className="flex gap-2 items-center">
+                              <p className="text-lg font-bold">Gastos:</p>
+                              <ShowListModal
+                                ListComponent={ExtraOutgoingsList}
+                                ListComponentProps={{ extraOutgoings: supervisor.extraOutgoingsArray, totalExtraOutgoings: supervisor.extraOutgoings }}
+                                title={'Gastos'}
+                                clickableComponent={
+                                  <p className="text-lg border border-black rounded-lg shadow-sm">{currency({ amount: supervisor.extraOutgoings })}
+                                  </p>
+                                }
+                                data={supervisor.extraOutgoingsArray}
+                              />
+                            </div>
+                            <div className="flex gap-2 items-center">
+                              <p className="text-lg font-bold">Efectivo:</p>
+                              <ShowIncomesModal
+                                title={'Efectivos'}
+                                clickableComponent={
+                                  <p className="text-lg">{`${currency({ amount: supervisor.cash })}  `}<span className="text-green-500 font-bold">{(supervisor.cash - supervisor.extraOutgoings).toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</span></p>
+                                }
+                                incomes={supervisor.cashArray}
+                              />
+                            </div>
+                            <p className="text-lg"><span className="font-bold">Efectivo neto: </span>{(supervisor.cash - supervisor.extraOutgoings).toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
+                            <RegistrarDineroReportado setNegativeBalances={setNegativeBalances} updateReportedDeposits={updateReportedDeposits} updateReportedCash={updateReportedCash} supervisorId={supervisor._id} date={stringDatePickerValue}></RegistrarDineroReportado>
                           </div>
-                          <div className="flex gap-2 items-center">
-                            <p className="text-lg font-bold">Gastos:</p>
-                            <ShowListModal
-                              ListComponent={ExtraOutgoingsList}
-                              ListComponentProps={{ extraOutgoings: supervisor.extraOutgoingsArray, totalExtraOutgoings: supervisor.extraOutgoings }}
-                              title={'Gastos'}
-                              clickableComponent={
-                                <p className="text-lg">{currency({ amount: supervisor.extraOutgoings })}
-                                </p>
-                              }
-                              data={supervisor.extraOutgoingsArray}
-                            />
-                          </div>
-                          <div className="flex gap-2 items-center">
-                            <p className="text-lg font-bold">Efectivo:</p>
-                            <ShowIncomesModal
-                              title={'Efectivos'}
-                              clickableComponent={
-                                <p className="text-lg">{`${currency({ amount: supervisor.cash })}  `}<span className="text-green-500 font-bold">{(supervisor.cash - supervisor.extraOutgoings).toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</span></p>
-                              }
-                              incomes={supervisor.cashArray}
-                            />
-                          </div>
-                          <p className="text-lg"><span className="font-bold">Efectivo neto: </span>{(supervisor.cash - supervisor.extraOutgoings).toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
-                          <RegistrarDineroReportado setNegativeBalances={setNegativeBalances} updateReportedDeposits={updateReportedDeposits} updateReportedCash={updateReportedCash} supervisorId={supervisor._id} date={stringDatePickerValue}></RegistrarDineroReportado>
                         </div>
                       </div>
                     </div>
-                  </div>
-                )}
-              </div>
-            ))}
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
 
-        : ''}
+          : ''
+      }
 
-      {branchReports.length === 0 && supervisorsInfo.length === 0 && !isLoading && (
-        <div className="flex justify-center items-center h-96">
-          <p className="text-2xl">Aún no hay información de este día</p>
-        </div>
-      )}
-      {selectedBranchReport && (
-        <Modal
-          content={<RegistroCuentaDiaria edit={false} _branchReport={selectedBranchReport} _branch={selectedBranchReport.branch} />}
-          closeModal={() => setSelectedBranchReport(null)}
-        />
-      )}
+      {
+        branchReports.length === 0 && supervisorsInfo.length === 0 && !isLoading && (
+          <div className="flex justify-center items-center h-96">
+            <p className="text-2xl">Aún no hay información de este día</p>
+          </div>
+        )
+      }
+      {
+        selectedBranchReport && (
+          <Modal
+            content={<RegistroCuentaDiaria edit={false} _branchReport={selectedBranchReport} _branch={selectedBranchReport.branch} />}
+            closeModal={() => setSelectedBranchReport(null)}
+          />
+        )
+      }
     </main >
   )
 }

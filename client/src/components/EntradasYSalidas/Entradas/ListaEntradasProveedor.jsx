@@ -10,7 +10,7 @@ import ShowDetails from '../../ShowDetails'
 export default function ListaEntradasProveedor({ inputs, totalWeight, onDeleteInput }) {
 
   const { currentUser } = useSelector((state) => state.user)
-  const { roles } = useRoles()
+  const { roles, isManager } = useRoles()
   const [selectedInput, setSelectedInput] = useState(null)
   const [movementDetailsIsOpen, setMovementDetailsIsOpen] = useState(false)
 
@@ -56,12 +56,12 @@ export default function ListaEntradasProveedor({ inputs, totalWeight, onDeleteIn
     const branchInfo = branch?.branch || branch?.label
     const customerInfo = `${customer?.name || ''} ${customer?.lastName || ''}`.trim() || customer?.label
     const employeeName = `${employee.name} ${employee.lastName}`
-    const isAuthorized = currentUser._id === employee._id || currentUser.role === roles.managerRole._id
+    const isAuthorized = currentUser._id === employee._id || isManager(currentUser.role)
 
     return (
       isAuthorized && (
         <div key={_id || index}>
-          <div className={(currentUser._id === employee._id || currentUser.role === roles.managerRole._id ? '' : 'py-3 ') + (input.specialPrice ? 'border border-red-500 ' : 'border border-black ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-70 shadow-sm mt-2'}>
+          <div className={(currentUser._id === employee._id || isManager(currentUser.role) ? '' : 'py-3 ') + (input.specialPrice ? 'border border-red-500 ' : 'border border-black ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-70 shadow-sm mt-2'}>
             <button onClick={() => { setSelectedInput(input); setMovementDetailsIsOpen(!movementDetailsIsOpen); }} id='list-element' className='flex col-span-10 items-center justify-around h-full'>
               <p className='text-center text-xs w-3/12'>{branchInfo || customerInfo}</p>
               <p className='text-center text-xs w-3/12'>{employeeName}</p>

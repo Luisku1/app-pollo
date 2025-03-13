@@ -10,7 +10,7 @@ export default function InicioSesion() {
   const [roles, setRoles] = useState([])
   const navigate = useNavigate()
   const dispatch = useDispatch()
-  let sellerRole
+  let seller
 
 
   useEffect(() => {
@@ -43,7 +43,7 @@ export default function InicioSesion() {
 
   if (roles) {
 
-    sellerRole = roles.find((role) => (role.name == "Vendedor"))
+    seller = roles.find((role) => (role.name == "Vendedor"))
 
   }
 
@@ -139,7 +139,7 @@ export default function InicioSesion() {
       dispatch(signInSuccess(data))
 
 
-      if (data.role == sellerRole._id) {
+      if (data.role == seller._id) {
 
         navigate('/formato')
         return
@@ -164,7 +164,7 @@ export default function InicioSesion() {
     document.title = 'Inicia Sesión'
     const numberInput = document.getElementById('phoneNumber')
     numberInput.focus()
-  })
+  }, [])
 
   return (
 

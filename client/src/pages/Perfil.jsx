@@ -8,7 +8,6 @@ import TarjetaCuenta from '../components/TarjetaCuenta'
 import { useLoading } from '../hooks/loading'
 import { useSignOut } from '../hooks/Auth/useSignOut'
 import { formatDate } from '../helpers/DatePickerFunctions'
-import ShowListButton from '../components/Buttons/ShowListButton'
 import { useSupervisorReports } from '../hooks/Supervisors/useSupervisorReports'
 import SupervisorReports from '../components/SupervisorReports'
 import SupervisorReport from '../components/SupervisorReportComp'
@@ -19,6 +18,8 @@ import RegistroEmpleadoNuevo from "./RegistroEmpleado";
 import Modal from "../components/Modals/Modal";
 import ShowListModal from "../components/Modals/ShowListModal";
 import { useEmployeesPayments } from "../hooks/Employees/useEmployeesPayments";
+import { useBranchReports } from "../hooks/BranchReports.js/useBranchReports";
+import { useEmployeeDailyBalance } from '../hooks/Employees/useEmployeeDailyBalance'
 
 export default function Perfil() {
 
@@ -26,26 +27,26 @@ export default function Perfil() {
   const { employeeId } = useParams()
   const [employee, setEmployee] = useState(null)
   const [editEmployee, setEditEmployee] = useState(false)
-  const [employeeDayInfo, setEmployeeDayInfo] = useState(null)
   const [lastSupervisorReport, setLastSupervisorReport] = useState(null)
   const [employeeBranchReports, setEmployeeBranchReports] = useState([])
   const { supervisorReports } = useSupervisorReports({ supervisorId: employeeId })
+  const { employeeDailyBalance, handleDailyBalanceInputs, loading } = useEmployeeDailyBalance(employeeId)
   const [lastBranchReport, setLastBranchReport] = useState(null)
-  const [loading, setLoading] = useState(false)
   const { payments, total } = useEmployeesPayments({ employeeId, date: formatDate(new Date()) })
-  const { roles } = useRoles()
+  const { branchReports, replaceReport } = useBranchReports({ reports: employeeBranchReports })
+  const { roles, isManager } = useRoles()
   const { isLoading } = useLoading(loading)
   const { signOut } = useSignOut()
   const dispatch = useDispatch()
-  const isAuthorizedToEdit = currentUser.role == roles?.managerRole._id
+  const isAuthorizedToEdit = currentUser.role == roles?.manager._id
 
   useEffect(() => {
 
-    if (!(employeeBranchReports && employeeBranchReports.length > 0)) return
+    if (!(branchReports && branchReports.length > 0)) return
 
-    setLastBranchReport(employeeBranchReports[0])
+    setLastBranchReport(branchReports[0])
 
-  }, [employeeBranchReports])
+  }, [branchReports])
 
   useEffect(() => {
 
@@ -95,32 +96,6 @@ export default function Perfil() {
       }
     }
 
-    const fetchEmployeeDayInformation = async () => {
-
-      setLoading(true)
-
-      try {
-
-        const res = await fetch('/api/employee/get-employee-day-information/' + employeeId)
-        const data = await res.json()
-
-        if (data.success === false) {
-
-          console.log(data.message)
-          setLoading(false)
-          return
-        }
-
-        setEmployeeDayInfo(data.employeeDayInfo)
-        setLoading(false)
-
-      } catch (error) {
-
-        setLoading(false)
-        console.log(error.message)
-      }
-    }
-
     const fetchEmployeeReports = async () => {
 
       try {
@@ -143,7 +118,6 @@ export default function Perfil() {
     }
 
     fetchEmployee()
-    fetchEmployeeDayInformation()
     fetchEmployeeReports()
 
 
@@ -185,7 +159,7 @@ export default function Perfil() {
                   />
                 )}
               </div>
-              {roles.managerRole._id == currentUser.role || currentUser._id == employee._id ?
+              {isManager(currentUser.role)|| currentUser._id == employee._id ?
                 <div className='p-3'>
                   <div className='flex flex-row-reverse gap-2 items-center'>
                     <div className="flex gap-2 text-center text-lg">
@@ -216,72 +190,62 @@ export default function Perfil() {
                 <p className="text-lg">Teléfono: {employee.phoneNumber ? employee.phoneNumber.replace(/(\d{2})(\d{4})(\d{4})/, '$1-$2-$3') : ''}</p>
               </div>
 
-              <div className='border bg-white shadow-lg p-3 my-4'>
-                {employeeDayInfo ?
+              <div className='bg-white shadow-md my-4'>
+                {employeeDailyBalance ?
                   <div className='p-3'>
                     <div id='header' className='grid grid-cols-12 items-center justify-around font-semibold'>
                       <p className='p-3 rounded-lg col-span-4 text-sm text-center'>Retardo</p>
                       <p className='p-3 rounded-lg col-span-4 text-sm text-center'>Descanso</p>
                       <p className='p-3 rounded-lg col-span-4 text-sm text-center'>Falta</p>
                     </div>
-                    <div key={employeeDayInfo._id} className='grid grid-cols-12 items-center border border-black border-opacity-30 rounded-lg shadow-sm mt-2'>
+                    <div key={employeeDailyBalance._id} className='grid grid-cols-12 items-center border border-black border-opacity-30 rounded-lg shadow-sm mt-2'>
                       <div id='list-element' className='flex col-span-12 items-center justify-around py-3'>
-                        <input className='w-4/12' type="checkbox" name="foodDiscount" id="foodDiscount" checked={employeeDayInfo.foodDiscount} />
-                        <input className='w-4/12' type="checkbox" name="restDay" id="restDay" checked={employeeDayInfo.restDay} />
-                        <input className='w-4/12' type="checkbox" name="dayDiscount" id="dayDiscount" checked={employeeDayInfo.dayDiscount} />
+                        <input className='w-4/12' type="checkbox" name="foodDiscount" id="foodDiscount" disabled={currentUser.role == roles.seller} defaultChecked={employeeDailyBalance.foodDiscount} onChange={(e) => handleDailyBalanceInputs(e, employeeDailyBalance._id)} />
+                        <input className='w-4/12' type="checkbox" name="restDay" id="restDay" disabled={currentUser.role == roles.seller} defaultChecked={employeeDailyBalance.restDay} onChange={(e) => handleDailyBalanceInputs(e, employeeDailyBalance._id)} />
+                        <input className='w-4/12' type="checkbox" name="dayDiscount" id="dayDiscount" disabled={currentUser.role == roles.seller} defaultChecked={employeeDailyBalance.dayDiscount} onChange={(e) => handleDailyBalanceInputs(e, employeeDailyBalance._id)} />
                       </div>
                     </div>
                   </div>
                   : ''}
               </div>
 
-              {roles.sellerRole._id != employee.role._id && (employee._id == currentUser._id || currentUser.role == roles.managerRole._id) ?
+              {supervisorReports && supervisorReports.length > 0 && (currentUser._id == employeeId || roles.manager._id == currentUser.role) && (
+
+                <ShowListModal
+                  title={`Reportes de ${employee.name}`}
+                  className={'w-full'}
+                  ListComponent={SupervisorReports}
+                  ListComponentProps={{ supervisorReports }}
+                  clickableComponent={<p className='w-full text-lg font-semibold text-center p-1 border border-header rounded-md'>{`${supervisorReports.length == 0 || supervisorReports.length > 1 ? 'Reportes de Supervisión' : 'Reporte de Supervisión'} (${supervisorReports.length})`}</p>}
+                />
+              )}
+
+              {roles.seller._id != employee.role._id && (employee._id == currentUser._id || isManager(currentUser.role)) ?
                 <div className=''>
                   {lastSupervisorReport && (
                     <div>
-                      <p className='text-center text-lg font-semibold'>Última cuenta de supervisión</p>
                       <SupervisorReport supervisorReport={lastSupervisorReport}></SupervisorReport>
                     </div>
                   )}
                 </div>
                 : ''}
 
-              {lastBranchReport && (
+              {branchReports && branchReports.length > 0 && (
+                <ShowListModal
+                  className={'mt-4 w-full'}
+                  title={`Cuentas de ${employee.name}`}
+                  ListComponent={TarjetaCuenta}
+                  ListComponentProps={{ reportArray: branchReports, replaceReport: replaceReport }}
+                  clickableComponent={<p className='mt-4 w-full text-lg font-semibold text-center p-1 border border-header rounded-md'>{`${branchReports.length == 0 || branchReports.length > 1 ? 'Reportes en Pollería' : 'Reporte en Pollería'} (${branchReports.length})`}</p>}
+                />
+              )}
 
-                <div className='mt-4'>
-                  <p className='text-center text-lg font-semibold'>Última cuenta de pollería</p>
-                  <TarjetaCuenta reportArray={[lastBranchReport]} currentUser={currentUser} />
+              {lastBranchReport && (
+                <div className='mt-1'>
+                  <TarjetaCuenta reportArray={[lastBranchReport]} replaceReport={replaceReport} currentUser={currentUser} />
                 </div>
               )}
 
-              {employeeBranchReports && employeeBranchReports.length > 0 ?
-                <div className='flex gap-4 mt-4 items-center justify-self-center'>
-                  <h3 className='text-2xl font-bold'>Cuentas en pollería</h3>
-                  <div className=''>
-                    <ShowListButton
-                      ListComponent={
-                        <TarjetaCuenta reportArray={employeeBranchReports} currentUser={currentUser} />
-                      }
-                    />
-                  </div>
-                </div>
-                : ''
-              }
-              {supervisorReports && supervisorReports.length > 0 && (currentUser._id == employeeId || roles.managerRole._id == currentUser.role) ?
-
-                <div className='flex gap-4 mt-4 items-center justify-self-center'>
-
-                  <h3 className='text-2xl font-bold'>Cuentas de supervisor</h3>
-                  <div className=''>
-                    <ShowListButton
-                      ListComponent={
-                        <SupervisorReports supervisorReports={supervisorReports} />
-                      }
-                    />
-                  </div>
-                </div>
-                : ''
-              }
               {employeeId == currentUser._id ?
                 <div className='mt-8 grid grid-1'>
                   <button className='shadow-lg rounded-full p-2 flex-col-reverse justify-self-end border bg-red-700'>
