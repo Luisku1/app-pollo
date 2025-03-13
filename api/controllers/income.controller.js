@@ -62,8 +62,8 @@ export const newTransferredIncomeFunction = async (prevOwnerId, supervisorId, in
     await pushOrPullSupervisorReportRecord({
       supervisorId: prevOwnerId,
       date: newIncome.createdAt,
-      record: newIncome,
-      affectsBalancePositively: true,
+      record: {...newIncome, amount: -newIncome.amount},
+      affectsBalancePositively: false,
       operation: '$addToSet',
       arrayField: 'incomesArray',
       amountField: 'incomes'
