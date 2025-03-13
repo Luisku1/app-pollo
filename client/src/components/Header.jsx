@@ -10,6 +10,7 @@ import ControlSupervisor from '../pages/ControlSupervisor'
 import Modal from './Modals/Modal'
 import Reporte from '../pages/Reporte'
 import { signInSuccess } from '../redux/user/userSlice'
+import { getSignedUser } from '../services/employees/getEmployeeUser'
 
 
 export default function Header() {
@@ -30,13 +31,13 @@ export default function Header() {
   useEffect(() => {
     const getUserActualInfo = async () => {
       try {
-        const user = await getUserActualInfo()
+        const user = await getSignedUser(currentUser._id)
         if (user.role !== currentUser.role) dispatch(signInSuccess(user))
       } catch (error) {
         console.log(error);
       }
     }
-    getUserActualInfo()
+    if (currentUser && dispatch) getUserActualInfo()
 
   }, [currentUser, dispatch])
 
