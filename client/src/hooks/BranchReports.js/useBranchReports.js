@@ -64,11 +64,11 @@ export const useBranchReports = ({ companyId = null, date = null, reports = [] }
     return branchReports.map((report) => report.incomesArray).flat()
   }, [branchReports])
 
-  console.log(incomes)
   return {
     branchReports: sortedReports,
     replaceReport,
     getBranchReports,
+    incomes,
     totalIncomes,
     totalOutgoings,
     totalStock,
