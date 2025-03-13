@@ -22,14 +22,13 @@ const incomeCollectedSchema = mongoose.Schema({
     type: Schema.Types.ObjectId, ref: 'Customer'
   },
 
+  prevOwner: {
+    type: Schema.Types.ObjectId, ref: 'Employee'
+  },
+
   employee: {
     type: Schema.Types.ObjectId, ref: 'Employee',
     required: true
-  },
-
-  transferred: {
-    type: Boolean,
-    default: false
   },
 
   partOfAPayment: {

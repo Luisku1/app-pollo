@@ -23,6 +23,65 @@ export const newBranchIncomeQuery = async (req, res, next) => {
   }
 }
 
+export const newTransferredIncome = async (req, res, next) => {
+
+  const { prevOwnerId, supervisorId, income } = req.body
+
+  try {
+
+    const newIncome = await newTransferredIncomeFunction(prevOwnerId, supervisorId, income)
+
+    res.status(201).json({ message: 'New income created successfully', income: newIncome })
+
+  } catch (error) {
+
+    next(error)
+  }
+}
+
+export const newTransferredIncomeFunction = async (prevOwnerId, supervisorId, income) => {
+
+  let newIncome = null
+
+  try {
+
+    newIncome = await IncomeCollected.create(income)
+
+    if (!newIncome) throw new Error("No se logró crear el registro")
+
+    await pushOrPullSupervisorReportRecord({
+      supervisorId: supervisorId,
+      date: newIncome.createdAt,
+      record: newIncome,
+      affectsBalancePositively: false,
+      operation: '$addToSet',
+      arrayField: 'incomesArray',
+      amountField: 'incomes'
+    })
+
+    await pushOrPullSupervisorReportRecord({
+      supervisorId: prevOwnerId,
+      date: newIncome.createdAt,
+      record: newIncome,
+      affectsBalancePositively: true,
+      operation: '$addToSet',
+      arrayField: 'incomesArray',
+      amountField: 'incomes'
+    })
+
+    return newIncome
+
+  } catch (error) {
+
+    if (newIncome) {
+
+      await IncomeCollected.findByIdAndDelete(newIncome._id)
+    }
+
+    throw error
+  }
+}
+
 export const getIncomesByType = (type, arrayName, dayRange) => ({
 
   $lookup: {

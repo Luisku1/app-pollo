@@ -1,6 +1,6 @@
 export const addIncomeFetch = async (income, group) => {
 
-  const res = await fetch(`/api/income/${group}/create`, {
+  const res = await fetch(`/api/income/${group === 'prevOwner' ? 'transfer' : group}/create`, {
 
     method: 'POST',
     headers: {

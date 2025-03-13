@@ -42,40 +42,24 @@ export default function Incomes({ incomes, incomesTotal, onAddIncome, onDeleteIn
 
       const { amount } = incomeFormData
 
-      const group = selectedIncomeGroup == 'Sucursales' ? 'branch' : 'customer'
+      const group = selectedIncomeGroup == 'Sucursales' ? 'branch' : selectedIncomeGroup == 'Clientes' ? 'customer' : 'prevOwner'
 
-      let income = {}
-
-      if (group == 'branch') {
-
-        income = {
-          amount: parseFloat(amount),
-          company: companyId,
-          branch: selectedCustomerBranchIncomesOption,
-          customer: null,
-          employee: currentUser,
-          partOfAPayment: false,
-          type: selectedIncomeType,
-          createdAt
-        }
-
-      } else {
-
-        income = {
-          amount: parseFloat(amount),
-          company: companyId,
-          customer: selectedCustomerBranchIncomesOption,
-          branch: null,
-          employee: currentUser,
-          partOfAPayment: false,
-          type: selectedIncomeType,
-          createdAt
-        }
+      let income = {
+        amount: parseFloat(amount),
+        company: companyId,
+        customer: null,
+        branch: null,
+        prevOwner: null,
+        employee: currentUser,
+        partOfAPayment: false,
+        type: selectedIncomeType,
+        createdAt
       }
 
 
-      onAddIncome(income, group)
+      income[group] = selectedCustomerBranchIncomesOption._id
 
+      onAddIncome(income, group)
 
       amountInput.value = ''
       setSelectedIncomeType(null)
