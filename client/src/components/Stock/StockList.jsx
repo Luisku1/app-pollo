@@ -15,7 +15,7 @@ import ConfirmationButton from '../Buttons/ConfirmationButton'
 export default function StockList({ stock, weight, amount, onDelete, modifyBalance }) {
   const { currentUser } = useSelector((state) => state.user)
   const isEmpty = stock.length === 0
-  const { roles } = useRoles()
+  const { roles, isManager } = useRoles()
   const [selectedStock, setSelectedStock] = useState(null)
   const deletable = onDelete
 
@@ -42,8 +42,8 @@ export default function StockList({ stock, weight, amount, onDelete, modifyBalan
   const renderStockItem = ({ stock, index }) => {
     const { product, pieces, weight, amount, employee, createdAt, price } = stock
     const tempStock = { ...stock, index }
-    const isAuthorized = currentUser._id === stock.employee._id || currentUser.role === roles.managerRole._id
-    const shouldRender = isAuthorized || currentUser.role === roles.managerRole._id
+    const isAuthorized = currentUser._id === stock.employee._id || isManager(currentUser.role)
+    const shouldRender = isAuthorized || isManager(currentUser.role)
     const shouldShowDeleteButton = isAuthorized && onDelete
 
     return (
@@ -108,7 +108,7 @@ export default function StockList({ stock, weight, amount, onDelete, modifyBalan
     return (
       <div>
         {renderTotal()}
-        {!isEmpty && roles?.managerRole && stock.map((stock, index) => renderStockItem({ stock, index }))}
+        {!isEmpty && roles?.manager && stock.map((stock, index) => renderStockItem({ stock, index }))}
       </div>
     )
   }

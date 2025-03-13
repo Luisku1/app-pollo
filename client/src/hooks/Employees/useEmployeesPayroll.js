@@ -8,13 +8,29 @@ export const useEmployeesPayroll = ({ companyId, date }) => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
+  const replaceReport = (report, payrollIndex) => {
+
+    setEmployeesPayroll((prevEmployeesPayroll) => {
+
+      const newEmployeesPayroll = [...prevEmployeesPayroll]
+      newEmployeesPayroll[payrollIndex].branchReports.forEach((branchReport, index) => {
+
+        if (branchReport._id === report._id) {
+
+          newEmployeesPayroll[payrollIndex].branchReports[index] = report
+        }
+      })
+      return newEmployeesPayroll
+    })
+  }
+
   useEffect(() => {
 
     if (!companyId || !date) return
 
     setLoading(true)
 
-    getEmployeesPayrollFetch({companyId, date}).then((response) => {
+    getEmployeesPayrollFetch({ companyId, date }).then((response) => {
 
       setEmployeesPayroll(response.employeesPayroll)
 
@@ -28,5 +44,5 @@ export const useEmployeesPayroll = ({ companyId, date }) => {
 
   }, [companyId, date])
 
-  return {employeesPayroll, loading, error}
+  return { employeesPayroll, replaceReport, loading, error }
 }

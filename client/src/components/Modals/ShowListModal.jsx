@@ -9,7 +9,8 @@ const ShowListModal = ({
   modalIsOpen = null,
   extraInformation = null,
   ListComponent = null,
-  ListComponentProps = {}
+  className,
+  ListComponentProps = {},
 }) => {
 
   const [listIsOpen, setListIsOpen] = useState(false);
@@ -25,7 +26,7 @@ const ShowListModal = ({
   return (
     <div>
       {clickableComponent && (
-        <button className="w-fit h-fit border rounded-lg shadow-md" onClick={changeListIsOpen}>
+        <button className={className} onClick={changeListIsOpen}>
           {clickableComponent}
         </button>
       )}

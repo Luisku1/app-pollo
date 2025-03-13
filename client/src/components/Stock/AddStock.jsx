@@ -153,6 +153,7 @@ export default function AddStock({ title, midDay, modifyBalance, stock, listButt
         <ShowListModal
           title={'Sobrante'}
           ListComponent={StockList}
+          className={'w-full'}
           ListComponentProps={{ stock, weight, amount, onDelete: onDeleteStock, modifyBalance }}
           clickableComponent={listButton}
         />

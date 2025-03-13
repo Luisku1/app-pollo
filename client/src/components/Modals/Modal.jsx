@@ -13,6 +13,7 @@ export default function Modal({ content, title, closeModal, ref, ableToClose = t
       if (event.key === 'Escape' && ableToClose) {
         closeModal();
         removeLastModal();
+        history.back(); // Elimina el estado falso al cerrar el modal
       }
     };
 
@@ -20,11 +21,17 @@ export default function Modal({ content, title, closeModal, ref, ableToClose = t
       if (ableToClose) {
         closeModal();
         removeLastModal();
+        history.back(); // Si el usuario presiona atrás en el móvil, elimina el estado falso
+      } else {
+        history.pushState(null, "", window.location.href); // Evita que regrese a la página anterior
       }
     };
 
     document.addEventListener('keydown', handleKeyDown);
     window.addEventListener('popstate', handlePopState);
+
+    // Agregar estado falso al abrir el modal
+    history.pushState(null, "", window.location.href);
 
     return () => {
       document.removeEventListener('keydown', handleKeyDown);

@@ -1,7 +1,7 @@
 import Stock from "../models/accounts/stock.model.js";
 import { errorHandler } from "../utils/error.js";
 import { getDayRange } from "../utils/formatDate.js";
-import { fetchBranchReport, fetchOrCreateBranchReport } from "./branch.report.controller.js";
+import { fetchOrCreateBranchReport } from "./branch.report.controller.js";
 import { getProductPrice, pricesAggregate } from "./price.controller.js";
 import { pushOrPullBranchReportRecord } from './branch.report.controller.js'
 import { Types } from "mongoose";

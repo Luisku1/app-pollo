@@ -23,6 +23,107 @@ export const newBranchIncomeQuery = async (req, res, next) => {
   }
 }
 
+export const getIncomesByType = (type, arrayName, dayRange) => ({
+
+  $lookup: {
+    from: 'incomecollecteds',
+    localField: '_id',
+    foreignField: 'employee',
+    as: arrayName,
+    pipeline: [
+      {
+        $match: {
+          createdAt: { $gte: new Date(dayRange.bottomDate), $lt: new Date(dayRange.topDate) }
+        }
+      },
+      {
+        $lookup: {
+          from: 'employeepayments',
+          localField: '_id',
+          foreignField: 'income',
+          as: 'employeePayment',
+          pipeline: [
+            {
+              $lookup: {
+                from: 'employees',
+                localField: 'employee',
+                foreignField: '_id',
+                as: 'employee'
+              }
+            },
+            {
+              $unwind: {
+                path: '$employee',
+                preserveNullAndEmptyArrays: true
+              }
+            }
+          ]
+        }
+      },
+      {
+        $lookup: {
+          from: 'branches',
+          localField: 'branch',
+          foreignField: '_id',
+          as: 'branch'
+        }
+      },
+      {
+        $lookup: {
+          from: 'employees',
+          localField: 'employee',
+          foreignField: '_id',
+          as: 'employee'
+        }
+      },
+      {
+        $lookup: {
+          from: 'customers',
+          localField: 'customer',
+          foreignField: '_id',
+          as: 'customer'
+        }
+      },
+      {
+        $unwind: {
+          path: '$customer',
+          preserveNullAndEmptyArrays: true
+        }
+      },
+      {
+        $lookup: {
+          from: 'incometypes',
+          localField: 'type',
+          foreignField: '_id',
+          as: 'type',
+        }
+      },
+      { $unwind: { path: '$employeePayment', preserveNullAndEmptyArrays: true } },
+      {
+        $unwind: {
+          path: '$branch',
+          preserveNullAndEmptyArrays: true
+        }
+      },
+      {
+        $unwind: {
+          path: '$employee',
+          preserveNullAndEmptyArrays: true
+        }
+      },
+      {
+        $unwind: {
+          path: '$type',
+          preserveNullAndEmptyArrays: true
+        }
+      },
+      {
+        $match: { 'type.name': type }
+      }
+    ]
+  }
+})
+
 export const newBranchIncomeFunction = async ({ _id = null, amount, company, branch, employee, type, createdAt, partOfAPayment = false }) => {
 
   let income = null

@@ -20,7 +20,7 @@ export default function Gastos() {
   const [buttonId, setButtonId] = useState(null)
   const [employees, setEmployees] = useState([])
   const [outgoingsTotal, setOutgoingsTotal] = useState(0.0)
-  const [managerRole, setManagerRole] = useState({})
+  const [manager, setManagerRole] = useState({})
   const navigate = useNavigate()
 
   const changeDatePickerValue = (e) => {
@@ -88,8 +88,8 @@ export default function Gastos() {
 
     const setManagerRoleFunction = async (roles) => {
 
-      const managerRole = roles.find((elemento) => elemento.name == 'Gerente')
-      setManagerRole(managerRole)
+      const manager = roles.find((elemento) => elemento.name == 'Gerente')
+      setManagerRole(manager)
 
     }
 
@@ -191,7 +191,7 @@ export default function Gastos() {
         <br />
       </h1>
 
-      {managerRole._id == currentUser.role ?
+      {manager._id == currentUser.role ?
 
         <FechaDePagina changeDay={changeDay} stringDatePickerValue={stringDatePickerValue} changeDatePickerValue={changeDatePickerValue} ></FechaDePagina>
 

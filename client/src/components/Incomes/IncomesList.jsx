@@ -15,7 +15,7 @@ import DeleteButton from '../Buttons/DeleteButton';
 
 export default function IncomesList({ incomes, incomesTotal, onDeleteIncome }) {
   const { currentUser } = useSelector((state) => state.user);
-  const { roles } = useRoles();
+  const { isManager } = useRoles();
   const isEmpty = !incomes || incomes.length === 0;
   const [selectedIncome, setSelectedIncome] = useState(null);
   const deletable = onDeleteIncome
@@ -49,7 +49,7 @@ export default function IncomesList({ incomes, incomesTotal, onDeleteIncome }) {
     const employeeName = employee ? `${employee.name}` : '';
     const typeName = partOfAPayment ? 'Pago' : type?.name ?? type?.label;
     const formattedAmount = currency({ amount });
-    const isAuthorized = currentUser._id === employee?._id || currentUser.role === roles.managerRole._id || !onDeleteIncome;
+    const isAuthorized = currentUser._id === employee?._id || isManager(currentUser.role) || !onDeleteIncome;
 
     return (
       isAuthorized && (

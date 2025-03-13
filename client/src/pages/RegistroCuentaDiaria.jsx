@@ -39,7 +39,7 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
   const [loading, setLoading] = useState(false)
   const { employees } = useEmployees({ companyId: company._id })
   const { branches } = useBranches({ companyId: company._id })
-  const { roles } = useRoles()
+  const { roles, isManager } = useRoles()
   const { products } = useProducts({ companyId: company._id })
   const [selectedEmployee, setSelectedEmployee] = useState()
   const [selectedAssistant, setSelectedAssistant] = useState(null)
@@ -88,7 +88,7 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
   const isLoading = useLoading()
 
   const [isEditing, setIsEditing] = useState(edit)
-  const isAuthorized = roles && currentUser.role == roles.managerRole._id
+  const isAuthorized = roles && isManager(currentUser.role)
 
   useEffect(() => {
 
@@ -210,11 +210,11 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
 
   useEffect(() => {
 
-    if (selectedBranch != null && stringDatePickerValue != null) {
+    if (selectedBranch != null && stringDatePickerValue != null && edit) {
 
       document.title = selectedBranch.branch + ' ' + '(' + (new Date(stringDatePickerValue).toLocaleDateString()) + ')'
     }
-  }, [selectedBranch, stringDatePickerValue])
+  }, [selectedBranch, stringDatePickerValue, edit])
 
   return (
     <main className="p-3 max-w-lg mx-auto">
@@ -225,7 +225,7 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
             : ''}
           {isEditing && (
             <div className={' sticky  z-30' + (isEditing ? ' top-16' : ' -top-4')}>
-              {roles.managerRole._id == currentUser.role ?
+              {isManager(currentUser.role)?
                 <div>
                   <FechaDePagina changeDay={changeDay} stringDatePickerValue={stringDatePickerValue} changeDatePickerValue={changeDatePickerValue} ></FechaDePagina>
                   {isAuthorized && (
@@ -295,7 +295,6 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
                   }
                 </div>
                 :
-
                 <div className='my-2'>
                   <BranchPrices
                     onUpdateBranchReport={onUpdateBranchReport}
@@ -315,6 +314,7 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
                         title={'Sobrante'}
                         ListComponent={StockList}
                         ListComponentProps={{ stock: initialStock, amount: initialStockAmount, weight: initialStockWeight }}
+                        className={'w-full'}
                         clickableComponent={
                           <p className=' font-bold text-lg text-center p-1 bg-red-200 border rounded-lg border-header'>SOBRANTE INICIAL {currency({ amount: initialStockAmount })}</p>
                         }
@@ -327,6 +327,7 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
                         title={'Gastos'}
                         ListComponent={OutgoingsList}
                         ListComponentProps={{ outgoings, amount: outgoingsTotal, onDelete: onDeleteOutgoing, modifyBalance }}
+                        className={'w-full'}
                         clickableComponent={
                           <p className='font-bold text-lg text-center bg-green-100 rounded-lg p-1 border border-header'>GASTOS {currency({ amount: outgoingsTotal ?? 0 })}</p>
                         }
@@ -369,6 +370,7 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
                         title={'Sobrante'}
                         ListComponent={StockList}
                         ListComponentProps={{ stock, weight: stockWeight, amount: stockAmount, onDelete: onDeleteStock, modifyBalance }}
+                        className={'w-full'}
                         clickableComponent={<p className='font-bold text-lg text-center bg-green-100 rounded-lg border p-1 border-header'>SOBRANTE {currency({ amount: stockAmount ?? 0 })}</p>
                         }
                       />
@@ -397,6 +399,7 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
                         title={'Sobrante de Medio Día'}
                         ListComponent={StockList}
                         ListComponentProps={{ midDayStock, weight: midDayStockWeight, amount: midDayStockAmount, onDelete: onDeleteMidStock }}
+                        className={'w-full'}
                         clickableComponent={<p className='font-bold text-lg text-center bg-yellow-200 rounded-lg border p-1 border-header'>SOBRANTE {currency({ amount: midDayStockAmount ?? 0 })}</p>
                         }
                       />
@@ -408,6 +411,7 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
                 title={'Entradas de Proveedores'}
                 ListComponent={ProviderInputsList}
                 ListComponentProps={{ inputs: providerInputs, totalAmount: providerInputsTotal, totalWeight: providerInputsWeight }}
+                className={'w-full'}
                 clickableComponent={
                   <p className='font-bold text-lg text-center bg-red-200 border rounded-lg p-1 border-header mt-2'>PROVEEDORES {currency({ amount: providerInputsTotal ?? 0 })}</p>
                 }
@@ -416,6 +420,7 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
                 title={'Entradas'}
                 ListComponent={ListaEntradas}
                 ListComponentProps={{ inputs, totalWeight: inputsWeight, totalAmount: inputsTotal }}
+                className={'w-full'}
                 clickableComponent={
                   <p className='font-bold text-lg text-center bg-red-200 border rounded-lg p-1 border-header mt-2'>ENTRADAS {currency({ amount: inputsTotal ?? 0 })}</p>
                 }
@@ -424,6 +429,7 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
                 title={'Salidas'}
                 ListComponent={ListaSalidas}
                 ListComponentProps={{ outputs, totalWeight: outputsWeight, totalAmount: outputsTotal }}
+                className={'w-full'}
                 clickableComponent={
                   <p className='font-bold text-lg text-center bg-green-100 border rounded-lg p-1 border-header mt-2'>SALIDAS {currency({ amount: outputsTotal ?? 0 })}</p>
                 }
@@ -432,6 +438,7 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
                 title={'Pagos'}
                 ListComponent={IncomesList}
                 ListComponentProps={{ incomes: payments, incomesTotal: payments.reduce((acc, payment) => acc += payment.amount, 0) }}
+                className={'w-full'}
                 clickableComponent={
                   <p className='font-bold text-lg text-center bg-green-100 border rounded-lg p-1 border-header mt-2'>PAGOS {currency({ amount: payments.reduce((acc, payment) => acc += payment.amount, 0) ?? 0 })}</p>
                 }
@@ -441,6 +448,7 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
                 title={'Ingresos'}
                 ListComponent={IncomesList}
                 ListComponentProps={{ incomes: noPayments, incomesTotal: noPayments.reduce((acc, payment) => acc += payment.amount, 0) }}
+                className={'w-full'}
                 clickableComponent={
                   <p className='font-bold text-lg text-center bg-green-100 border rounded-lg p-1 border-header mt-2'>EFECTIVOS {currency({ amount: noPayments.reduce((acc, payment) => acc += payment.amount, 0) ?? 0 })}</p>
                 }

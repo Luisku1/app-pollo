@@ -16,9 +16,9 @@ import MoneyBag from '../../Icons/MoneyBag'
 
 export default function ListaSalidas({ outputs, totalWeight = 0, totalAmount = 0, onDelete = null }) {
   const { currentUser } = useSelector((state) => state.user)
-  const { roles } = useRoles()
+  const { isManager } = useRoles()
   const [selectedOutput, setSelectedOutput] = useState(null)
-  const isAuthorized = (employee) => currentUser._id === employee._id || currentUser.role === roles.managerRole._id || !onDelete
+  const isAuthorized = (employee) => currentUser._id === employee._id || isManager(currentUser.role) || !onDelete
   const deletable = onDelete != null
 
   const fields = [
