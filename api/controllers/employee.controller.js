@@ -445,7 +445,25 @@ export const getEmployeeDayInfo = async (req, res, next) => {
 
 	} catch (error) {
 
-		throw error
+		next(error)
+	}
+}
+
+export const getSignedUser = async (req, res, next) => {
+
+	const employeeId = req.params.employeeId
+
+	try {
+
+		const employee = await Employee.findById(employeeId)
+
+		if (!employee) return res.status(404).json({ message: 'No se encontró al empleado' })
+
+		res.status(200).json({ employee })
+
+	} catch (error) {
+
+		next(error)
 	}
 }
 

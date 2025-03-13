@@ -1,6 +1,6 @@
 import { GiChicken } from 'react-icons/gi'
 import { Link } from 'react-router-dom'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { useEffect, useRef, useState } from 'react'
 import DropdownItem from './DropdownItem'
 import { MdOutlineMenu } from "react-icons/md";
@@ -9,6 +9,8 @@ import { useRoles } from '../context/RolesContext'
 import ControlSupervisor from '../pages/ControlSupervisor'
 import Modal from './Modals/Modal'
 import Reporte from '../pages/Reporte'
+import { signInSuccess } from '../redux/user/userSlice'
+
 
 export default function Header() {
 
@@ -18,9 +20,25 @@ export default function Header() {
   let menuRef = useRef()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isReportModalOpen, setIsReportModalOpen] = useState(false)
-
   const toggleModal = () => setIsModalOpen((prev) => !prev)
   const toggleReportModal = () => setIsReportModalOpen((prev) => !prev)
+
+  const dispatch = useDispatch()
+
+
+
+  useEffect(() => {
+    const getUserActualInfo = async () => {
+      try {
+        const user = await getUserActualInfo()
+        if (user.role !== currentUser.role) dispatch(signInSuccess(user))
+      } catch (error) {
+        console.log(error);
+      }
+    }
+    getUserActualInfo()
+
+  }, [currentUser, dispatch])
 
   useEffect(() => {
 
@@ -29,10 +47,7 @@ export default function Header() {
         setOpen(false);
       }
     };
-
     document.addEventListener("mousedown", handler);
-
-
     return () => {
       document.removeEventListener("mousedown", handler);
     }

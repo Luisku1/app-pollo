@@ -138,7 +138,6 @@ export default function InicioSesion() {
 
       dispatch(signInSuccess(data))
 
-
       if (data.role == seller._id) {
 
         navigate('/formato')
