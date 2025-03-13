@@ -18,7 +18,7 @@ import ExtraOutgoingsList from './ExtraOutgoingsList'
 export default function ExtraOutgoings({ date, pushIncome, employees, branches, spliceIncomeById }) {
 
   const { currentUser, company } = useSelector((state) => state.user)
-  const { roles } = useRoles()
+  const { isManager } = useRoles()
   const [extraOutgoingFormData, setExtraOutgoingFormData] = useState({})
   const { extraOutgoings, spliceExtraOutgoingById, totalExtraOutgoings, onAddExtraOutgoing, onDeleteExtraOutgoing, pushExtraOutgoing } = useDayExtraOutgoings({ companyId: company._id, date })
   const { payments, total: totalEmployeesPayments, onAddEmployeePayment, onDeleteEmployeePayment } = useEmployeesPayments({ companyId: company._id, date })
@@ -177,7 +177,7 @@ export default function ExtraOutgoings({ date, pushIncome, employees, branches, 
               ListComponent={ExtraOutgoingsList}
               ListComponentProps={{ extraOutgoings, totalExtraOutgoings, onDelete: onDeleteExtraOutgoing }}
               clickableComponent={
-                roles && roles.managerRole && currentUser.role == roles.managerRole._id ?
+                isManager(currentUser.role) ?
                   <p className='font-bold text-lg text-center'>{currency({ amount: totalExtraOutgoings })}</p>
                   :
                   <FaListAlt className="h-10 w-10 text-red-600" />}

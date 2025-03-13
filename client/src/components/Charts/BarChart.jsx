@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
-import { Pie } from 'react-chartjs-2';
-import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
+import { Bar } from 'react-chartjs-2';
+import { Chart as ChartJS, ArcElement, Tooltip, Legend, BarElement, CategoryScale, LinearScale } from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { useEffect, useState } from 'react';
 import { currency } from '../../helpers/Functions';
@@ -8,9 +8,9 @@ import ShowListModal from '../Modals/ShowListModal';
 import IncomesList from '../Incomes/IncomesList';
 import ExtraOutgoingsList from '../Outgoings/ExtraOutgoingsList';
 
-ChartJS.register(ArcElement, Tooltip, Legend, ChartDataLabels);
+ChartJS.register(ArcElement, Tooltip, Legend, ChartDataLabels, BarElement, CategoryScale, LinearScale);
 
-export default function PieChart({ verifiedIncomes = null, netIncomes = null, chartInfo }) {
+export default function BarChart({ verifiedIncomes = null, netIncomes = null, chartInfo }) {
 
   const [showIncomes, setShowIncomes] = useState(false)
   const [showExtraOutgoings, setShowExtraOutgoings] = useState(false)
@@ -54,8 +54,8 @@ export default function PieChart({ verifiedIncomes = null, netIncomes = null, ch
         setListTitle('Gastos externos')
         break
       case 'Ingresos sin verificar':
-        setShowIncomes(true)
         setListTitle('Ingresos registrados')
+        setShowIncomes(true)
         break;
       default:
         break
@@ -66,13 +66,15 @@ export default function PieChart({ verifiedIncomes = null, netIncomes = null, ch
 
     if (!chartInfo) return
 
+    const sortedChartInfo = [...chartInfo].sort((a, b) => b.value - a.value);
+
     const updatedLabels = []
     const updatedData = []
     const updatedBackgroundColors = []
     const updatedHoverBackgroundColors = []
     const updatedBorderColors = []
 
-    chartInfo.forEach((chartNode) => {
+    sortedChartInfo.forEach((chartNode) => {
       updatedLabels.push(chartNode.label || '') // Verifica que el label exista
       updatedData.push(chartNode.value || 0) // Asegúrate de tener valores de data
       updatedBackgroundColors.push(chartNode.bgColor || '#fff') // Colores de fondo por defecto
@@ -121,7 +123,7 @@ export default function PieChart({ verifiedIncomes = null, netIncomes = null, ch
   };
 
   const options = {
-    mantainAspectRatio: false,
+    maintainAspectRatio: false,
     responsive: true,
     plugins: {
       legend: {
@@ -149,15 +151,21 @@ export default function PieChart({ verifiedIncomes = null, netIncomes = null, ch
 
     },
     onClick: (event, elements) => {
+      console.log(elements, elements[0].index)
       const index = elements[0].index
       handleChartClick(index)
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+      },
     },
   }
 
   return (
-    <div>
-      <Pie data={data} options={options}></Pie>
-      {list.length > 0 && (
+    <div style={{ height: '33vh' }}>
+      <Bar data={data} options={options}></Bar>
+      {list.length > 0 && showIncomes && (
         <ShowListModal
           title={listTitle}
           modalIsOpen={showIncomes}
@@ -167,7 +175,7 @@ export default function PieChart({ verifiedIncomes = null, netIncomes = null, ch
           toggleComponent={() => setShowIncomes((prev) => !prev)}
         />
       )}
-      {list.length > 0 && (
+      {list.length > 0 && showExtraOutgoings && (
         <ShowListModal
           ListComponent={ExtraOutgoingsList}
           ListComponentProps={{ extraOutgoings: list, totalExtraOutgoings: list.reduce((acc, curr) => acc + curr.amount, 0) }}

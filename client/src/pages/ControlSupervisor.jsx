@@ -29,7 +29,7 @@ export default function ControlSupervisor({ hideFechaDePagina = false }) {
   const { branches, loading: branchLoading } = useBranches({ companyId: company._id })
   const { customers, loading: custLoading } = useCustomers({ companyId: company._id })
   const { products, loading: prodLoading } = useProducts({ companyId: company._id })
-  const { roles, loading: roleLoading } = useRoles()
+  const { roles, loading: roleLoading, isManager } = useRoles()
   const navigate = useNavigate()
   const [branchAndCustomerSelectOptions, setBranchAndCustomerSelectOptions] = useState([])
   const [selectedSection, setSelectedSection] = useState(null)
@@ -93,7 +93,7 @@ export default function ControlSupervisor({ hideFechaDePagina = false }) {
       <main id='supervisor-main' className={"p-3 max-w-lg mx-auto"} >
         <div>
           <div className={`w-fit mx-auto sticky ${hideFechaDePagina ? '-top-[4rem]' : 'top-16'} bg-opacity-60 bg-menu z-10 mb-2`}>
-            {roles && roles.managerRole && roles.managerRole._id == currentUser.role && !hideFechaDePagina ?
+            {roles && roles.manager && isManager(currentUser.role)&& !hideFechaDePagina ?
 
               <FechaDePagina changeDay={changeDay} stringDatePickerValue={stringDatePickerValue} changeDatePickerValue={changeDatePickerValue} higherZ={true}></FechaDePagina>
 

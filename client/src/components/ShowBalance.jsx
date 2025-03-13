@@ -7,9 +7,9 @@ import { currency } from '../helpers/Functions'
 export default function ShowBalance({ balance }) {
 
   const { currentUser } = useSelector((state) => state.user)
-  const { roles } = useRoles()
+  const { isManager } = useRoles()
 
-  if ((currentUser.role !== roles.managerRole._id && balance > 0) || !balance ) return null
+  if ((!isManager(currentUser.role) && balance > 0) || !balance) return null
 
   const balanceClass = balance < 0 ? 'negative' : 'positive';
 

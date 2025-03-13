@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux'
 import DeleteButton from '../Buttons/DeleteButton'
 import { useRoles } from '../../context/RolesContext'
 import ShowDetails from '../ShowDetails'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { currency } from '../../helpers/Functions'
 import { formatTime } from '../../helpers/DatePickerFunctions'
 import RowItem from '../RowItem'
@@ -12,10 +12,10 @@ import { GiChickenOven } from 'react-icons/gi'
 import { TbMoneybag } from 'react-icons/tb'
 import ConfirmationButton from '../Buttons/ConfirmationButton'
 
-export default function StockList({ stock, weight, amount, onDelete, modifyBalance }) {
+export default function StockList({ stock = [], onDelete = null, modifyBalance = null }) {
   const { currentUser } = useSelector((state) => state.user)
   const isEmpty = stock.length === 0
-  const { roles } = useRoles()
+  const { roles, isManager } = useRoles()
   const [selectedStock, setSelectedStock] = useState(null)
   const deletable = onDelete
 
@@ -28,6 +28,9 @@ export default function StockList({ stock, weight, amount, onDelete, modifyBalan
     { key: 'employee.name', label: 'Encargado', format: (data) => `${data.employee.name} ${data.employee.lastName}` },
     { key: 'createdAt', label: 'Hora', format: (data) => formatTime(data.createdAt) },
   ]
+
+  const weight = useMemo(() => stock.reduce((acc, stock) => acc + stock.weight, 0), [stock])
+  const amount = useMemo(() => stock.reduce((acc, stock) => acc + stock.amount, 0), [stock])
 
   const renderTotal = () => {
     return (
@@ -42,8 +45,8 @@ export default function StockList({ stock, weight, amount, onDelete, modifyBalan
   const renderStockItem = ({ stock, index }) => {
     const { product, pieces, weight, amount, employee, createdAt, price } = stock
     const tempStock = { ...stock, index }
-    const isAuthorized = currentUser._id === stock.employee._id || currentUser.role === roles.managerRole._id
-    const shouldRender = isAuthorized || currentUser.role === roles.managerRole._id
+    const isAuthorized = currentUser._id === stock.employee._id || isManager(currentUser.role)
+    const shouldRender = isAuthorized || isManager(currentUser.role)
     const shouldShowDeleteButton = isAuthorized && onDelete
 
     return (
@@ -108,7 +111,7 @@ export default function StockList({ stock, weight, amount, onDelete, modifyBalan
     return (
       <div>
         {renderTotal()}
-        {!isEmpty && roles?.managerRole && stock.map((stock, index) => renderStockItem({ stock, index }))}
+        {!isEmpty && roles?.manager && stock.map((stock, index) => renderStockItem({ stock, index }))}
       </div>
     )
   }

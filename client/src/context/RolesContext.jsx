@@ -11,6 +11,12 @@ export const RolesProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  const isController = (roleId) => roles && roles["controller"]?._id === roleId
+  const isManager = (roleId) => roles && roles["manager"]?._id === roleId || isController(roleId);
+  const isSupervisor = (roleId) => roles && roles["supervisor"]?._id === roleId || isManager(roleId);
+  const isSeller = (roleId) => roles && roles["seller"]?._id === roleId || isSupervisor(roleId);
+  const isJustSeller = (roleId) => roles && roles["seller"]?._id === roleId;
+
   useEffect(() => {
     setLoading(true);
     getRoles()
@@ -25,7 +31,7 @@ export const RolesProvider = ({ children }) => {
   }, []);
 
   return (
-    <RolesContext.Provider value={{ roles, loading, error }}>
+    <RolesContext.Provider value={{ roles, isController, isSeller, isManager, isSupervisor, isJustSeller, loading, error }}>
       {children}
     </RolesContext.Provider>
   );

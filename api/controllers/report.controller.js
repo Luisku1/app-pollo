@@ -10,6 +10,7 @@ import { getDayRange } from "../utils/formatDate.js"
 import Outgoing from "../models/accounts/outgoings/outgoing.model.js"
 import Stock from "../models/accounts/stock.model.js"
 import { branchLookup, employeeLookup, unwindBranch, unwindEmployee } from "./branch.report.controller.js"
+import { getIncomesByType } from "./income.controller.js"
 
 export const getBranchReports = async (req, res, next) => {
 
@@ -498,108 +499,6 @@ export const supervisorsInfoQuery = async (companyId, topDate, bottomDate) => {
       return new Types.ObjectId(role._id)
     })
 
-    const getIncomesByType = (type, arrayName) => ({
-
-      $lookup: {
-        from: 'incomecollecteds',
-        localField: '_id',
-        foreignField: 'employee',
-        as: arrayName,
-        pipeline: [
-          {
-            $match: {
-              createdAt: { $gte: new Date(bottomDate), $lt: new Date(topDate) }
-            }
-          },
-          {
-            $lookup: {
-              from: 'employeepayments',
-              localField: '_id',
-              foreignField: 'income',
-              as: 'employeePayment',
-              pipeline: [
-                {
-                  $lookup: {
-                    from: 'employees',
-                    localField: 'employee',
-                    foreignField: '_id',
-                    as: 'employee'
-                  }
-                },
-                {
-                  $unwind: {
-                    path: '$employee',
-                    preserveNullAndEmptyArrays: true
-                  }
-                }
-              ]
-            }
-          },
-          {
-            $lookup: {
-              from: 'branches',
-              localField: 'branch',
-              foreignField: '_id',
-              as: 'branch'
-            }
-          },
-          {
-            $lookup: {
-              from: 'employees',
-              localField: 'employee',
-              foreignField: '_id',
-              as: 'employee'
-            }
-          },
-          {
-            $lookup: {
-              from: 'customers',
-              localField: 'customer',
-              foreignField: '_id',
-              as: 'customer'
-            }
-          },
-          {
-            $unwind: {
-              path: '$customer',
-              preserveNullAndEmptyArrays: true
-            }
-          },
-          {
-            $lookup: {
-              from: 'incometypes',
-              localField: 'type',
-              foreignField: '_id',
-              as: 'type',
-            }
-          },
-          { $unwind: { path: '$employeePayment', preserveNullAndEmptyArrays: true } },
-          {
-            $unwind: {
-              path: '$branch',
-              preserveNullAndEmptyArrays: true
-            }
-          },
-          {
-            $unwind: {
-              path: '$employee',
-              preserveNullAndEmptyArrays: true
-            }
-          },
-          {
-            $unwind: {
-              path: '$type',
-              preserveNullAndEmptyArrays: true
-            }
-          },
-          {
-            $match: { 'type.name': type }
-          }
-        ]
-      }
-
-    })
-
     const supervisorsInfoAggregate = await Employee.aggregate([
 
       {
@@ -668,9 +567,9 @@ export const supervisorsInfoQuery = async (companyId, topDate, bottomDate) => {
           ]
         }
       },
-      getIncomesByType('Depósito', 'depositsArray'),
-      getIncomesByType('Efectivo', 'cashArray'),
-      getIncomesByType('Terminal', 'terminalIncomesArray'),
+      getIncomesByType('Depósito', 'depositsArray', {bottomDate, topDate}),
+      getIncomesByType('Efectivo', 'cashArray', {bottomDate, topDate}),
+      getIncomesByType('Terminal', 'terminalIncomesArray', {bottomDate, topDate}),
       {
         $lookup: {
 
@@ -731,7 +630,10 @@ export const supervisorsInfoQuery = async (companyId, topDate, bottomDate) => {
             { extraOutgoings: { $gt: 0 } },
             { cash: { $gt: 0 } },
             { terminalIncomes: { $gt: 0 } },
-            { deposits: { $gt: 0 } }
+            { deposits: { $gt: 0 } },
+            { missingIncomes: { $gt: 0 } },
+            { verifiedCash: { $gt: 0 } },
+            { verifiedDeposits: { $gt: 0 } },
           ]
         }
       },

@@ -14,10 +14,10 @@ import MoneyBag from './Icons/MoneyBag'
 export default function EmployeePaymentsList({ payments, total = 0, onDelete = null, spliceIncome, spliceExtraOutgoing }) {
 
   const { currentUser } = useSelector((state) => state.user)
-  const { roles } = useRoles()
+  const { isManager } = useRoles()
   const [selectedPayment, setSelectedPayment] = useState(null)
   const isEmpty = !payments || payments.length === 0
-  const isAuthorized = (employee) => currentUser._id === employee._id || currentUser.role === roles.managerRole._id || !onDelete
+  const isAuthorized = (employee) => currentUser._id === employee._id || isManager(currentUser.role) || !onDelete
   const deletable = onDelete != null
 
   const fields = [
@@ -53,7 +53,7 @@ export default function EmployeePaymentsList({ payments, total = 0, onDelete = n
     const tempPayment = { ...payment, index }
 
     return (
-      isAuthorized(employee) && (
+      isAuthorized(supervisor) && (
         <div className="" key={payment._id}>
           <div className="grid grid-cols-12 border border-black border-opacity-30 rounded-2xl shadow-sm mb-2 py-1">
             <button

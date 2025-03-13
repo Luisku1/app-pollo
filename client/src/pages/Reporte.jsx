@@ -1,11 +1,10 @@
 /* eslint-disable react/prop-types */
 import { IoReload } from "react-icons/io5";
-import { useContext, useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { useSelector } from "react-redux"
 import { useParams, useNavigate, Link } from "react-router-dom"
 import FechaDePagina from "../components/FechaDePagina"
 import { formatDate } from "../helpers/DatePickerFunctions"
-import TarjetaCuenta from "../components/TarjetaCuenta"
 import Sobrante from "../pages/Sobrante"
 import { useBranchReports } from "../hooks/BranchReports.js/useBranchReports";
 import { getArrayForSelects, currency } from "../helpers/Functions";
@@ -18,9 +17,13 @@ import ExtraOutgoingsList from "../components/Outgoings/ExtraOutgoingsList.jsx";
 import ShowIncomesModal from "../components/Incomes/ShowIncomesModal.jsx";
 import ShowListModal from "../components/Modals/ShowListModal.jsx";
 import Modal from "../components/Modals/Modal";
-import RegistroCuentaDiaria from "./RegistroCuentaDiaria";
-import { ModalContext } from '../context/ModalContext';
 import { useLoading } from "../hooks/loading.js";
+import BranchReportCard from "../components/BranchReportCard.jsx";
+import { BsFileBarGraph } from "react-icons/bs";
+import { BsBoxes } from "react-icons/bs";
+import { FaTruck } from "react-icons/fa";
+import { FaUser } from "react-icons/fa";
+import { MdStorefront } from "react-icons/md";
 
 export default function Reporte({ untitled = false }) {
 
@@ -28,9 +31,12 @@ export default function Reporte({ untitled = false }) {
   let paramsDate = useParams().date
   let datePickerValue = (paramsDate ? new Date(paramsDate) : new Date())
   let stringDatePickerValue = formatDate(datePickerValue)
-  const { roles, loading: loadingRoles } = useRoles()
+  const { roles, loading: loadingRoles, isManager } = useRoles()
   const [showTable, setShowTable] = useState(true)
-  const [showCards, setShowCards] = useState(false)
+  const [showStock, setShowStock] = useState(false)
+  const [showClients, setShowClients] = useState(false)
+  const [showProviders, setShowProviders] = useState(false)
+  const [showGraphs, setShowGrapsh] = useState(false)
   const {
     supervisorsInfo,
     deposits,
@@ -52,9 +58,6 @@ export default function Reporte({ untitled = false }) {
     terminalIncomesArray,
     terminalIncomes,
   } = useSupervisorsReportInfo({ companyId: company._id, date: stringDatePickerValue })
-  const [showStock, setShowStock] = useState(false)
-  const [showOutgoings, setShowOutgoings] = useState(false)
-  const [showEarnings, setShowEarnings] = useState(false)
   const [selectedSupervisors, setSelectedSupervisors] = useState([])
   const [employees, setEmployees] = useState([])
   const {
@@ -62,6 +65,7 @@ export default function Reporte({ untitled = false }) {
     branchReports,
     getBranchReports,
     totalIncomes,
+    replaceReport,
     loading: loadingBranchReports,
     totalStock,
     totalOutgoings,
@@ -73,7 +77,6 @@ export default function Reporte({ untitled = false }) {
   const [pieChartInfo, setPieChartInfo] = useState([])
   const [negativeBalances, setNegativeBalances] = useState(new Set())
   const [selectedBranchReport, setSelectedBranchReport] = useState(null);
-  const { addModal, removeModal } = useContext(ModalContext);
 
   const updateReportedCash = ({ reportedCash, prevReportedCash, prevReportedIncomes }) => {
 
@@ -155,69 +158,66 @@ export default function Reporte({ untitled = false }) {
 
     stringDatePickerValue = (e.target.value + 'T06:00:00.000Z')
     navigate('/reporte/' + stringDatePickerValue)
-
   }
 
   const changeDay = (date) => {
 
     navigate('/reporte/' + date)
-
   }
 
-  const handleShowCardsButton = () => {
+  const handleShowGraphs = () => {
 
-    setShowCards(true)
+    setShowGrapsh(true)
     setShowTable(false)
     setShowStock(false)
-    setShowOutgoings(false)
-    setShowEarnings(false)
-
+    setShowClients(false)
+    setShowProviders(false)
   }
 
   const handleShowTableButton = () => {
 
     setShowTable(true)
-    setShowCards(false)
+    setShowGrapsh(false)
     setShowStock(false)
-    setShowOutgoings(false)
-    setShowEarnings(false)
+    setShowClients(false)
+    setShowProviders(false)
   }
 
   const handleShowStockButton = () => {
 
     setShowStock(true)
     setShowTable(false)
-    setShowCards(false)
-    setShowOutgoings(false)
-    setShowEarnings(false)
+    setShowGrapsh(false)
+    setShowClients(false)
+    setShowProviders(false)
   }
 
-  const handleShowOutgoingButton = () => {
+  const handleShowClients = () => {
 
-    setShowOutgoings(true)
+    setShowClients(true)
     setShowTable(false)
-    setShowCards(false)
+    setShowGrapsh(false)
     setShowStock(false)
-    setShowEarnings(false)
+    setShowProviders(false)
   }
 
-  const handleShowEarningsButton = () => {
+  const handleShowProviders = () => {
 
     setShowTable(false)
-    setShowCards(false)
+    setShowGrapsh(false)
     setShowStock(false)
-    setShowOutgoings(false)
-    setShowEarnings(true)
+    setShowClients(false)
+    setShowProviders(true)
   }
 
   useEffect(() => {
 
-    if (!loadingRoles && roles?.managerRole && roles?.managerRole?._id != currentUser?.role) {
+    if (roles && !isManager(currentUser.role) && !loadingRoles) {
 
       handleShowStockButton()
     }
 
-  }, [currentUser, roles?.managerRole, loadingRoles])
+  }, [currentUser, roles, loadingRoles, isManager])
 
   useEffect(() => {
 
@@ -229,117 +229,143 @@ export default function Reporte({ untitled = false }) {
   return (
 
     <main className="p-3 max-w-lg mx-auto">
-
       <FechaDePagina changeDay={changeDay} stringDatePickerValue={stringDatePickerValue} changeDatePickerValue={changeDatePickerValue} ></FechaDePagina>
+      {branchReports && branchReports.length > 0 && roles && roles.manager ?
+        <div className="mt-3">
+          <div className="grid grid-cols-5 border bg-white border-black mx-auto my-auto w-full rounded-lg font-bold">
+            <button className={"h-full items-center p-1 rounded-lg hover:shadow-xl hover:bg-slate-700 hover:text-white " + (showTable ? 'bg-slate-500 text-white' : 'bg-white')} disabled={!isManager(currentUser.role)} onClick={() => { handleShowTableButton() }}><MdStorefront className={`h-5 w-5 ${showTable ? 'text-white' : ''} text-center mx-auto`} /> </button>
+            <button className={"h-full p-1 rounded-lg hover:shadow-xl hover:bg-slate-700 hover:text-white " + (showGraphs ? 'bg-slate-500 text-white' : ' bg-white')} disabled={!isManager(currentUser.role)} onClick={() => { handleShowGraphs() }}><BsFileBarGraph className={`h-5 w-5 ${showGraphs ? 'text-white' : ''} text-center mx-auto`} />
+            </button>
+            <button className={"h-full p-1 rounded-lg hover:shadow-xl hover:bg-slate-700 hover:text-white " + (showStock ? 'bg-slate-500 text-white' : ' bg-white')} onClick={() => { handleShowStockButton() }}><BsBoxes className={`h-5 w-5 ${showStock ? 'text-white' : ''} text-center mx-auto`} /></button>
+            <button className={"h-full p-1 rounded-lg hover:shadow-xl hover:bg-slate-700 hover:text-white " + (showClients ? 'bg-slate-500 text-white' : ' bg-white')} disabled={!isManager(currentUser.role)} onClick={() => { handleShowClients() }}>
+              <p className="flex">
+                <FaUser className={`h-5 w-5 ${showClients ? 'text-white' : ''} text-center mx-auto`} /> 🤑
+              </p>
+            </button>
+            <button className={"h-full p-1 rounded-lg hover:shadow-xl hover:bg-slate-700 hover:text-white " + (showProviders ? 'bg-slate-500 text-white' : ' bg-white')} disabled={!isManager(currentUser.role)} onClick={() => { handleShowProviders() }}><FaTruck className={`h-5 w-5 ${showProviders ? 'text-white' : ''} text-center mx-auto`} /></button>
+          </div>
+          <div className="grid grid-cols-3 mt-3 items-center">
+            <p className="col-span-1 font-bold">{'Formatos: ' + branchReports.length + '/20'}</p>
+            <div className="col-span-2 justify-self-end flex items-center">
+              <p className="font-semibold">Recargar formatos:</p>
+              <button className="text-black h-10 px-8" onClick={() => getBranchReports({ companyId: company._id, date: stringDatePickerValue })}><IoReload className="w-full h-full" /></button>
+            </div>
+          </div>
+          <table className={'border mt-2 bg-white w-full ' + (!showTable ? 'hidden' : '')}>
 
-      {branchReports && branchReports.length > 0 && roles && roles.managerRole ?
-        <div>
-          <div>
-            <div>
-              <div className="grid grid-cols-5 border bg-white border-black mx-auto my-auto w-full rounded-lg font-bold">
-                <button className={"h-full p-1 rounded-lg hover:shadow-xl hover:bg-slate-700 hover:text-white " + (showTable ? 'bg-slate-500 text-white' : 'bg-white')} disabled={currentUser.role != roles.managerRole._id} onClick={() => { handleShowTableButton() }}>Tabla</button>
-                <button className={"h-full p-1 rounded-lg hover:shadow-xl hover:bg-slate-700 hover:text-white " + (showStock ? 'bg-slate-500 text-white' : ' bg-white')} onClick={() => { handleShowStockButton() }}>Sobrante</button>
-                <button className={"h-full p-1 rounded-lg hover:shadow-xl hover:bg-slate-700 hover:text-white " + (showEarnings ? 'bg-slate-500 text-white' : ' bg-white')} disabled={currentUser.role != roles.managerRole._id} onClick={() => { handleShowEarningsButton() }}>Efectivos</button>
-                <button className={"h-full p-1 rounded-lg hover:shadow-xl hover:bg-slate-700 hover:text-white " + (showOutgoings ? 'bg-slate-500 text-white' : ' bg-white')} disabled={currentUser.role != roles.managerRole._id} onClick={() => { handleShowOutgoingButton() }}>Gastos</button>
-                <button className={"h-full p-1 rounded-lg hover:shadow-xl hover:bg-slate-700 hover:text-white " + (showCards ? 'bg-slate-500 text-white' : ' bg-white')} disabled={currentUser.role != roles.managerRole._id} onClick={() => { handleShowCardsButton() }}>Tarjetas</button>
-              </div>
-              <div className="grid grid-cols-3 mt-3 items-center">
-                <p className="col-span-1 font-bold">{'Formatos: ' + branchReports.length + '/20'}</p>
-                <div className="col-span-2 justify-self-end flex items-center">
-                  <p className="font-semibold">Recargar formatos:</p>
-                  <button className="text-black h-10 px-8" onClick={() => getBranchReports({ companyId: company._id, date: stringDatePickerValue })}><IoReload className="w-full h-full" /></button>
+            <thead className="border border-black">
+
+              <tr>
+                {/* <th></th> */}
+                <th className="text-sm">Sucursal</th>
+                <th className="text-sm">
+                  <Link className="flex justify-center" to={'/gastos/' + stringDatePickerValue}>
+                    Gastos
+                  </Link>
+                </th>
+                <th className="text-sm">
+                  <Link className="flex justify-center" to={'/sobrante/' + stringDatePickerValue}>
+                    Sobrante
+                  </Link>
+                </th>
+                <th className="text-sm">Efectivo</th>
+                <th className="text-sm">Balance</th>
+              </tr>
+            </thead>
+            {branchReports.map((branchReport, index) => (
+              <tbody key={branchReport._id} className={branchReport.balance < 0 ? 'bg-pastel-pink' : ''}>
+                <tr className={'border-x ' + (index + 1 != branchReports.length ? "border-b " : '') + 'border-black border-opacity-40'}>
+                  <td className="group">
+                    <button
+                      className="text-sm text-gray-700 w-full h-full"
+                      onClick={() => { setSelectedBranchReport(branchReport) }}
+                    >
+                      {branchReport.branch.branch}
+                      <div className="hidden group-hover:block group-hover:fixed group-hover:overflow-hidden group-hover:mt-2 ml-24 bg-button text-white shadow-2xl rounded-md p-2">
+                        <p>{branchReport.employee != null ? branchReport.employee.name + ' ' + branchReport.employee.lastName : 'Sin empleado'}</p>
+                        {branchReport.assistant != null ? (
+                          <p>{branchReport.assistant.name + ' ' + branchReport.assistant.lastName}</p>
+                        ) : ''}
+                      </div>
+                    </button>
+                  </td>
+                  <td className="text-center text-sm">
+                    <button
+                      className="text-sm text-gray-700 w-full h-full"
+                      onClick={() => { setSelectedBranchReport(branchReport) }}
+                    >{branchReport.outgoings.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}
+
+                    </button>
+                  </td>
+                  <td className="text-center text-sm">
+
+                    <button
+                      className="text-sm text-gray-700 w-full h-full"
+                      onClick={() => { setSelectedBranchReport(branchReport) }}
+                    >
+                      {branchReport.finalStock.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}
+
+                    </button>
+                  </td>
+                  <td className="text-center text-sm">
+
+                    <button
+                      className="text-sm text-gray-700 w-full h-full"
+                      onClick={() => { setSelectedBranchReport(branchReport) }}
+                    >{branchReport.incomes.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}
+
+                    </button>
+                  </td>
+
+                  <td className={(branchReport.balance < 0 ? 'text-red-500' : 'text-green-500') + ' text-center text-sm'}>
+
+                    <button
+                      className="text-sm text-gray-700 w-full h-full"
+                      onClick={() => { setSelectedBranchReport(branchReport) }}
+                    >
+                      {branchReport.balance.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            ))}
+            <tfoot className="border border-black text-sm">
+              <tr className="mt-2">
+                <td className="text-center text-m font-bold">Totales:</td>
+                <td className="text-center text-m font-bold">{currency({ amount: totalOutgoings ?? 0 })}</td>
+                <td className="text-center text-m font-bold">{totalStock.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
+                <td className="text-center text-m font-bold">{totalIncomes.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
+                <td className={(totalBalance < 0 ? 'text-red-500' : 'text-green-500') + ' text-center text-m font-bold'}>{totalBalance.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
+              </tr>
+            </tfoot>
+          </table>
+          <div className={!showStock ? 'hidden' : ''}>
+            <Sobrante date={stringDatePickerValue} branchReports={branchReports}></Sobrante>
+          </div>
+          <div className={!showGraphs ? 'hidden' : ''} >
+            <div className="items-center">
+              <div className="my-2 mx-auto">
+                <h3 className="text-3xl font-bold">Ingresos del día</h3>
+                <div className="h-fit">
+                  <div className="grid grid-cols-2">
+                    <h4 className="text-2xl font-bold">Brutos: {currency({ amount: grossCash + deposits })}</h4>
+                    <h4 className="text-2xl font-bold">Netos: {currency({ amount: (netIncomes) })}</h4>
+                  </div>
+                  <div className="flex justify-center gap-2">
+                    <p className="font-bold text-center">Efectivo: <span style={{ color: '#206e09' }}>{`${currency({ amount: grossCash })}`} </span></p>
+                    <p className="font-bold text-center">Depósitos: <span style={{ color: '#0c4e82' }}>{`${currency({ amount: deposits })}`}</span></p>
+                  </div>
                 </div>
-              </div>
-              <table className={'border mt-2 bg-white w-full ' + (!showTable ? 'hidden' : '')}>
-
-                <thead className="border border-black">
-
-                  <tr>
-                    {/* <th></th> */}
-                    <th className="text-sm">Sucursal</th>
-                    <th className="text-sm">
-                      <Link className="flex justify-center" to={'/gastos/' + stringDatePickerValue}>
-                        Gastos
-                      </Link>
-                    </th>
-                    <th className="text-sm">
-                      <Link className="flex justify-center" to={'/sobrante/' + stringDatePickerValue}>
-                        Sobrante
-                      </Link>
-                    </th>
-                    <th className="text-sm">Efectivo</th>
-                    <th className="text-sm">Balance</th>
-                  </tr>
-                </thead>
-                {branchReports.map((branchReport, index) => (
-                  <tbody key={branchReport._id} className={branchReport.balance < 0 ? 'bg-pastel-pink' : ''}>
-                    <tr className={'border-x ' + (index + 1 != branchReports.length ? "border-b " : '') + 'border-black border-opacity-40'}>
-                      <td className="group">
-                        <button
-                          className="text-sm text-gray-700"
-                          onClick={() => {
-                            setSelectedBranchReport(branchReport);
-                            addModal(
-                              <Modal
-                                content={<RegistroCuentaDiaria edit={false} _branchReport={branchReport} _branch={branchReport.branch} />}
-                                closeModal={() => {
-                                  setSelectedBranchReport(null);
-                                  removeModal();
-                                }}
-                              />
-                            );
-                          }}
-                        >
-                          {branchReport.branch.branch}
-                        </button>
-                        <div className="hidden group-hover:block group-hover:fixed group-hover:overflow-hidden group-hover:mt-2 ml-24 bg-button text-white shadow-2xl rounded-md p-2">
-                          <p>{branchReport.employee != null ? branchReport.employee.name + ' ' + branchReport.employee.lastName : 'Sin empleado'}</p>
-                          {branchReport.assistant != null ? (
-                            <p>{branchReport.assistant.name + ' ' + branchReport.assistant.lastName}</p>
-                          ) : ''}
-                        </div>
-                      </td>
-                      <td className="text-center text-sm">{branchReport.outgoings.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</td>
-                      <td className="text-center text-sm">{branchReport.finalStock.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</td>
-                      <td className="text-center text-sm">{branchReport.incomes.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</td>
-                      <td className={(branchReport.balance < 0 ? 'text-red-500' : 'text-green-500') + ' text-center text-sm'}>{branchReport.balance.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })} </td>
-                    </tr>
-                  </tbody>
-                ))}
-                <tfoot className="border border-black text-sm">
-                  <tr className="mt-2">
-                    <td className="text-center text-m font-bold">Totales:</td>
-                    <td className="text-center text-m font-bold">{currency({ amount: totalOutgoings ?? 0 })}</td>
-                    <td className="text-center text-m font-bold">{totalStock.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
-                    <td className="text-center text-m font-bold">{totalIncomes.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
-                    <td className={(totalBalance < 0 ? 'text-red-500' : 'text-green-500') + ' text-center text-m font-bold'}>{totalBalance.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
-                  </tr>
-                </tfoot>
-              </table>
-              <div className={!showStock ? 'hidden' : ''}>
-                <Sobrante date={stringDatePickerValue} branchReports={branchReports}></Sobrante>
-              </div>
-              <div className={!showCards ? 'hidden' : ''} >
-                <TarjetaCuenta reportArray={branchReports} currentUser={currentUser}></TarjetaCuenta>
+                <PieChart chartInfo={pieChartInfo} netIncomes={netIncomes} verifiedIncomes={verifiedIncomes}></PieChart>
               </div>
             </div>
           </div>
         </div>
-        : ''}
-      {supervisorsInfo && showTable && supervisorsInfo.length > 0 ?
-        <div className="items-center">
-          <div className="my-2 mx-auto">
-            <h3 className="text-3xl font-bold">Ingresos del día</h3>
-            <div>
-              <h4 className="text-2xl font-bold">Brutos: {currency({ amount: grossCash + deposits })}</h4>
-              <div className="flex gap-3">
-                <p className="font-bold">Efectivo: <span style={{ color: '#206e09' }}>{`${currency({ amount: grossCash })}`} </span></p>
-                <p className="font-bold">Depósitos: <span style={{ color: '#0c4e82' }}>{`${currency({ amount: deposits })}`}</span></p>
-              </div>
-            </div>
-            <h4 className="text-2xl font-bold mb-3">Netos: {currency({ amount: (netIncomes) })}</h4>
-            <PieChart chartInfo={pieChartInfo} netIncomes={netIncomes} verifiedIncomes={verifiedIncomes}></PieChart>
-          </div>
+        : ''
+      }
+      {
+        supervisorsInfo && showTable && supervisorsInfo.length > 0 ?
+
           <div className="my-1 border border-slate-500 border-spacing-4 p-2 bg-white z-5 rounded-lg mb-5">
             <div id="filterBySupervisor" className="w-full sticky top-16 bg-white z-10">
               <p className="text-lg font-semibold p-3 text-red-600">Filtro de Supervisores</p>
@@ -375,7 +401,7 @@ export default function Reporte({ untitled = false }) {
                               ListComponentProps={{ extraOutgoings: supervisor.extraOutgoingsArray, totalExtraOutgoings: supervisor.extraOutgoings }}
                               title={'Gastos'}
                               clickableComponent={
-                                <p className="text-lg">{currency({ amount: supervisor.extraOutgoings })}
+                                <p className="text-lg border border-black rounded-lg shadow-sm">{currency({ amount: supervisor.extraOutgoings })}
                                 </p>
                               }
                               data={supervisor.extraOutgoingsArray}
@@ -401,19 +427,26 @@ export default function Reporte({ untitled = false }) {
               </div>
             ))}
           </div>
-        </div>
-
-        : ''}
-
+          : ''
+      }
       {branchReports.length === 0 && supervisorsInfo.length === 0 && !isLoading && (
         <div className="flex justify-center items-center h-96">
           <p className="text-2xl">Aún no hay información de este día</p>
         </div>
-      )}
+      )
+      }
       {selectedBranchReport && (
         <Modal
-          content={<RegistroCuentaDiaria edit={false} _branchReport={selectedBranchReport} _branch={selectedBranchReport.branch} />}
-          closeModal={() => setSelectedBranchReport(null)}
+          content={
+            <BranchReportCard
+              reportData={selectedBranchReport}
+              replaceReport={replaceReport}
+              defaultDetailsShowed={null}
+            />
+          }
+          closeModal={() => {
+            setSelectedBranchReport(null);
+          }}
         />
       )}
     </main >

@@ -72,6 +72,11 @@ const branchReportSchema = mongoose.Schema({
     default: []  // Permitir arrays vacíos
   },
 
+  onZero: {
+    type: Boolean,
+    default: false
+  },
+
   incomes: {
     type: Number,
     default: 0

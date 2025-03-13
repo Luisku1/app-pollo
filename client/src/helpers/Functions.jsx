@@ -33,3 +33,4 @@ export const getArrayForSelects = (array, getLabel) => {
     return getElementForSelect(element, getLabel)
   })
 }
+

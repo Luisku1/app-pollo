@@ -10,49 +10,66 @@ export default function Employees({ companyId, employees, dailyBalances }) {
 
   const [dailyBalancesFilterText, setDailyBalancesFilterText] = useState('')
   const { pendingRests, onAddEmployeeRest, onDeleteEmployeeRest } = usePendingEmployeesRests({ companyId: companyId })
+  const [checkboxStates, setCheckboxStates] = useState({})
 
   const searchBarRef = useRef(null)
 
-  const handleDailyBalanceInputs = async (e, dailyBalanceId) => {
+  useEffect(() => {
+    const initialCheckboxStates = {}
+    dailyBalances.forEach(dailyBalance => {
+      initialCheckboxStates[dailyBalance._id] = {
+        foodDiscount: dailyBalance.foodDiscount,
+        restDay: dailyBalance.restDay,
+        dayDiscount: dailyBalance.dayDiscount
+      }
+    })
+    setCheckboxStates(initialCheckboxStates)
+  }, [dailyBalances])
 
+  const handleDailyBalanceInputs = async (e, dailyBalanceId) => {
+    const { id, checked } = e.target
+    setCheckboxStates(prevState => ({
+      ...prevState,
+      [dailyBalanceId]: {
+        ...prevState[dailyBalanceId],
+        [id]: checked
+      }
+    }))
 
     try {
-
       const res = await fetch('/api/employee/update-daily-balance/' + dailyBalanceId, {
-
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-
-          [e.target.id]: e.target.checked
-        })
+        body: JSON.stringify({ [id]: checked })
       })
 
       const data = await res.json()
 
       if (data.success === false) {
-
-        e.target.checked = !e.target.checked
-        return
+        setCheckboxStates(prevState => ({
+          ...prevState,
+          [dailyBalanceId]: {
+            ...prevState[dailyBalanceId],
+            [id]: !checked
+          }
+        }))
       }
-
     } catch (error) {
-
-      e.target.checked = !e.target.checked
+      setCheckboxStates(prevState => ({
+        ...prevState,
+        [dailyBalanceId]: {
+          ...prevState[dailyBalanceId],
+          [id]: !checked
+        }
+      }))
     }
   }
 
   const handleDailyBalancesFilterText = (text) => {
-
     setDailyBalancesFilterText(text)
   }
-
-  useEffect(() => {
-
-
-  })
 
   useEffect(() => {
     const currentScrollPosition = window.scrollY;
@@ -91,10 +108,10 @@ export default function Employees({ companyId, employees, dailyBalances }) {
                     <p className='text-center text-sm'>{dailyBalance.employee != null ? dailyBalance.employee.name + ' ' + dailyBalance.employee.lastName : 'Trabajador despedido'}</p>
                   </Link>
                   <div className='w-3/12'>
-                    <input className='w-full' type="checkbox" name="foodDiscount" id="foodDiscount" defaultChecked={dailyBalance.foodDiscount} onChange={(e) => { handleDailyBalanceInputs(e, dailyBalance._id) }} />
+                    <input className='w-full' type="checkbox" name="foodDiscount" id="foodDiscount" checked={checkboxStates[dailyBalance._id]?.foodDiscount || false} onChange={(e) => { handleDailyBalanceInputs(e, dailyBalance._id) }} />
                   </div>
-                  <input className='w-3/12' type="checkbox" name="restDay" id="restDay" defaultChecked={dailyBalance.restDay} onChange={(e) => handleDailyBalanceInputs(e, dailyBalance._id)} />
-                  <input className='w-3/12' type="checkbox" name="dayDiscount" id="dayDiscount" defaultChecked={dailyBalance.dayDiscount} onChange={(e) => handleDailyBalanceInputs(e, dailyBalance._id)} />
+                  <input className='w-3/12' type="checkbox" name="restDay" id="restDay" checked={checkboxStates[dailyBalance._id]?.restDay || false} onChange={(e) => handleDailyBalanceInputs(e, dailyBalance._id)} />
+                  <input className='w-3/12' type="checkbox" name="dayDiscount" id="dayDiscount" checked={checkboxStates[dailyBalance._id]?.dayDiscount || false} onChange={(e) => handleDailyBalanceInputs(e, dailyBalance._id)} />
                 </div>
               </div>
             )

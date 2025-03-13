@@ -9,13 +9,13 @@ import { FaArrowLeft, FaArrowRight } from 'react-icons/fa'
 
 export default function ChangeBranchPrices({ children, onChange, branch, date, onUpdateBranchReport }) {
 
-  const { roles } = useRoles()
+  const { isManager } = useRoles()
   const [pricesDate, setPricesDate] = useState(null)
   const [direction, setDirection] = useState(null)
   const { prices, loading } = usePricesSelector(branch, date, pricesDate, direction)
   const { currentUser } = useSelector(state => state.user)
   const [isChanging, setIsChanging] = useState(false)
-  const ableToModify = roles.managerRole._id == currentUser.role
+  const ableToModify = isManager(currentUser.role)
   const isEmpty = !prices || prices.length === 0
   const newestPricesDate = !isEmpty && prices.reduce((latest, price) => {
     if (!latest) {

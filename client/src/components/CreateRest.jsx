@@ -38,8 +38,7 @@ export default function CreateRest({ employees, pendingEmployeesRests, onAddEmpl
 
   const changeDatePickerValue = (e) => {
 
-    setDatePickerValue(e.target._id)
-
+    setDatePickerValue(e.target.value)
   }
 
   useEffect(() => {
