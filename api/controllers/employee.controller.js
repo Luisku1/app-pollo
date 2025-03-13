@@ -459,7 +459,11 @@ export const getSignedUser = async (req, res, next) => {
 
 		if (!employee) return res.status(404).json({ message: 'No se encontró al empleado' })
 
-		res.status(200).json({ employee })
+		res.status(200).json({
+			data: employee,
+			message: 'Empleado encontrado',
+			success: true
+		})
 
 	} catch (error) {
 
