@@ -18,16 +18,20 @@ export const useEmployees = ({ companyId, date, onlyActiveEmployees = true }) =>
 
     ToastSuccess(`Se ${employee.active ? 'suspendió' : 'restauró'} a ${getEmployeeFullName(employee)}`)
 
-    changeActiveStatus({ employeeId: employee._id, newStatus: !employee.active }).then((updatedEmployee) => {
+    setEmployees((prevEmployees) =>
+      prevEmployees.map((prevEmployee) => {
+        return prevEmployee._id == employee._id ? { ...employee, active: employee.active ? false : true } : prevEmployee
+      })
+    )
+
+    changeActiveStatus({ employeeId: employee._id, newStatus: !employee.active }).then(() => {
+
+    }).catch((error) => {
 
       setEmployees((prevEmployees) =>
-
-        prevEmployees.map((employee) => {
-
-          return employee._id == updatedEmployee._id ? updatedEmployee : employee
-        })
-      )
-    }).catch((error) => {
+        prevEmployees.map((prevEmployee) =>
+          prevEmployee._id === employee._id ? employee : prevEmployee
+        ))
 
       setError(error)
     })
@@ -86,7 +90,7 @@ export const useEmployees = ({ companyId, date, onlyActiveEmployees = true }) =>
 
     } else {
 
-      getAllEmployees({ companyId, date }).then((response) => {
+      getAllEmployees({ companyId }).then((response) => {
 
         setEmployees(response)
 
@@ -100,5 +104,16 @@ export const useEmployees = ({ companyId, date, onlyActiveEmployees = true }) =>
 
   }, [companyId, onlyActiveEmployees, date])
 
-  return { employees: filteredEmployees, spliceEmployee, onUpdateEmployee, setFilterString, changeEmployeeActiveStatus, loading, updating, error }
+  const { activeEmployees, inactiveEmployees } = useMemo(() => {
+
+    const activeEmployees = employees.filter((employee) => employee.active)
+    const inactiveEmployees = employees.filter((employee) => !employee.active)
+
+    return { activeEmployees, inactiveEmployees }
+  }, [employees])
+
+  return {
+    employees: filteredEmployees, activeEmployees, inactiveEmployees,
+    spliceEmployee, onUpdateEmployee, setFilterString, changeEmployeeActiveStatus, loading, updating, error
+  }
 }

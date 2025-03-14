@@ -1,6 +1,6 @@
-export const getAllEmployees = async ({companyId, date = (new Date()).toISOString()}) => {
+export const getAllEmployees = async ({companyId}) => {
 
-  const res = await fetch('/api/employee/get-all-employees/' + companyId + '/' + date)
+  const res = await fetch('/api/employee/get-all-employees/' + companyId)
   const data = await res.json()
 
   if(data.success === false) {
