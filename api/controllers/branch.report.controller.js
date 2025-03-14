@@ -249,7 +249,9 @@ export const fetchOrCreateBranchReport = async ({ branchId, companyId = null, da
 
   try {
 
+    console.log('fetchOrCreate 1')
     branchReport = await fetchBranchReport({ branchId, date })
+    console.log('fetchOrCreate 2', branchReport)
 
     if (!branchReport) {
 
@@ -923,7 +925,9 @@ const fetchBranchReportInfo = async ({ branchId = null, date = null, reportId = 
       },
     ]);
 
-    return branchReport.length > 0 ? branchReport[0] : await createDefaultBranchReport({ branchId, date, companyId: await getBranchCompany(branchId) });
+    console.log('fetchBranchReportInfo', branchReport)
+
+    return branchReport.length > 0 ? branchReport[0] : createDefaultBranchReport({ branchId, date, companyId: await getBranchCompany(branchId) });
 
   } catch (error) {
     throw error;
@@ -940,21 +944,13 @@ export const fetchBranchReport = async ({ branchId, date, populate = false }) =>
 
     if (populate) {
 
+      branchReport = await fetchBranchReportInfo({ branchId, date })
+    } else {
+
       branchReport = await BranchReport.findOne({
         createdAt: { $lt: topDate, $gte: bottomDate },
         branch: new Types.ObjectId(branchId)
       })
-        .populate('finalStockArray')
-        .populate('inputsArray')
-        .populate('providerInputsArray')
-        .populate('outputsArray')
-        .populate('outgoingsArray')
-        .populate('incomesArray')
-        .populate('branch')
-
-    } else {
-
-      branchReport = await fetchBranchReportInfo({ branchId, date })
     }
 
     return branchReport || null

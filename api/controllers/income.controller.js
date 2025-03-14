@@ -165,17 +165,6 @@ export const getIncomesByType = (type, arrayName, dayRange) => ({
       },
       {
         $lookup: {
-          from: 'employees',
-          localField: 'prevOwner',
-          foreignField: '_id',
-          as: 'prevOwner',
-        }
-      },
-      {
-        $unwind: { path: '$prevOwner', preserveNullAndEmptyArrays: true }
-      },
-      {
-        $lookup: {
           from: 'incometypes',
           localField: 'type',
           foreignField: '_id',
