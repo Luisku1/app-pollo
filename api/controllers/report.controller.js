@@ -625,9 +625,9 @@ export const supervisorsInfoQuery = async (companyId, topDate, bottomDate) => {
       {
         $addFields: {
           extraOutgoings: { $sum: '$extraOutgoingsArray.amount' },
-          cash: { $sum: { $cond: [{ $not: ["$cashArray.prevOwner"] }, "$cashArray.amount", 0] } },
-          deposits: { $sum: { $cond: [{ $not: ["$depositsArray.prevOwner"] }, "$depositsArray.amount", 0] } },
-          terminalIncomes: { $sum: { $cond: [{ $not: ["$terminalIncomesArray.prevOwner"] }, "$terminalIncomesArray.amount", 0] } },
+          cash: { $sum: '$cashArray.amount' },
+          deposits: { $sum: '$depositsArray.amount' },
+          terminalIncomes: { $sum: '$terminalIncomesArray.amount' },
           verifiedCash: '$supervisorReport.verifiedCash',
           verifiedDeposits: '$supervisorReport.verifiedDeposits',
           missingIncomes: '$dailyBalance.supervisorBalance'
