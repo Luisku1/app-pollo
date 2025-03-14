@@ -24,10 +24,9 @@ export default function Incomes({ incomes, incomesTotal, onAddIncome, onDeleteIn
   const handleCustomerBranchIncomesSelectChange = (option) => {
 
     const group = branchAndCustomerSelectOptions.find(g => g.options.some(opt => opt.value === option.value));
-    setSelectedIncomeGroup(group ? group.label : '');
+    setSelectedIncomeGroup(group == 'Sucursales' ? 'branch' : selectedIncomeGroup == 'Clientes' ? 'customer' : 'prevOwner');
     setSelectedCustomerBranchIncomesOption(option)
     incomesButtonControl()
-
   }
 
   const addIncomeSubmit = async (e) => {
@@ -37,45 +36,25 @@ export default function Incomes({ incomes, incomesTotal, onAddIncome, onDeleteIn
 
     e.preventDefault()
 
-
     try {
 
       const { amount } = incomeFormData
 
-      const group = selectedIncomeGroup == 'Sucursales' ? 'branch' : 'customer'
-
-      let income = {}
-
-      if (group == 'branch') {
-
-        income = {
-          amount: parseFloat(amount),
-          company: companyId,
-          branch: selectedCustomerBranchIncomesOption,
-          customer: null,
-          employee: currentUser,
-          partOfAPayment: false,
-          type: selectedIncomeType,
-          createdAt
-        }
-
-      } else {
-
-        income = {
-          amount: parseFloat(amount),
-          company: companyId,
-          customer: selectedCustomerBranchIncomesOption,
-          branch: null,
-          employee: currentUser,
-          partOfAPayment: false,
-          type: selectedIncomeType,
-          createdAt
-        }
+      let income = {
+        amount: parseFloat(amount),
+        company: companyId,
+        customer: null,
+        branch: null,
+        prevOwner: null,
+        employee: currentUser,
+        partOfAPayment: false,
+        type: selectedIncomeType,
+        createdAt
       }
 
+      income[selectedIncomeGroup] = selectedCustomerBranchIncomesOption
 
-      onAddIncome(income, group)
-
+      onAddIncome(income, selectedIncomeGroup)
 
       amountInput.value = ''
       setSelectedIncomeType(null)

@@ -9,13 +9,5 @@ export const getIncomeTypes = async () => {
 
   }
 
-  const incomeTypes = data.incomeTypes.map((incomeType) => {
-
-    const {_id: value, name: label, ...rest} = incomeType
-    const newIncomeType = {value, label, ...rest}
-
-    return newIncomeType
-  })
-
-  return incomeTypes
+  return data.incomeTypes
 }

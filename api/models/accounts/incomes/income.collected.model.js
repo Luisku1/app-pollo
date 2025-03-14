@@ -15,11 +15,18 @@ const incomeCollectedSchema = mongoose.Schema({
   },
 
   branch: {
-    type: Schema.Types.ObjectId, ref: 'Branch'
+    type: Schema.Types.ObjectId, ref: 'Branch',
+    default: null
   },
 
   customer: {
-    type: Schema.Types.ObjectId, ref: 'Customer'
+    type: Schema.Types.ObjectId, ref: 'Customer',
+    default: null
+  },
+
+  prevOwner: {
+    type: Schema.Types.ObjectId, ref: 'Employee',
+    default: null
   },
 
   employee: {

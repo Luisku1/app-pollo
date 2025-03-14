@@ -229,20 +229,22 @@ export default function Reporte({ untitled = false }) {
   return (
 
     <main className="p-3 max-w-lg mx-auto">
-      <FechaDePagina changeDay={changeDay} stringDatePickerValue={stringDatePickerValue} changeDatePickerValue={changeDatePickerValue} ></FechaDePagina>
+      {!untitled &&
+        <FechaDePagina changeDay={changeDay} stringDatePickerValue={stringDatePickerValue} changeDatePickerValue={changeDatePickerValue} ></FechaDePagina>
+      }
       {branchReports && branchReports.length > 0 && roles && roles.manager ?
         <div className="mt-3">
           <div className="grid grid-cols-5 border bg-white border-black mx-auto my-auto w-full rounded-lg font-bold">
-            <button className={"h-full items-center p-1 rounded-lg hover:shadow-xl hover:bg-slate-700 hover:text-white " + (showTable ? 'bg-slate-500 text-white' : 'bg-white')} disabled={!isManager(currentUser.role)} onClick={() => { handleShowTableButton() }}><MdStorefront className={`h-5 w-5 ${showTable ? 'text-white' : ''} text-center mx-auto`} /> </button>
-            <button className={"h-full p-1 rounded-lg hover:shadow-xl hover:bg-slate-700 hover:text-white " + (showGraphs ? 'bg-slate-500 text-white' : ' bg-white')} disabled={!isManager(currentUser.role)} onClick={() => { handleShowGraphs() }}><BsFileBarGraph className={`h-5 w-5 ${showGraphs ? 'text-white' : ''} text-center mx-auto`} />
+            <button title="Sucursales" className={"h-full items-center p-1 rounded-lg hover:shadow-xl hover:bg-slate-700 hover:text-white " + (showTable ? 'bg-slate-500 text-white' : 'bg-white')} disabled={!isManager(currentUser.role)} onClick={() => { handleShowTableButton() }}><MdStorefront className={`h-5 w-5 ${showTable ? 'text-white' : ''} text-center mx-auto`} /> </button>
+            <button title="Gráficos" className={"h-full p-1 rounded-lg hover:shadow-xl hover:bg-slate-700 hover:text-white " + (showGraphs ? 'bg-slate-500 text-white' : ' bg-white')} disabled={!isManager(currentUser.role)} onClick={() => { handleShowGraphs() }}><BsFileBarGraph className={`h-5 w-5 ${showGraphs ? 'text-white' : ''} text-center mx-auto`} />
             </button>
-            <button className={"h-full p-1 rounded-lg hover:shadow-xl hover:bg-slate-700 hover:text-white " + (showStock ? 'bg-slate-500 text-white' : ' bg-white')} onClick={() => { handleShowStockButton() }}><BsBoxes className={`h-5 w-5 ${showStock ? 'text-white' : ''} text-center mx-auto`} /></button>
-            <button className={"h-full p-1 rounded-lg hover:shadow-xl hover:bg-slate-700 hover:text-white " + (showClients ? 'bg-slate-500 text-white' : ' bg-white')} disabled={!isManager(currentUser.role)} onClick={() => { handleShowClients() }}>
+            <button title="Inventario" className={"h-full p-1 rounded-lg hover:shadow-xl hover:bg-slate-700 hover:text-white " + (showStock ? 'bg-slate-500 text-white' : ' bg-white')} onClick={() => { handleShowStockButton() }}><BsBoxes className={`h-5 w-5 ${showStock ? 'text-white' : ''} text-center mx-auto`} /></button>
+            <button title="Clientes" className={"h-full p-1 rounded-lg hover:shadow-xl hover:bg-slate-700 hover:text-white " + (showClients ? 'bg-slate-500 text-white' : ' bg-white')} disabled={!isManager(currentUser.role)} onClick={() => { handleShowClients() }}>
               <p className="flex">
                 <FaUser className={`h-5 w-5 ${showClients ? 'text-white' : ''} text-center mx-auto`} /> 🤑
               </p>
             </button>
-            <button className={"h-full p-1 rounded-lg hover:shadow-xl hover:bg-slate-700 hover:text-white " + (showProviders ? 'bg-slate-500 text-white' : ' bg-white')} disabled={!isManager(currentUser.role)} onClick={() => { handleShowProviders() }}><FaTruck className={`h-5 w-5 ${showProviders ? 'text-white' : ''} text-center mx-auto`} /></button>
+            <button title="Proveedores" className={"h-full p-1 rounded-lg hover:shadow-xl hover:bg-slate-700 hover:text-white " + (showProviders ? 'bg-slate-500 text-white' : ' bg-white')} disabled={!isManager(currentUser.role)} onClick={() => { handleShowProviders() }}><FaTruck className={`h-5 w-5 ${showProviders ? 'text-white' : ''} text-center mx-auto`} /></button>
           </div>
           <div className="grid grid-cols-3 mt-3 items-center">
             <p className="col-span-1 font-bold">{'Formatos: ' + branchReports.length + '/20'}</p>

@@ -137,6 +137,17 @@ export const getBranchReports = async (req, res, next) => {
             unwindEmployee,
             {
               $lookup: {
+                from: 'employees',
+                localField: 'prevOwner',
+                foreignField: '_id',
+                as: 'prevOwner',
+              }
+            },
+            {
+              $unwind: { path: '$prevOwner', preserveNullAndEmptyArrays: true }
+            },
+            {
+              $lookup: {
                 from: 'employeepayments',
                 localField: '_id',
                 foreignField: 'income',
@@ -567,12 +578,11 @@ export const supervisorsInfoQuery = async (companyId, topDate, bottomDate) => {
           ]
         }
       },
-      getIncomesByType('Depósito', 'depositsArray', {bottomDate, topDate}),
-      getIncomesByType('Efectivo', 'cashArray', {bottomDate, topDate}),
-      getIncomesByType('Terminal', 'terminalIncomesArray', {bottomDate, topDate}),
+      getIncomesByType('Depósito', 'depositsArray', { bottomDate, topDate }),
+      getIncomesByType('Efectivo', 'cashArray', { bottomDate, topDate }),
+      getIncomesByType('Terminal', 'terminalIncomesArray', { bottomDate, topDate }),
       {
         $lookup: {
-
           from: 'employeedailybalances',
           localField: '_id',
           foreignField: 'employee',
@@ -614,11 +624,10 @@ export const supervisorsInfoQuery = async (companyId, topDate, bottomDate) => {
       },
       {
         $addFields: {
-
           extraOutgoings: { $sum: '$extraOutgoingsArray.amount' },
-          cash: { $sum: '$cashArray.amount' },
-          deposits: { $sum: '$depositsArray.amount' },
-          terminalIncomes: { $sum: '$terminalIncomesArray.amount' },
+          cash: { $sum: { $cond: [{ $not: ["$cashArray.prevOwner"] }, "$cashArray.amount", 0] } },
+          deposits: { $sum: { $cond: [{ $not: ["$depositsArray.prevOwner"] }, "$depositsArray.amount", 0] } },
+          terminalIncomes: { $sum: { $cond: [{ $not: ["$terminalIncomesArray.prevOwner"] }, "$terminalIncomesArray.amount", 0] } },
           verifiedCash: '$supervisorReport.verifiedCash',
           verifiedDeposits: '$supervisorReport.verifiedDeposits',
           missingIncomes: '$dailyBalance.supervisorBalance'

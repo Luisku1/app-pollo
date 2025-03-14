@@ -11,18 +11,16 @@ export const getRoles = async () => {
 
   data.roles.forEach(role => {
 
-    if (role.name == 'Supervisor')
+    if (role.name === 'Supervisor')
       roles['supervisor'] = role
-
-    if (role.name == 'Vendedor')
+    if (role.name === 'Vendedor')
       roles['seller'] = role
-
-    if (role.name == 'Contralor')
+    if (role.name === 'Contralor')
       roles['controller'] = role
-
-    if (role.name == 'Gerente')
+    if (role.name === 'Gerente')
       roles['manager'] = role
-
+    if (role.name === 'Sudo')
+      roles['sudo'] = role
   });
 
   return roles

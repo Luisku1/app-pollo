@@ -29,7 +29,7 @@ function ToastContainerComponent() {
     closeOnClick
     autoClose={3000}
     transition={Bounce}
-    style={{ zIndex: 9999, top: '4rem' }} // Añadir z-index alto
+    style={{ zIndex: 9000, top: '4rem' }} // Añadir z-index alto
   ></ToastContainer>;
 }
 

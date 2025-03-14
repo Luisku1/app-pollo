@@ -6,7 +6,7 @@ import { ToastSuccess } from "../../helpers/toastify"
 import { getEmployeeFullName } from "../../helpers/Functions"
 import { useUpdateEmployee } from "./useUpdateEmployee"
 
-export const useEmployees = ({ companyId, onlyActiveEmployees = true }) => {
+export const useEmployees = ({ companyId, date, onlyActiveEmployees = true }) => {
 
   const [employees, setEmployees] = useState([])
   const { updateEmployee, loading: updating } = useUpdateEmployee()
@@ -75,7 +75,7 @@ export const useEmployees = ({ companyId, onlyActiveEmployees = true }) => {
 
     if (onlyActiveEmployees) {
 
-      getEmployeesNameList({ companyId }).then((response) => {
+      getEmployeesNameList({ companyId, date }).then((response) => {
 
         setEmployees(response)
 
@@ -86,7 +86,7 @@ export const useEmployees = ({ companyId, onlyActiveEmployees = true }) => {
 
     } else {
 
-      getAllEmployees({ companyId }).then((response) => {
+      getAllEmployees({ companyId, date }).then((response) => {
 
         setEmployees(response)
 
@@ -98,7 +98,7 @@ export const useEmployees = ({ companyId, onlyActiveEmployees = true }) => {
 
     setLoading(false)
 
-  }, [companyId, onlyActiveEmployees])
+  }, [companyId, onlyActiveEmployees, date])
 
   return { employees: filteredEmployees, spliceEmployee, onUpdateEmployee, setFilterString, changeEmployeeActiveStatus, loading, updating, error }
 }

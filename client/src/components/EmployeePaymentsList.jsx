@@ -10,8 +10,10 @@ import RowItem from "./RowItem"
 import { CgProfile } from "react-icons/cg"
 import ConfirmationButton from "./Buttons/ConfirmationButton"
 import MoneyBag from './Icons/MoneyBag'
+import Amount from './Incomes/Amount'
+import BranchName from './BranchName'
 
-export default function EmployeePaymentsList({ payments, total = 0, onDelete = null, spliceIncome, spliceExtraOutgoing }) {
+export default function EmployeePaymentsList({ payments, onDelete = null, spliceIncome, spliceExtraOutgoing }) {
 
   const { currentUser } = useSelector((state) => state.user)
   const { isManager } = useRoles()
@@ -20,21 +22,23 @@ export default function EmployeePaymentsList({ payments, total = 0, onDelete = n
   const isAuthorized = (employee) => currentUser._id === employee._id || isManager(currentUser.role) || !onDelete
   const deletable = onDelete != null
 
+  const total = useMemo(() => payments.reduce((acc, payment) => acc + payment.amount, 0), [payments])
+
   const fields = [
     { key: 'employee.name', label: 'Encargado', format: (data) => data.employee.name },
     { key: 'detail', label: 'Concepto' },
-    { key: 'amount', label: 'Monto', format: (data) => currency({ amount: data.amount }) },
+    { key: 'amount', label: 'Monto', format: (data) => Amount({ amount: data.amount }) },
     {
-      key: 'createdAt', label: 'Hora', format: (data) => {
+      key: 'createdAt', label: 'Fecha', format: (data) => {
         return <div>
           {formatInformationDate(data.createdAt)}
           {formatTime(data.createdAt)}
         </div>
       }
     },
-    { key: 'payment.employee', label: 'Deudor', format: (data) => data.employee ? getEmployeeFullName(data.employee) : '' },
+    { key: 'payment.employee', label: 'Entregado a', format: (data) => data.employee ? getEmployeeFullName(data.employee) : '' },
     ...(selectedPayment?.income ? [
-      { key: 'income.branch.branch', label: 'Dinero de', format: (data) => data?.income?.branch?.branch ?? '' }
+      { key: 'income.branch.branch', label: 'Dinero de', format: (data) => BranchName({branchName: data?.income?.branch?.branch}) ?? '' }
     ] : [])
   ]
 
@@ -48,9 +52,12 @@ export default function EmployeePaymentsList({ payments, total = 0, onDelete = n
     )
   }
 
+  console.log(payments)
+
   const renderEmployeePayment = (payment, index) => {
     const { employee, amount, supervisor, income } = payment
     const tempPayment = { ...payment, index }
+    console.log(payment)
 
     return (
       isAuthorized(supervisor) && (
