@@ -1910,10 +1910,14 @@ export const changeEmployeeActiveStatus = async (req, res, next) => {
 
 		if (updatedEmployee.active === true) {
 
-			const newEmployeeDailyBalance = await createNewDailyBalance({ employeeId, companyId: updatedEmployee.company })
+			const dailyBalance = fetchDailyBalance({ companyId: updatedEmployee.company, employeeId, date: new Date() })
 
-			if (!newEmployeeDailyBalance) throw new Error("No sep udo crear el balance del empleado");
+			if (!dailyBalance) {
 
+				const newEmployeeDailyBalance = await createNewDailyBalance({ employeeId, companyId: updatedEmployee.company })
+
+				if (!newEmployeeDailyBalance) throw new Error("No se pudo crear el balance del empleado");
+			}
 		}
 
 		res.status(200).json({ updatedEmployee })

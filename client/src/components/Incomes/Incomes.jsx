@@ -24,7 +24,7 @@ export default function Incomes({ incomes, incomesTotal, onAddIncome, onDeleteIn
   const handleCustomerBranchIncomesSelectChange = (option) => {
 
     const group = branchAndCustomerSelectOptions.find(g => g.options.some(opt => opt.value === option.value));
-    setSelectedIncomeGroup(group == 'Sucursales' ? 'branch' : selectedIncomeGroup == 'Clientes' ? 'customer' : 'prevOwner');
+    setSelectedIncomeGroup(group.label == 'Sucursales' ? 'branch' : group.label == 'Clientes' ? 'customer' : 'prevOwner');
     setSelectedCustomerBranchIncomesOption(option)
     incomesButtonControl()
   }
@@ -58,7 +58,6 @@ export default function Incomes({ incomes, incomesTotal, onAddIncome, onDeleteIn
 
       amountInput.value = ''
       setSelectedIncomeType(null)
-
 
     } catch (error) {
 
@@ -106,9 +105,7 @@ export default function Incomes({ incomes, incomesTotal, onAddIncome, onDeleteIn
 
   return (
     <div>
-
       <div className='border bg-white p-3 mt-4'>
-
         <div className='grid grid-cols-2'>
           <SectionHeader label={'Efectivos'} />
           <div className='flex items-center gap-4 justify-self-end mr-12'>

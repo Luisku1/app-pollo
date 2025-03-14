@@ -20,8 +20,5 @@ export const changeActiveStatus = async ({ employeeId, newStatus }) => {
 
   }
 
-  const {name, lastName, _id: value, ...rest} = data.updatedEmployee
-  const updatedEmployee = {label: `${name} ${lastName}`, value, ...rest}
-
-  return updatedEmployee
+  return data.updatedEmployee
 }
