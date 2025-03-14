@@ -42,6 +42,7 @@ export const newTransferredIncome = async (req, res, next) => {
 export const newTransferredIncomeFunction = async (income) => {
 
   let newIncome = null
+  let supervisorReport = null
 
   try {
 
@@ -49,15 +50,14 @@ export const newTransferredIncomeFunction = async (income) => {
 
     if (!newIncome) throw new Error("No se logró crear el registro")
 
-    await pushOrPullSupervisorReportRecord({
+    supervisorReport = await pushOrPullSupervisorReportRecord({
       supervisorId: income.employee,
       date: income.createdAt,
       record: newIncome,
       affectsBalancePositively: false,
       operation: '$addToSet',
       arrayField: 'incomesArray',
-      amountField: 'incomes',
-      noCreate: true
+      amountField: 'incomes'
     })
 
     await pushOrPullSupervisorReportRecord({
@@ -74,6 +74,18 @@ export const newTransferredIncomeFunction = async (income) => {
     return newIncome
 
   } catch (error) {
+
+    if (supervisorReport) {
+      await pushOrPullSupervisorReportRecord({
+        supervisorId: income.employee,
+        date: income.createdAt,
+        record: newIncome,
+        affectsBalancePositively: false,
+        operation: '$pull',
+        arrayField: 'incomesArray',
+        amountField: 'incomes'
+      })
+    }
 
     if (newIncome) {
 
