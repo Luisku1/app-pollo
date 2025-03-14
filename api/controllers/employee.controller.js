@@ -12,17 +12,18 @@ import SupervisorReport from "../models/accounts/supervisor.report.model.js"
 import { fetchRolesFromDB } from "./role.controller.js"
 import EmployeeWeeklyBalance from "../models/employees/employee.weekly.balance.model.js"
 import EmployeeRest from "../models/employees/employee.rest.model.js"
-import { branchLookup, unwindBranch, employeeLookup, unwindEmployee } from "./branch.report.controller.js"
+import { branchLookup, unwindBranch, employeeLookup, unwindEmployee, createDefaultBranchReport } from "./branch.report.controller.js"
 
 export const getEmployees = async (req, res, next) => {
 
+	const { companyId, date } = req.params
+
 	try {
 
-		const { bottomDate, topDate } = getDayRange(new Date());
+		const { bottomDate, topDate } = getDayRange(date)
 
-		const companyId = req.params.companyId
 		const employees = await Employee.aggregate([
-			{ $match: { company: new Types.ObjectId(companyId), active: true, } },
+			{ $match: { company: new Types.ObjectId(companyId), active: true } },
 			{
 				$lookup: {
 					from: 'incomecollecteds',
@@ -1278,6 +1279,30 @@ export const getEmployeePayments = async (req, res, next) => {
 			},
 			{
 				$lookup: {
+					from: 'incomecollecteds',
+					localField: 'income',
+					foreignField: '_id',
+					as: 'income',
+					pipeline: [
+						{
+							$lookup: {
+								from: 'branches',
+								localField: 'branch',
+								foreignField: '_id',
+								as: 'branch'
+							}
+						},
+						{
+							$unwind: { path: '$branch', preserveNullAndEmptyArrays: true }
+						}
+					]
+				}
+			},
+			{
+				$unwind: { path: '$income', preserveNullAndEmptyArrays: true }
+			},
+			{
+				$lookup: {
 					from: 'employees',
 					foreignField: '_id',
 					localField: 'employee',
@@ -1550,12 +1575,12 @@ export const verifySupervisorDeposits = async (req, res, next) => {
 	}
 }
 
-export const fetchOrCreateSupervisorReport = async ({ supervisorId, companyId, date }) => {
+export const fetchOrCreateSupervisorReport = async ({ supervisorId, companyId, date, noCreate = false }) => {
 	try {
 
 		let supervisorReport = await fetchSupervisorReportInfo({ supervisorId, date })
 
-		if (!supervisorReport) {
+		if (!supervisorReport && !noCreate) {
 
 			supervisorReport = await createSupervisorReport({ supervisorId, companyId, date })
 		}
@@ -1641,16 +1666,19 @@ export const pushOrPullSupervisorReportRecord = async ({
 	affectsBalancePositively,
 	operation,
 	arrayField,
-	amountField
+	amountField,
+	noCreate = false
 }) => {
 
 	try {
 		if (!['$addToSet', '$pull'].includes(operation)) throw new Error("Parámetros inválidos, se espera '$addToSet' o '$pull'")
 		if (!supervisorId || !date || !record || !arrayField || !amountField) throw new Error("Parámetros requeridos faltantes en pushOrPullBranchReportRecord")
-		const supervisorReport = await fetchOrCreateSupervisorReport({ supervisorId, companyId: record.company, date });
+		const supervisorReport = await fetchOrCreateSupervisorReport({ supervisorId, companyId: record.company, date, noCreate });
+
 		const adjustedBalanceInc = affectsBalancePositively ? record.amount : -record.amount
 		const balanceAdjustment = operation === '$addToSet' ? adjustedBalanceInc : -adjustedBalanceInc
 		const amountAdjustment = operation === '$addToSet' ? record.amount : -record.amount
+
 
 		const updateInstructions = {
 			[operation]: { [arrayField]: record._id },
@@ -2034,7 +2062,7 @@ export const fetchSupervisorReportInfo = async ({ supervisorId = null, date = nu
 			},
 		]);
 
-		return supervisorReport.length > 0 ? supervisorReport[0] : await fetchOrCreateSupervisorReport({ supervisorId, date });
+		return supervisorReport.length > 0 ? supervisorReport[0] : null;
 	} catch (error) {
 		throw error;
 	}

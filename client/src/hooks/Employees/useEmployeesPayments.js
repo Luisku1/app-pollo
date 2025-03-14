@@ -98,7 +98,7 @@ export const useEmployeesPayments = ({ companyId = null, date = null, employeeId
 
   useEffect(() => {
 
-    if (!companyId || !date) return
+    if ((!companyId && !employeeId)) return
 
     setLoading(true)
 

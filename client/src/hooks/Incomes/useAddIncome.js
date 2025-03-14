@@ -18,12 +18,12 @@ export const useAddIncome = () => {
           _id: income._id || null,
           amount: income.amount,
           company: income.company,
-          branch: income.branch?.value || null,
-          customer: income.customer?.value || null,
+          branch: income.branch?._id || null,
+          customer: income.customer?._id || null,
           employee: income.employee._id,
-          prevOwner: income.prevOwner,
+          prevOwner: income.prevOwner._id,
           partOfAPayment: income.partOfAPayment,
-          type: income.type.value,
+          type: income.type._id,
           createdAt: income.createdAt
         }, group
       )

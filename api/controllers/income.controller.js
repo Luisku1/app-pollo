@@ -25,11 +25,11 @@ export const newBranchIncomeQuery = async (req, res, next) => {
 
 export const newTransferredIncome = async (req, res, next) => {
 
-  const { prevOwnerId, supervisorId, income } = req.body
+  const income = req.body
 
   try {
 
-    const newIncome = await newTransferredIncomeFunction(prevOwnerId, supervisorId, income)
+    const newIncome = await newTransferredIncomeFunction(income)
 
     res.status(201).json({ message: 'New income created successfully', income: newIncome })
 
@@ -39,7 +39,7 @@ export const newTransferredIncome = async (req, res, next) => {
   }
 }
 
-export const newTransferredIncomeFunction = async (prevOwnerId, supervisorId, income) => {
+export const newTransferredIncomeFunction = async (income) => {
 
   let newIncome = null
 
@@ -50,23 +50,25 @@ export const newTransferredIncomeFunction = async (prevOwnerId, supervisorId, in
     if (!newIncome) throw new Error("No se logró crear el registro")
 
     await pushOrPullSupervisorReportRecord({
-      supervisorId: supervisorId,
-      date: newIncome.createdAt,
+      supervisorId: income.employee,
+      date: income.createdAt,
       record: newIncome,
       affectsBalancePositively: false,
       operation: '$addToSet',
       arrayField: 'incomesArray',
-      amountField: 'incomes'
+      amountField: 'incomes',
+      noCreate: true
     })
 
     await pushOrPullSupervisorReportRecord({
-      supervisorId: prevOwnerId,
-      date: newIncome.createdAt,
-      record: {...newIncome, amount: -newIncome.amount},
+      supervisorId: income.prevOwner,
+      date: income.createdAt,
+      record: { ...income, amount: -income.amount },
       affectsBalancePositively: false,
       operation: '$addToSet',
       arrayField: 'incomesArray',
-      amountField: 'incomes'
+      amountField: 'incomes',
+      noCreate: true
     })
 
     return newIncome
@@ -75,7 +77,7 @@ export const newTransferredIncomeFunction = async (prevOwnerId, supervisorId, in
 
     if (newIncome) {
 
-      await IncomeCollected.findByIdAndDelete(newIncome._id)
+      await IncomeCollected.findByIdAndDelete(income._id)
     }
 
     throw error
@@ -151,6 +153,17 @@ export const getIncomesByType = (type, arrayName, dayRange) => ({
       },
       {
         $lookup: {
+          from: 'employees',
+          localField: 'prevOwner',
+          foreignField: '_id',
+          as: 'prevOwner',
+        }
+      },
+      {
+        $unwind: { path: '$prevOwner', preserveNullAndEmptyArrays: true }
+      },
+      {
+        $lookup: {
           from: 'incometypes',
           localField: 'type',
           foreignField: '_id',
@@ -176,9 +189,12 @@ export const getIncomesByType = (type, arrayName, dayRange) => ({
           preserveNullAndEmptyArrays: true
         }
       },
-      {
-        $match: { 'type.name': type }
-      }
+      (type === '*' ? {} :
+
+        {
+          $match: { 'type.name': type }
+        }
+      )
     ]
   }
 })
@@ -453,6 +469,17 @@ export const getIncomes = async (req, res, next) => {
       {
         $lookup: {
           from: 'employees',
+          localField: 'prevOwner',
+          foreignField: '_id',
+          as: 'prevOwner',
+        }
+      },
+      {
+        $unwind: { path: '$prevOwner', preserveNullAndEmptyArrays: true }
+      },
+      {
+        $lookup: {
+          from: 'employees',
           localField: 'employee',
           foreignField: '_id',
           as: 'employee'
@@ -508,7 +535,8 @@ export const getIncomes = async (req, res, next) => {
         } else {
           branchesIncomes.push(income);
         }
-        total += income.amount;
+        if (!income.prevOwner)
+          total += income.amount;
       });
 
       branchesIncomes.sort((prevIncome, nextIncome) => prevIncome.branch.position - nextIncome.branch.position);
@@ -565,9 +593,10 @@ export const deleteIncome = async (incomeId) => {
 
   let deletedIncome = null
 
+
   try {
 
-    deletedIncome = await IncomeCollected.findByIdAndDelete(incomeId)
+    deletedIncome = { ...(await IncomeCollected.findByIdAndDelete(incomeId))._doc }
 
     if (!deletedIncome) throw new Error("No se eliminó el registro")
 
@@ -582,8 +611,9 @@ export const deleteIncome = async (incomeId) => {
         arrayField: 'incomesArray',
         amountField: 'incomes'
       })
+    }
 
-    } else {
+    if (deletedIncome.customer) {
 
       await pushOrPullCustomerReportRecord({
         customerId: deletedIncome.customer,
@@ -593,6 +623,19 @@ export const deleteIncome = async (incomeId) => {
         operation: '$pull',
         arrayField: 'paymentsArray',
         amountField: 'paymentsAmount'
+      })
+    }
+
+    if (deletedIncome.prevOwner) {
+
+      await pushOrPullSupervisorReportRecord({
+        supervisorId: deletedIncome.prevOwner,
+        date: deletedIncome.createdAt,
+        record: { ...deletedIncome, amount: -deletedIncome.amount },
+        affectsBalancePositively: false,
+        operation: '$pull',
+        arrayField: 'incomesArray',
+        amountField: 'incomes'
       })
     }
 
@@ -606,14 +649,14 @@ export const deleteIncome = async (incomeId) => {
       amountField: 'incomes'
     })
 
-
     return deletedIncome
 
   } catch (error) {
 
     if (deletedIncome) {
 
-      await newBranchIncomeFunction(deletedIncome)
+      if (!deletedIncome.prevOwner)
+        await newBranchIncomeFunction(deletedIncome)
     }
 
     throw error

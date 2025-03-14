@@ -33,12 +33,12 @@ export default function Perfil() {
   const { employeeDailyBalance, handleDailyBalanceInputs, loading } = useEmployeeDailyBalance(employeeId)
   const [lastBranchReport, setLastBranchReport] = useState(null)
   const { payments, total } = useEmployeesPayments({ employeeId, date: formatDate(new Date()) })
-  const { branchReports, replaceReport } = useBranchReports({ reports: employeeBranchReports })
+  const { branchReports, replaceReport } = useBranchReports({ reports: employeeBranchReports, profile: true })
   const { roles, isManager } = useRoles()
   const { isLoading } = useLoading(loading)
   const { signOut } = useSignOut()
   const dispatch = useDispatch()
-  const isAuthorizedToEdit = currentUser.role == roles?.manager._id
+  const isAuthorizedToEdit = isManager(currentUser.role)
 
   useEffect(() => {
 
@@ -165,9 +165,9 @@ export default function Perfil() {
                     <div className="flex gap-2 text-center text-lg">
                       <p className="text-red-700 font-semibold">Pagos:</p>
                       <ShowListModal
-                        data={payments}
                         title={`Pagos a ${getEmployeeFullName(employee)}`}
                         ListComponent={EmployeePaymentsList}
+                        ListComponentProps={{ payments }}
                         clickableComponent={<p>{currency({ amount: total })}</p>}
                         sortFunction={(a, b) => b.amount - a.amount}
                       />

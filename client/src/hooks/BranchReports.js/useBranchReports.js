@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { getBranchReportsFetch } from "../../services/BranchReports/getBranchReports"
 
-export const useBranchReports = ({ companyId = null, date = null, reports = [] }) => {
+export const useBranchReports = ({ companyId = null, date = null, reports = [], profile = false }) => {
 
   const [branchReports, setBranchReports] = useState([])
   const [loading, setLoading] = useState(false)
@@ -57,8 +57,10 @@ export const useBranchReports = ({ companyId = null, date = null, reports = [] }
   }, [branchReports])
 
   const sortedReports = useMemo(() => {
+    if (profile)
+      return branchReports.sort((a, b) => b.createdAt - a.createdAt)
     return branchReports.sort((a, b) => a.branch.position - b.branch.position)
-  }, [branchReports])
+  }, [branchReports, profile])
 
   const incomes = useMemo(() => {
     return branchReports.map((report) => report.incomesArray).flat()

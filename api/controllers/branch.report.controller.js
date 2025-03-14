@@ -923,7 +923,8 @@ const fetchBranchReportInfo = async ({ branchId = null, date = null, reportId = 
       },
     ]);
 
-    return branchReport.length > 0 ? branchReport[0] : await fetchOrCreateBranchReport({ branchId, date });
+    return branchReport.length > 0 ? branchReport[0] : await createDefaultBranchReport({ branchId, date, companyId: await getBranchCompany(branchId) });
+
   } catch (error) {
     throw error;
   }

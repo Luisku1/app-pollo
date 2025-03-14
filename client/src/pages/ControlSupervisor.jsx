@@ -25,7 +25,7 @@ export default function ControlSupervisor({ hideFechaDePagina = false }) {
   let datePickerValue = (paramsDate ? new Date(paramsDate) : new Date())
   let stringDatePickerValue = formatDate(datePickerValue)
   const { currentUser, company } = useSelector((state) => state.user)
-  const { employees, loading: empLoading } = useEmployees({ companyId: company._id })
+  const { employees, loading: empLoading } = useEmployees({ companyId: company._id, date: stringDatePickerValue })
   const { branches, loading: branchLoading } = useBranches({ companyId: company._id })
   const { customers, loading: custLoading } = useCustomers({ companyId: company._id })
   const { products, loading: prodLoading } = useProducts({ companyId: company._id })

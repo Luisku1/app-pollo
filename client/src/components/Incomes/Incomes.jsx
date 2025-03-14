@@ -24,10 +24,9 @@ export default function Incomes({ incomes, incomesTotal, onAddIncome, onDeleteIn
   const handleCustomerBranchIncomesSelectChange = (option) => {
 
     const group = branchAndCustomerSelectOptions.find(g => g.options.some(opt => opt.value === option.value));
-    setSelectedIncomeGroup(group ? group.label : '');
+    setSelectedIncomeGroup(group == 'Sucursales' ? 'branch' : selectedIncomeGroup == 'Clientes' ? 'customer' : 'prevOwner');
     setSelectedCustomerBranchIncomesOption(option)
     incomesButtonControl()
-
   }
 
   const addIncomeSubmit = async (e) => {
@@ -37,12 +36,9 @@ export default function Incomes({ incomes, incomesTotal, onAddIncome, onDeleteIn
 
     e.preventDefault()
 
-
     try {
 
       const { amount } = incomeFormData
-
-      const group = selectedIncomeGroup == 'Sucursales' ? 'branch' : selectedIncomeGroup == 'Clientes' ? 'customer' : 'prevOwner'
 
       let income = {
         amount: parseFloat(amount),
@@ -56,10 +52,9 @@ export default function Incomes({ incomes, incomesTotal, onAddIncome, onDeleteIn
         createdAt
       }
 
+      income[selectedIncomeGroup] = selectedCustomerBranchIncomesOption
 
-      income[group] = selectedCustomerBranchIncomesOption._id
-
-      onAddIncome(income, group)
+      onAddIncome(income, selectedIncomeGroup)
 
       amountInput.value = ''
       setSelectedIncomeType(null)

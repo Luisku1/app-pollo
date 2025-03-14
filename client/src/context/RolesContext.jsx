@@ -11,7 +11,8 @@ export const RolesProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const isController = (roleId) => roles && roles["controller"]?._id === roleId
+  const isSudo = (roleId) => roles && roles["sudo"]?._id === roleId;
+  const isController = (roleId) => roles && roles["controller"]?._id === roleId || isSudo(roleId);
   const isManager = (roleId) => roles && roles["manager"]?._id === roleId || isController(roleId);
   const isSupervisor = (roleId) => roles && roles["supervisor"]?._id === roleId || isManager(roleId);
   const isSeller = (roleId) => roles && roles["seller"]?._id === roleId || isSupervisor(roleId);
