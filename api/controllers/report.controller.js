@@ -138,6 +138,15 @@ export const getBranchReports = async (req, res, next) => {
             {
               $lookup: {
                 from: 'employees',
+                localField: 'owner',
+                foreignField: '_id',
+                as: 'owner',
+              }
+            },
+            { $unwind: { path: '$owner', preserveNullAndEmptyArrays: true } },
+            {
+              $lookup: {
+                from: 'employees',
                 localField: 'prevOwner',
                 foreignField: '_id',
                 as: 'prevOwner',
@@ -294,16 +303,6 @@ export const getBranchReports = async (req, res, next) => {
       {
         $sort: { 'branch.position': 1 }
       },
-      // {
-      //   $project: {
-      //     branchReport: '$$ROOT',
-      //     totalIncomes: { $sum: '$incomesArray.amount' }, // Sumar ingresos
-      //     totalOutgoings: { $sum: '$outgoingsArray.amount' }, // Sumar egresos
-      //     totalStocks: { $sum: '$finalStockArray.amount' }, // Sumar stocks
-      //     totalBalance: { $sum: '$balance' }
-      //   }
-      // }
-
       {
         $facet: {
           branchReports: [

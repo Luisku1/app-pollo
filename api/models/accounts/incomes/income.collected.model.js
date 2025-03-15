@@ -5,7 +5,6 @@ const incomeCollectedSchema = mongoose.Schema({
 
   amount: {
     type: Number,
-    min: [0, "El monto debe ser superior a $0.00"],
     required: true
   },
 
@@ -24,8 +23,18 @@ const incomeCollectedSchema = mongoose.Schema({
     default: null
   },
 
+  owner: {
+    type: Schema.Types.ObjectId, ref: 'Employee',
+    default: null
+  },
+
   prevOwner: {
     type: Schema.Types.ObjectId, ref: 'Employee',
+    default: null
+  },
+
+  prevOwnerIncome: {
+    type: Schema.Types.ObjectId, ref: 'IncomeCollected',
     default: null
   },
 

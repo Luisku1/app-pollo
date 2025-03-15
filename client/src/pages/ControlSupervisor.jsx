@@ -42,6 +42,8 @@ export default function ControlSupervisor({ hideFechaDePagina = false }) {
 
   useEffect(() => {
 
+    console.log(employees)
+
     setBranchAndCustomerSelectOptions([
       {
         label: 'Sucursales',

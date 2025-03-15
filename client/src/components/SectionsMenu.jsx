@@ -17,7 +17,7 @@ export default function SectionsMenu({ sections, handleShowSections, selectedSec
 
   const handleTouchEnd = () => {
     const diffX = endX - startX;
-    if (Math.abs(diffX) > 80) {
+    if (Math.abs(diffX) > 160) {
       if (diffX > 0) {
         changeSection('right');
       } else {

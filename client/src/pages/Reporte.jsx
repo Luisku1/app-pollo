@@ -37,6 +37,20 @@ export default function Reporte({ untitled = false }) {
   const [showClients, setShowClients] = useState(false)
   const [showProviders, setShowProviders] = useState(false)
   const [showGraphs, setShowGrapsh] = useState(false)
+  const [selectedSupervisors, setSelectedSupervisors] = useState([])
+  const [employees, setEmployees] = useState([])
+  const {
+
+    branchReports,
+    getBranchReports,
+    totalIncomes,
+    replaceReport,
+    loading: loadingBranchReports,
+    totalStock,
+    totalOutgoings,
+    totalBalance,
+
+  } = useBranchReports({ companyId: company._id, date: stringDatePickerValue })
   const {
     supervisorsInfo,
     deposits,
@@ -58,20 +72,6 @@ export default function Reporte({ untitled = false }) {
     terminalIncomesArray,
     terminalIncomes,
   } = useSupervisorsReportInfo({ companyId: company._id, date: stringDatePickerValue })
-  const [selectedSupervisors, setSelectedSupervisors] = useState([])
-  const [employees, setEmployees] = useState([])
-  const {
-
-    branchReports,
-    getBranchReports,
-    totalIncomes,
-    replaceReport,
-    loading: loadingBranchReports,
-    totalStock,
-    totalOutgoings,
-    totalBalance,
-
-  } = useBranchReports({ companyId: company._id, date: stringDatePickerValue })
   const { isLoading } = useLoading([loadingBranchReports, loadingSupervisors])
   const navigate = useNavigate()
   const [pieChartInfo, setPieChartInfo] = useState([])

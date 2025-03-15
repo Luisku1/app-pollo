@@ -12,9 +12,13 @@ export const priceShouldNotBeZero = () => {
   ToastWarning('El precio de los productos no debería de ser $0.00.')
 }
 
+export const getEmployeeName = (employee) => {
+  return employee?.name ?? ''
+}
+
 export const getEmployeeFullName = (employee) => {
-  const name = employee.name || ''
-  const lastName = employee.lastName || ''
+  const name = employee?.name ?? ''
+  const lastName = employee?.lastName ?? ''
   return `${name} ${lastName}`.trim()
 }
 

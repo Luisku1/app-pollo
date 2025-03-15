@@ -25,13 +25,15 @@ export const newBranchIncomeQuery = async (req, res, next) => {
 
 export const newTransferredIncome = async (req, res, next) => {
 
-  const income = req.body
+  const { income, prevIncome } = req.body
+
+  if (!income || !prevIncome) return next(errorHandler(400, 'Missing data'))
 
   try {
 
-    const newIncome = await newTransferredIncomeFunction(income)
-
-    res.status(201).json({ message: 'New income created successfully', income: newIncome })
+    const newIncomes = await newTransferredIncomeFunction(income, prevIncome)
+    console.log(newIncomes)
+    res.status(201).json({ message: 'New income created successfully' })
 
   } catch (error) {
 
@@ -39,21 +41,24 @@ export const newTransferredIncome = async (req, res, next) => {
   }
 }
 
-export const newTransferredIncomeFunction = async (income) => {
+export const newTransferredIncomeFunction = async (actualIncome, prevIncome) => {
 
-  let newIncome = null
+  let newOwnerIncome = null
+  let prevOwnerIncome = null
   let supervisorReport = null
 
   try {
 
-    newIncome = await IncomeCollected.create(income)
+    newOwnerIncome = await IncomeCollected.create(actualIncome)
+    prevOwnerIncome = await IncomeCollected.create(prevIncome)
 
-    if (!newIncome) throw new Error("No se logró crear el registro")
+
+    if (!newOwnerIncome || !prevOwnerIncome) throw new Error("No se logró crear el registro")
 
     supervisorReport = await pushOrPullSupervisorReportRecord({
-      supervisorId: income.employee,
-      date: income.createdAt,
-      record: newIncome,
+      supervisorId: newOwnerIncome.employee,
+      date: newOwnerIncome.createdAt,
+      record: newOwnerIncome,
       affectsBalancePositively: false,
       operation: '$addToSet',
       arrayField: 'incomesArray',
@@ -61,9 +66,9 @@ export const newTransferredIncomeFunction = async (income) => {
     })
 
     await pushOrPullSupervisorReportRecord({
-      supervisorId: income.prevOwner,
-      date: income.createdAt,
-      record: { ...income, amount: -income.amount },
+      supervisorId: newOwnerIncome.prevOwner,
+      date: prevOwnerIncome.createdAt,
+      record: prevOwnerIncome,
       affectsBalancePositively: false,
       operation: '$addToSet',
       arrayField: 'incomesArray',
@@ -71,15 +76,15 @@ export const newTransferredIncomeFunction = async (income) => {
       noCreate: true
     })
 
-    return newIncome
+    return newOwnerIncome
 
   } catch (error) {
 
     if (supervisorReport) {
       await pushOrPullSupervisorReportRecord({
-        supervisorId: income.employee,
-        date: income.createdAt,
-        record: newIncome,
+        supervisorId: newOwnerIncome.employee,
+        date: newOwnerIncome.createdAt,
+        record: newOwnerIncome,
         affectsBalancePositively: false,
         operation: '$pull',
         arrayField: 'incomesArray',
@@ -87,9 +92,14 @@ export const newTransferredIncomeFunction = async (income) => {
       })
     }
 
-    if (newIncome) {
+    if (newOwnerIncome) {
 
-      await IncomeCollected.findByIdAndDelete(income._id)
+
+    }
+
+    if (prevOwnerIncome) {
+
+      await IncomeCollected.findByIdAndDelete(prevOwnerIncome._id)
     }
 
     throw error
@@ -132,6 +142,26 @@ export const getIncomesByType = (type, arrayName, dayRange) => ({
             }
           ]
         }
+      },
+      {
+        $lookup: {
+          from: 'employees',
+          localField: 'owner',
+          foreignField: '_id',
+          as: 'owner',
+        }
+      },
+      { $unwind: { path: '$owner', preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: 'employees',
+          localField: 'prevOwner',
+          foreignField: '_id',
+          as: 'prevOwner',
+        }
+      },
+      {
+        $unwind: { path: '$prevOwner', preserveNullAndEmptyArrays: true }
       },
       {
         $lookup: {
@@ -481,6 +511,17 @@ export const getIncomes = async (req, res, next) => {
       {
         $lookup: {
           from: 'employees',
+          localField: 'owner',
+          foreignField: '_id',
+          as: 'owner'
+        }
+      },
+      {
+        $unwind: { path: '$owner', preserveNullAndEmptyArrays: true }
+      },
+      {
+        $lookup: {
+          from: 'employees',
           localField: 'employee',
           foreignField: '_id',
           as: 'employee'
@@ -593,6 +634,7 @@ export const deleteIncomeQuery = async (req, res, next) => {
 export const deleteIncome = async (incomeId) => {
 
   let deletedIncome = null
+  let prevOwnerIncome = null
 
 
   try {
@@ -627,12 +669,14 @@ export const deleteIncome = async (incomeId) => {
       })
     }
 
-    if (deletedIncome.prevOwner) {
+    if (deletedIncome.prevOwnerIncome) {
+
+      prevOwnerIncome = { ...(await IncomeCollected.findByIdAndDelete(deletedIncome.prevOwnerIncome))._doc }
 
       await pushOrPullSupervisorReportRecord({
-        supervisorId: deletedIncome.prevOwner,
-        date: deletedIncome.createdAt,
-        record: { ...deletedIncome, amount: -deletedIncome.amount },
+        supervisorId: prevOwnerIncome.employee,
+        date: prevOwnerIncome.createdAt,
+        record: prevOwnerIncome,
         affectsBalancePositively: false,
         operation: '$pull',
         arrayField: 'incomesArray',

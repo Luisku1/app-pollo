@@ -3,9 +3,9 @@
 import { useSelector } from 'react-redux';
 import { TiArrowLeftOutline, TiArrowRightOutline } from "react-icons/ti";
 import { useRoles } from '../../context/RolesContext';
-import { getEmployeeFullName, currency } from '../../helpers/Functions';
-import { useState } from 'react';
-import { formatTime } from '../../helpers/DatePickerFunctions';
+import { getEmployeeFullName, currency, getEmployeeName } from '../../helpers/Functions';
+import { useMemo, useState } from 'react';
+import { formatInformationDate, formatTime } from '../../helpers/DatePickerFunctions';
 import ShowDetails from '../ShowDetails';
 import RowItem from '../RowItem';
 import ConfirmationButton from '../Buttons/ConfirmationButton';
@@ -22,13 +22,32 @@ export default function IncomesList({ incomes = [], onDeleteIncome }) {
   const [selectedIncome, setSelectedIncome] = useState(null);
   const deletable = onDeleteIncome
 
-  const incomesTotal = incomes.reduce((acc, income) => acc + income.amount, 0);
+  const incomesTotal = useMemo(() => {
+
+    return incomes.reduce((acc, income) => {
+      const isAuthorized = currentUser._id === income.employee?._id || isManager(currentUser.role);
+
+      if (isAuthorized) {
+        return acc + income.amount;
+      }
+
+    }, 0);
+  }, [incomes, currentUser, isManager]);
 
   const fields = [
     { key: 'amount', label: 'Monto', className: (data) => (data.partOfAPayment ? 'text-orange-700' : 'text-green-700') + ' text-center text-md font-semibold', format: (data) => currency({ amount: data.amount }) },
     { key: null, label: 'Supervisor', format: (data) => getEmployeeFullName(data.employee) },
-    { key: null, label: 'Origen', format: (data) => data.branch?.branch ?? data.customer?.name ?? data.prevOwner.name },
-    { key: 'createdAt', label: 'Hora', format: (data) => formatTime(data.createdAt) },
+    ...(!selectedIncome?.owner ? [
+      { key: null, label: 'Origen', format: (data) => data.branch?.branch ?? data.customer?.name ?? data?.prevOwner?.name ?? '' },
+    ] : []),
+    {
+      key: 'createdAt', label: 'Fecha', format: (data) => {
+        return <div>
+          {formatInformationDate(data.createdAt)}
+          {formatTime(data.createdAt)}
+        </div>
+      }
+    },
     ...(selectedIncome?.partOfAPayment ? [
       { key: 'partOfAPayment', label: 'Parte de un pago', format: (data) => data.partOfAPayment ? 'Sí' : 'No' },
       { key: 'payment.employee', label: 'Deudor', format: (data) => data.employeePayment ? getEmployeeFullName(data.employeePayment.employee) : '' }
@@ -107,9 +126,10 @@ export default function IncomesList({ incomes = [], onDeleteIncome }) {
 
   const renderTransferredIncome = (income, index) => {
 
-    const { prevOwner, employee, amount, _id, createdAt } = income;
-    const prevOwnerName = getEmployeeFullName(prevOwner);
-    const employeeName = getEmployeeFullName(employee);
+    const { prevOwner, owner, employee, amount, _id, createdAt } = income;
+    const prevOwnerName = getEmployeeName(prevOwner);
+    const ownerName = getEmployeeName(owner);
+    const employeeName = getEmployeeName(employee);
     const tempIncome = { ...income, index };
     const isAuthorized = currentUser._id === employee?._id || isManager(currentUser.role) || !onDeleteIncome;
 
@@ -129,40 +149,44 @@ export default function IncomesList({ incomes = [], onDeleteIncome }) {
               <div className='col-span-12 items-center'>
                 <div className='w-full text-red-800'>
                   <RowItem>
-                    {currentUser._id === prevOwner?._id ? (
-                      <div className='grid grid-cols-3 text-center'>
-                        <p className="text-lg font-bold flex justify-center gap-1 items-center "><CgProfile />{prevOwnerName}</p>
-                        <div className='flex-wrap justify-center gap-1 items-center text-center'>
-                          <TiArrowRightOutline className='mx-auto text-4xl' />
-                          <span className='text-2xl'>{Amount({ amount })}</span>
-                        </div>
-                        <p className="font-bold flex justify-center gap-1 items-center">{employeeName}</p>
-                      </div>
-                    )
-                      :
+                    {prevOwner && !owner && (
                       <div>
-                        {currentUser._id === employee?._id ? (
-                          <div className="grid grid-cols-3 text-center">
-                            <p className="text-lg font-bold flex justify-center gap-1 items-center "><CgProfile />{employeeName}</p>
-                            <div className='flex-wrap justify-center gap-1 items-center text-center text-2xl'>
-                              <TiArrowLeftOutline className='mx-auto text-4xl' />
-                              <span className='text-2xl'>{Amount({ amount })}</span>
+                        {(isManager(currentUser.role) || currentUser._id === employee._id) && (
+                          <div className='grid grid-cols-3 text-center'>
+                            <p className="text-md font-bold flex justify-center gap-1 items-center "><CgProfile className='' />{employeeName}</p>
+                            <div className='flex-wrap justify-center gap-1 items-center text-center'>
+                              <TiArrowLeftOutline className='mx-auto text-3xl' />
+                              <span className='text-xl'>{Amount({ amount })}</span>
                             </div>
-                            <p className="font-bold flex justify-center gap-1 items-center ">{prevOwnerName}</p>
+                            <p className="font-bold flex justify-center gap-1 items-center">{prevOwnerName}</p>
                           </div>
-                        )
-                          :
-                          <div className="grid grid-cols-3 text-center">
-                            <p className="text-lg font-bold flex justify-center gap-1 items-center "><CgProfile />{employeeName}</p>
-                            <div className='flex-wrap justify-center gap-1 items-center text-center text-2xl'>
-                              <TiArrowLeftOutline className='mx-auto text-4xl' />
-                              <span className='text-2xl'>{Amount({ amount })}</span>
-                            </div>
-                            <p className="font-bold flex justify-center gap-1 items-center ">{prevOwnerName}</p>
-                          </div>
-                        }
+                        )}
                       </div>
-                    }
+                    )}
+                    {owner && !prevOwner && (
+                      <div>
+                        {(currentUser._id === employee._id) && (
+                          <div className='grid grid-cols-3 text-center'>
+                            <p className="text-md font-bold flex justify-center gap-1 items-center "><CgProfile className='' />{employeeName}</p>
+                            <div className='flex-wrap justify-center gap-1 items-center text-center'>
+                              <TiArrowRightOutline className='mx-auto text-3xl' />
+                              <span className='text-xl'>{Amount({ amount })}</span>
+                            </div>
+                            <p className="font-bold flex justify-center gap-1 items-center">{ownerName}</p>
+                          </div>
+                        )}
+                        {(isManager(currentUser.role) && currentUser._id !== employee._id) && (
+                          <div className='grid grid-cols-3 text-center'>
+                            <p className="text-md font-bold flex justify-center gap-1 items-center "><CgProfile className='' />{employeeName}</p>
+                            <div className='flex-wrap justify-center gap-1 items-center text-center'>
+                              <TiArrowRightOutline className='mx-auto text-3xl' />
+                              <span className='text-xl'>{Amount({ amount })}</span>
+                            </div>
+                            <p className="font-bold flex justify-center gap-1 items-center">{ownerName}</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </RowItem>
                 </div>
                 <div>
@@ -173,7 +197,7 @@ export default function IncomesList({ incomes = [], onDeleteIncome }) {
               </div>
             </button>
             <div className="col-span-2 my-auto">
-              {deletable && (
+              {deletable && !owner && (
                 <DeleteButton
                   deleteFunction={() => onDeleteIncome(tempIncome)}
                 />
@@ -187,14 +211,15 @@ export default function IncomesList({ incomes = [], onDeleteIncome }) {
 
   const renderIncomeItem = (income, index) => {
 
+    // console.log(income)
+
     return (
       <div key={index} className=''>
         {
-          !income?.prevOwner ? (
+          !income?.prevOwner && !income?.owner ? (
             renderCommonIncome(income, index)
           )
             : (
-
               renderTransferredIncome(income, index)
             )
         }
@@ -229,6 +254,14 @@ export default function IncomesList({ incomes = [], onDeleteIncome }) {
     );
   };
 
+  const title = selectedIncome?.employeePayment ?
+    `Detalles del Pago de ${getEmployeeFullName(selectedIncome.employeePayment.employee)}`
+    :
+    selectedIncome?.owner || selectedIncome?.prevOwner ?
+      'Detalles de la Transferencia'
+      :
+      'Detalles del Ingreso'
+
   return (
     <div>
       {renderTotal()}
@@ -238,7 +271,7 @@ export default function IncomesList({ incomes = [], onDeleteIncome }) {
           data={selectedIncome}
           actions={renderActions}
           fields={fields}
-          title={selectedIncome?.employeePayment ? `Detalles del Pago de ${getEmployeeFullName(selectedIncome.employeePayment.employee)}` : 'Detalles del Ingreso'}
+          title={title}
           closeModal={() => setSelectedIncome(null)}
         >
         </ShowDetails>
