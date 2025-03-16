@@ -1671,7 +1671,7 @@ export const pushOrPullSupervisorReportRecord = async ({
 }) => {
 
 	try {
-		console.log("pushOrPullSupervisorReportRecord", supervisorId, date, record, affectsBalancePositively, operation, arrayField, amountField, noCreate)
+
 		if (!['$addToSet', '$pull'].includes(operation)) throw new Error("Parámetros inválidos, se espera '$addToSet' o '$pull'")
 		if (!supervisorId || !date || !record || !arrayField || !amountField) throw new Error("Parámetros requeridos faltantes en pushOrPullSupervisorReportRecord")
 		const supervisorReport = await fetchOrCreateSupervisorReport({ supervisorId, companyId: record.company, date, noCreate });

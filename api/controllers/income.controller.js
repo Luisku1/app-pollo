@@ -32,7 +32,6 @@ export const newTransferredIncome = async (req, res, next) => {
   try {
 
     const newIncomes = await newTransferredIncomeFunction(income, prevIncome)
-    console.log(newIncomes)
     res.status(201).json({ message: 'New income created successfully' })
 
   } catch (error) {

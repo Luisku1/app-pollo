@@ -245,9 +245,7 @@ export const fetchOrCreateBranchReport = async ({ branchId, companyId = null, da
 
   try {
 
-    console.log('fetchOrCreate 1')
     branchReport = await fetchBranchReport({ branchId, date })
-    console.log('fetchOrCreate 2', branchReport)
 
     if (!branchReport) {
 
@@ -920,8 +918,6 @@ const fetchBranchReportInfo = async ({ branchId = null, date = null, reportId = 
         },
       },
     ]);
-
-    console.log('fetchBranchReportInfo', branchReport)
 
     return branchReport.length > 0 ? branchReport[0] : createDefaultBranchReport({ branchId, date, companyId: await getBranchCompany(branchId) });
 
