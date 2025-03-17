@@ -60,7 +60,7 @@ export default function Nomina() {
 
           const { previousWeekBalance, employee, branchReports, accountBalance, foodDiscount, missingWorkDiscount, supervisorBalance, employeePaymentsAmount } = employeePayroll
           const salary = employee?.salary ?? 0
-          const totalToPay = previousWeekBalance + employeePayroll.balance + employeePayroll.supervisorBalance + foodDiscount + missingWorkDiscount - employeePaymentsAmount + salary
+          const totalToPay = employeePayroll.balance + employeePayroll.supervisorBalance + foodDiscount + missingWorkDiscount - employeePaymentsAmount + salary
 
           return (
 

@@ -52,12 +52,9 @@ export default function EmployeePaymentsList({ payments, onDelete = null, splice
     )
   }
 
-  console.log(payments)
-
   const renderEmployeePayment = (payment, index) => {
     const { employee, amount, supervisor, income } = payment
     const tempPayment = { ...payment, index }
-    console.log(payment)
 
     return (
       isAuthorized(supervisor) && (

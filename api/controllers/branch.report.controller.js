@@ -4,18 +4,14 @@ import ReportData from '../models/accounts/report.data.model.js'
 import EmployeeDailyBalance from '../models/employees/employee.daily.balance.js'
 import { errorHandler } from '../utils/error.js'
 import { getDayRange } from '../utils/formatDate.js'
-import { getBranchIncomes } from './income.controller.js'
 import Stock from '../models/accounts/stock.model.js'
 import Input from '../models/accounts/input.model.js'
 import ProviderInput from '../models/providers/provider.input.model.js'
 import Output from '../models/accounts/output.model.js'
-import Outgoing from '../models/accounts/outgoings/outgoing.model.js'
-import IncomeCollected from '../models/accounts/incomes/income.collected.model.js'
-import { updateEmployee, updateEmployeeDailyBalances } from './employee.controller.js'
+import { updateEmployeeDailyBalances } from './employee.controller.js'
 import SupervisorReport from '../models/accounts/supervisor.report.model.js'
 import { supervisorsInfoQuery } from './report.controller.js'
-import { getBranchPricesFetch } from '../../client/src/services/Prices/getBranchPrices.js'
-import { getPrices, newPrices, pricesAggregate } from './price.controller.js'
+import { pricesAggregate } from './price.controller.js'
 import Branch from '../models/branch.model.js'
 
 export const branchLookup = {
@@ -923,7 +919,7 @@ const fetchBranchReportInfo = async ({ branchId = null, date = null, reportId = 
       },
     ]);
 
-    return branchReport.length > 0 ? branchReport[0] : await createDefaultBranchReport({ branchId, date, companyId: await getBranchCompany(branchId) });
+    return branchReport.length > 0 ? branchReport[0] : createDefaultBranchReport({ branchId, date, companyId: await getBranchCompany(branchId) });
 
   } catch (error) {
     throw error;
@@ -940,21 +936,13 @@ export const fetchBranchReport = async ({ branchId, date, populate = false }) =>
 
     if (populate) {
 
+      branchReport = await fetchBranchReportInfo({ branchId, date })
+    } else {
+
       branchReport = await BranchReport.findOne({
         createdAt: { $lt: topDate, $gte: bottomDate },
         branch: new Types.ObjectId(branchId)
       })
-        .populate('finalStockArray')
-        .populate('inputsArray')
-        .populate('providerInputsArray')
-        .populate('outputsArray')
-        .populate('outgoingsArray')
-        .populate('incomesArray')
-        .populate('branch')
-
-    } else {
-
-      branchReport = await fetchBranchReportInfo({ branchId, date })
     }
 
     return branchReport || null

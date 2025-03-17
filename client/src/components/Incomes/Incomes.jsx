@@ -11,6 +11,7 @@ import { getArrayForSelects, currency } from '../../helpers/Functions'
 import { FaListAlt } from 'react-icons/fa'
 import ShowListModal from '../Modals/ShowListModal'
 import IncomesList from './IncomesList'
+import { ToastDanger, ToastInfo, ToastSuccess } from '../../helpers/toastify'
 
 export default function Incomes({ incomes, incomesTotal, onAddIncome, onDeleteIncome, branchAndCustomerSelectOptions, date, companyId, currentUser }) {
 
@@ -20,6 +21,13 @@ export default function Incomes({ incomes, incomesTotal, onAddIncome, onDeleteIn
   const [selectedCustomerBranchIncomesOption, setSelectedCustomerBranchIncomesOption] = useState(null)
   const [selectedIncomeGroup, setSelectedIncomeGroup] = useState('')
   const [selectedIncomeType, setSelectedIncomeType] = useState(null)
+
+  const resetInputs = () => {
+    document.getElementById('income-amount').value = ''
+    setSelectedIncomeType(null)
+    setSelectedCustomerBranchIncomesOption(null)
+    setIncomeFormData({})
+  }
 
   const handleCustomerBranchIncomesSelectChange = (option) => {
 
@@ -31,21 +39,22 @@ export default function Incomes({ incomes, incomesTotal, onAddIncome, onDeleteIn
 
   const addIncomeSubmit = async (e) => {
 
-    const amountInput = document.getElementById('income-amount')
     const createdAt = isToday(date) ? new Date().toISOString() : new Date(date).toISOString()
-
+    let income = null
     e.preventDefault()
 
     try {
 
       const { amount } = incomeFormData
 
-      let income = {
+      let prevOwnerIncome = null
+      income = {
         amount: parseFloat(amount),
         company: companyId,
         customer: null,
         branch: null,
         prevOwner: null,
+        prevOwnerIncome: null,
         employee: currentUser,
         partOfAPayment: false,
         type: selectedIncomeType,
@@ -54,13 +63,28 @@ export default function Incomes({ incomes, incomesTotal, onAddIncome, onDeleteIn
 
       income[selectedIncomeGroup] = selectedCustomerBranchIncomesOption
 
-      onAddIncome(income, selectedIncomeGroup)
+      if (income.prevOwner) {
+        prevOwnerIncome = {
+          ...income,
+          type: income.type,
+          prevOwner: null,
+          amount: -income.amount,
+          owner: currentUser,
+          employee: selectedCustomerBranchIncomesOption,
+        }
+      }
 
-      amountInput.value = ''
-      setSelectedIncomeType(null)
+      ToastSuccess(`Se registró el efectivo de ${income.amount.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}`)
+      resetInputs()
+      await onAddIncome(income, prevOwnerIncome ? prevOwnerIncome : null, selectedIncomeGroup)
+
 
     } catch (error) {
 
+      if (error.message.includes('sólo') || error.message.includes('empleado') || error.message.includes('monto'))
+        ToastInfo(error.message.replace(new RegExp('Error: ', 'g'), ''))
+      ToastDanger(`No se registró el efectivo de ${income.amount.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}`)
+      resetInputs()
       console.log(error)
     }
   }

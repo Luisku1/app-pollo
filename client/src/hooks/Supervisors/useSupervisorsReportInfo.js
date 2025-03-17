@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react"
 import { getSupervisorsInfoReportFetch } from "../../services/Supervisors/getSupervisorsReportInfo"
-import { ToastDanger } from "../../helpers/toastify"
 
 export const useSupervisorsReportInfo = ({ companyId, date }) => {
 
@@ -44,11 +43,11 @@ export const useSupervisorsReportInfo = ({ companyId, date }) => {
     setLoading(true)
     getSupervisorsInfoReportFetch({ companyId, date }).then((response) => {
 
-      setSupervisorsInfo(response.supervisors)
+      setSupervisorsInfo(response.reports)
       setDeposits(response.deposits)
       setExtraOutgoingsArray(response.extraOutgoingsArray)
       setExtraOutgoings(response.extraOutgoings)
-      setGrossCash(response.grossCash)
+      setGrossCash(response.cash)
       setMissingIncomes(response.missingIncomes)
       setNetIncomes(response.netIncomes)
       setVerifiedIncomes(response.verifiedIncomes)

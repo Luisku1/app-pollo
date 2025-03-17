@@ -1,6 +1,6 @@
 import { GiChicken } from 'react-icons/gi'
 import { Link } from 'react-router-dom'
-import { useDispatch, useSelector } from 'react-redux'
+import { useSelector } from 'react-redux'
 import { useEffect, useRef, useState } from 'react'
 import DropdownItem from './DropdownItem'
 import { MdOutlineMenu } from "react-icons/md";
@@ -9,9 +9,6 @@ import { useRoles } from '../context/RolesContext'
 import ControlSupervisor from '../pages/ControlSupervisor'
 import Modal from './Modals/Modal'
 import Reporte from '../pages/Reporte'
-import { signInSuccess } from '../redux/user/userSlice'
-import { getSignedUser } from '../services/employees/getEmployeeUser'
-
 
 export default function Header() {
 
@@ -23,27 +20,6 @@ export default function Header() {
   const [isReportModalOpen, setIsReportModalOpen] = useState(false)
   const toggleModal = () => setIsModalOpen((prev) => !prev)
   const toggleReportModal = () => setIsReportModalOpen((prev) => !prev)
-
-  const dispatch = useDispatch()
-
-
-
-  useEffect(() => {
-    const getUserActualInfo = async () => {
-      try {
-        const user = await getSignedUser(currentUser._id);
-        if (user?.role !== currentUser.role) {
-          dispatch(signInSuccess({ ...user, fetched: true }));
-        }
-      } catch (error) {
-        console.log(error);
-      }
-    };
-
-    if (currentUser && !currentUser.fetched) {
-      getUserActualInfo();
-    }
-  }, [currentUser, dispatch])
 
   useEffect(() => {
 

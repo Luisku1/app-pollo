@@ -4,7 +4,7 @@ import { useAddIncome } from "./useAddIncome";
 import { useDeleteIncome } from "./useDeleteIncome";
 import { Types } from "mongoose";
 
-export const useIncomes = ({ companyId = null, date = null, initialIncomes = null}) => {
+export const useIncomes = ({ companyId = null, date = null, initialIncomes = null }) => {
   const [incomes, setIncomes] = useState([]);
   const { addIncome, loading: addLoading } = useAddIncome();
   const { deleteIncome, loading: deleteLoading } = useDeleteIncome();
@@ -16,7 +16,11 @@ export const useIncomes = ({ companyId = null, date = null, initialIncomes = nul
   };
 
   const pushIncome = (income) => {
-    setIncomes((prevIncomes) => [income, ...prevIncomes]);
+
+    if (income?.length > 0)
+      setIncomes((prevIncomes) => [...income, ...prevIncomes]);
+    else
+      setIncomes((prevIncomes) => [income, ...prevIncomes]);
   };
 
   const spliceIncome = (index) => {
@@ -27,10 +31,18 @@ export const useIncomes = ({ companyId = null, date = null, initialIncomes = nul
   };
 
   const spliceIncomeById = (incomeId) => {
-    setIncomes((prevIncomes) => {
-      const filteredIncomes = prevIncomes.filter((income) => income._id !== incomeId);
-      return filteredIncomes;
-    });
+
+    if (incomeId.length > 0) {
+      setIncomes((prevIncomes) => {
+        const filteredIncomes = prevIncomes.filter((income) => !incomeId.includes(income._id));
+        return filteredIncomes;
+      });
+    } else {
+      setIncomes((prevIncomes) => {
+        const filteredIncomes = prevIncomes.filter((income) => income._id !== incomeId);
+        return filteredIncomes;
+      });
+    }
   };
 
   const updateLastIncomeId = (incomeId) => {
@@ -41,26 +53,42 @@ export const useIncomes = ({ companyId = null, date = null, initialIncomes = nul
     );
   };
 
-  const onAddIncome = async (income, group) => {
+  const onAddIncome = async (income, prevOwnerIncome, group) => {
+
     const tempId = new Types.ObjectId().toHexString();
+    const tempPrevOwnerIncome = prevOwnerIncome ? { ...prevOwnerIncome, _id: new Types.ObjectId().toHexString() } : null;
+    const tempIncome = { ...income, _id: tempId, prevOwnerIncome: tempPrevOwnerIncome?._id ?? null };
 
     try {
-      const tempIncome = { ...income, _id: tempId };
-      pushIncome(tempIncome);
-      await addIncome(tempIncome, group);
+      if (prevOwnerIncome)
+        pushIncome([tempIncome, tempPrevOwnerIncome]);
+      else
+        pushIncome(tempIncome);
+      await addIncome(tempIncome, tempPrevOwnerIncome, group);
     } catch (error) {
       spliceIncome(incomes.findIndex((income) => income._id === tempId));
-      console.log(error);
+      if (prevOwnerIncome)
+        spliceIncomeById([tempPrevOwnerIncome._id, tempIncome._id]);
+      else
+        spliceIncomeById(tempIncome._id)
+      throw new Error(error);
     }
   };
 
   const onDeleteIncome = async (income) => {
     try {
-      spliceIncome(income.index);
+      console.log(income, income.prevOwnerIncome)
+      if (income?.prevOwnerIncome)
+        spliceIncomeById([income.prevOwnerIncome, income._id]);
+      else
+        spliceIncome(income.index);
       await deleteIncome(income);
     } catch (error) {
       pushIncome(income);
+      if (income.prevOwnerIncome)
+        pushIncome({ ...income, _id: income.prevOwnerIncome, owner: income.employee, amount: -income.amount, employee: income.prevOwner });
       console.log(error);
+      throw new Error(error);
     }
   };
 
