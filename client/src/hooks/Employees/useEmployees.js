@@ -79,7 +79,7 @@ export const useEmployees = ({ companyId, date, onlyActiveEmployees = true }) =>
 
     if (onlyActiveEmployees) {
 
-      getEmployeesNameList({ companyId, date }).then((response) => {
+      getEmployeesNameList({ companyId }).then((response) => {
 
         setEmployees(response)
 

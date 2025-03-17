@@ -68,8 +68,10 @@ export const useIncomes = ({ companyId = null, date = null, initialIncomes = nul
     } catch (error) {
       spliceIncome(incomes.findIndex((income) => income._id === tempId));
       if (prevOwnerIncome)
-        spliceIncome(incomes.findIndex((income) => income._id === tempPrevOwnerIncome._id));
-      console.log(error);
+        spliceIncomeById([tempPrevOwnerIncome._id, tempIncome._id]);
+      else
+        spliceIncomeById(tempIncome._id)
+      throw new Error(error);
     }
   };
 
@@ -86,6 +88,7 @@ export const useIncomes = ({ companyId = null, date = null, initialIncomes = nul
       if (income.prevOwnerIncome)
         pushIncome({ ...income, _id: income.prevOwnerIncome, owner: income.employee, amount: -income.amount, employee: income.prevOwner });
       console.log(error);
+      throw new Error(error);
     }
   };
 

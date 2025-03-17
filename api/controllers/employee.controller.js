@@ -12,80 +12,17 @@ import SupervisorReport from "../models/accounts/supervisor.report.model.js"
 import { fetchRolesFromDB } from "./role.controller.js"
 import EmployeeWeeklyBalance from "../models/employees/employee.weekly.balance.model.js"
 import EmployeeRest from "../models/employees/employee.rest.model.js"
-import { branchLookup, unwindBranch, employeeLookup, unwindEmployee, createDefaultBranchReport } from "./branch.report.controller.js"
+import { branchLookup, unwindBranch, employeeLookup, unwindEmployee } from "./branch.report.controller.js"
 
 export const getEmployees = async (req, res, next) => {
 
-	const { companyId, date } = req.params
-
 	try {
 
-		const { bottomDate, topDate } = getDayRange(date)
-
-		const employees = await Employee.aggregate([
-			{ $match: { company: new Types.ObjectId(companyId), active: true } },
-			{
-				$lookup: {
-					from: 'incomecollecteds',
-					localField: '_id',
-					foreignField: 'employee',
-					as: 'incomes',
-					pipeline: [
-						{
-							$match: {
-								createdAt: { $gte: new Date(bottomDate), $lt: new Date(topDate) }
-
-							}
-						},
-						{
-							$lookup: {
-								from: 'incometypes',
-								localField: 'type',
-								foreignField: '_id',
-								as: 'type'
-							},
-						},
-						{
-							$unwind: { path: '$type', preserveNullAndEmptyArrays: true }
-						},
-						{
-							$match: { 'type.name': 'Efectivo' }
-						}
-					]
-				}
-			},
-			{
-				$lookup: {
-					from: 'roles',
-					localField: 'role',
-					foreignField: '_id',
-					as: 'role'
-				}
-			},
-			{
-				$unwind: { path: '$role', preserveNullAndEmptyArrays: true }
-			},
-			{
-				$addFields: {
-					amount: { $sum: '$incomes.amount' },
-					withMoney: { $gt: [{ $sum: '$incomes.amount' }, 0] }
-				}
-			},
-			{
-				$project: {
-					name: 1,
-					lastName: 1,
-					amount: 1,
-					incomes: 1,
-					role: 1,
-					withMoney: 1
-				}
-			}
-		]);
+		const companyId = req.params.companyId
+		const employees = await Employee.find({ company: companyId, active: true }).sort({ name: 1 })
 
 		res.status(200)
 			.json({ employees: employees })
-
 
 	} catch (error) {
 

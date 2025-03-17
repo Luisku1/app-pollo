@@ -18,6 +18,10 @@ import InputsAndOutputs from '../components/SupervisorSections/InputsAndOutputs'
 import SectionsMenu from '../components/SectionsMenu';
 import { useEmployeesDailyBalances } from '../hooks/Employees/useEmployeesDailyBalances';
 import { getArrayForSelects } from '../helpers/Functions';
+import { MdSupervisorAccount } from "react-icons/md";
+import SupervisorReportCard from '../components/SupervisorReportCard';
+import { useSupervisorsReportInfo } from '../hooks/Supervisors/useSupervisorsReportInfo';
+
 
 export default function ControlSupervisor({ hideFechaDePagina = false }) {
 
@@ -25,15 +29,18 @@ export default function ControlSupervisor({ hideFechaDePagina = false }) {
   let datePickerValue = (paramsDate ? new Date(paramsDate) : new Date())
   let stringDatePickerValue = formatDate(datePickerValue)
   const { currentUser, company } = useSelector((state) => state.user)
-  const { employees, loading: empLoading } = useEmployees({ companyId: company._id, date: stringDatePickerValue })
+  const { employees, loading: empLoading } = useEmployees({ companyId: company._id })
   const { branches, loading: branchLoading } = useBranches({ companyId: company._id })
   const { customers, loading: custLoading } = useCustomers({ companyId: company._id })
   const { products, loading: prodLoading } = useProducts({ companyId: company._id })
-  const { roles, loading: roleLoading, isManager } = useRoles()
+  const { roles, loading: roleLoading, isManager, isSupervisor } = useRoles()
   const navigate = useNavigate()
   const [branchAndCustomerSelectOptions, setBranchAndCustomerSelectOptions] = useState([])
   const [selectedSection, setSelectedSection] = useState(null)
   const { employeesDailyBalances } = useEmployeesDailyBalances({ companyId: company._id, date: stringDatePickerValue })
+  const {
+    supervisorsInfo,
+  } = useSupervisorsReportInfo({ companyId: company._id, date: stringDatePickerValue })
 
   const handleShowSections = (section) => {
 
@@ -41,9 +48,6 @@ export default function ControlSupervisor({ hideFechaDePagina = false }) {
   }
 
   useEffect(() => {
-
-    console.log(employees)
-
     setBranchAndCustomerSelectOptions([
       {
         label: 'Sucursales',
@@ -51,15 +55,14 @@ export default function ControlSupervisor({ hideFechaDePagina = false }) {
       },
       {
         label: 'Empleados',
-        options: getArrayForSelects(employees.filter(employee => employee.withMoney), (employee) => employee.name + ' ' + employee.lastName)
+        options: getArrayForSelects(employees.filter(employee => isSupervisor(employee.role) && employee._id !== currentUser._id), (employee) => employee.name + ' ' + employee.lastName)
       },
       {
         label: 'Clientes',
         options: getArrayForSelects(customers, (customer) => customer.name + ' ' + (customer?.lastName ?? ''))
       }
     ])
-
-  }, [branches, customers, employees])
+  }, [branches, customers, employees, isSupervisor, currentUser])
 
   const isLoading = useLoading(roleLoading, empLoading, branchLoading, custLoading, prodLoading)
 
@@ -96,11 +99,8 @@ export default function ControlSupervisor({ hideFechaDePagina = false }) {
         <div>
           <div className={`w-fit mx-auto sticky ${hideFechaDePagina ? '-top-[4rem]' : 'top-16'} bg-opacity-60 bg-menu z-10 mb-2`}>
             {isManager(currentUser.role) && !hideFechaDePagina ?
-
               <FechaDePagina changeDay={changeDay} stringDatePickerValue={stringDatePickerValue} changeDatePickerValue={changeDatePickerValue} higherZ={true}></FechaDePagina>
-
               : ''}
-
           </div>
           {getDayRange(new Date(stringDatePickerValue)).bottomDate <= getDayRange(new Date()).bottomDate ?
             <SectionsMenu
@@ -134,6 +134,20 @@ export default function ControlSupervisor({ hideFechaDePagina = false }) {
                   {
                     label: 'Empleados',
                     component: <Employees dailyBalances={employeesDailyBalances} employees={employees} companyId={company._id} date={stringDatePickerValue} />
+                  },
+                  {
+                    label: 'Supervisores',
+                    button: (
+                      <MdSupervisorAccount className='justify-self-center text-2xl' />
+                    ),
+                    component: <div className="my-1 border border-slate-500 border-spacing-4 p-2 bg-white z-5 rounded-lg mb-5">
+                      {supervisorsInfo.map((supervisorReport) => (
+                        <SupervisorReportCard
+                          key={supervisorReport._id}
+                          supervisorReport={supervisorReport}
+                        />
+                      ))}
+                    </div>
                   }
                 ]
               }

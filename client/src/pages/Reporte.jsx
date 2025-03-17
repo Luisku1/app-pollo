@@ -13,9 +13,7 @@ import RegistrarDineroReportado from "../components/RegistrarDineroReportado";
 import EmployeeMultiSelect from "../components/Select/EmployeeMultiSelect";
 import { useSupervisorsReportInfo } from "../hooks/Supervisors/useSupervisorsReportInfo.js";
 import { useRoles } from "../context/RolesContext.jsx";
-import ExtraOutgoingsList from "../components/Outgoings/ExtraOutgoingsList.jsx";
-import ShowIncomesModal from "../components/Incomes/ShowIncomesModal.jsx";
-import ShowListModal from "../components/Modals/ShowListModal.jsx";
+
 import Modal from "../components/Modals/Modal";
 import { useLoading } from "../hooks/loading.js";
 import BranchReportCard from "../components/BranchReportCard.jsx";
@@ -24,6 +22,7 @@ import { BsBoxes } from "react-icons/bs";
 import { FaTruck } from "react-icons/fa";
 import { FaUser } from "react-icons/fa";
 import { MdStorefront } from "react-icons/md";
+import SupervisorReportCard from "../components/SupervisorReportCard.jsx";
 
 export default function Reporte({ untitled = false }) {
 
@@ -77,6 +76,8 @@ export default function Reporte({ untitled = false }) {
   const [pieChartInfo, setPieChartInfo] = useState([])
   const [negativeBalances, setNegativeBalances] = useState(new Set())
   const [selectedBranchReport, setSelectedBranchReport] = useState(null);
+
+  console.log(supervisorsInfo)
 
   const updateReportedCash = ({ reportedCash, prevReportedCash, prevReportedIncomes }) => {
 
@@ -373,60 +374,11 @@ export default function Reporte({ untitled = false }) {
               <p className="text-lg font-semibold p-3 text-red-600">Filtro de Supervisores</p>
               <EmployeeMultiSelect employees={getArrayForSelects(employees, (employee) => `${employee.name} ${employee.lastName}`)} setSelectedEmployees={setSelectedSupervisors}></EmployeeMultiSelect>
             </div>
-            {selectedSupervisors && supervisorsInfo.map((supervisor) => (
-              <div key={supervisor._id}>
-                {(selectedSupervisors.some(selected => selected.value.toString() === supervisor._id.toString()) || selectedSupervisors.length == 0) && (
-                  <div className={`border ${negativeBalances.has(supervisor._id) ? 'bg-pastel-pink' : 'bg-white'} p-3 mt-4 rounded-lg border-black`}>
-
-                    <div className="">
-
-                      <div className="grid grid-cols-1">
-
-                        <button className="text-2xl font-semibold my-4 p-2 shadow-sm text-white rounded-lg w-fit bg-button flex" onClick={() => { navigate(`/perfil/${supervisor._id}`) }}>{`${supervisor.name} ${supervisor.lastName}`}</button>
-
-                        <div className="gap-2 space-y-1">
-                          <div className="flex gap-2 items-center">
-                            <p className="text-lg font-bold">Depósitos:</p>
-                            <ShowIncomesModal
-                              title={'Depósitos'}
-                              clickableComponent={
-                                <p className="text-lg">{currency({ amount: supervisor.deposits + supervisor.terminalIncomes })}
-                                </p>
-                              }
-                              incomes={[...supervisor.terminalIncomesArray, ...supervisor.depositsArray]}
-                            />
-                          </div>
-                          <div className="flex gap-2 items-center">
-                            <p className="text-lg font-bold">Gastos:</p>
-                            <ShowListModal
-                              ListComponent={ExtraOutgoingsList}
-                              ListComponentProps={{ extraOutgoings: supervisor.extraOutgoingsArray, totalExtraOutgoings: supervisor.extraOutgoings }}
-                              title={'Gastos'}
-                              clickableComponent={
-                                <p className="text-lg border border-black rounded-lg shadow-sm">{currency({ amount: supervisor.extraOutgoings })}
-                                </p>
-                              }
-                              data={supervisor.extraOutgoingsArray}
-                            />
-                          </div>
-                          <div className="flex gap-2 items-center">
-                            <p className="text-lg font-bold">Efectivo:</p>
-                            <ShowIncomesModal
-                              title={'Efectivos'}
-                              clickableComponent={
-                                <p className="text-lg">{`${currency({ amount: supervisor.cash })}  `}<span className="text-green-500 font-bold">{(supervisor.cash - supervisor.extraOutgoings).toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</span></p>
-                              }
-                              incomes={supervisor.cashArray}
-                            />
-                          </div>
-                          <p className="text-lg"><span className="font-bold">Efectivo neto: </span>{(supervisor.cash - supervisor.extraOutgoings).toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
-                          <RegistrarDineroReportado setNegativeBalances={setNegativeBalances} updateReportedDeposits={updateReportedDeposits} updateReportedCash={updateReportedCash} supervisorId={supervisor._id} date={stringDatePickerValue}></RegistrarDineroReportado>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
+            {selectedSupervisors && supervisorsInfo.map((supervisorReport) => (
+              <SupervisorReportCard
+                key={supervisorReport._id}
+                supervisorReport={supervisorReport}
+              />
             ))}
           </div>
           : ''

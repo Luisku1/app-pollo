@@ -57,7 +57,7 @@ export default function SectionsMenu({ sections, handleShowSections, selectedSec
 
   useEffect(() => {
 
-    if(selectedSection != null || sections.length === 0) return
+    if (selectedSection != null || sections.length === 0) return
 
     setSelectedSection(sections[0])
 
@@ -72,7 +72,7 @@ export default function SectionsMenu({ sections, handleShowSections, selectedSec
             {currentSections.map((section) => (
               <div key={section.label} className="col-span-1 border border-black rounded-lg h-full">
                 <div className="h-full">
-                  <button id={section.label} className={`text-center h-full w-full p-1 rounded-lg hover:shadow-xl ${(selectedSection.label == section.label ? 'bg-options-bar text-white' : 'bg-white text-black')}`} onClick={() => { handleShowSections(section) }}>{section.label}</button>
+                  <button id={section.label} className={`text-center h-full w-full p-1 rounded-lg hover:shadow-xl ${(selectedSection.label == section.label ? 'bg-options-bar text-white' : 'bg-white text-black')}`} onClick={() => { handleShowSections(section) }}>{section.button ?? section.label}</button>
                 </div>
               </div>
             ))}

@@ -41,8 +41,7 @@ export const useAddIncome = () => {
 
     } catch (error) {
       console.log(error)
-    } finally {
-      setLoading(false)
+      throw new Error(error);
     }
   }
 

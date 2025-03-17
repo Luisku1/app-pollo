@@ -3,9 +3,11 @@ import IncomeCollected from "../models/accounts/incomes/income.collected.model.j
 import IncomeType from "../models/accounts/incomes/income.type.model.js";
 import { errorHandler } from "../utils/error.js";
 import { getDayRange } from "../utils/formatDate.js";
-import { pushOrPullBranchReportRecord } from "./branch.report.controller.js";
+import { employeeLookup, pushOrPullBranchReportRecord, unwindEmployee } from "./branch.report.controller.js";
 import { pushOrPullCustomerReportRecord } from "./customer.controller.js";
 import { pushOrPullSupervisorReportRecord } from "./employee.controller.js";
+import SupervisorReport from "../models/accounts/supervisor.report.model.js";
+import Employee from "../models/employees/employee.model.js";
 
 export const newBranchIncomeQuery = async (req, res, next) => {
 
@@ -31,12 +33,45 @@ export const newTransferredIncome = async (req, res, next) => {
 
   try {
 
-    const newIncomes = await newTransferredIncomeFunction(income, prevIncome)
+    await canAffordTransfer(prevIncome)
+    await newTransferredIncomeFunction(income, prevIncome)
     res.status(201).json({ message: 'New income created successfully' })
 
   } catch (error) {
 
     next(error)
+  }
+}
+
+const canAffordTransfer = async (income) => {
+
+  const employee = income.employee
+  const amount = -income.amount
+
+  try {
+
+    const { bottomDate, topDate } = getDayRange(new Date(income.createdAt))
+
+    const supervisorReport = (await SupervisorReport.aggregate([
+      {
+        $match: {
+          supervisor: new Types.ObjectId(employee),
+          createdAt: { $gte: new Date(bottomDate), $lt: new Date(topDate) }
+        }
+      }
+    ]))[0]
+    if (!supervisorReport) throw new Error("No hay ingresos en la cuenta de este empleado")
+    if (isNaN(supervisorReport.incomes)) throw new Error(`No hay ingresos en la cuenta de este empleado`)
+    if (amount < 0) throw new Error("El monto no puede ser negativo")
+    if (amount > supervisorReport.incomes) {
+
+      const employeeData = await Employee.findById(employee)
+      throw new Error(`${employeeData.name} ${employeeData.lastName} sólo cuenta con $${parseFloat(supervisorReport.incomes).toFixed(2)} en su cuenta`)
+    }
+
+  } catch (error) {
+
+    throw error
   }
 }
 
@@ -65,7 +100,7 @@ export const newTransferredIncomeFunction = async (actualIncome, prevIncome) => 
     })
 
     await pushOrPullSupervisorReportRecord({
-      supervisorId: newOwnerIncome.prevOwner,
+      supervisorId: prevOwnerIncome.employee,
       date: prevOwnerIncome.createdAt,
       record: prevOwnerIncome,
       affectsBalancePositively: false,
@@ -105,17 +140,20 @@ export const newTransferredIncomeFunction = async (actualIncome, prevIncome) => 
   }
 }
 
-export const getIncomesByType = (type, arrayName, dayRange) => ({
+export const lookupSupervisorReportIncomes = (type, arrayName, dayRange) => ({
 
   $lookup: {
     from: 'incomecollecteds',
-    localField: '_id',
-    foreignField: 'employee',
+    localField: 'incomesArray',
+    foreignField: '_id',
     as: arrayName,
     pipeline: [
       {
-        $match: {
-          createdAt: { $gte: new Date(dayRange.bottomDate), $lt: new Date(dayRange.topDate) }
+        $lookup: {
+          from: 'incometypes',
+          localField: 'type',
+          foreignField: '_id',
+          as: 'type',
         }
       },
       {
@@ -133,15 +171,25 @@ export const getIncomesByType = (type, arrayName, dayRange) => ({
                 as: 'employee'
               }
             },
-            {
-              $unwind: {
-                path: '$employee',
-                preserveNullAndEmptyArrays: true
-              }
-            }
+            { $unwind: { path: '$employee', preserveNullAndEmptyArrays: true } }
           ]
         }
       },
+      {
+        $lookup: {
+          from: 'employees',
+          localField: 'employee',
+          foreignField: '_id',
+          as: 'employee'
+        }
+      },
+      { $unwind: { path: '$employee', preserveNullAndEmptyArrays: true } },
+      { $unwind: { path: '$type', preserveNullAndEmptyArrays: true } },
+      (type === '*' ? {} :
+        {
+          $match: { 'type.name': type }
+        }
+      ),
       {
         $lookup: {
           from: 'employees',
@@ -193,15 +241,6 @@ export const getIncomesByType = (type, arrayName, dayRange) => ({
         }
       },
       {
-        $lookup: {
-          from: 'incometypes',
-          localField: 'type',
-          foreignField: '_id',
-          as: 'type',
-        }
-      },
-      { $unwind: { path: '$employeePayment', preserveNullAndEmptyArrays: true } },
-      {
         $unwind: {
           path: '$branch',
           preserveNullAndEmptyArrays: true
@@ -212,19 +251,7 @@ export const getIncomesByType = (type, arrayName, dayRange) => ({
           path: '$employee',
           preserveNullAndEmptyArrays: true
         }
-      },
-      {
-        $unwind: {
-          path: '$type',
-          preserveNullAndEmptyArrays: true
-        }
-      },
-      (type === '*' ? {} :
-
-        {
-          $match: { 'type.name': type }
-        }
-      )
+      }
     ]
   }
 })

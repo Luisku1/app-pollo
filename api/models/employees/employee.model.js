@@ -41,6 +41,10 @@ const employeeSchema = new mongoose.Schema({
     default: true
   },
 
+  hiredBy: {
+    type: Schema.Types.ObjectId, ref: 'Employee',
+  },
+
   company: {
     type: Schema.Types.ObjectId, ref: 'Company',
   },
@@ -49,9 +53,10 @@ const employeeSchema = new mongoose.Schema({
     type: Schema.Types.ObjectId, ref: 'Role',
     required: true
   }
-}, {timestamps: {createdAt: true, updatedAt: false}})
 
-employeeSchema.index({phoneNumber: 1}, {unique: true})
+}, { timestamps: { createdAt: true, updatedAt: true } })
+
+employeeSchema.index({ phoneNumber: 1 }, { unique: true })
 
 const Employee = mongoose.model('Employee', employeeSchema)
 

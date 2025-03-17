@@ -11,7 +11,7 @@ import { getArrayForSelects, currency } from '../../helpers/Functions'
 import { FaListAlt } from 'react-icons/fa'
 import ShowListModal from '../Modals/ShowListModal'
 import IncomesList from './IncomesList'
-import { ToastDanger, ToastSuccess } from '../../helpers/toastify'
+import { ToastDanger, ToastInfo, ToastSuccess } from '../../helpers/toastify'
 
 export default function Incomes({ incomes, incomesTotal, onAddIncome, onDeleteIncome, branchAndCustomerSelectOptions, date, companyId, currentUser }) {
 
@@ -21,6 +21,13 @@ export default function Incomes({ incomes, incomesTotal, onAddIncome, onDeleteIn
   const [selectedCustomerBranchIncomesOption, setSelectedCustomerBranchIncomesOption] = useState(null)
   const [selectedIncomeGroup, setSelectedIncomeGroup] = useState('')
   const [selectedIncomeType, setSelectedIncomeType] = useState(null)
+
+  const resetInputs = () => {
+    document.getElementById('income-amount').value = ''
+    setSelectedIncomeType(null)
+    setSelectedCustomerBranchIncomesOption(null)
+    setIncomeFormData({})
+  }
 
   const handleCustomerBranchIncomesSelectChange = (option) => {
 
@@ -32,7 +39,6 @@ export default function Incomes({ incomes, incomesTotal, onAddIncome, onDeleteIn
 
   const addIncomeSubmit = async (e) => {
 
-    const amountInput = document.getElementById('income-amount')
     const createdAt = isToday(date) ? new Date().toISOString() : new Date(date).toISOString()
     let income = null
     e.preventDefault()
@@ -69,14 +75,16 @@ export default function Incomes({ incomes, incomesTotal, onAddIncome, onDeleteIn
       }
 
       ToastSuccess(`Se registró el efectivo de ${income.amount.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}`)
-      onAddIncome(income, prevOwnerIncome ? prevOwnerIncome : null, selectedIncomeGroup)
+      resetInputs()
+      await onAddIncome(income, prevOwnerIncome ? prevOwnerIncome : null, selectedIncomeGroup)
 
-      amountInput.value = ''
-      setSelectedIncomeType(null)
 
     } catch (error) {
 
+      if (error.message.includes('sólo') || error.message.includes('empleado') || error.message.includes('monto'))
+        ToastInfo(error.message.replace(new RegExp('Error: ', 'g'), ''))
       ToastDanger(`No se registró el efectivo de ${income.amount.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}`)
+      resetInputs()
       console.log(error)
     }
   }

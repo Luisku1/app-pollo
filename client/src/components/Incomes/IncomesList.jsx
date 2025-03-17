@@ -147,7 +147,7 @@ export default function IncomesList({ incomes = [], onDeleteIncome }) {
               className="col-span-10 items-center"
             >
               <div className='col-span-12 items-center'>
-                <div className='w-full text-red-800'>
+                <div className='w-full'>
                   <RowItem>
                     {prevOwner && !owner && (
                       <div>
