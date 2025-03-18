@@ -83,7 +83,7 @@ export default function ExtraOutgoingsList({ extraOutgoings, totalExtraOutgoings
               </div>
             </button>
             <div className="col-span-2 my-auto">
-              {deletable && (
+              {deletable && !partOfAPayment && (
                 <DeleteButton
                   deleteFunction={() => onDelete(tempOutgoing)}
                 />
@@ -108,7 +108,7 @@ export default function ExtraOutgoingsList({ extraOutgoings, totalExtraOutgoings
     return (
       <div>
         <div className="w-full flex justify-center">
-          {deletable && selectedOutgoing && (
+          {deletable && selectedOutgoing && !selectedOutgoing.partOfAPayment && (
             <div className="w-full flex flex-col gap-2">
               <ConfirmationButton onConfirm={() => onDelete(selectedOutgoing)} className="bg-delete-button text-white w-10/12 rounded-xl">
                 Eliminar

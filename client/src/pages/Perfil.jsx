@@ -9,7 +9,6 @@ import { useLoading } from '../hooks/loading'
 import { useSignOut } from '../hooks/Auth/useSignOut'
 import { formatDate } from '../helpers/DatePickerFunctions'
 import { useSupervisorReports } from '../hooks/Supervisors/useSupervisorReports'
-import SupervisorReports from '../components/SupervisorReports'
 import SupervisorReport from '../components/SupervisorReportComp'
 import EmployeePaymentsList from '../components/EmployeePaymentsList'
 import { getEmployeeFullName, currency } from '../helpers/Functions'
@@ -20,6 +19,8 @@ import ShowListModal from "../components/Modals/ShowListModal";
 import { useEmployeesPayments } from "../hooks/Employees/useEmployeesPayments";
 import { useBranchReports } from "../hooks/BranchReports.js/useBranchReports";
 import { useEmployeeDailyBalance } from '../hooks/Employees/useEmployeeDailyBalance'
+import SupervisorReportList from "../components/SupervisorReportList";
+import SupervisorReportCard from "../components/SupervisorReportCard";
 
 export default function Perfil() {
 
@@ -159,7 +160,7 @@ export default function Perfil() {
                   />
                 )}
               </div>
-              {isManager(currentUser.role)|| currentUser._id == employee._id ?
+              {isManager(currentUser.role) || currentUser._id == employee._id ?
                 <div className='p-3'>
                   <div className='flex flex-row-reverse gap-2 items-center'>
                     <div className="flex gap-2 text-center text-lg">
@@ -209,12 +210,12 @@ export default function Perfil() {
                   : ''}
               </div>
 
-              {supervisorReports && supervisorReports.length > 0 && (currentUser._id == employeeId || roles.manager._id == currentUser.role) && (
+              {supervisorReports && supervisorReports.length > 0 && (currentUser._id == employeeId || isManager(currentUser.role)) && (
 
                 <ShowListModal
                   title={`Reportes de ${employee.name}`}
                   className={'w-full'}
-                  ListComponent={SupervisorReports}
+                  ListComponent={SupervisorReportList}
                   ListComponentProps={{ supervisorReports }}
                   clickableComponent={<p className='w-full text-lg font-semibold text-center p-1 border border-header rounded-md'>{`${supervisorReports.length == 0 || supervisorReports.length > 1 ? 'Reportes de Supervisión' : 'Reporte de Supervisión'} (${supervisorReports.length})`}</p>}
                 />
@@ -223,9 +224,7 @@ export default function Perfil() {
               {roles.seller._id != employee.role._id && (employee._id == currentUser._id || isManager(currentUser.role)) ?
                 <div className=''>
                   {lastSupervisorReport && (
-                    <div>
-                      <SupervisorReport supervisorReport={lastSupervisorReport}></SupervisorReport>
-                    </div>
+                    <SupervisorReportCard supervisorReport={lastSupervisorReport} />
                   )}
                 </div>
                 : ''}

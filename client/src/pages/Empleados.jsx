@@ -9,7 +9,6 @@ import SearchBar from "../components/SearchBar";
 import { getEmployeeFullName } from "../helpers/Functions";
 import Modal from "../components/Modals/Modal";
 import RegistroEmpleadoNuevo from "./RegistroEmpleado";
-import { render } from "react-dom";
 
 export default function Empleados() {
 

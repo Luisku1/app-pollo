@@ -1400,7 +1400,6 @@ export const deleteEmployeePaymentQuery = async (req, res, next) => {
 		if (incomeId && incomeId != "null") {
 
 			deletedIncome = await deleteIncome(incomeId)
-			if (!deletedIncome) throw new Error("No se pudo eliminar el ingreso");
 		}
 
 		deletedPayment = await EmployeePayment.findByIdAndDelete(paymentId)

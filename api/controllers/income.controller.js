@@ -220,14 +220,6 @@ export const lookupSupervisorReportIncomes = (type, arrayName, dayRange) => ({
       },
       {
         $lookup: {
-          from: 'employees',
-          localField: 'employee',
-          foreignField: '_id',
-          as: 'employee'
-        }
-      },
-      {
-        $lookup: {
           from: 'customers',
           localField: 'customer',
           foreignField: '_id',
@@ -243,12 +235,6 @@ export const lookupSupervisorReportIncomes = (type, arrayName, dayRange) => ({
       {
         $unwind: {
           path: '$branch',
-          preserveNullAndEmptyArrays: true
-        }
-      },
-      {
-        $unwind: {
-          path: '$employee',
           preserveNullAndEmptyArrays: true
         }
       }
@@ -665,7 +651,7 @@ export const deleteIncome = async (incomeId) => {
 
   try {
 
-    deletedIncome = { ...(await IncomeCollected.findByIdAndDelete(incomeId))._doc }
+    deletedIncome = { ...(await IncomeCollected.findByIdAndDelete(incomeId))?._doc }
 
     if (!deletedIncome) throw new Error("No se eliminó el registro")
 

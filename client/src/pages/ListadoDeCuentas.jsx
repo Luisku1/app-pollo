@@ -1,43 +1,14 @@
 import { useEffect, useState } from "react"
 import { useSelector } from 'react-redux'
 import { Link } from "react-router-dom"
+import { useRoles } from "../context/RolesContext"
 
 export default function ListadoDeCuentas() {
 
   const { company, currentUser } = useSelector((state) => state.user)
   const [error, setError] = useState(null)
   const [daysReportsData, setDayReportData] = useState([])
-  const [roles, setRoles] = useState([])
-
-
-  useEffect(() => {
-
-
-    const fetchRoles = async () => {
-
-      try {
-
-        const res = await fetch('/api/role/get')
-        const data = await res.json()
-
-        if (data.success === false) {
-          setError(data.message)
-          return
-        }
-
-        setRoles(data.roles)
-        setError(null)
-
-      } catch (error) {
-
-        setError(error.message)
-
-      }
-    }
-
-    fetchRoles()
-
-  }, [])
+  const { roles, isController } = useRoles()
 
   useEffect(() => {
 
@@ -64,25 +35,17 @@ export default function ListadoDeCuentas() {
       }
     }
 
-    if (roles && roles.length > 0) {
+    if (isController(currentUser.role)) {
 
-      const currentUserRole = roles.find((role) =>
+      fetchDayReportsData()
 
-        role._id == currentUser.role
-      )
+    } else {
 
-      if (currentUserRole.name == 'Gerente') {
+      setError('No puedes acceder a esta información')
 
-        fetchDayReportsData()
-
-      } else {
-
-        setError('No puedes acceder a esta información')
-
-      }
     }
 
-  }, [company._id, currentUser, roles])
+  }, [company._id, currentUser, isController])
 
   useEffect(() => {
 

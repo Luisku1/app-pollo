@@ -27,9 +27,7 @@ export default function IncomesList({ incomes = [], onDeleteIncome }) {
     return incomes.reduce((acc, income) => {
       const isAuthorized = currentUser._id === income.employee?._id || isManager(currentUser.role);
 
-      if (isAuthorized) {
-        return acc + income.amount;
-      }
+      return acc + (isAuthorized ? income.amount : 0);
 
     }, 0);
   }, [incomes, currentUser, isManager]);
@@ -55,6 +53,7 @@ export default function IncomesList({ incomes = [], onDeleteIncome }) {
   ];
 
   const renderTotal = () => {
+    console.log(incomesTotal)
     return (
       <div className='justify-self-end'>
         <p className='text-green-800 font-bold text-lg'>
@@ -112,7 +111,7 @@ export default function IncomesList({ incomes = [], onDeleteIncome }) {
               </div>
             </button>
             <div className="col-span-2 my-auto">
-              {deletable && (
+              {deletable && !partOfAPayment && (
                 <DeleteButton
                   deleteFunction={() => onDeleteIncome(tempIncome)}
                 />
@@ -128,8 +127,8 @@ export default function IncomesList({ incomes = [], onDeleteIncome }) {
 
     const { prevOwner, owner, employee, amount, _id, createdAt } = income;
     const prevOwnerName = getEmployeeName(prevOwner);
-    const ownerName = getEmployeeName(owner);
-    const employeeName = getEmployeeName(employee);
+    const ownerName = getEmployeeFullName(owner);
+    const employeeName = getEmployeeFullName(employee);
     const tempIncome = { ...income, index };
     const isAuthorized = currentUser._id === employee?._id || isManager(currentUser.role) || !onDeleteIncome;
 
@@ -153,7 +152,7 @@ export default function IncomesList({ incomes = [], onDeleteIncome }) {
                       <div>
                         {(isManager(currentUser.role) || currentUser._id === employee._id) && (
                           <div className='grid grid-cols-3 text-center'>
-                            <p className="text-md font-bold flex justify-center gap-1 items-center "><CgProfile className='' />{employeeName}</p>
+                            <p className="text-md font-bold flex justify-center gap-1 items-center ">{employeeName}</p>
                             <div className='flex-wrap justify-center gap-1 items-center text-center'>
                               <TiArrowLeftOutline className='mx-auto text-3xl' />
                               <span className='text-xl'>{Amount({ amount })}</span>
@@ -167,7 +166,7 @@ export default function IncomesList({ incomes = [], onDeleteIncome }) {
                       <div>
                         {(currentUser._id === employee._id) && (
                           <div className='grid grid-cols-3 text-center'>
-                            <p className="text-md font-bold flex justify-center gap-1 items-center "><CgProfile className='' />{employeeName}</p>
+                            <p className="text-md font-bold flex justify-center gap-1 items-center ">{employeeName}</p>
                             <div className='flex-wrap justify-center gap-1 items-center text-center'>
                               <TiArrowRightOutline className='mx-auto text-3xl' />
                               <span className='text-xl'>{Amount({ amount })}</span>
@@ -177,7 +176,7 @@ export default function IncomesList({ incomes = [], onDeleteIncome }) {
                         )}
                         {(isManager(currentUser.role) && currentUser._id !== employee._id) && (
                           <div className='grid grid-cols-3 text-center'>
-                            <p className="text-md font-bold flex justify-center gap-1 items-center "><CgProfile className='' />{employeeName}</p>
+                            <p className="text-md font-bold flex justify-center gap-1 items-center ">{employeeName}</p>
                             <div className='flex-wrap justify-center gap-1 items-center text-center'>
                               <TiArrowRightOutline className='mx-auto text-3xl' />
                               <span className='text-xl'>{Amount({ amount })}</span>
@@ -197,7 +196,7 @@ export default function IncomesList({ incomes = [], onDeleteIncome }) {
               </div>
             </button>
             <div className="col-span-2 my-auto">
-              {deletable && !owner && (
+              {(deletable && (!owner && (currentUser._id == employee._id || isManager(currentUser.role)))) && (
                 <DeleteButton
                   deleteFunction={() => onDeleteIncome(tempIncome)}
                 />

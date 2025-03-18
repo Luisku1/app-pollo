@@ -66,7 +66,7 @@ export const useEmployees = ({ companyId, date, onlyActiveEmployees = true }) =>
   const filteredEmployees = useMemo(() => {
 
     return employees.filter((employee) =>
-      getEmployeeFullName(employee).toLowerCase().includes(filterString.toLowerCase())
+      getEmployeeFullName(employee).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "").includes(filterString.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ""))
     )
   }
     , [employees, filterString])
@@ -106,11 +106,12 @@ export const useEmployees = ({ companyId, date, onlyActiveEmployees = true }) =>
 
   const { activeEmployees, inactiveEmployees } = useMemo(() => {
 
-    const activeEmployees = employees.filter((employee) => employee.active)
-    const inactiveEmployees = employees.filter((employee) => !employee.active)
+    const activeEmployees = employees.filter((employee) => employee.active && getEmployeeFullName(employee).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "").includes(filterString.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "")))
+    const inactiveEmployees = employees.filter((employee) => !employee.active && getEmployeeFullName(employee).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "").includes(filterString.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "")))
 
     return { activeEmployees, inactiveEmployees }
-  }, [employees])
+
+  }, [employees, filterString])
 
   return {
     employees: filteredEmployees, activeEmployees, inactiveEmployees,
