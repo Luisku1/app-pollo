@@ -6,6 +6,7 @@ import { formatDate, getDayRange } from '../helpers/DatePickerFunctions';
 import FechaDePagina from '../components/FechaDePagina';
 import 'react-toastify/dist/ReactToastify.css';
 import { useProducts } from '../hooks/Products/useProducts';
+import { IoPersonSharp } from "react-icons/io5";
 import { useLoading } from '../hooks/loading';
 import { useEmployees } from '../hooks/Employees/useEmployees';
 import { useBranches } from '../hooks/Branches/useBranches';
@@ -21,7 +22,9 @@ import { getArrayForSelects } from '../helpers/Functions';
 import { MdSupervisorAccount } from "react-icons/md";
 import SupervisorReportCard from '../components/SupervisorReportCard';
 import { useSupervisorsReportInfo } from '../hooks/Supervisors/useSupervisorsReportInfo';
-
+import { MdCurrencyExchange } from "react-icons/md";
+import { FaExchangeAlt } from "react-icons/fa";
+import { GiChicken } from "react-icons/gi";
 
 export default function ControlSupervisor({ hideFechaDePagina = false }) {
 
@@ -111,6 +114,12 @@ export default function ControlSupervisor({ hideFechaDePagina = false }) {
                 [
                   {
                     label: 'Entradas y Salidas',
+                    button: (
+                      <div className='flex justify-center gap-1'>
+                        <FaExchangeAlt className='justify-self-center text-2xl' />
+                        <GiChicken className='justify-self-center text-2xl' />
+                      </div>
+                    ),
                     component: <InputsAndOutputs
                       companyId={company._id}
                       date={stringDatePickerValue}
@@ -122,6 +131,9 @@ export default function ControlSupervisor({ hideFechaDePagina = false }) {
                   },
                   {
                     label: 'Efectivos y Gastos',
+                    button: (
+                      <MdCurrencyExchange className='justify-self-center text-2xl' />
+                    ),
                     component: <IncomesAndOutgoings
                       date={stringDatePickerValue}
                       companyId={company._id}
@@ -133,6 +145,9 @@ export default function ControlSupervisor({ hideFechaDePagina = false }) {
                   },
                   {
                     label: 'Empleados',
+                    button: (
+                      <IoPersonSharp className='justify-self-center text-2xl' />
+                    ),
                     component: <Employees dailyBalances={employeesDailyBalances} employees={employees} companyId={company._id} date={stringDatePickerValue} />
                   },
                   {

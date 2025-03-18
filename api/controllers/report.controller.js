@@ -576,19 +576,6 @@ export const supervisorsInfoQuery = async (companyId, topDate, bottomDate) => {
         }
       },
       {
-        $match: {
-          $or: [
-            { extraOutgoings: { $gt: 0 } },
-            { cash: { $gt: 0 } },
-            { terminalIncomes: { $gt: 0 } },
-            { deposits: { $gt: 0 } },
-            { missingIncomes: { $gt: 0 } },
-            { verifiedCash: { $gt: 0 } },
-            { verifiedDeposits: { $gt: 0 } },
-          ]
-        }
-      },
-      {
         $facet: {
           reports: [
             {

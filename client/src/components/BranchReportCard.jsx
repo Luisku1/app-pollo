@@ -18,6 +18,7 @@ import StockList from "./Stock/StockList"
 import OutgoingsList from "./Outgoings/OutgoingsList"
 import ListaSalidas from "./EntradasYSalidas/Salidas/ListaSalidas"
 import ListaEntradas from "./EntradasYSalidas/Entradas/ListaEntradas"
+import { MdPriceChange } from "react-icons/md";
 
 export default function BranchReportCard({ reportData, replaceReport, externalIndex }) {
 
@@ -92,6 +93,9 @@ export default function BranchReportCard({ reportData, replaceReport, externalIn
         </button>
         <button className={`border border-black rounded-lg ${!isController(currentUser.role) ? blockedButton : ''}`} disabled={!isController(currentUser.role)} onClick={() => handleSetReportOnZero(reportData._id)}>
           <PiNumberZeroBold />
+        </button>
+        <button onClick={() => { navToEditReport(reportData) }} className="border border-black rounded-lg">
+          <MdPriceChange />
         </button>
       </div>
       <div className="relative">

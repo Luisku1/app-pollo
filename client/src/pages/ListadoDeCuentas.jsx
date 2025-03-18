@@ -8,7 +8,7 @@ export default function ListadoDeCuentas() {
   const { company, currentUser } = useSelector((state) => state.user)
   const [error, setError] = useState(null)
   const [daysReportsData, setDayReportData] = useState([])
-  const { roles, isController } = useRoles()
+  const { isController } = useRoles()
 
   useEffect(() => {
 

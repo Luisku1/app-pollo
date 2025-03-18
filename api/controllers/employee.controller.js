@@ -6,7 +6,7 @@ import Employee from "../models/employees/employee.model.js"
 import { errorHandler } from "../utils/error.js"
 import { getDayRange, getWeekRange } from "../utils/formatDate.js"
 import { deleteExtraOutgoingFunction, newExtraOutgoingFunction } from "./outgoing.controller.js"
-import { deleteIncome, getIncomeTypeId, newBranchIncomeFunction } from "./income.controller.js"
+import { deleteIncome, getIncomeTypeId, lookupSupervisorReportIncomes, newBranchIncomeFunction } from "./income.controller.js"
 import EmployeePayment from "../models/employees/employee.payment.model.js"
 import SupervisorReport from "../models/accounts/supervisor.report.model.js"
 import { fetchRolesFromDB } from "./role.controller.js"
@@ -819,6 +819,103 @@ export const fetchEmployeesPayroll = async ({ companyId, date }) => {
 			},
 			{
 				$lookup: {
+					from: 'supervisorreports',
+					localField: 'employee',
+					foreignField: 'supervisor',
+					as: 'supervisorReports',
+					pipeline: [
+						{
+							$match: {
+								'createdAt': { $gte: new Date(weekStart), $lt: new Date(weekEnd) },
+							}
+						},
+						{
+							$lookup: {
+								from: 'employees',
+								localField: 'supervisor',
+								foreignField: '_id',
+								as: 'supervisor'
+							}
+						},
+						{ $unwind: { path: '$supervisor', preserveNullAndEmptyArrays: false } },
+						{
+							$lookup: {
+								from: 'extraoutgoings',
+								localField: 'extraOutgoingsArray',
+								foreignField: '_id',
+								as: 'extraOutgoingsArray',
+								pipeline: [
+									{ $sort: { "amount": -1 } },
+									{
+										$lookup: {
+											from: 'employeepayments',
+											localField: '_id',
+											foreignField: 'extraOutgoing',
+											as: 'employeePayment',
+											pipeline: [
+												{
+													$lookup: {
+														from: 'employees',
+														localField: 'employee',
+														foreignField: '_id',
+														as: 'employee'
+													}
+												},
+												{ $unwind: { path: '$employee', preserveNullAndEmptyArrays: true } }
+											]
+										}
+									},
+									{ $unwind: { path: '$employeePayment', preserveNullAndEmptyArrays: true } },
+									{
+										$lookup: {
+											from: 'employees',
+											localField: 'employee',
+											foreignField: '_id',
+											as: 'employee'
+										}
+									},
+									{ $unwind: { path: '$employee', preserveNullAndEmptyArrays: true } }
+								]
+							}
+						},
+						lookupSupervisorReportIncomes('Depósito', 'depositsArray'),
+						lookupSupervisorReportIncomes('Efectivo', 'cashArray'),
+						lookupSupervisorReportIncomes('Terminal', 'terminalIncomesArray'),
+						{
+							$addFields: {
+								extraOutgoings: { $sum: '$extraOutgoingsArray.amount' },
+								cash: { $sum: '$cashArray.amount' },
+								deposits: { $sum: '$depositsArray.amount' },
+								terminalIncomes: { $sum: '$terminalIncomesArray.amount' },
+								verifiedCash: '$verifiedCash',
+								verifiedDeposits: '$verifiedDeposits',
+							}
+						},
+						{
+							$project: {
+								_id: 1,
+								extraOutgoings: 1,
+								cash: 1,
+								deposits: 1,
+								supervisor: 1,
+								createdAt: 1,
+								cashArray: 1,
+								depositsArray: 1,
+								extraOutgoingsArray: 1,
+								terminalIncomes: 1,
+								terminalIncomesArray: 1,
+								missingIncomes: 1,
+								verifiedCash: 1,
+								balance: 1,
+								verifiedDeposits: 1,
+								supervisor: 1
+							}
+						}
+					]
+				}
+			},
+			{
+				$lookup: {
 					from: 'employees',
 					localField: 'employee',
 					foreignField: '_id',
@@ -887,6 +984,8 @@ export const fetchEmployeesPayroll = async ({ companyId, date }) => {
 				}
 			}
 		])
+
+		console.log(weeklyBalances)
 
 		return weeklyBalances || null
 

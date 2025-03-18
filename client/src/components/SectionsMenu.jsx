@@ -17,7 +17,7 @@ export default function SectionsMenu({ sections, handleShowSections, selectedSec
 
   const handleTouchEnd = () => {
     const diffX = endX - startX;
-    if (Math.abs(diffX) > 160) {
+    if (Math.abs(diffX) > 200) {
       if (diffX > 0) {
         changeSection('right');
       } else {
@@ -72,7 +72,7 @@ export default function SectionsMenu({ sections, handleShowSections, selectedSec
             {currentSections.map((section) => (
               <div key={section.label} className="col-span-1 border border-black rounded-lg h-full">
                 <div className="h-full">
-                  <button id={section.label} className={`text-center h-full w-full p-1 rounded-lg hover:shadow-xl ${(selectedSection.label == section.label ? 'bg-options-bar text-white' : 'bg-white text-black')}`} onClick={() => { handleShowSections(section) }}>{section.button ?? section.label}</button>
+                  <button title={section.label} id={section.label} className={`text-center h-full w-full p-1 rounded-lg hover:shadow-xl ${(selectedSection.label == section.label ? 'bg-options-bar text-white' : 'bg-white text-black')}`} onClick={() => { handleShowSections(section) }}>{section.button ?? section.label}</button>
                 </div>
               </div>
             ))}

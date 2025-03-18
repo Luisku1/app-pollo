@@ -16,6 +16,7 @@ import ExtraOutgoingsList from "../components/Outgoings/ExtraOutgoingsList.jsx";
 import ShowIncomesModal from "../components/Incomes/ShowIncomesModal.jsx";
 import ShowListModal from "../components/Modals/ShowListModal.jsx";
 import { currency, getEmployeeFullName } from "../helpers/Functions"
+import { CgProfile } from "react-icons/cg"
 
 export default function SupervisorReportCard({ supervisorReport, replaceReport, externalIndex }) {
   const { currentUser } = useSelector((state) => state.user)
@@ -63,8 +64,8 @@ export default function SupervisorReportCard({ supervisorReport, replaceReport, 
     <div
       className={`w-full p-1 mb-4 mt-4 rounded-3xl border border-black shadow-md transition-all duration-200 ${supervisorReport.balance < 0 ? 'bg-pastel-pink' : supervisorReport.onZero ? 'bg-yellow-100' : 'bg-white'}`}
       key={supervisorReport._id}>
-      <div className="flex justify-between items-center px-2 pt-1 mb-4">
-        <p className="text-lg font-semibold text-red-500">{supervisorReport.supervisor.name}</p>
+      <div className="flex justify-between items-center px-2 pt-1 mb-2">
+        <p className="text-lg font-semibold text-red-500 flex items-center gap-1"><CgProfile />{getEmployeeFullName(supervisorReport.supervisor)}</p>
         <div className="flex items-center gap-1">
           <p className="text-lg font-semibold text-red-500">
             {formatInformationDate(new Date(supervisorReport.createdAt))}
@@ -89,18 +90,23 @@ export default function SupervisorReportCard({ supervisorReport, replaceReport, 
           </div>
         )}
         <div className={`${loading && toModifyReport == supervisorReport._id ? 'blur-sm' : ''} px-3`}>
-          <div className="space-y-4">
-            {/* Encargado y Auxiliar */}
-            <div className="grid grid-cols-2 gap-4 text-sm text-left">
-              <div>
-                <p className="font-bold text-lg text-gray-600">Supervisor:</p>
-                <p className="text-black font-semibold">{getEmployeeFullName(supervisorReport.supervisor)}</p>
-              </div>
-            </div>
+          <div className="space-y-4 mt-2">
             {/* Resumen financiero */}
             <div className="overflow-x-auto">
               <div className="grid grid-cols-2 gap-4 text-sm text-gray-600 text-left">
                 {/* Primer grupo: Depósitos, Gastos, Efectivo */}
+                <ShowListModal
+                  title={`Gastos de ${supervisorReport.supervisor.name}`}
+                  ListComponent={ExtraOutgoingsList}
+                  ListComponentProps={{ extraOutgoings: supervisorReport.extraOutgoingsArray ?? [], totalExtraOutgoings: supervisorReport.extraOutgoings }}
+                  className={'w-full h-full border border-black rounded-lg'}
+                  clickableComponent={
+                    <p className="font-semibold text-lg bg-green-400 rounded-lg bg-opacity-50 text-center text-gray-800">
+                      Gastos: {currency({ amount: supervisorReport.extraOutgoings })}
+                    </p>
+                  }
+                  data={supervisorReport.extraOutgoingsArray ?? []}
+                />
                 <ShowIncomesModal
                   title={`Depósitos de ${supervisorReport.supervisor.name}`}
                   clickableComponent={
@@ -110,31 +116,22 @@ export default function SupervisorReportCard({ supervisorReport, replaceReport, 
                   }
                   incomes={[...supervisorReport.terminalIncomesArray ?? [], ...supervisorReport.depositsArray ?? []]}
                 />
-                <ShowListModal
-                  title={`Gastos de ${supervisorReport.supervisor.name}`}
-                  ListComponent={ExtraOutgoingsList}
-                  ListComponentProps={{ extraOutgoings: supervisorReport.extraOutgoingsArray ?? [], totalExtraOutgoings: supervisorReport.extraOutgoings }}
-                  className={'w-full'}
-                  clickableComponent={
-                    <p className="font-semibold text-lg bg-green-400 rounded-lg bg-opacity-50 text-center text-gray-800">
-                      Gastos: {currency({ amount: supervisorReport.extraOutgoings })}
-                    </p>
-                  }
-                  data={supervisorReport.extraOutgoingsArray ?? []}
-                />
                 <ShowIncomesModal
                   title={`Efectivo de ${supervisorReport.supervisor.name}`}
                   clickableComponent={
-                    <p className="font-semibold text-lg bg-green-400 rounded-lg bg-opacity-50 text-center text-gray-800">
-                      Efectivo: {currency({ amount: supervisorReport.cash })}
+                    <p className="font-semibold text-lg bg-green-400 items-center rounded-lg bg-opacity-50 text-center text-gray-800">
+                      Efectivo bruto: {currency({ amount: supervisorReport.cash })}
                     </p>
                   }
                   incomes={supervisorReport.cashArray ?? []}
                 />
                 {/* Segundo grupo: Efectivo neto */}
-                <p className="font-semibold text-lg bg-red-500 bg-opacity-40 rounded-lg text-center text-black">
-                  Efectivo neto: {(supervisorReport.cash - supervisorReport.extraOutgoings).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}
-                </p>
+                <div className="flex flex-wrap gap-1 justify-center font-semibold text-lg bg-red-500 bg-opacity-40 rounded-lg text-center text-black items-center">
+                  <p>
+                    Efectivo final:
+                  </p>
+                  <p>{(supervisorReport.cash - supervisorReport.extraOutgoings).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>
+                </div>
               </div>
             </div>
           </div>

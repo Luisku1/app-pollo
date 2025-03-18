@@ -10,6 +10,8 @@ import { useRoles } from "../context/RolesContext";
 import ShowListModal from "../components/Modals/ShowListModal";
 import Amount from "../components/Incomes/Amount";
 import TarjetaCuenta from "../components/TarjetaCuenta";
+import SupervisorReportCard from "../components/SupervisorReportCard";
+import SupervisorReportList from "../components/SupervisorReportList";
 
 export default function Nomina() {
 
@@ -87,12 +89,17 @@ export default function Nomina() {
                               title={`Reportes de ${getEmployeeFullName(employeePayroll.employee, (employee) => employee.name + ' ' + employee.lastName)}`}
                               ListComponent={TarjetaCuenta}
                               ListComponentProps={{ reportArray: branchReports, replaceReport: replaceReport, payrollIndex: index }}
-                              clickableComponent={<p className={(employeePayroll.balance < 0 ? 'text-red-500' : '') + ' my-auto font-bold border border-black shadow-sm rounded-lg w-fit'}>{employeePayroll.balance.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>}
+                              clickableComponent={<p className={(employeePayroll.accountBalance < 0 ? 'text-red-500' : '') + ' my-auto font-bold border border-black shadow-sm rounded-lg w-fit'}>{employeePayroll.accountBalance.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>}
                             />
                           </div>
                           <div className="grid grid-cols-2 text-left items-center">
                             <p className="font-semibold">Semana en supervisión: </p>
-                            <p className={(employeePayroll.balance < 0 ? 'text-red-500' : '') + ' my-auto font-bold'}>{employeePayroll.supervisorBalance.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>
+                            <ShowListModal
+                              title={`Reportes de ${getEmployeeFullName(employeePayroll.employee, (employee) => employee.name + ' ' + employee.lastName)}`}
+                              ListComponent={SupervisorReportList}
+                              ListComponentProps={{ supervisorReports: employeePayroll.supervisorReports }}
+                              clickableComponent={<p className={(employeePayroll.supervisorBalance < 0 ? 'text-red-500' : '') + ' my-auto font-bold border border-black shadow-sm rounded-lg w-fit'}>{employeePayroll.supervisorBalance.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>}
+                            />
                           </div>
                           <div className="grid grid-cols-2 text-left items-center">
                             <p className="font-semibold">Pagos en la semana: </p>
