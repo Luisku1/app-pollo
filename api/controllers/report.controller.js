@@ -390,9 +390,6 @@ export const getSupervisorsInfo = async (req, res, next) => {
       const reports = supervisorReports.reports
       const { extraOutgoings, extraOutgoingsArray, deposits, cash, cashArray, depositsArray, verifiedCash, verifiedDeposits, terminalIncomesArray, terminalIncomes, balance } = supervisorReports.globalTotals[0]
 
-      console.log(reports)
-
-
       const netIncomes = cash + deposits + terminalIncomes - extraOutgoings
       const verifiedIncomes = verifiedCash + verifiedDeposits
 

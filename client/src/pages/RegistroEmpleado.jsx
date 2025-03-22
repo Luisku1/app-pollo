@@ -73,7 +73,7 @@ export default function RegistroEmpleadoNuevo({ employee, setEmployee }) {
         return
       }
 
-      setEmployee(data.employee)
+      setEmployee({...data.employee})
       setError(null)
       ToastSuccess('Empleado actualizado correctamente')
 

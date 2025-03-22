@@ -184,7 +184,7 @@ export const getSupervisorReports = async (req, res, next) => {
 
     if (supervisorReports.length > 0) {
 
-      res.status(200).json({data: supervisorReports[0].reports})
+      res.status(200).json({ data: supervisorReports[0].reports })
 
     } else {
 
@@ -194,5 +194,263 @@ export const getSupervisorReports = async (req, res, next) => {
   } catch (error) {
 
     next(error)
+  }
+}
+
+export const recalculateSupervisorReport = async (req, res, next) => {
+
+  const { reportId } = req.params
+
+  try {
+
+    const supervisorReport = await fetchFullSupervisorReport(reportId)
+
+    if (!supervisorReport) throw new Error("No se encontró el reporte de supervisor");
+
+    const extraOutgoings = supervisorReport.extraOutgoingsArray.reduce((acc, extraOutgoing) => acc + extraOutgoing.amount, 0)
+    const incomes = supervisorReport.incomesArray.reduce((acc, income) => acc + income.amount, 0)
+    const verifiedCash = supervisorReport.verifiedCash
+    const verifiedDeposits = supervisorReport.verifiedDeposits
+
+    const balance = (incomes - extraOutgoings - verifiedCash - verifiedDeposits) * -1
+
+    const updatedSupervisorReport = await SupervisorReport.findByIdAndUpdate(
+      supervisorReport._id,
+      { balance },
+      { new: true }
+    )
+
+    if (!updatedSupervisorReport) throw new Error("No se pudo actualizar el reporte de supervisor")
+
+    res.status(200).json({
+      data: {...supervisorReport, balance},
+      message: "Se recalculó el reporte de supervisor",
+      success: true
+    })
+
+  } catch (error) {
+
+    next(error)
+  }
+}
+
+export const setBalanceOnZero = async (req, res, next) => {
+
+  const { reportId } = req.params
+
+  try {
+
+
+    const updatedSupervisorReport = await SupervisorReport.findByIdAndUpdate(
+      reportId,
+      { balance: 0 },
+      { new: true }
+    )
+
+    if (!updatedSupervisorReport) throw new Error("No se pudo actualizar el reporte de supervisor")
+
+    res.status(200).json({
+      data: updatedSupervisorReport,
+      message: "Se actualizó el reporte de supervisor",
+      success: true
+    })
+
+  } catch (error) {
+
+    next(error)
+  }
+}
+
+export const fetchFullSupervisorReport = async (supervisorReportId, supervisorId = null, date = null) => {
+
+  const { bottomDate, topDate } = date ? getDayRange(date) : { bottomDate: null, topDate: null }
+
+  const match = supervisorReportId ? { _id: new Types.ObjectId(supervisorReportId) } : {
+    createdAt: { $lt: topDate, $gte: bottomDate },
+    supervisor: new Types.ObjectId(supervisorId)
+  }
+
+  try {
+
+    const supervisorReport = await SupervisorReport.aggregate([
+      { $match: match },
+      {
+        $lookup: {
+          from: 'employees',
+          localField: 'supervisor',
+          foreignField: '_id',
+          as: 'supervisor'
+        }
+      },
+      { $unwind: { path: '$supervisor', preserveNullAndEmptyArrays: false } },
+      {
+        $lookup: {
+          from: 'extraoutgoings',
+          localField: 'extraOutgoingsArray',
+          foreignField: '_id',
+          as: 'extraOutgoingsArray',
+          pipeline: [
+            { $sort: { "amount": -1 } },
+            {
+              $lookup: {
+                from: 'employeepayments',
+                localField: '_id',
+                foreignField: 'extraOutgoing',
+                as: 'employeePayment',
+                pipeline: [
+                  {
+                    $lookup: {
+                      from: 'employees',
+                      localField: 'employee',
+                      foreignField: '_id',
+                      as: 'employee'
+                    }
+                  },
+                  { $unwind: { path: '$employee', preserveNullAndEmptyArrays: true } }
+                ]
+              }
+            },
+            { $unwind: { path: '$employeePayment', preserveNullAndEmptyArrays: true } },
+            {
+              $lookup: {
+                from: 'employees',
+                localField: 'employee',
+                foreignField: '_id',
+                as: 'employee'
+              }
+            },
+            { $unwind: { path: '$employee', preserveNullAndEmptyArrays: true } }
+          ]
+        }
+      },
+      {
+        $lookup: {
+          from: 'incomecollecteds',
+          localField: 'incomesArray',
+          foreignField: '_id',
+          as: 'incomesArray',
+          pipeline: [
+            {
+              $lookup: {
+                from: 'employees',
+                localField: 'employee',
+                foreignField: '_id',
+                as: 'employee'
+              }
+            },
+            { $unwind: { path: '$employee', preserveNullAndEmptyArrays: true } },
+            {
+              $lookup: {
+                from: 'incometypes',
+                localField: 'type',
+                foreignField: '_id',
+                as: 'type'
+              }
+            },
+            { $unwind: { path: '$type', preserveNullAndEmptyArrays: true } },
+            {
+              $lookup: {
+                from: 'employeepayments',
+                localField: '_id',
+                foreignField: 'income',
+                as: 'employeePayment',
+                pipeline: [
+                  {
+                    $lookup: {
+                      from: 'employees',
+                      localField: 'employee',
+                      foreignField: '_id',
+                      as: 'employee'
+                    }
+                  },
+                  { $unwind: { path: '$employee', preserveNullAndEmptyArrays: true } }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ])
+
+    return supervisorReport[0] ? supervisorReport[0] : null
+
+  } catch (error) {
+
+    throw new Error(error)
+  }
+}
+
+export const fetchSupervisorReportWithIncomes = async (supervisorReportId, supervisorId = null, date = null) => {
+
+  const { bottomDate, topDate } = date ? getDayRange(date) : { bottomDate: null, topDate: null }
+
+  const match = supervisorReportId ? { _id: new Types.ObjectId(supervisorReportId) } : {
+    createdAt: { $lt: topDate, $gte: bottomDate },
+    supervisor: new Types.ObjectId(supervisorId)
+  }
+
+  try {
+
+    const supervisorReport = await SupervisorReport.aggregate([
+      { $match: match },
+      {
+        $lookup: {
+          from: 'employees',
+          localField: 'supervisor',
+          foreignField: '_id',
+          as: 'supervisor'
+        }
+      },
+      { $unwind: { path: '$supervisor', preserveNullAndEmptyArrays: false } },
+      {
+        $lookup: {
+          from: 'extraoutgoings',
+          localField: 'extraOutgoingsArray',
+          foreignField: '_id',
+          as: 'extraOutgoingsArray',
+          pipeline: [
+            { $sort: { "amount": -1 } },
+            {
+              $lookup: {
+                from: 'employeepayments',
+                localField: '_id',
+                foreignField: 'extraOutgoing',
+                as: 'employeePayment',
+                pipeline: [
+                  {
+                    $lookup: {
+                      from: 'employees',
+                      localField: 'employee',
+                      foreignField: '_id',
+                      as: 'employee'
+                    }
+                  },
+                  { $unwind: { path: '$employee', preserveNullAndEmptyArrays: true } }
+                ]
+              }
+            },
+            { $unwind: { path: '$employeePayment', preserveNullAndEmptyArrays: true } },
+            {
+              $lookup: {
+                from: 'employees',
+                localField: 'employee',
+                foreignField: '_id',
+                as: 'employee'
+              }
+            },
+            { $unwind: { path: '$employee', preserveNullAndEmptyArrays: true } }
+          ]
+        }
+      },
+      lookupSupervisorReportIncomes('Depósito', 'depositsArray'),
+      lookupSupervisorReportIncomes('Efectivo', 'cashArray'),
+      lookupSupervisorReportIncomes('Terminal', 'terminalIncomesArray'),
+    ])
+
+    return supervisorReport[0] ? supervisorReport[0] : null
+
+  } catch (error) {
+
+    throw new Error(error)
   }
 }

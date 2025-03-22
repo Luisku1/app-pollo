@@ -1,4 +1,4 @@
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useSelector } from 'react-redux'
 import { useParams, useNavigate } from 'react-router-dom';
 import FechaDePagina from "../components/FechaDePagina";
@@ -10,8 +10,10 @@ import { useRoles } from "../context/RolesContext";
 import ShowListModal from "../components/Modals/ShowListModal";
 import Amount from "../components/Incomes/Amount";
 import TarjetaCuenta from "../components/TarjetaCuenta";
-import SupervisorReportCard from "../components/SupervisorReportCard";
 import SupervisorReportList from "../components/SupervisorReportList";
+import Modal from "../components/Modals/Modal";
+import BranchReportCard from "../components/BranchReportCard";
+import SupervisorReportCard from "../components/SupervisorReportCard";
 
 export default function Nomina() {
 
@@ -19,9 +21,11 @@ export default function Nomina() {
   let datePickerValue = (paramsDate ? new Date(paramsDate) : new Date())
   let stringDatePickerValue = formatDate(datePickerValue)
   const { company, currentUser } = useSelector((state) => state.user)
-  const { employeesPayroll, replaceReport } = useEmployeesPayroll({ companyId: company._id, date: stringDatePickerValue })
+  const { employeesPayroll, replaceReport, replaceSupervisorReport } = useEmployeesPayroll({ companyId: company._id, date: stringDatePickerValue })
   const { roles, isManager } = useRoles()
   const navigate = useNavigate()
+  const [branchReportCard, setBranchReportCard] = useState(null)
+  const [supervisorReportCard, setSupervisorReportCard] = useState(null)
 
   const changeDatePickerValue = (e) => {
 
@@ -46,7 +50,33 @@ export default function Nomina() {
 
     <main className="p-3 max-w-lg mx-auto">
 
-      {roles && isManager(currentUser.role)?
+      {branchReportCard &&
+        <Modal
+          closeModal={() => setBranchReportCard(null)}
+          content={
+            <BranchReportCard
+              reportData={branchReportCard}
+              replaceReport={replaceReport}
+              externalIndex={branchReportCard.externalIndex}
+              selfChange={setBranchReportCard}
+            />
+          }
+        />
+      }
+      {supervisorReportCard &&
+        <Modal
+          closeModal={() => setSupervisorReportCard(null)}
+          content={
+            <SupervisorReportCard
+              supervisorReport={supervisorReportCard}
+              replaceReport={replaceSupervisorReport}
+              externalIndex={supervisorReportCard.externalIndex}
+              selfChange={setSupervisorReportCard}
+            />
+          }
+        />
+      }
+      {roles && isManager(currentUser.role) ?
 
         <FechaDePagina changeDay={changeDay} stringDatePickerValue={stringDatePickerValue} changeDatePickerValue={changeDatePickerValue} ></FechaDePagina>
 
@@ -60,9 +90,9 @@ export default function Nomina() {
 
         {roles && isManager(currentUser.role) && employeesPayroll && employeesPayroll.length > 0 && employeesPayroll.map((employeePayroll, index) => {
 
-          const { previousWeekBalance, employee, branchReports, accountBalance, foodDiscount, missingWorkDiscount, supervisorBalance, employeePaymentsAmount } = employeePayroll
+          const { previousWeekBalance, employeeDailyBalances, employee, branchReports, accountBalance, employeePayments, foodDiscount, supervisorReports, missingWorkDiscount, supervisorBalance, employeePaymentsAmount } = employeePayroll
           const salary = employee?.salary ?? 0
-          const totalToPay = employeePayroll.balance + employeePayroll.supervisorBalance + foodDiscount + missingWorkDiscount - employeePaymentsAmount + salary
+          const totalToPay = accountBalance + supervisorBalance + foodDiscount + missingWorkDiscount - employeePaymentsAmount + salary
 
           return (
 
@@ -71,7 +101,7 @@ export default function Nomina() {
                 <div id="header" className="w-full mt-1 mb-2 border-b border-black shadow-sm text-center">
                   <div className="w-full">
                     <div className="w-full">
-                      <button className="w-fit text-2xl font-semibold my-4 p-2 shadow-sm text-white rounded-lg bg-slate-500 flex" onClick={() => { navigate(`/perfil/${employeePayroll.employee._id}`) }}>{`${employeePayroll.employee.name} ${employeePayroll.employee.lastName}`}</button>
+                      <button className="w-fit text-2xl font-semibold my-4 p-2 shadow-sm text-white rounded-lg bg-slate-500 flex" onClick={() => { navigate(`/perfil/${employee._id}`) }}>{`${employee.name} ${employee.lastName}`}</button>
 
                       <div className="">
                         < div className=" text-lg mx-4 mt-2">
@@ -81,42 +111,43 @@ export default function Nomina() {
                           </div>
                           <div className="grid grid-cols-2 text-left">
                             <p className="font-semibold">Saldo previo: </p>
-                            <p className={(employeePayroll.previousWeekBalance < 0 ? 'text-red-500 ' : ' ') + ' my-auto font-bold w-fit'}>{employeePayroll.previousWeekBalance.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>
+                            <p className={(previousWeekBalance < 0 ? 'text-red-500 ' : ' ') + ' my-auto font-bold w-fit'}>{previousWeekBalance.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>
                           </div>
                           <div className="grid grid-cols-2 text-left items-center">
                             <p className="font-semibold">Semana en pollería: </p>
                             <ShowListModal
-                              title={`Reportes de ${getEmployeeFullName(employeePayroll.employee, (employee) => employee.name + ' ' + employee.lastName)}`}
+                              title={`Reportes de ${getEmployeeFullName(employee, (employee) => employee.name + ' ' + employee.lastName)}`}
                               ListComponent={TarjetaCuenta}
                               ListComponentProps={{ reportArray: branchReports, replaceReport: replaceReport, payrollIndex: index }}
-                              clickableComponent={<p className={(employeePayroll.accountBalance < 0 ? 'text-red-500' : '') + ' my-auto font-bold border border-black shadow-sm rounded-lg w-fit'}>{employeePayroll.accountBalance.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>}
+                              clickableComponent={<p className={(accountBalance < 0 ? 'text-red-500' : '') + ' my-auto font-bold border border-black shadow-sm rounded-lg w-fit'}>{accountBalance.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>}
                             />
                           </div>
                           <div className="grid grid-cols-2 text-left items-center">
                             <p className="font-semibold">Semana en supervisión: </p>
                             <ShowListModal
-                              title={`Reportes de ${getEmployeeFullName(employeePayroll.employee, (employee) => employee.name + ' ' + employee.lastName)}`}
+                              title={`Reportes de ${getEmployeeFullName(employee, (employee) => employee.name + ' ' + employee.lastName)}`}
                               ListComponent={SupervisorReportList}
-                              ListComponentProps={{ supervisorReports: employeePayroll.supervisorReports }}
-                              clickableComponent={<p className={(employeePayroll.supervisorBalance < 0 ? 'text-red-500' : '') + ' my-auto font-bold border border-black shadow-sm rounded-lg w-fit'}>{employeePayroll.supervisorBalance.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>}
+                              ListComponentProps={{ supervisorReports: supervisorReports, replaceReport: replaceSupervisorReport, payrollIndex: index }}
+                              clickableComponent={<p className={(supervisorBalance < 0 ? 'text-red-500' : '') + ' my-auto font-bold border border-black shadow-sm rounded-lg w-fit'}>{supervisorBalance.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>}
                             />
                           </div>
                           <div className="grid grid-cols-2 text-left items-center">
                             <p className="font-semibold">Pagos en la semana: </p>
                             <ShowListModal
-                              data={employeePayroll.employeePaymentsArray}
-                              title={`Pagos a ${getEmployeeFullName(employeePayroll.employee)}`}
+                              data={employeePayments}
+                              title={`Pagos a ${getEmployeeFullName(employee)}`}
                               ListComponent={EmployeePaymentsList}
-                              ListComponentProps={{ payments: employeePayroll.employeePaymentsArray, total: employeePayroll.employeePaymentsAmount }}
+                              ListComponentProps={{ payments: employeePayments, total: employeePaymentsAmount }}
                               clickableComponent={<p className="font-bold border border-black text-red-500 rounded-lg shadow-sm w-fit">{currency({ amount: employeePayroll.employeePaymentsAmount })}</p>}
                             />
                           </div>
                           <div className="grid grid-cols-2 text-left items-center">
                             <p>Pago Esperado: </p>
-                            {Amount({ amount: totalToPay })}
+                            <p className=" border border-black w-fit rounded-lg px-1">
+                              {Amount({ amount: totalToPay })}
+                            </p>
                           </div>
                         </div>
-
                         <div className="grid grid-cols-12 row-span-1 mt-3 text-center border-black">
                           <p className="col-span-5 font-semibold">Fecha</p>
                           <div className="col-span-2">
@@ -126,7 +157,6 @@ export default function Nomina() {
                           <div className="col-span-2 text-center">
                             <p className="text-xs  text-center">Cuenta</p>
                             <p className="text-xs truncate text-center">Supervisor</p>
-
                             <p className={(supervisorBalance < 0 ? 'text-red-500' : '') + ' text-xs my-auto'}>{employeePayroll.supervisorBalance.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>
                           </div>
                           <div className="col-span-1">
@@ -147,30 +177,35 @@ export default function Nomina() {
                   </div>
                 </div>
 
-                {employeePayroll.employeeDailyBalancesArray && employeePayroll.employeeDailyBalancesArray.length > 0 && employeePayroll.employeeDailyBalancesArray.map((dailyBalance) => (
-                  <div
-                    className={`grid col-span-12 grid-cols-12 p-1 mt-1 ${dailyBalance.accountBalance < 0 || dailyBalance.supervisorBalance < 0 ? 'bg-pastel-pink' : ''}`}
-                    key={dailyBalance._id}
-                  >
+                {Array.from({ length: 7 }).map((_, i) => {
 
-                    <p className="text-sm col-span-5 truncate">{(new Date(dailyBalance.createdAt)).toLocaleDateString('es-mx', { weekday: 'long', month: '2-digit', day: '2-digit' })}</p>
+                  const date = new Date(datePickerValue);
+                  date.setDate(date.getDate() - (i + 1));
+                  const dailyBalance = employeeDailyBalances.find((balance) => formatDate(balance.createdAt) === formatDate(date)) || null;
+                  const branchReport = branchReports.find((report) => formatDate(report.createdAt) === formatDate(date)) || null;
+                  const supervisorReport = supervisorReports.find((report) => formatDate(report.createdAt) === formatDate(date)) || null;
+                  const { foodDiscount = false, restDay = false, dayDiscount = true } = dailyBalance || {};
+                  const { balance: branchBalance = 0 } = branchReport || {};
+                  const { balance: supervisorBalance = 0 } = supervisorReport || {};
 
-                    <p
-                      className={`border border-black text-center col-span-2 ${dailyBalance.accountBalance < 0 ? 'text-red-500' : ''}`}
+                  return (
+                    <div
+                      className={`grid col-span-12 grid-cols-12 p-1 mt-1 ${branchBalance < 0 || supervisorBalance < 0 || foodDiscount || dayDiscount ? 'bg-pastel-pink' : ''}`}
+                      key={date.toDateString()}
                     >
-                      {dailyBalance.accountBalance.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}
-                    </p>
-                    <p
-                      className={`border border-black text-center col-span-2 ${dailyBalance.supervisorBalance < 0 ? 'text-red-500' : ''}`}
-                    >
-                      {dailyBalance.supervisorBalance.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}
-                    </p>
-                    <input className='col-span-1' type="checkbox" name="foodDiscount" id="foodDiscount" defaultChecked={dailyBalance.foodDiscount} />
-                    <input className='col-span-1' type="checkbox" name="restDay" id="restDay" defaultChecked={dailyBalance.restDay} />
-                    <input className='col-span-1' type="checkbox" name="dayDiscount" id="dayDiscount" defaultChecked={dailyBalance.dayDiscount} />
-                  </div>
-
-                ))}
+                      <p className="text-sm col-span-5 truncate">{date.toLocaleDateString('es-mx', { weekday: 'long', month: '2-digit', day: '2-digit' })}</p>
+                      <button onClick={() => { setBranchReportCard({...branchReport, externalIndex: index}) }} disabled={branchReport == null} className={`border border-black text-center col-span-2 ${branchBalance < 0 ? 'text-red-500' : ''}`}>
+                        {currency({ amount: branchBalance })}
+                      </button>
+                      <button onClick={() => { setSupervisorReportCard({...supervisorReport, externalIndex: index}) }} disabled={supervisorReport == null} className={`border border-black text-center col-span-2 ${supervisorBalance < 0 ? 'text-red-500' : ''}`}>
+                        {currency({ amount: supervisorBalance })}
+                      </button>
+                      <input className='col-span-1' type="checkbox" name="foodDiscount" id="foodDiscount" defaultChecked={foodDiscount} />
+                      <input className='col-span-1' type="checkbox" name="restDay" id="restDay" defaultChecked={restDay} />
+                      <input className='col-span-1' type="checkbox" name="dayDiscount" id="dayDiscount" defaultChecked={dayDiscount} />
+                    </div>
+                  );
+                })}
                 <div className="col-span-12 mt-4 p-2 bg-button text-white rounded-lg mx-2">
                   <button className="w-full">Liberar nómina</button>
                 </div>

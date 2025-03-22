@@ -5,7 +5,9 @@ import { useRoles } from '../../context/RolesContext'
 import { useSelector } from 'react-redux'
 import BranchPrices from './BranchPrices'
 import { usePricesSelector } from '../../hooks/Prices/usePricesSelector'
-import { FaArrowLeft, FaArrowRight } from 'react-icons/fa'
+import { FaArrowLeft, FaArrowRight, FaSpinner } from 'react-icons/fa'
+import useChangePrices from '../../hooks/Prices/useChangePrices'
+import { blockedButton } from '../../helpers/Constants'
 
 export default function ChangeBranchPrices({ children, onChange, branch, date, onUpdateBranchReport }) {
 
@@ -13,6 +15,7 @@ export default function ChangeBranchPrices({ children, onChange, branch, date, o
   const [pricesDate, setPricesDate] = useState(null)
   const [direction, setDirection] = useState(null)
   const { prices, loading } = usePricesSelector(branch, date, pricesDate, direction)
+  const { changePrices } = useChangePrices()
   const { currentUser } = useSelector(state => state.user)
   const [isChanging, setIsChanging] = useState(false)
   const ableToModify = isManager(currentUser.role)
@@ -50,49 +53,61 @@ export default function ChangeBranchPrices({ children, onChange, branch, date, o
 
   const handlePricesChange = async (e) => {
     e.preventDefault()
-    await onChange(prices, date, newestPricesDate, onUpdateBranchReport)
-    togglePriceChanger()
-    setDirection(null)
+    try {
+      if (onChange && onUpdateBranchReport) {
+        await onChange(prices, date, newestPricesDate, onUpdateBranchReport)
+      }
+
+      if (onUpdateBranchReport && !onChange) {
+        onUpdateBranchReport(await changePrices(branch, date, newestPricesDate))
+      }
+
+      togglePriceChanger()
+      setDirection(null)
+    } catch (error) {
+      console.error('Error changing prices:', error)
+    }
   }
 
   const renderPricesChanger = () => {
     return (
-      <div>
-        <div className="flex justify-between mt-2">
-          <button
-            className="bg-button text-white p-2 rounded-lg uppercase hover:bg-gray-600 flex items-center"
-            onClick={handlePreviousPrice}
-          >
-            <FaArrowLeft className="mr-2" />
-          </button>
-          <button
-            className="bg-button text-white p-2 rounded-lg uppercase hover:bg-gray-600"
-            onClick={handleCurrentPrice}
-          >
-            Precio Actual
-          </button>
-          <button
-            className="bg-button text-white p-2 rounded-lg uppercase hover:bg-gray-600 flex items-center"
-            onClick={handleNextPrice}
-          >
-            <FaArrowRight className="ml-2" />
-          </button>
-        </div>
-
-        {loading ? (
-          <div className="flex justify-center items-center h-full mt-4">
-            <p>Cargando...</p>
+      <div className="relative">
+        {loading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-50 z-50">
+            <FaSpinner className="text-4xl animate-spin" />
           </div>
-        ) : (
-          prices && prices?.length > 0 && (
+        )}
+        <div className={`${loading ? 'blur-sm' : ''}`}>
+          <div className="flex justify-between mt-2">
+            <button
+              className="bg-button text-lg text-white p-2 rounded-lg uppercase hover:bg-gray-600 flex items-center"
+              onClick={handlePreviousPrice}
+            >
+              <FaArrowLeft className="mr-2" />
+            </button>
+            <button
+              className="bg-button text-lg text-white p-2 rounded-lg uppercase hover:bg-gray-600"
+              onClick={handleCurrentPrice}
+            >
+              Precio Actual
+            </button>
+            <button
+              className="bg-button text-lg text-white p-2 rounded-lg uppercase hover:bg-gray-600 flex items-center"
+              onClick={handleNextPrice}
+            >
+              <FaArrowRight className="ml-2" />
+            </button>
+          </div>
+
+          {prices && prices?.length > 0 && (
             <div>
-              {!isEmpty && newestPricesDate && <p className="text-center mt-2">{`Precios creados el: ${(new Date(newestPricesDate)).toLocaleDateString()}`}</p>}
+              {!isEmpty && newestPricesDate && <p className="text-center text-lg mt-2">{`Precios creados el: ${(new Date(newestPricesDate)).toLocaleDateString()}`}</p>}
               <BranchPrices prices={prices} branch={branch} pricesDate={pricesDate} />
             </div>
-          )
-        )}
+          )}
 
-        <button className='w-full bg-button text-white p-3 rounded-lg uppercase hover:opacity-95 mt-2' onClick={handlePricesChange}>Cambiar Precios</button>
+          <button className='w-full bg-button text-lg text-white p-3 rounded-lg uppercase hover:opacity-95 mt-2' onClick={handlePricesChange}>Cambiar Precios</button>
+        </div>
       </div>
     )
   }
@@ -102,7 +117,7 @@ export default function ChangeBranchPrices({ children, onChange, branch, date, o
       {children && (
         <div>
           {ableToModify ? (
-            <button className="w-full h-full border rounded-lg border-black shadow-md" onClick={() => { togglePriceChanger() }}>
+            <button className={`border border-black rounded-lg ${!isManager(currentUser.role) ? blockedButton : ''}`} disabled={!isManager(currentUser.role)} onClick={() => { togglePriceChanger() }}  >
               {children}
             </button>
           ) : (

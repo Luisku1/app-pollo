@@ -1,7 +1,7 @@
 import SupervisorReportCard from "./SupervisorReportCard"
 
 /* eslint-disable react/prop-types */
-export default function SupervisorReportList({ supervisorReports }) {
+export default function SupervisorReportList({ supervisorReports, replaceReport, externalIndex }) {
 
   return (
     <div className="w-full relative">
@@ -10,6 +10,8 @@ export default function SupervisorReportList({ supervisorReports }) {
           <SupervisorReportCard
             key={report._id}
             supervisorReport={report}
+            replaceReport={replaceReport}
+            externalIndex={externalIndex}
           />
         ))}
       </div>

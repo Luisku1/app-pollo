@@ -713,10 +713,140 @@ export const fetchEmployeesPayroll = async ({ companyId, date }) => {
 						},
 						{
 							$lookup: {
+								from: 'outputs',
+								localField: 'outputsArray',
+								foreignField: '_id',
+								as: 'outputsArray',
+								pipeline: [
+									{
+										$lookup: {
+											from: 'products',
+											localField: 'product',
+											foreignField: '_id',
+											as: 'product',
+										},
+									},
+									{ $unwind: { path: '$product', preserveNullAndEmptyArrays: true } },
+									{
+										$lookup: {
+											from: 'employees',
+											localField: 'employee',
+											foreignField: '_id',
+											as: 'employee',
+										},
+									},
+									{ $unwind: { path: '$employee', preserveNullAndEmptyArrays: true } },
+									{
+										$lookup: {
+											from: 'branches',
+											localField: 'branch',
+											foreignField: '_id',
+											as: 'branch',
+										},
+									},
+									{ $unwind: { path: '$branch', preserveNullAndEmptyArrays: true } },
+									{
+										$lookup: {
+											from: 'customers',
+											localField: 'customer',
+											foreignField: '_id',
+											as: 'customer',
+										},
+									},
+									{ $unwind: { path: '$customer', preserveNullAndEmptyArrays: true } },
+								]
+							}
+						},
+						{
+							$lookup: {
+								from: 'inputs',
+								localField: 'inputsArray',
+								foreignField: '_id',
+								as: 'inputsArray',
+								pipeline: [
+									{
+										$lookup: {
+											from: 'products',
+											localField: 'product',
+											foreignField: '_id',
+											as: 'product',
+										},
+									},
+									{ $unwind: { path: '$product', preserveNullAndEmptyArrays: true } },
+									{
+										$lookup: {
+											from: 'employees',
+											localField: 'employee',
+											foreignField: '_id',
+											as: 'employee',
+										},
+									},
+									{ $unwind: { path: '$employee', preserveNullAndEmptyArrays: true } },
+									{
+										$lookup: {
+											from: 'branches',
+											localField: 'branch',
+											foreignField: '_id',
+											as: 'branch',
+										},
+									},
+									{ $unwind: { path: '$branch', preserveNullAndEmptyArrays: true } },
+									{
+										$lookup: {
+											from: 'customers',
+											localField: 'customer',
+											foreignField: '_id',
+											as: 'customer',
+										},
+									},
+									{ $unwind: { path: '$customer', preserveNullAndEmptyArrays: true } },
+								],
+							}
+						},
+						{
+							$lookup: {
 								from: 'providerinputs',
 								localField: 'providerInputsArray',
 								foreignField: '_id',
-								as: 'providerInputsArray'
+								as: 'providerInputsArray',
+								pipeline: [
+									{
+										$lookup: {
+											from: 'products',
+											localField: 'product',
+											foreignField: '_id',
+											as: 'product',
+										},
+									},
+									{ $unwind: { path: '$product', preserveNullAndEmptyArrays: true }, },
+									{
+										$lookup: {
+											from: 'employees',
+											localField: 'employee',
+											foreignField: '_id',
+											as: 'employee',
+										},
+									},
+									{ $unwind: { path: '$employee', preserveNullAndEmptyArrays: true } },
+									{
+										$lookup: {
+											from: 'branches',
+											localField: 'branch',
+											foreignField: '_id',
+											as: 'branch',
+										},
+									},
+									{ $unwind: { path: '$branch', preserveNullAndEmptyArrays: true } },
+									{
+										$lookup: {
+											from: 'customers',
+											localField: 'customer',
+											foreignField: '_id',
+											as: 'customer',
+										},
+									},
+									{ $unwind: { path: '$customer', preserveNullAndEmptyArrays: true } },
+								],
 							}
 						},
 						{
@@ -724,7 +854,85 @@ export const fetchEmployeesPayroll = async ({ companyId, date }) => {
 								from: 'incomecollecteds',
 								localField: 'incomesArray',
 								foreignField: '_id',
-								as: 'incomesArray' // Poblamos con documentos completos
+								as: 'incomesArray',
+								pipeline: [
+									{
+										$lookup: {
+											from: 'employeepayments',
+											localField: '_id',
+											foreignField: 'income',
+											as: 'employeePayment',
+											pipeline: [
+												{
+													$lookup: {
+														from: 'employees',
+														localField: 'employee',
+														foreignField: '_id',
+														as: 'employee'
+													}
+												},
+												{ $unwind: { path: '$employee', preserveNullAndEmptyArrays: true } }
+											]
+										}
+									},
+									{ $unwind: { path: '$employeePayment', preserveNullAndEmptyArrays: true } },
+									{
+										$lookup: {
+											from: 'incometypes',
+											localField: 'type',
+											foreignField: '_id',
+											as: 'type',
+										},
+									},
+									{
+										$unwind: { path: '$type', preserveNullAndEmptyArrays: true }
+									},
+									{
+										$lookup: {
+											from: 'employees',
+											localField: 'employee',
+											foreignField: '_id',
+											as: 'employee'
+										}
+									},
+									{ $unwind: { path: '$employee', preserveNullAndEmptyArrays: true } },
+									{
+										$lookup: {
+											from: 'branches',
+											localField: 'branch',
+											foreignField: '_id',
+											as: 'branch'
+										}
+									},
+									{ $unwind: { path: '$branch', preserveNullAndEmptyArrays: true } },
+									{
+										$lookup: {
+											from: 'customers',
+											localField: 'customer',
+											foreignField: '_id',
+											as: 'customer'
+										}
+									},
+									{ $unwind: { path: '$customer', preserveNullAndEmptyArrays: true } },
+									{
+										$lookup: {
+											from: 'employees',
+											localField: 'owner',
+											foreignField: '_id',
+											as: 'owner'
+										}
+									},
+									{ $unwind: { path: '$owner', preserveNullAndEmptyArrays: true } },
+									{
+										$lookup: {
+											from: 'employees',
+											localField: 'prevOwner',
+											foreignField: '_id',
+											as: 'prevOwner'
+										}
+									},
+									{ $unwind: { path: '$prevOwner', preserveNullAndEmptyArrays: true } }
+								]
 							}
 						},
 						{
@@ -732,7 +940,27 @@ export const fetchEmployeesPayroll = async ({ companyId, date }) => {
 								from: 'outgoings',
 								localField: 'outgoingsArray',
 								foreignField: '_id',
-								as: 'outgoingsArray' // Poblamos con documentos completos
+								as: 'outgoingsArray',
+								pipeline: [
+									{
+										$lookup: {
+											from: 'employees',
+											localField: 'employee',
+											foreignField: '_id',
+											as: 'employee'
+										}
+									},
+									{ $unwind: { path: '$employee', preserveNullAndEmptyArrays: true } },
+									{
+										$lookup: {
+											from: 'branches',
+											localField: 'branch',
+											foreignField: '_id',
+											as: 'branch'
+										}
+									},
+									{ $unwind: { path: '$branch', preserveNullAndEmptyArrays: true } }
+								]
 							}
 						},
 						{
@@ -740,7 +968,73 @@ export const fetchEmployeesPayroll = async ({ companyId, date }) => {
 								from: 'stocks',
 								localField: 'finalStockArray',
 								foreignField: '_id',
-								as: 'finalStockArray' // Poblamos con documentos completos
+								as: 'finalStockArray',
+								pipeline: [
+									{
+										$lookup: {
+											from: 'products',
+											localField: 'product',
+											foreignField: '_id',
+											as: 'product',
+										}
+									},
+									{ $unwind: { path: '$product', preserveNullAndEmptyArrays: true } },
+									{
+										$lookup: {
+											from: 'employees',
+											localField: 'employee',
+											foreignField: '_id',
+											as: 'employee'
+										}
+									},
+									{ $unwind: { path: '$employee', preserveNullAndEmptyArrays: true } },
+									{
+										$lookup: {
+											from: 'branches',
+											localField: 'branch',
+											foreignField: '_id',
+											as: 'branch'
+										}
+									},
+									{ $unwind: { path: '$branch', preserveNullAndEmptyArrays: true } }
+								]
+							}
+						},
+						{
+							$lookup: {
+								from: 'stocks',
+								localField: 'initialStockArray',
+								foreignField: '_id',
+								as: 'initialStockArray',
+								pipeline: [
+									{
+										$lookup: {
+											from: 'products',
+											localField: 'product',
+											foreignField: '_id',
+											as: 'product',
+										}
+									},
+									{ $unwind: { path: '$product', preserveNullAndEmptyArrays: true } },
+									{
+										$lookup: {
+											from: 'employees',
+											localField: 'employee',
+											foreignField: '_id',
+											as: 'employee'
+										}
+									},
+									{ $unwind: { path: '$employee', preserveNullAndEmptyArrays: true } },
+									{
+										$lookup: {
+											from: 'branches',
+											localField: 'branch',
+											foreignField: '_id',
+											as: 'branch'
+										}
+									},
+									{ $unwind: { path: '$branch', preserveNullAndEmptyArrays: true } }
+								]
 							}
 						},
 						{
@@ -784,7 +1078,7 @@ export const fetchEmployeesPayroll = async ({ companyId, date }) => {
 					from: 'employeepayments',
 					localField: 'employee',
 					foreignField: 'employee',
-					as: 'employeePaymentsArray',
+					as: 'employeePayments',
 					pipeline: [
 						{
 							$match: { createdAt: { $gte: new Date(firstTopDate), $lt: new Date(lastTopDate) } }
@@ -813,6 +1107,17 @@ export const fetchEmployeesPayroll = async ({ companyId, date }) => {
 						},
 						{
 							$unwind: { path: '$employee', preserveNullAndEmptyArrays: true }
+						},
+						{
+							$lookup: {
+								from: 'branches',
+								foreignField: '_id',
+								localField: 'branch',
+								as: 'branch'
+							}
+						},
+						{
+							$unwind: { path: '$branch', preserveNullAndEmptyArrays: true }
 						}
 					]
 				}
@@ -943,7 +1248,7 @@ export const fetchEmployeesPayroll = async ({ companyId, date }) => {
 					from: 'employeedailybalances',
 					localField: 'employeeDailyBalances',
 					foreignField: '_id',
-					as: 'employeeDailyBalancesArray',
+					as: 'employeeDailyBalances',
 					pipeline: [
 						{
 							$match: { createdAt: { $gte: new Date(weekStart), $lt: new Date(weekEnd) } }
@@ -953,18 +1258,18 @@ export const fetchEmployeesPayroll = async ({ companyId, date }) => {
 			},
 			{
 				$addFields: {
-					accountBalance: { $sum: '$employeeDailyBalancesArray.accountBalance' },
-					supervisorBalance: { $sum: '$employeeDailyBalancesArray.supervisorBalance' },
-					employeePaymentsAmount: { $sum: '$employeePaymentsArray.amount' },
+					accountBalance: { $sum: '$employeeDailyBalances.accountBalance' },
+					supervisorBalance: { $sum: '$supervisorReports.balance' },
+					employeePaymentsAmount: { $sum: '$employeePayments.amount' },
 					missingWorkDiscount: {
 						$multiply: [
-							{ $size: { $filter: { input: '$employeeDailyBalancesArray', as: 'balance', cond: { $eq: ['$$balance.dayDiscount', true] } } } },
+							{ $size: { $filter: { input: '$employeeDailyBalances', as: 'balance', cond: { $eq: ['$$balance.dayDiscount', true] } } } },
 							{ $divide: ['$employee.salary', -7] },
 						],
 					},
 					foodDiscount: {
 						$multiply: [
-							{ $size: { $filter: { input: '$employeeDailyBalancesArray', as: 'balance', cond: { $eq: ['$$balance.foodDiscount', true] } } } },
+							{ $size: { $filter: { input: '$employeeDailyBalances', as: 'balance', cond: { $eq: ['$$balance.foodDiscount', true] } } } },
 							-60,
 						],
 					},
@@ -984,8 +1289,6 @@ export const fetchEmployeesPayroll = async ({ companyId, date }) => {
 				}
 			}
 		])
-
-		console.log(weeklyBalances)
 
 		return weeklyBalances || null
 
@@ -1534,7 +1837,6 @@ export const getEmployeePayroll = async (req, res, next) => {
 	try {
 
 		const employeesPayroll = await fetchEmployeesPayroll({ companyId, date: req.params.date })
-
 		// await refactorEmployeesWeeklyBalances({companyId})
 
 		if (employeesPayroll.length > 0) {

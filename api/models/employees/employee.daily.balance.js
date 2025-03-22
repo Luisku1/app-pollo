@@ -7,11 +7,6 @@ const employeeDailyBalanceSchema = mongoose.Schema({
     default: 0.0
   },
 
-  // branchReportArray: {
-  //   type: [{type: Schema.Types.ObjectId, ref: 'BranchReport'}],
-  //   default: []
-  // },
-
   supervisorBalance: {
     type: Number,
     default: 0.0

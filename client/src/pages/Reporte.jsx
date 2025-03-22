@@ -9,7 +9,6 @@ import Sobrante from "../pages/Sobrante"
 import { useBranchReports } from "../hooks/BranchReports.js/useBranchReports";
 import { getArrayForSelects, currency } from "../helpers/Functions";
 import PieChart from "../components/Charts/PieChart";
-import RegistrarDineroReportado from "../components/RegistrarDineroReportado";
 import EmployeeMultiSelect from "../components/Select/EmployeeMultiSelect";
 import { useSupervisorsReportInfo } from "../hooks/Supervisors/useSupervisorsReportInfo.js";
 import { useRoles } from "../context/RolesContext.jsx";
@@ -52,19 +51,16 @@ export default function Reporte({ untitled = false }) {
   } = useBranchReports({ companyId: company._id, date: stringDatePickerValue })
   const {
     supervisorsInfo,
+    replaceSupervisorReport,
     deposits,
     extraOutgoings,
     loading: loadingSupervisors,
     grossCash,
     missingIncomes,
-    setMissingIncomes,
     netIncomes,
     verifiedIncomes,
-    setVerifiedIncomes,
     verifiedCash,
-    setVerifiedCash,
     verifiedDeposits,
-    setVerifiedDeposits,
     cashArray,
     depositsArray,
     extraOutgoingsArray,
@@ -74,24 +70,7 @@ export default function Reporte({ untitled = false }) {
   const { isLoading } = useLoading([loadingBranchReports, loadingSupervisors])
   const navigate = useNavigate()
   const [pieChartInfo, setPieChartInfo] = useState([])
-  const [negativeBalances, setNegativeBalances] = useState(new Set())
   const [selectedBranchReport, setSelectedBranchReport] = useState(null);
-
-  console.log(supervisorsInfo)
-
-  const updateReportedCash = ({ reportedCash, prevReportedCash, prevReportedIncomes }) => {
-
-    setVerifiedIncomes((prev) => (prev + (reportedCash - prevReportedIncomes)))
-    setVerifiedCash((prev) => (prev + (reportedCash - prevReportedCash)))
-    setMissingIncomes((prev) => (prev - (reportedCash - prevReportedCash)))
-  }
-
-  const updateReportedDeposits = ({ reportedDeposits, prevReportedDeposits, prevReportedIncomes }) => {
-
-    setVerifiedIncomes((prev) => (prev + (reportedDeposits - prevReportedIncomes)))
-    setVerifiedDeposits((prev) => (prev + (reportedDeposits - prevReportedDeposits)))
-    setMissingIncomes((prev) => (prev - (reportedDeposits - prevReportedDeposits)))
-  }
 
   useEffect(() => {
 
@@ -106,7 +85,7 @@ export default function Reporte({ untitled = false }) {
     setPieChartInfo([
       {
         label: 'Ingresos sobrantes',
-        value: verifiedIncomes > totalIncomes ? verifiedIncomes - totalIncomes : 0,
+        value: verifiedIncomes > netIncomes ? verifiedIncomes : 0,
         bgColor: '#FFF',
         borderColor: '#000',
         hoverBgColor: '#fff'
@@ -121,7 +100,7 @@ export default function Reporte({ untitled = false }) {
       },
       {
         label: 'Terminal',
-        value: verifiedDeposits <= terminalIncomes ? verifiedDeposits : terminalIncomes,
+        value: verifiedDeposits <= deposits ? 0 : deposits - verifiedDeposits,
         bgColor: '#808b96',
         borderColor: '#000',
         hoverBgColor: '#2c3e50',
@@ -129,7 +108,7 @@ export default function Reporte({ untitled = false }) {
       },
       {
         label: 'Depósitos',
-        value: verifiedDeposits <= terminalIncomes ? 0 : verifiedDeposits - terminalIncomes,
+        value: verifiedDeposits >= deposits ? deposits : verifiedDeposits,
         bgColor: '#56a0db',
         borderColor: '#0c4e82',
         hoverBgColor: '#0091ff',
@@ -145,7 +124,7 @@ export default function Reporte({ untitled = false }) {
       },
       {
         label: 'Ingresos sin verificar',
-        value: missingIncomes < 0 ? 0 : missingIncomes,
+        value: -missingIncomes < 0 ? 0 : -missingIncomes,
         bgColor: '#a85959',
         borderColor: '#801313',
         hoverBgColor: '#ff0000',
@@ -378,6 +357,7 @@ export default function Reporte({ untitled = false }) {
               <SupervisorReportCard
                 key={supervisorReport._id}
                 supervisorReport={supervisorReport}
+                replaceReport={replaceSupervisorReport}
               />
             ))}
           </div>

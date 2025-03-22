@@ -19,5 +19,5 @@ export const verifyMoneyFetch = async ({ typeField, supervisorId, companyId, amo
 
   }
 
-  return {updatedSupervisorReport: data.updatedSupervisorReport}
+  return data.updatedSupervisorReport
 }

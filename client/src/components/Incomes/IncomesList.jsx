@@ -53,7 +53,6 @@ export default function IncomesList({ incomes = [], onDeleteIncome }) {
   ];
 
   const renderTotal = () => {
-    console.log(incomesTotal)
     return (
       <div className='justify-self-end'>
         <p className='text-green-800 font-bold text-lg'>
@@ -209,8 +208,6 @@ export default function IncomesList({ incomes = [], onDeleteIncome }) {
   }
 
   const renderIncomeItem = (income, index) => {
-
-    // console.log(income)
 
     return (
       <div key={index} className=''>

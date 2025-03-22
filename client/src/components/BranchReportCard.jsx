@@ -19,8 +19,9 @@ import OutgoingsList from "./Outgoings/OutgoingsList"
 import ListaSalidas from "./EntradasYSalidas/Salidas/ListaSalidas"
 import ListaEntradas from "./EntradasYSalidas/Entradas/ListaEntradas"
 import { MdPriceChange } from "react-icons/md";
+import ChangeBranchPrices from "./Prices/ChangeBranchPrices"
 
-export default function BranchReportCard({ reportData, replaceReport, externalIndex }) {
+export default function BranchReportCard({ reportData = {}, replaceReport, externalIndex, selfChange }) {
 
   const { currentUser } = useSelector((state) => state.user)
   const { isController, isManager } = useRoles()
@@ -34,7 +35,9 @@ export default function BranchReportCard({ reportData, replaceReport, externalIn
 
       setLoading(true)
       setToModifyReport(reportId)
-      replaceReport(await setBalanceOnZero(reportId), externalIndex)
+      await setBalanceOnZero(reportId)
+      replaceReport({...reportData, balance: 0}, externalIndex)
+      if(selfChange) selfChange({...reportData, balance: 0})
       setToModifyReport(null)
       setLoading(false)
 
@@ -55,6 +58,7 @@ export default function BranchReportCard({ reportData, replaceReport, externalIn
       setToModifyReport(report._id)
       const updatedReport = await recalculateBranchReport(report)
       replaceReport(updatedReport, externalIndex)
+      if(selfChange) selfChange({...reportData, balance: updatedReport.balance})
       setToModifyReport(null)
       setLoading(false)
 
@@ -85,18 +89,20 @@ export default function BranchReportCard({ reportData, replaceReport, externalIn
         </div>
       </div>
       <div className="w-full flex flex-row-reverse text-3xl gap-3 pr-2">
-        <button className="border border-black rounded-lg" onClick={() => handleReloadReport(reportData)}>
+        <button className="border h-fit border-black rounded-lg" onClick={() => handleReloadReport(reportData)}>
           <TbReload />
         </button>
-        <button onClick={() => { navToEditReport(reportData) }} className="border border-black rounded-lg">
+        <button onClick={() => { navToEditReport(reportData) }} className="border h-fit border-black rounded-lg">
           <MdEdit />
         </button>
-        <button className={`border border-black rounded-lg ${!isController(currentUser.role) ? blockedButton : ''}`} disabled={!isController(currentUser.role)} onClick={() => handleSetReportOnZero(reportData._id)}>
+        <button className={`border h-fit border-black rounded-lg ${!isController(currentUser.role) ? blockedButton : ''}`} disabled={!isController(currentUser.role)} onClick={() => handleSetReportOnZero(reportData._id)}>
           <PiNumberZeroBold />
         </button>
-        <button onClick={() => { navToEditReport(reportData) }} className="border border-black rounded-lg">
-          <MdPriceChange />
-        </button>
+        {isManager(currentUser.role) && (
+          <ChangeBranchPrices onUpdateBranchReport={replaceReport} branch={reportData.branch._id} date={reportData.createdAt} pricesDate={reportData.pricesDate}>
+            <MdPriceChange />
+          </ChangeBranchPrices>
+        )}
       </div>
       <div className="relative">
         {loading && toModifyReport == reportData._id && (

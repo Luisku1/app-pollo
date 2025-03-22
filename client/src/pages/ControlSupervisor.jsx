@@ -43,6 +43,7 @@ export default function ControlSupervisor({ hideFechaDePagina = false }) {
   const { employeesDailyBalances } = useEmployeesDailyBalances({ companyId: company._id, date: stringDatePickerValue })
   const {
     supervisorsInfo,
+    replaceSupervisorReport: replaceReport,
   } = useSupervisorsReportInfo({ companyId: company._id, date: stringDatePickerValue })
 
   const handleShowSections = (section) => {
@@ -160,6 +161,7 @@ export default function ControlSupervisor({ hideFechaDePagina = false }) {
                         <SupervisorReportCard
                           key={supervisorReport._id}
                           supervisorReport={supervisorReport}
+                          replaceReport={replaceReport}
                         />
                       ))}
                     </div>

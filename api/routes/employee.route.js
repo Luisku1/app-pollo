@@ -1,6 +1,6 @@
 import express from 'express'
 import { getEmployees, deleteEmployee, getEmployeesDailyBalances, updateEmployeeDailyBalance, getEmployee, getEmployeeReports, getEmployeeDayInfo, getEmployeePayroll, deleteDuplicatedEmployeeDailyBalances, newEmployeePaymentQuery, getEmployeesPaymentsQuery, deleteEmployeePaymentQuery, getEmployeePayments, getAllEmployees, changeEmployeeActiveStatus, createEmployeeRest, getPendingEmployeesRests, deleteEmployeeRest, updateEmployee, getEmployeePayment, getSignedUser } from '../controllers/employee.controller.js'
-import { getSupervisorReport, getSupervisorReports } from '../controllers/supervisor.report.js'
+import { getSupervisorReport, getSupervisorReports, recalculateSupervisorReport, setBalanceOnZero } from '../controllers/supervisor.report.js'
 
 const router = express.Router()
 
@@ -12,6 +12,8 @@ router.post('/create-employee-rest', createEmployeeRest)
 router.get('/get-pending-employees-rests/:companyId', getPendingEmployeesRests)
 router.post('/employee-payment/create', newEmployeePaymentQuery)
 router.get('/get-supervisor-report/:supervisorId/:date', getSupervisorReport)
+router.patch('/supervisor-report-recalculate/:reportId', recalculateSupervisorReport)
+router.patch('/set-supervisor-report-on-zero/:reportId', setBalanceOnZero)
 router.get('/:incomeId/payment', getEmployeePayment)
 router.get('/get-supervisor-reports/:supervisorId', getSupervisorReports)
 router.get('/get-employees-payments/:companyId/:date', getEmployeesPaymentsQuery)

@@ -24,6 +24,22 @@ export const useEmployeesPayroll = ({ companyId, date }) => {
     })
   }
 
+  const replaceSupervisorReport = (report, payrollIndex) => {
+
+    setEmployeesPayroll((prevEmployeesPayroll) => {
+
+      const newEmployeesPayroll = [...prevEmployeesPayroll]
+      newEmployeesPayroll[payrollIndex].supervisorReports.forEach((supervisorReport, index) => {
+
+        if (supervisorReport._id === report._id) {
+
+          newEmployeesPayroll[payrollIndex].supervisorReports[index] = report
+        }
+      })
+      return newEmployeesPayroll
+    })
+  }
+
   useEffect(() => {
 
     if (!companyId || !date) return
@@ -44,5 +60,5 @@ export const useEmployeesPayroll = ({ companyId, date }) => {
 
   }, [companyId, date])
 
-  return { employeesPayroll, replaceReport, loading, error }
+  return { employeesPayroll, replaceReport, replaceSupervisorReport, loading, error }
 }

@@ -7,6 +7,19 @@ export const useSupervisorReports = ({ supervisorId }) => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
+  const replaceReport = (updatedReport) => {
+
+    setSupervisorReports((prev) => prev.map((report) => {
+
+      if (report._id === updatedReport._id) {
+
+        return updatedReport
+      }
+
+      return report
+    }))
+  }
+
   useEffect(() => {
 
     if (!supervisorId) return
@@ -27,5 +40,5 @@ export const useSupervisorReports = ({ supervisorId }) => {
 
   }, [supervisorId])
 
-  return {supervisorReports, loading, error}
+  return {supervisorReports, replaceReport, loading, error}
 }

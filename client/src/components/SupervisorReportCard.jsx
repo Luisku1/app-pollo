@@ -5,9 +5,6 @@ import { PiNumberZeroBold } from "react-icons/pi"
 import { formatInformationDate, isToday } from "../helpers/DatePickerFunctions"
 import { useSelector } from "react-redux"
 import { useState } from "react"
-import { useNavigate } from "react-router-dom"
-import { setBalanceOnZero } from "../services/BranchReports/setBalanceOnZero"
-import { recalculateBranchReport } from "../services/BranchReports/updateBranchReport"
 import { ToastDanger } from "../helpers/toastify"
 import { TbReload } from "react-icons/tb"
 import { blockedButton } from "../helpers/Constants"
@@ -17,19 +14,26 @@ import ShowIncomesModal from "../components/Incomes/ShowIncomesModal.jsx";
 import ShowListModal from "../components/Modals/ShowListModal.jsx";
 import { currency, getEmployeeFullName } from "../helpers/Functions"
 import { CgProfile } from "react-icons/cg"
+import { recalculateSupervisorReport } from "../services/Supervisors/recalculateSupervisorReport.js"
+import { setSupervisorReportOnZero } from "../services/Supervisors/setSupervisorReportOnZero.js"
+import Modal from "./Modals/Modal.jsx"
+import RegistrarDineroReportado from "./RegistrarDineroReportado.jsx"
 
-export default function SupervisorReportCard({ supervisorReport, replaceReport, externalIndex }) {
+export default function SupervisorReportCard({ supervisorReport, replaceReport, externalIndex, selfChange }) {
+
   const { currentUser } = useSelector((state) => state.user)
   const { isController, isManager } = useRoles()
   const [toModifyReport, setToModifyReport] = useState(null)
   const [loading, setLoading] = useState(false)
-  const navigate = useNavigate()
+  const [editingReport, setEditingReport] = useState(false)
 
   const handleSetReportOnZero = async (reportId) => {
     try {
       setLoading(true)
       setToModifyReport(reportId)
-      replaceReport(await setBalanceOnZero(reportId), externalIndex)
+      await setSupervisorReportOnZero(reportId)
+      replaceReport({ ...supervisorReport, balance: 0 }, externalIndex)
+      if (selfChange) selfChange({ ...supervisorReport, balance: 0 })
       setToModifyReport(null)
       setLoading(false)
     } catch (error) {
@@ -40,12 +44,13 @@ export default function SupervisorReportCard({ supervisorReport, replaceReport, 
     }
   }
 
-  const handleReloadReport = async (report) => {
+  const handleReloadReport = async () => {
     try {
       setLoading(true)
-      setToModifyReport(report._id)
-      const updatedReport = await recalculateBranchReport(report)
-      replaceReport(updatedReport, externalIndex)
+      setToModifyReport(supervisorReport._id)
+      const updatedReport = await recalculateSupervisorReport(supervisorReport._id)
+      replaceReport({...supervisorReport, balance: updatedReport.balance}, externalIndex)
+      if (selfChange) selfChange({...supervisorReport, balance: updatedReport.balance})
       setToModifyReport(null)
       setLoading(false)
     } catch (error) {
@@ -56,14 +61,22 @@ export default function SupervisorReportCard({ supervisorReport, replaceReport, 
     }
   }
 
-  const navToEditReport = (reportData) => {
-    navigate(`/formato/${reportData.createdAt}/${reportData.branch._id}`)
-  }
-
   return (
     <div
       className={`w-full p-1 mb-4 mt-4 rounded-3xl border border-black shadow-md transition-all duration-200 ${supervisorReport.balance < 0 ? 'bg-pastel-pink' : supervisorReport.onZero ? 'bg-yellow-100' : 'bg-white'}`}
       key={supervisorReport._id}>
+      {editingReport && (
+        <Modal
+          closeModal={() => setEditingReport(false)}
+          content={
+            <RegistrarDineroReportado
+              supervisorId={supervisorReport.supervisor._id}
+              date={supervisorReport.createdAt}
+              replaceReport={replaceReport}
+            />
+          }
+        />
+      )}
       <div className="flex justify-between items-center px-2 pt-1 mb-2">
         <p className="text-lg font-semibold text-red-500 flex items-center gap-1"><CgProfile />{getEmployeeFullName(supervisorReport.supervisor)}</p>
         <div className="flex items-center gap-1">
@@ -73,10 +86,10 @@ export default function SupervisorReportCard({ supervisorReport, replaceReport, 
         </div>
       </div>
       <div className="w-full flex flex-row-reverse text-3xl gap-3 pr-2">
-        <button className="border border-black rounded-lg" onClick={() => handleReloadReport(supervisorReport)}>
+        <button className="border border-black rounded-lg" onClick={() => handleReloadReport()}>
           <TbReload />
         </button>
-        <button onClick={() => { navToEditReport(supervisorReport) }} className="border border-black rounded-lg">
+        <button onClick={() => { setEditingReport(true) }} className="border border-black rounded-lg">
           <MdEdit />
         </button>
         <button className={`border border-black rounded-lg ${!isController(currentUser.role) ? blockedButton : ''}`} disabled={!isController(currentUser.role)} onClick={() => handleSetReportOnZero(supervisorReport._id)}>

@@ -22,6 +22,8 @@ const useChangePrices = () => {
         throw new Error(result.message);
       }
 
+      return result.data;
+
     } catch (err) {
       setError(err.message);
     } finally {

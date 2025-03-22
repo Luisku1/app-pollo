@@ -9,7 +9,6 @@ import { useLoading } from '../hooks/loading'
 import { useSignOut } from '../hooks/Auth/useSignOut'
 import { formatDate } from '../helpers/DatePickerFunctions'
 import { useSupervisorReports } from '../hooks/Supervisors/useSupervisorReports'
-import SupervisorReport from '../components/SupervisorReportComp'
 import EmployeePaymentsList from '../components/EmployeePaymentsList'
 import { getEmployeeFullName, currency } from '../helpers/Functions'
 import { useRoles } from '../context/RolesContext'
@@ -164,12 +163,12 @@ export default function Perfil() {
                 <div className='p-3'>
                   <div className='flex flex-row-reverse gap-2 items-center'>
                     <div className="flex gap-2 text-center text-lg">
-                      <p className="text-red-700 font-semibold">Pagos:</p>
+                      <p className="text-red-700 font-semibold">Pagos esta semana:</p>
                       <ShowListModal
                         title={`Pagos a ${getEmployeeFullName(employee)}`}
                         ListComponent={EmployeePaymentsList}
                         ListComponentProps={{ payments }}
-                        clickableComponent={<p>{currency({ amount: total })}</p>}
+                        clickableComponent={<p className="border border-black rounded-lg">{currency({ amount: total })}</p>}
                         sortFunction={(a, b) => b.amount - a.amount}
                       />
                     </div>
@@ -224,7 +223,10 @@ export default function Perfil() {
               {roles.seller._id != employee.role._id && (employee._id == currentUser._id || isManager(currentUser.role)) ?
                 <div className=''>
                   {lastSupervisorReport && (
-                    <SupervisorReportCard supervisorReport={lastSupervisorReport} />
+                    <SupervisorReportCard
+                      supervisorReport={lastSupervisorReport}
+                      replaceReport={replaceReport}
+                    />
                   )}
                 </div>
                 : ''}

@@ -29,7 +29,7 @@ export default function BranchPrices({ prices, pricesDate, branch, onChange, onU
   };
 
   return (
-    <div className="p-4 border rounded-lg shadow-md">
+    <div className="p-4 border rounded-lg shadow-md text-lg">
       {onChange ?
         <ChangeBranchPrices onUpdateBranchReport={onUpdateBranchReport} onChange={onChange} branch={branch} date={date} pricesDate={pricesDate}>
           {renderPrices()}

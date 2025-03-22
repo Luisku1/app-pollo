@@ -1,18 +1,16 @@
 /* eslint-disable react/prop-types */
 import { useEffect, useState } from "react"
-import { useSupervisorReport } from "../hooks/Supervisors/useSupervisorReport"
 import { useSelector } from "react-redux"
 import { currency } from "../helpers/Functions"
 import { useVerifyMoney } from "../hooks/Supervisors/useVerifyMoney"
 import { ToastWarning } from "../helpers/toastify"
 
-export default function RegistrarDineroReportado({ setNegativeBalances, supervisorId, date, updateReportedCash, updateReportedDeposits }) {
+export default function RegistrarDineroReportado({ supervisorReport, replaceReport }) {
 
   const { company } = useSelector((state) => state.user)
   const [verifiedCash, setVerifiedCash] = useState(0.00)
   const [verifiedDeposits, setVerifiedDeposits] = useState(0.00)
   const { verifyMoney } = useVerifyMoney()
-  const { supervisorReport, updateSupervisorReport } = useSupervisorReport({ supervisorId, date })
 
   const handleVerifiedCashOnChange = (e) => {
 
@@ -23,47 +21,42 @@ export default function RegistrarDineroReportado({ setNegativeBalances, supervis
     setVerifiedDeposits(e.target.value)
   }
 
-  const submitVerifyMoney = (e, typeField) => {
+  const submitVerifyMoney = async (e, typeField) => {
 
     e.preventDefault()
 
     const amount = typeField == "verifiedCash" ? verifiedCash : verifiedDeposits
 
-    if (isNaN(amount) || amount === "") {
-      ToastWarning("Ingresa un monto válido")
-      return
-    }
+    try {
 
-    verifyMoney({ typeField, supervisorId, companyId: company._id, amount, date, supervisorReport, updateSupervisorReport, updateReportedCash, updateReportedDeposits })
+
+      if (isNaN(amount) || amount === "" || amount < 0) {
+        ToastWarning("Ingresa un monto válido")
+        return
+      }
+
+      const updatedReport = await verifyMoney({ typeField, supervisorReportId: supervisorReport._id, companyId: company._id, amount, date: supervisorReport.createdAt })
+
+      replaceReport(updatedReport)
+
+    } catch (error) {
+
+      console.log(error)
+    }
   }
 
   useEffect(() => {
 
-    if (!supervisorReport || !supervisorId) return
-
-    setVerifiedCash(supervisorReport.verifiedCash)
-    setVerifiedDeposits(supervisorReport.verifiedDeposits)
-
-    const handleNegativeBalances = (supervisorId, balance) => {
-
-      setNegativeBalances((prevBalances) => {
-        const negativeBalances = new Set(prevBalances)
-        if(balance < 0) {
-          negativeBalances.add(supervisorId)
-        } else {
-          if (negativeBalances.has(supervisorId))
-            negativeBalances.delete(supervisorId)
-        }
-        return negativeBalances
-      })
+    if (supervisorReport) {
+      setVerifiedCash(supervisorReport.verifiedCash)
+      setVerifiedDeposits(supervisorReport.verifiedDeposits)
     }
-      handleNegativeBalances(supervisorId, supervisorReport.balance)
 
-  }, [setNegativeBalances, supervisorId, supervisorReport])
+  }, [supervisorReport])
 
   return (
-    <div className="grid grid-cols-12 justify-self-center">
-      <div className="col-span-6">
+    <div className="">
+      <div className="w-full">
         <h3 className="text-md font-bold">Efectivo verificado</h3>
         <form onSubmit={(e) => { submitVerifyMoney(e, "verifiedCash") }}>
           <input
@@ -88,7 +81,7 @@ export default function RegistrarDineroReportado({ setNegativeBalances, supervis
         </form>
       </div>
 
-      <div className="col-span-6">
+      <div className="w-full">
         <h3 className="text-md font-bold">Depósitos verificados</h3>
         <form onSubmit={(e) => { submitVerifyMoney(e, "verifiedDeposits") }}>
           <input
