@@ -13,14 +13,16 @@ export const useVerifyMoney = () => {
 
       const updatedSupervisorReport = await verifyMoneyFetch({ typeField, supervisorReportId, companyId, amount, date })
 
+      setLoading(false)
       return updatedSupervisorReport
 
     } catch (error) {
 
+      setLoading(false)
       console.log(error)
+      throw error
     }
 
-    setLoading(false)
   }
 
   return { verifyMoney, loading }

@@ -1,4 +1,4 @@
-export const verifyMoneyFetch = async ({ typeField, supervisorId, companyId, amount, date }) => {
+export const verifyMoneyFetch = async ({ typeField, supervisorReportId, companyId, amount, date }) => {
 
   const type = typeField.replace("verified", "").toLowerCase()
 
@@ -8,7 +8,7 @@ export const verifyMoneyFetch = async ({ typeField, supervisorId, companyId, amo
     headers: {
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ supervisorId, companyId, amount, date })
+    body: JSON.stringify({ supervisorReportId, companyId, amount, date })
   })
 
   const data = await res.json()

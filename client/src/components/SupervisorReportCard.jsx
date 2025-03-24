@@ -49,8 +49,8 @@ export default function SupervisorReportCard({ supervisorReport, replaceReport, 
       setLoading(true)
       setToModifyReport(supervisorReport._id)
       const updatedReport = await recalculateSupervisorReport(supervisorReport._id)
-      replaceReport({...supervisorReport, balance: updatedReport.balance}, externalIndex)
-      if (selfChange) selfChange({...supervisorReport, balance: updatedReport.balance})
+      replaceReport({ ...supervisorReport, balance: updatedReport.balance }, externalIndex)
+      if (selfChange) selfChange({ ...supervisorReport, balance: updatedReport.balance })
       setToModifyReport(null)
       setLoading(false)
     } catch (error) {
@@ -70,8 +70,7 @@ export default function SupervisorReportCard({ supervisorReport, replaceReport, 
           closeModal={() => setEditingReport(false)}
           content={
             <RegistrarDineroReportado
-              supervisorId={supervisorReport.supervisor._id}
-              date={supervisorReport.createdAt}
+              supervisorReport={supervisorReport}
               replaceReport={replaceReport}
             />
           }

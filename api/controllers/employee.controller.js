@@ -1880,12 +1880,11 @@ export const updateEmployeeDailyBalance = async (req, res, next) => {
 
 export const verifySupervisorCash = async (req, res, next) => {
 
-	const { supervisorId, companyId, amount, date } = req.body
-
+	const { supervisorReportId, amount, date } = req.body
 
 	try {
 
-		const updatedSupervisorReport = await verifySupervisorMoney({ amount, typeField: "verifiedCash", companyId, date, supervisorId })
+		const updatedSupervisorReport = await verifySupervisorMoney({ amount, typeField: "verifiedCash", date, supervisorReportId })
 
 		res.status(200).json({ updatedSupervisorReport })
 
@@ -1898,11 +1897,11 @@ export const verifySupervisorCash = async (req, res, next) => {
 
 export const verifySupervisorDeposits = async (req, res, next) => {
 
-	const { supervisorId, companyId, amount, date } = req.body
+	const { supervisorReportId, amount, date } = req.body
 
 	try {
 
-		const updatedSupervisorReport = await verifySupervisorMoney({ amount, typeField: "verifiedDeposits", companyId, date, supervisorId })
+		const updatedSupervisorReport = await verifySupervisorMoney({ amount, typeField: "verifiedDeposits", date, supervisorReportId })
 
 		res.status(200).json({ updatedSupervisorReport })
 
@@ -1946,7 +1945,7 @@ export const createSupervisorReport = async ({ supervisorId, companyId, date }) 
 	}
 }
 
-export const verifySupervisorMoney = async ({ amount, typeField, companyId, date, supervisorId }) => {
+export const verifySupervisorMoney = async ({ amount, typeField, date, supervisorReportId }) => {
 
 	let supervisorReport = null
 	let updatedSupervisorReport = null
@@ -1959,7 +1958,11 @@ export const verifySupervisorMoney = async ({ amount, typeField, companyId, date
 
 		if (!['verifiedCash', "verifiedDeposits"].includes(typeField)) throw new Error(`Campo ${typeField} inválido`)
 
-		supervisorReport = await fetchOrCreateSupervisorReport({ supervisorId, companyId, date })
+		supervisorReport = await fetchSupervisorReport({ reportId: supervisorReportId })
+
+		console.log(supervisorReport)
+
+		if (!supervisorReport) throw new Error("No se encontró el reporte de supervisor")
 
 		updatedSupervisorReport = await SupervisorReport.findByIdAndUpdate(supervisorReport._id, {
 			[typeField]: amount,
@@ -1970,7 +1973,7 @@ export const verifySupervisorMoney = async ({ amount, typeField, companyId, date
 
 		dailyBalance = await EmployeeDailyBalance.findOne({
 			createdAt: { $lt: topDate, $gte: bottomDate },
-			employee: new Types.ObjectId(supervisorId)
+			employee: new Types.ObjectId(supervisorReport.supervisor)
 		})
 
 		if (!dailyBalance) throw new Error("No se encontró el balance del empleado.");
@@ -2410,3 +2413,19 @@ export const fetchSupervisorReportInfo = async ({ supervisorId = null, date = nu
 		throw error;
 	}
 };
+
+export const fetchSupervisorReport = async ({ reportId = null, supervisorId = null, date = null }) => {
+
+	try {
+
+		const { bottomDate, topDate } = date ? getDayRange(date) : { bottomDate: null, topDate: null }
+
+		const match = reportId ? { _id: new Types.ObjectId(reportId) } : { supervisor: new Types.ObjectId(supervisorId), createdAt: { $gte: new Date(bottomDate), $lt: new Date(topDate) } }
+
+		return await SupervisorReport.findOne(match)
+
+	} catch (error) {
+
+		throw error
+	}
+}

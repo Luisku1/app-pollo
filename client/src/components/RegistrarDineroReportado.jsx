@@ -36,8 +36,8 @@ export default function RegistrarDineroReportado({ supervisorReport, replaceRepo
       }
 
       const updatedReport = await verifyMoney({ typeField, supervisorReportId: supervisorReport._id, companyId: company._id, amount, date: supervisorReport.createdAt })
+      replaceReport({...supervisorReport, balance: updatedReport.balance, [typeField]: amount })
 
-      replaceReport(updatedReport)
 
     } catch (error) {
 
@@ -59,16 +59,19 @@ export default function RegistrarDineroReportado({ supervisorReport, replaceRepo
       <div className="w-full">
         <h3 className="text-md font-bold">Efectivo verificado</h3>
         <form onSubmit={(e) => { submitVerifyMoney(e, "verifiedCash") }}>
-          <input
-            className='border border-black p-2 rounded-md w-full mr-2'
-            type="text"
-            name=""
-            step={0.01}
-            id=""
-            onFocus={(e) => { e.target.select() }}
-            value={verifiedCash}
-            onChange={handleVerifiedCashOnChange}
-          />
+          <p className="items-center flex justify-center"> Efectivo a entregar: {currency(supervisorReport.cash - supervisorReport.extraOutgoings)}</p>
+          <div className="">
+            <input
+              className='border border-black p-2 rounded-md w-full'
+              type="text"
+              name=""
+              step={0.01}
+              id=""
+              onFocus={(e) => { e.target.select() }}
+              value={verifiedCash}
+              onChange={handleVerifiedCashOnChange}
+            />
+          </div>
           <div className="flex justify-center">
             <button type="submit" className="w-10/12 p-3 text-white bg-button mt-2 rounded-lg">
               {supervisorReport && supervisorReport.verifiedCash == 0 ?
@@ -84,16 +87,19 @@ export default function RegistrarDineroReportado({ supervisorReport, replaceRepo
       <div className="w-full">
         <h3 className="text-md font-bold">Depósitos verificados</h3>
         <form onSubmit={(e) => { submitVerifyMoney(e, "verifiedDeposits") }}>
-          <input
-            className='border border-black p-2 rounded-md w-full ml-2'
-            type="number"
-            name=""
-            step={0.01}
-            id=""
-            onFocus={(e) => { e.target.select() }}
-            value={verifiedDeposits}
-            onChange={handleVerifiedDepositsOnChange}
-          />
+          <p className="items-center flex justify-center">Depositos a verificar: {currency(supervisorReport.deposits + supervisorReport.terminalIncomes)}</p>
+          <div className="">
+            <input
+              className='border border-black p-2 rounded-md w-full'
+              type="number"
+              name=""
+              step={0.01}
+              id=""
+              onFocus={(e) => { e.target.select() }}
+              value={verifiedDeposits}
+              onChange={handleVerifiedDepositsOnChange}
+            />
+          </div>
           <div className="flex justify-center">
             <button type="submit" className="w-10/12 p-3 text-white bg-button mt-2 rounded-lg">
               {supervisorReport && supervisorReport.verifiedDeposits == 0 ?
@@ -104,19 +110,6 @@ export default function RegistrarDineroReportado({ supervisorReport, replaceRepo
             </button>
           </div>
         </form>
-      </div>
-
-      <div className="col-span-12 ml-3 mt-3">
-
-        {supervisorReport ?
-          <div>
-            <p className="p-2"><span className="font-bold">Dinero a entregar: </span>{currency({ amount: supervisorReport.incomes - supervisorReport.extraOutgoings })}</p>
-            <p className="p-2">
-              <span className="font-bold">Dinero entregado: </span>{currency({ amount: (supervisorReport.verifiedCash + supervisorReport.verifiedDeposits) || 0 })}
-            </p>
-            <p className="p-2 font-bold">Balance: <span className={`${supervisorReport.balance < 0 ? 'text-red-700' : ''}`}>{currency({ amount: supervisorReport.balance })}</span></p>
-          </div>
-          : ''}
       </div>
     </div>
   )
