@@ -879,25 +879,7 @@ export const fetchEmployeesPayroll = async ({ companyId, date }) => {
 											from: 'employeepayments',
 											localField: '_id',
 											foreignField: 'income',
-											as: 'employeePayment',
-											pipeline: [
-												{
-													$lookup: {
-														from: 'employees',
-														localField: 'employee',
-														foreignField: '_id',
-														as: 'employee'
-													}
-												},
-												{ $unwind: { path: '$employee', preserveNullAndEmptyArrays: true } },
-												{
-													$lookup: 'branches',
-													localField: 'branch',
-													foreignField: '_id',
-													as: 'branch'
-												},
-												{ $unwind: { path: '$branch', preserveNullAndEmptyArrays: true } }
-											]
+											as: 'employeePayment'
 										}
 									},
 									{ $unwind: { path: '$employeePayment', preserveNullAndEmptyArrays: true } },
@@ -1149,6 +1131,43 @@ export const fetchEmployeesPayroll = async ({ companyId, date }) => {
 			},
 			{
 				$lookup: {
+					from: 'employees',
+					localField: 'employee',
+					foreignField: '_id',
+					as: 'employee',
+					pipeline: [
+						{
+							$lookup: {
+								from: 'roles',
+								localField: 'role',
+								foreignField: '_id',
+								as: 'role'
+							}
+						},
+						{
+							$unwind: { path: '$role' }
+						},
+					]
+				}
+			},
+			{
+				$unwind: { path: '$employee' }
+			},
+			{
+				$lookup: {
+					from: 'employeedailybalances',
+					localField: 'employeeDailyBalances',
+					foreignField: '_id',
+					as: 'employeeDailyBalances',
+					pipeline: [
+						{
+							$match: { createdAt: { $gte: new Date(weekStart), $lt: new Date(weekEnd) } }
+						}
+					]
+				}
+			},
+			{
+				$lookup: {
 					from: 'supervisorreports',
 					localField: 'employee',
 					foreignField: 'supervisor',
@@ -1240,43 +1259,6 @@ export const fetchEmployeesPayroll = async ({ companyId, date }) => {
 								verifiedDeposits: 1,
 								supervisor: 1
 							}
-						}
-					]
-				}
-			},
-			{
-				$lookup: {
-					from: 'employees',
-					localField: 'employee',
-					foreignField: '_id',
-					as: 'employee',
-					pipeline: [
-						{
-							$lookup: {
-								from: 'roles',
-								localField: 'role',
-								foreignField: '_id',
-								as: 'role'
-							}
-						},
-						{
-							$unwind: { path: '$role' }
-						},
-					]
-				}
-			},
-			{
-				$unwind: { path: '$employee' }
-			},
-			{
-				$lookup: {
-					from: 'employeedailybalances',
-					localField: 'employeeDailyBalances',
-					foreignField: '_id',
-					as: 'employeeDailyBalances',
-					pipeline: [
-						{
-							$match: { createdAt: { $gte: new Date(weekStart), $lt: new Date(weekEnd) } }
 						}
 					]
 				}
