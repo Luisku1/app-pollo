@@ -871,7 +871,14 @@ export const fetchEmployeesPayroll = async ({ companyId, date }) => {
 														as: 'employee'
 													}
 												},
-												{ $unwind: { path: '$employee', preserveNullAndEmptyArrays: true } }
+												{ $unwind: { path: '$employee', preserveNullAndEmptyArrays: true } },
+												{
+													$lookup: 'branches',
+													localField: 'branch',
+													foreignField: '_id',
+													as: 'branch'
+												},
+												{ $unwind: { path: '$branch', preserveNullAndEmptyArrays: true } }
 											]
 										}
 									},
