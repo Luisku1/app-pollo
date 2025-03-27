@@ -241,8 +241,6 @@ export const getEmployeeReports = async (req, res, next) => {
 					foreignField: '_id',
 					as: 'providerInputsArray',
 					pipeline: [
-						branchLookup,
-						unwindBranch,
 						{
 							$lookup: {
 								from: 'products',
@@ -251,14 +249,34 @@ export const getEmployeeReports = async (req, res, next) => {
 								as: 'product',
 							},
 						},
+						{ $unwind: { path: '$product', preserveNullAndEmptyArrays: true } },
 						{
-							$unwind: {
-								path: '$product',
-								preserveNullAndEmptyArrays: true,
+							$lookup: {
+								from: 'employees',
+								localField: 'employee',
+								foreignField: '_id',
+								as: 'employee',
 							},
 						},
-						employeeLookup,
-						unwindEmployee
+						{ $unwind: { path: '$employee', preserveNullAndEmptyArrays: true } },
+						{
+							$lookup: {
+								from: 'branches',
+								localField: 'branch',
+								foreignField: '_id',
+								as: 'branch',
+							},
+						},
+						{ $unwind: { path: '$branch', preserveNullAndEmptyArrays: true } },
+						{
+							$lookup: {
+								from: 'customers',
+								localField: 'customer',
+								foreignField: '_id',
+								as: 'customer',
+							},
+						},
+						{ $unwind: { path: '$customer', preserveNullAndEmptyArrays: true } },
 					],
 				},
 			},
