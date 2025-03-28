@@ -879,7 +879,42 @@ export const fetchEmployeesPayroll = async ({ companyId, date }) => {
 											from: 'employeepayments',
 											localField: '_id',
 											foreignField: 'income',
-											as: 'employeePayment'
+											as: 'employeePayment',
+											pipeline: [
+												{
+													$lookup: {
+														from: 'employees',
+														foreignField: '_id',
+														localField: 'employee',
+														as: 'employee'
+													}
+												},
+												{
+													$lookup: {
+														from: 'employees',
+														foreignField: '_id',
+														localField: 'supervisor',
+														as: 'supervisor'
+													}
+												},
+												{
+													$unwind: { path: '$supervisor', preserveNullAndEmptyArrays: true }
+												},
+												{
+													$unwind: { path: '$employee', preserveNullAndEmptyArrays: true }
+												},
+												{
+													$lookup: {
+														from: 'branches',
+														foreignField: '_id',
+														localField: 'branch',
+														as: 'branch'
+													}
+												},
+												{
+													$unwind: { path: '$branch', preserveNullAndEmptyArrays: true }
+												}
+											]
 										}
 									},
 									{ $unwind: { path: '$employeePayment', preserveNullAndEmptyArrays: true } },
