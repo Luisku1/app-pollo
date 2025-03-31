@@ -1117,79 +1117,6 @@ export const fetchEmployeesPayroll = async ({ companyId, date }) => {
 			},
 			{
 				$lookup: {
-					from: 'employeepayments',
-					localField: 'employee',
-					foreignField: 'employee',
-					as: 'employeePayments',
-					pipeline: [
-						{
-							$match: { createdAt: { $gte: new Date(firstTopDate), $lt: new Date(lastTopDate) } }
-						},
-						{
-							$sort: { createdAt: -1 }
-						},
-						{
-							$lookup: {
-								from: 'employees',
-								foreignField: '_id',
-								localField: 'employee',
-								as: 'employee'
-							}
-						},
-						{
-							$lookup: {
-								from: 'employees',
-								foreignField: '_id',
-								localField: 'supervisor',
-								as: 'supervisor'
-							}
-						},
-						{
-							$unwind: { path: '$supervisor', preserveNullAndEmptyArrays: true }
-						},
-						{
-							$unwind: { path: '$employee', preserveNullAndEmptyArrays: true }
-						},
-						{
-							$lookup: {
-								from: 'branches',
-								foreignField: '_id',
-								localField: 'branch',
-								as: 'branch'
-							}
-						},
-						{
-							$unwind: { path: '$branch', preserveNullAndEmptyArrays: true }
-						}
-					]
-				}
-			},
-			{
-				$lookup: {
-					from: 'employees',
-					localField: 'employee',
-					foreignField: '_id',
-					as: 'employee',
-					pipeline: [
-						{
-							$lookup: {
-								from: 'roles',
-								localField: 'role',
-								foreignField: '_id',
-								as: 'role'
-							}
-						},
-						{
-							$unwind: { path: '$role' }
-						},
-					]
-				}
-			},
-			{
-				$unwind: { path: '$employee' }
-			},
-			{
-				$lookup: {
 					from: 'employeedailybalances',
 					localField: 'employeeDailyBalances',
 					foreignField: '_id',
@@ -1317,6 +1244,80 @@ export const fetchEmployeesPayroll = async ({ companyId, date }) => {
 					},
 
 				}
+			},
+
+			{
+				$lookup: {
+					from: 'employeepayments',
+					localField: 'employee',
+					foreignField: 'employee',
+					as: 'employeePayments',
+					pipeline: [
+						{
+							$match: { createdAt: { $gte: new Date(firstTopDate), $lt: new Date(lastTopDate) } }
+						},
+						{
+							$sort: { createdAt: -1 }
+						},
+						{
+							$lookup: {
+								from: 'employees',
+								foreignField: '_id',
+								localField: 'employee',
+								as: 'employee'
+							}
+						},
+						{
+							$lookup: {
+								from: 'employees',
+								foreignField: '_id',
+								localField: 'supervisor',
+								as: 'supervisor'
+							}
+						},
+						{
+							$unwind: { path: '$supervisor', preserveNullAndEmptyArrays: true }
+						},
+						{
+							$unwind: { path: '$employee', preserveNullAndEmptyArrays: true }
+						},
+						{
+							$lookup: {
+								from: 'branches',
+								foreignField: '_id',
+								localField: 'branch',
+								as: 'branch'
+							}
+						},
+						{
+							$unwind: { path: '$branch', preserveNullAndEmptyArrays: true }
+						}
+					]
+				}
+			},
+			{
+				$lookup: {
+					from: 'employees',
+					localField: 'employee',
+					foreignField: '_id',
+					as: 'employee',
+					pipeline: [
+						{
+							$lookup: {
+								from: 'roles',
+								localField: 'role',
+								foreignField: '_id',
+								as: 'role'
+							}
+						},
+						{
+							$unwind: { path: '$role' }
+						},
+					]
+				}
+			},
+			{
+				$unwind: { path: '$employee' }
 			},
 			{
 				$addFields: {
