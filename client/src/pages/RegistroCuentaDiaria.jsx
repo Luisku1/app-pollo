@@ -27,6 +27,7 @@ import StockList from '../components/Stock/StockList';
 import Switch from '../components/Switch';
 import OutgoingsList from '../components/Outgoings/OutgoingsList';
 import Modal from '../components/Modals/Modal';
+import ConfirmationButton from '../components/Buttons/ConfirmationButton';
 
 export default function RegistroCuentaDiaria({ edit = true, _branchReport = null, _branch = null }) {
 
@@ -86,7 +87,7 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
   const [showPrices, setShowPrices] = useState(false)
 
   const isLoading = useLoading()
-
+  const [showSelectBranchEmployees, setShowSelectBranchEmployees] = useState(false)
   const [isEditing, setIsEditing] = useState(edit)
   const isAuthorized = roles && isManager(currentUser.role)
 
@@ -138,10 +139,10 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
     )
   }
 
-  const handleUpdate = async () => {
+  const updateReport = async () => {
 
     setLoading(true)
-    const assistant = selectedAssistant == null ? null : selectedAssistant._id
+    const assistant = selectedAssistant?._id ?? null
 
     try {
 
@@ -216,8 +217,51 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
     }
   }, [selectedBranch, stringDatePickerValue, edit])
 
+  const selectEmployees = () => {
+    return (
+      <div className='w-full mt-10'>
+        <div>
+          <h2 className='text-xl text-center font-semibold mb-4 text-black'>{`Selecciona a los responsables de `}<span className='text-red-800 font-bold'>{selectedBranch.branch}🍗</span></h2>
+        </div>
+        <div className="mt-1 ">
+          <div className='w-full'>
+            <EmployeesSelect defaultLabel={'Sin Encargado'} isEditing={isEditing} employees={employees} selectedEmployee={selectedEmployee} handleEmployeeSelectChange={handleEmployeeSelectChange}></EmployeesSelect>
+          </div>
+        </div>
+        <div className="mt-1 ">
+          <div className='w-full border border-red-700 rounded-lg'>
+            <EmployeesSelect isEditing={isEditing} defaultLabel={'Sin Auxiliar'} employees={employees} selectedEmployee={selectedAssistant} handleEmployeeSelectChange={handleAssistantSelectChange}></EmployeesSelect>
+          </div>
+        </div>
+        {selectedEmployee && selectedAssistant &&
+          <button onClick={updateReport} className='mt-2 rounded-lg text-white text-md p-3 w-full bg-button'>Enviar</button>
+        }
+        {selectedEmployee && !selectedAssistant &&
+          <ConfirmationButton
+            onConfirm={updateReport}
+            confirmationMessage={'No has seleccionado a ningún auxiliar'}
+            negativeOption={'Volver'}
+            positiveOption={'Continuar sin auxiliar'}
+            className="mt-2 rounded-lg text-white text-md p-3 w-full bg-button"
+            messageClassName={'text-center text-red-800 font-semibold'}
+          >
+            Enviar
+          </ConfirmationButton>
+        }
+      </div>
+    )
+  }
+
   return (
     <main className="p-3 max-w-lg mx-auto">
+
+      {showSelectBranchEmployees && (
+        <Modal
+          content={selectEmployees()}
+          closeModal={() => setShowSelectBranchEmployees(false)}
+          ableToClose={true}
+        />
+      )}
       {roles && (
         <div>
           {isLoading ?
@@ -225,7 +269,7 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
             : ''}
           {isEditing && (
             <div className={' sticky  z-30' + (isEditing ? ' top-16' : ' -top-4')}>
-              {isManager(currentUser.role)?
+              {isManager(currentUser.role) ?
                 <div>
                   <FechaDePagina changeDay={changeDay} stringDatePickerValue={stringDatePickerValue} changeDatePickerValue={changeDatePickerValue} ></FechaDePagina>
                   {isAuthorized && (
@@ -259,22 +303,6 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
           </div>
           {branchReport && (
             <div>
-              <div className="flex justify-around items-center mt-1 ">
-                {isEditing &&
-                  <p className='w-3/6'>Encargado:</p>
-                }
-                <div className='w-full'>
-                  <EmployeesSelect defaultLabel={'Sin Encargado'} isEditing={isEditing} employees={employees} selectedEmployee={selectedEmployee} handleEmployeeSelectChange={handleEmployeeSelectChange}></EmployeesSelect>
-                </div>
-              </div>
-              <div className="flex justify-around items-center mt-1 ">
-                {isEditing &&
-                  <p className='w-3/6'>Auxiliar:</p>
-                }
-                <div className='w-full'>
-                  <EmployeesSelect isEditing={isEditing} defaultLabel={'Sin Auxiliar'} employees={employees} selectedEmployee={selectedAssistant} handleEmployeeSelectChange={handleAssistantSelectChange}></EmployeesSelect>
-                </div>
-              </div>
               {!isEditing ?
                 <div>
                   <button className='font-bold border border-black p-3 rounded-lg text-black flex justify-self-end' onClick={() => setShowPrices(true)}>$ Precios</button>
@@ -462,7 +490,7 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
                   {isEditing ?
                     <div>
                       {(!branchReport.dateSent || isAuthorized) &&
-                        <button disabled={loading} className='bg-button text-white border border-black p-3 rounded-lg w-full' onClick={() => handleUpdate()}>Enviar Formato</button>
+                        <button disabled={loading} className='bg-button text-white border border-black p-3 rounded-lg w-full' onClick={() => setShowSelectBranchEmployees(true)}>Continuar</button>
                       }
                     </div>
                     :

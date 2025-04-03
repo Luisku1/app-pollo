@@ -13,6 +13,7 @@ export default function EmployeesSelect({ isEditing = true, defaultLabel, employ
         onChange={handleEmployeeSelectChange}
         options={getArrayForSelects(employees, getEmployeeFullName)}
         isClearable={true}
+        menuPortalTarget={document.body}
         placeholder={defaultLabel}
         isDisabled={!isEditing}
         isSearchable={true}

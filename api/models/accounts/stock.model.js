@@ -56,11 +56,11 @@ const stockSchema = mongoose.Schema({
 		required: true
 	},
 
-	createdAt: {
-		type: Date,
-		required: true
-	}
-})
+	input: {
+		type: Schema.Types.ObjectId, ref: 'Input'
+	},
+
+}, { timestamps: true })
 
 stockSchema.index({ associatedStock: 1 })
 

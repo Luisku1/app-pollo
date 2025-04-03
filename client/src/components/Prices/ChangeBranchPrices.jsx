@@ -115,9 +115,9 @@ export default function ChangeBranchPrices({ children, onChange, branch, date, o
   return (
     <div>
       {children && (
-        <div>
+        <div className='mx-auto'>
           {ableToModify ? (
-            <button className={`border border-black rounded-lg ${!isManager(currentUser.role) ? blockedButton : ''}`} disabled={!isManager(currentUser.role)} onClick={() => { togglePriceChanger() }}  >
+            <button className={`border border-black rounded-lg items-center ${!isManager(currentUser.role) ? blockedButton : ''}`} disabled={!isManager(currentUser.role)} onClick={() => { togglePriceChanger() }}  >
               {children}
             </button>
           ) : (

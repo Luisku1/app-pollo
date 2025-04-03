@@ -1,5 +1,6 @@
 /* eslint-disable react/prop-types */
 
+import { currency } from "../../helpers/Functions";
 import ChangeBranchPrices from "./ChangeBranchPrices"
 
 export default function BranchPrices({ prices, pricesDate, branch, onChange, onUpdateBranchReport, date }) {
@@ -10,11 +11,11 @@ export default function BranchPrices({ prices, pricesDate, branch, onChange, onU
     return (
       <li
         key={price.priceId}
-        className={`flex justify-between gap-2 p-2 mt-1 shadow-sm ${index % 2 === 0 ? "bg-gray-100" : "bg-white"
+        className={`flex justify-between gap-2 p-1 mt-1 shadow-sm ${index % 2 === 0 ? "bg-gray-100" : "bg-white"
           } border-b border-gray-300`}
       >
-        <span className="truncate">{price.product}:</span>
-        <span>{price.latestPrice}</span>
+        <span className="truncate font-semibold">{price.product}:</span>
+        <span className="text-red-800 font-bold">{currency({amount: price.latestPrice})}</span>
       </li>
     );
   };
@@ -29,7 +30,7 @@ export default function BranchPrices({ prices, pricesDate, branch, onChange, onU
   };
 
   return (
-    <div className="p-4 border rounded-lg shadow-md text-lg">
+    <div className="p-1 border justify-items-center rounded-lg shadow-md text-lg">
       {onChange ?
         <ChangeBranchPrices onUpdateBranchReport={onUpdateBranchReport} onChange={onChange} branch={branch} date={date} pricesDate={pricesDate}>
           {renderPrices()}

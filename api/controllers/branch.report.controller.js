@@ -417,11 +417,13 @@ export const updateBranchReport = async (req, res, next) => {
 
   const { branchReport, employee, assistant } = req.body
   let updatedBranchReport = null
-  const actualEmployeeId = employee?._id ? employee._id : employee
-  const previousEmployeeId = branchReport?.employee?._id ? branchReport.employee._id : branchReport.employee
+  const actualEmployeeId = employee?.id ?? employee ?? null
+  const previousEmployeeId = branchReport?.employee?._id ?? branchReport.employee ?? null
   const previousAssistantId = branchReport?.assistant?._id ? branchReport.assistant._id : branchReport.assistant
 
   try {
+
+    if (!actualEmployeeId) throw new Error("Asegúrate de seleccionar un empleado");
 
     if (actualEmployeeId != previousEmployeeId) {
 

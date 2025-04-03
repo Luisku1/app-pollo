@@ -1,9 +1,11 @@
 /* eslint-disable react/prop-types */
 import { useEffect, useState } from "react"
 import { useSelector } from "react-redux"
-import { currency } from "../helpers/Functions"
+import { currency, getEmployeeFullName } from "../helpers/Functions"
 import { useVerifyMoney } from "../hooks/Supervisors/useVerifyMoney"
 import { ToastWarning } from "../helpers/toastify"
+import { CgProfile } from "react-icons/cg"
+import { formatInformationDate } from "../helpers/DatePickerFunctions"
 
 export default function RegistrarDineroReportado({ supervisorReport, replaceReport }) {
 
@@ -36,7 +38,7 @@ export default function RegistrarDineroReportado({ supervisorReport, replaceRepo
       }
 
       const updatedReport = await verifyMoney({ typeField, supervisorReportId: supervisorReport._id, companyId: company._id, amount, date: supervisorReport.createdAt })
-      replaceReport({...supervisorReport, balance: updatedReport.balance, [typeField]: amount })
+      replaceReport({ ...supervisorReport, balance: updatedReport.balance, [typeField]: amount })
 
 
     } catch (error) {
@@ -57,12 +59,23 @@ export default function RegistrarDineroReportado({ supervisorReport, replaceRepo
   return (
     <div className="">
       <div className="w-full">
-        <h3 className="text-md font-bold">Efectivo verificado</h3>
+        <div className="flex justify-between items-center px-2 pt-1 mb-2">
+          <p className="text-lg font-semibold text-red-500 flex items-center gap-1"><CgProfile />{getEmployeeFullName(supervisorReport.supervisor)}</p>
+          <div className="flex items-center gap-1">
+            <p className="text-lg font-semibold text-red-500">
+              {formatInformationDate(new Date(supervisorReport.createdAt))}
+            </p>
+          </div>
+        </div>
         <form onSubmit={(e) => { submitVerifyMoney(e, "verifiedCash") }}>
-          <p className="items-center flex justify-center"> Efectivo a entregar: {currency(supervisorReport.cash - supervisorReport.extraOutgoings)}</p>
-          <div className="">
+          <div className="grid grid-cols-2 px-2 items-center py-2">
+            <p className="items-center flex w-full"> Efectivo a entregar</p>
+            <p>{currency(supervisorReport.cash - supervisorReport.extraOutgoings)}</p>
+          </div>
+          <div className="grid grid-cols-2 items-center px-2">
+            <p className='font-semibold'>Efectivo entregado</p>
             <input
-              className='border border-black p-2 rounded-md w-full'
+              className='border border-red-700 border-solid p-2 rounded-md w-full'
               type="text"
               name=""
               step={0.01}
@@ -73,7 +86,7 @@ export default function RegistrarDineroReportado({ supervisorReport, replaceRepo
             />
           </div>
           <div className="flex justify-center">
-            <button type="submit" className="w-10/12 p-3 text-white bg-button mt-2 rounded-lg">
+            <button type="submit" className="w-full p-3 text-white bg-button mt-2 rounded-lg">
               {supervisorReport && supervisorReport.verifiedCash == 0 ?
                 'Guardar'
                 :
@@ -85,12 +98,15 @@ export default function RegistrarDineroReportado({ supervisorReport, replaceRepo
       </div>
 
       <div className="w-full">
-        <h3 className="text-md font-bold">Depósitos verificados</h3>
         <form onSubmit={(e) => { submitVerifyMoney(e, "verifiedDeposits") }}>
-          <p className="items-center flex justify-center">Depositos a verificar: {currency(supervisorReport.deposits + supervisorReport.terminalIncomes)}</p>
-          <div className="">
+          <div className="grid grid-cols-2 px-2 items-center py-2">
+            <p className="w-full">Depositos a verificar</p>
+            <p>{currency(supervisorReport.deposits + supervisorReport.terminalIncomes)}</p>
+          </div>
+          <div className="grid grid-cols-2 items-center px-2">
+            <p className='font-semibold'>Depositos verificados</p>
             <input
-              className='border border-black p-2 rounded-md w-full'
+              className='border border-red-700 border-solid p-2 rounded-md w-full'
               type="number"
               name=""
               step={0.01}
@@ -101,7 +117,7 @@ export default function RegistrarDineroReportado({ supervisorReport, replaceRepo
             />
           </div>
           <div className="flex justify-center">
-            <button type="submit" className="w-10/12 p-3 text-white bg-button mt-2 rounded-lg">
+            <button type="submit" className="w-full p-3 text-white bg-button mt-2 rounded-lg">
               {supervisorReport && supervisorReport.verifiedDeposits == 0 ?
                 'Guardar'
                 :

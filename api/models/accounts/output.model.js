@@ -53,11 +53,15 @@ const outputSchema = mongoose.Schema({
     type: Schema.Types.ObjectId, ref: 'Customer'
   },
 
-  createdAt: {
-    type: Date,
-    required: true
-  }
-})
+  prevOwner: {
+    type: Schema.Types.ObjectId, ref: 'Employee',
+  },
+
+  input: {
+    type: Schema.Types.ObjectId, ref: 'Input',
+  },
+
+}, { timestamps: true })
 
 const Output = mongoose.model('Output', outputSchema)
 

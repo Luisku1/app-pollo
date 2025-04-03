@@ -36,7 +36,7 @@ export const getAllEmployees = async (req, res, next) => {
 
 	try {
 
-		const employees = await Employee.find({ company: companyId }).sort({ name: 1 }).populate({ path: 'role', select: 'name' })
+		const employees = await Employee.find({ company: companyId }).sort({ name: 1 }).populate({ path: 'role', select: 'name' }).populate({ path: 'hiredBy', select: 'name lastName' })
 
 		res.status(200).json({ employees })
 
@@ -1245,7 +1245,6 @@ export const fetchEmployeesPayroll = async ({ companyId, date }) => {
 
 				}
 			},
-
 			{
 				$lookup: {
 					from: 'employeepayments',

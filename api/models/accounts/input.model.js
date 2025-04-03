@@ -54,6 +54,14 @@ const inputSchema = mongoose.Schema({
     type: Schema.Types.ObjectId, ref: 'Customer'
   },
 
+  owner: {
+    type: Schema.Types.ObjectId, ref: 'Employee',
+  },
+
+  stock: {
+    type: Schema.Types.ObjectId, ref: 'Stock',
+  }
+
 }, { timestamps: true })
 
 const Input = mongoose.model('Input', inputSchema)

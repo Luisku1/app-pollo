@@ -10,6 +10,7 @@ export const customSelectStyles = {
     borderRadius: '0.5rem',
     border: 'black'
   }),
+  menuPortal: (base) => ({ ...base, zIndex: 11000 }),
   control: (provided) => ({
     ...provided,
     minHeight: 'auto', // Ajusta la altura del control
