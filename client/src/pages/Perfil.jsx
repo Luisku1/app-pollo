@@ -187,7 +187,13 @@ export default function Perfil() {
                 {employee.payDay > -1 ?
                   <p className="text-lg">{'Día de cobro: ' + weekDays[employee.payDay]}</p>
                   : ''}
-                <p className="text-lg">Teléfono: {employee.phoneNumber ? employee.phoneNumber.replace(/(\d{2})(\d{4})(\d{4})/, '$1-$2-$3') : ''}</p>
+                <p className="text-lg">
+                  Teléfono: {employee.phoneNumber ? (
+                    <a href={`tel:${employee.phoneNumber}`}>
+                      {employee.phoneNumber.replace(/(\d{2})(\d{4})(\d{4})/, '$1-$2-$3')}
+                    </a>
+                  ) : ''}
+                </p>
               </div>
 
               <div className='bg-white shadow-md my-4'>
