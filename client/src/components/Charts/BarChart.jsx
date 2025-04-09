@@ -151,7 +151,6 @@ export default function BarChart({ verifiedIncomes = null, netIncomes = null, ch
 
     },
     onClick: (event, elements) => {
-      console.log(elements, elements[0].index)
       const index = elements[0].index
       handleChartClick(index)
     },

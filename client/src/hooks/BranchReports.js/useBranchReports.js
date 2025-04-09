@@ -69,6 +69,7 @@ export const useBranchReports = ({ companyId = null, date = null, reports = [], 
   return {
     branchReports: sortedReports,
     replaceReport,
+    setReports: setBranchReports,
     getBranchReports,
     incomes,
     totalIncomes,

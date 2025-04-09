@@ -10,6 +10,7 @@ const ShowListModal = ({
   extraInformation = null,
   ListComponent = null,
   className,
+  loading = false,
   ListComponentProps = {},
 }) => {
 
@@ -35,6 +36,7 @@ const ShowListModal = ({
         <Modal
           title={title}
           extraInformation={extraInformation}
+          loading={loading}
           content={
             // Usamos un componente de lista genérico que recibirá los datos.
             ListComponent ? <ListComponent {...ListComponentProps} /> : <div>No se proporcionó un componente de lista.</div>

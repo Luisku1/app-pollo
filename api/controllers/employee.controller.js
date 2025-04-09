@@ -1,4 +1,4 @@
-import { Types } from "mongoose"
+import { get, Types } from "mongoose"
 import bcryptjs from 'bcryptjs'
 import BranchReport from "../models/accounts/branch.report.model.js"
 import EmployeeDailyBalance from "../models/employees/employee.daily.balance.js"
@@ -13,6 +13,632 @@ import { fetchRolesFromDB } from "./role.controller.js"
 import EmployeeWeeklyBalance from "../models/employees/employee.weekly.balance.model.js"
 import EmployeeRest from "../models/employees/employee.rest.model.js"
 import { branchLookup, unwindBranch, employeeLookup, unwindEmployee } from "./branch.report.controller.js"
+
+
+export const employeeAggregate = (localField) => {
+	return [
+		{
+			$lookup: {
+				from: 'employees',
+				localField: localField,
+				foreignField: '_id',
+				as: 'employee',
+				pipeline: [
+					{
+						$lookup: {
+							from: 'roles',
+							localField: 'role',
+							foreignField: '_id',
+							as: 'role'
+						}
+					},
+					{
+						$unwind: { path: '$role', preserveNullAndEmptyArrays: true }
+					},
+					{
+						$project: {
+							_id: 1,
+							name: 1,
+							lastName: 1,
+							branch: 1,
+							company: 1,
+							role: {
+								_id: '$role._id',
+								name: '$role.name'
+							},
+							email: 1,
+							phoneNumber: 1,
+							active: 1,
+							hiredBy: 1,
+							hiredDate: 1,
+							salary: 1,
+							createdAt: 1
+						}
+					}
+				]
+			}
+		},
+		{ $unwind: { path: '$employee', preserveNullAndEmptyArrays: true } }
+	]
+}
+
+const employeeSupervisorReportsLookup = (localField, bottomDate, topDate) => ({
+	$lookup: {
+		from: 'supervisorreports',
+		localField: localField,
+		foreignField: 'supervisor',
+		as: 'supervisorReports',
+		pipeline: [
+			{
+				$match: {
+					'createdAt': { $gte: new Date(bottomDate), $lt: new Date(topDate) },
+				}
+			},
+			{
+				$lookup: {
+					from: 'employees',
+					localField: 'supervisor',
+					foreignField: '_id',
+					as: 'supervisor'
+				}
+			},
+			{ $unwind: { path: '$supervisor', preserveNullAndEmptyArrays: false } },
+			{
+				$lookup: {
+					from: 'extraoutgoings',
+					localField: 'extraOutgoingsArray',
+					foreignField: '_id',
+					as: 'extraOutgoingsArray',
+					pipeline: [
+						{ $sort: { "amount": -1 } },
+						{
+							$lookup: {
+								from: 'employeepayments',
+								localField: '_id',
+								foreignField: 'extraOutgoing',
+								as: 'employeePayment',
+								pipeline: [
+									{
+										$lookup: {
+											from: 'employees',
+											localField: 'employee',
+											foreignField: '_id',
+											as: 'employee'
+										}
+									},
+									{ $unwind: { path: '$employee', preserveNullAndEmptyArrays: true } }
+								]
+							}
+						},
+						{ $unwind: { path: '$employeePayment', preserveNullAndEmptyArrays: true } },
+						{
+							$lookup: {
+								from: 'employees',
+								localField: 'employee',
+								foreignField: '_id',
+								as: 'employee'
+							}
+						},
+						{ $unwind: { path: '$employee', preserveNullAndEmptyArrays: true } }
+					]
+				}
+			},
+			lookupSupervisorReportIncomes('Depósito', 'depositsArray'),
+			lookupSupervisorReportIncomes('Efectivo', 'cashArray'),
+			lookupSupervisorReportIncomes('Terminal', 'terminalIncomesArray'),
+			{
+				$addFields: {
+					extraOutgoings: { $sum: '$extraOutgoingsArray.amount' },
+					cash: { $sum: '$cashArray.amount' },
+					deposits: { $sum: '$depositsArray.amount' },
+					terminalIncomes: { $sum: '$terminalIncomesArray.amount' },
+					verifiedCash: '$verifiedCash',
+					verifiedDeposits: '$verifiedDeposits',
+				}
+			},
+			{
+				$project: {
+					_id: 1,
+					extraOutgoings: 1,
+					cash: 1,
+					deposits: 1,
+					supervisor: 1,
+					createdAt: 1,
+					cashArray: 1,
+					depositsArray: 1,
+					extraOutgoingsArray: 1,
+					terminalIncomes: 1,
+					terminalIncomesArray: 1,
+					missingIncomes: 1,
+					verifiedCash: 1,
+					balance: 1,
+					verifiedDeposits: 1,
+					supervisor: 1
+				}
+			}
+		]
+	}
+})
+
+const employeeBranchReportsLookup = (localField, bottomDate, topDate) => ({
+	$lookup: {
+		from: 'branchreports',
+		localField: localField,
+		foreignField: 'employee',
+		as: 'branchReports',
+		pipeline: [
+			{
+				$match: { createdAt: { $gte: new Date(bottomDate), $lt: new Date(topDate) } }
+			},
+			{
+				$sort: { createdAt: -1 }
+			},
+			{
+				$lookup: {
+					from: 'outputs',
+					localField: 'outputsArray',
+					foreignField: '_id',
+					as: 'outputsArray',
+					pipeline: [
+						{
+							$lookup: {
+								from: 'products',
+								localField: 'product',
+								foreignField: '_id',
+								as: 'product',
+							},
+						},
+						{ $unwind: { path: '$product', preserveNullAndEmptyArrays: true } },
+						{
+							$lookup: {
+								from: 'employees',
+								localField: 'employee',
+								foreignField: '_id',
+								as: 'employee',
+							},
+						},
+						{ $unwind: { path: '$employee', preserveNullAndEmptyArrays: true } },
+						{
+							$lookup: {
+								from: 'branches',
+								localField: 'branch',
+								foreignField: '_id',
+								as: 'branch',
+							},
+						},
+						{ $unwind: { path: '$branch', preserveNullAndEmptyArrays: true } },
+						{
+							$lookup: {
+								from: 'customers',
+								localField: 'customer',
+								foreignField: '_id',
+								as: 'customer',
+							},
+						},
+						{ $unwind: { path: '$customer', preserveNullAndEmptyArrays: true } },
+					]
+				}
+			},
+			{
+				$lookup: {
+					from: 'inputs',
+					localField: 'inputsArray',
+					foreignField: '_id',
+					as: 'inputsArray',
+					pipeline: [
+						{
+							$lookup: {
+								from: 'products',
+								localField: 'product',
+								foreignField: '_id',
+								as: 'product',
+							},
+						},
+						{ $unwind: { path: '$product', preserveNullAndEmptyArrays: true } },
+						{
+							$lookup: {
+								from: 'employees',
+								localField: 'employee',
+								foreignField: '_id',
+								as: 'employee',
+							},
+						},
+						{ $unwind: { path: '$employee', preserveNullAndEmptyArrays: true } },
+						{
+							$lookup: {
+								from: 'branches',
+								localField: 'branch',
+								foreignField: '_id',
+								as: 'branch',
+							},
+						},
+						{ $unwind: { path: '$branch', preserveNullAndEmptyArrays: true } },
+						{
+							$lookup: {
+								from: 'customers',
+								localField: 'customer',
+								foreignField: '_id',
+								as: 'customer',
+							},
+						},
+						{ $unwind: { path: '$customer', preserveNullAndEmptyArrays: true } },
+					],
+				}
+			},
+			{
+				$lookup: {
+					from: 'providerinputs',
+					localField: 'providerInputsArray',
+					foreignField: '_id',
+					as: 'providerInputsArray',
+					pipeline: [
+						{
+							$lookup: {
+								from: 'products',
+								localField: 'product',
+								foreignField: '_id',
+								as: 'product',
+							},
+						},
+						{ $unwind: { path: '$product', preserveNullAndEmptyArrays: true }, },
+						{
+							$lookup: {
+								from: 'employees',
+								localField: 'employee',
+								foreignField: '_id',
+								as: 'employee',
+							},
+						},
+						{ $unwind: { path: '$employee', preserveNullAndEmptyArrays: true } },
+						{
+							$lookup: {
+								from: 'branches',
+								localField: 'branch',
+								foreignField: '_id',
+								as: 'branch',
+							},
+						},
+						{ $unwind: { path: '$branch', preserveNullAndEmptyArrays: true } },
+						{
+							$lookup: {
+								from: 'customers',
+								localField: 'customer',
+								foreignField: '_id',
+								as: 'customer',
+							},
+						},
+						{ $unwind: { path: '$customer', preserveNullAndEmptyArrays: true } },
+					],
+				}
+			},
+			{
+				$lookup: {
+					from: 'incomecollecteds',
+					localField: 'incomesArray',
+					foreignField: '_id',
+					as: 'incomesArray',
+					pipeline: [
+						{
+							$lookup: {
+								from: 'employeepayments',
+								localField: '_id',
+								foreignField: 'income',
+								as: 'employeePayment',
+								pipeline: [
+									{
+										$lookup: {
+											from: 'employees',
+											foreignField: '_id',
+											localField: 'employee',
+											as: 'employee'
+										}
+									},
+									{
+										$lookup: {
+											from: 'employees',
+											foreignField: '_id',
+											localField: 'supervisor',
+											as: 'supervisor'
+										}
+									},
+									{
+										$unwind: { path: '$supervisor', preserveNullAndEmptyArrays: true }
+									},
+									{
+										$unwind: { path: '$employee', preserveNullAndEmptyArrays: true }
+									},
+									{
+										$lookup: {
+											from: 'branches',
+											foreignField: '_id',
+											localField: 'branch',
+											as: 'branch'
+										}
+									},
+									{
+										$unwind: { path: '$branch', preserveNullAndEmptyArrays: true }
+									}
+								]
+							}
+						},
+						{ $unwind: { path: '$employeePayment', preserveNullAndEmptyArrays: true } },
+						{
+							$lookup: {
+								from: 'incometypes',
+								localField: 'type',
+								foreignField: '_id',
+								as: 'type',
+							},
+						},
+						{
+							$unwind: { path: '$type', preserveNullAndEmptyArrays: true }
+						},
+						{
+							$lookup: {
+								from: 'employees',
+								localField: 'employee',
+								foreignField: '_id',
+								as: 'employee'
+							}
+						},
+						{ $unwind: { path: '$employee', preserveNullAndEmptyArrays: true } },
+						{
+							$lookup: {
+								from: 'branches',
+								localField: 'branch',
+								foreignField: '_id',
+								as: 'branch'
+							}
+						},
+						{ $unwind: { path: '$branch', preserveNullAndEmptyArrays: true } },
+						{
+							$lookup: {
+								from: 'customers',
+								localField: 'customer',
+								foreignField: '_id',
+								as: 'customer'
+							}
+						},
+						{ $unwind: { path: '$customer', preserveNullAndEmptyArrays: true } },
+						{
+							$lookup: {
+								from: 'employees',
+								localField: 'owner',
+								foreignField: '_id',
+								as: 'owner'
+							}
+						},
+						{ $unwind: { path: '$owner', preserveNullAndEmptyArrays: true } },
+						{
+							$lookup: {
+								from: 'employees',
+								localField: 'prevOwner',
+								foreignField: '_id',
+								as: 'prevOwner'
+							}
+						},
+						{ $unwind: { path: '$prevOwner', preserveNullAndEmptyArrays: true } }
+					]
+				}
+			},
+			{
+				$lookup: {
+					from: 'outgoings',
+					localField: 'outgoingsArray',
+					foreignField: '_id',
+					as: 'outgoingsArray',
+					pipeline: [
+						{
+							$lookup: {
+								from: 'employees',
+								localField: 'employee',
+								foreignField: '_id',
+								as: 'employee'
+							}
+						},
+						{ $unwind: { path: '$employee', preserveNullAndEmptyArrays: true } },
+						{
+							$lookup: {
+								from: 'branches',
+								localField: 'branch',
+								foreignField: '_id',
+								as: 'branch'
+							}
+						},
+						{ $unwind: { path: '$branch', preserveNullAndEmptyArrays: true } }
+					]
+				}
+			},
+			{
+				$lookup: {
+					from: 'stocks',
+					localField: 'finalStockArray',
+					foreignField: '_id',
+					as: 'finalStockArray',
+					pipeline: [
+						{
+							$lookup: {
+								from: 'products',
+								localField: 'product',
+								foreignField: '_id',
+								as: 'product',
+							}
+						},
+						{ $unwind: { path: '$product', preserveNullAndEmptyArrays: true } },
+						{
+							$lookup: {
+								from: 'employees',
+								localField: 'employee',
+								foreignField: '_id',
+								as: 'employee'
+							}
+						},
+						{ $unwind: { path: '$employee', preserveNullAndEmptyArrays: true } },
+						{
+							$lookup: {
+								from: 'branches',
+								localField: 'branch',
+								foreignField: '_id',
+								as: 'branch'
+							}
+						},
+						{ $unwind: { path: '$branch', preserveNullAndEmptyArrays: true } }
+					]
+				}
+			},
+			{
+				$lookup: {
+					from: 'stocks',
+					localField: 'initialStockArray',
+					foreignField: '_id',
+					as: 'initialStockArray',
+					pipeline: [
+						{
+							$lookup: {
+								from: 'products',
+								localField: 'product',
+								foreignField: '_id',
+								as: 'product',
+							}
+						},
+						{ $unwind: { path: '$product', preserveNullAndEmptyArrays: true } },
+						{
+							$lookup: {
+								from: 'employees',
+								localField: 'employee',
+								foreignField: '_id',
+								as: 'employee'
+							}
+						},
+						{ $unwind: { path: '$employee', preserveNullAndEmptyArrays: true } },
+						{
+							$lookup: {
+								from: 'branches',
+								localField: 'branch',
+								foreignField: '_id',
+								as: 'branch'
+							}
+						},
+						{ $unwind: { path: '$branch', preserveNullAndEmptyArrays: true } }
+					]
+				}
+			},
+			{
+				$lookup: {
+					from: 'branches',
+					localField: 'branch',
+					foreignField: '_id',
+					as: 'branch'
+				}
+			},
+			{
+				$unwind: { path: '$branch' }
+			},
+			{
+				$lookup: {
+					from: 'employees',
+					localField: 'employee',
+					foreignField: '_id',
+					as: 'employee'
+				}
+			},
+			{
+				$unwind: { path: '$employee' }
+			},
+			{
+				$lookup: {
+					from: 'employees',
+					localField: 'assistant',
+					foreignField: '_id',
+					as: 'assistant'
+				}
+			},
+			{
+				$unwind: { path: '$assistant', preserveNullAndEmptyArrays: true }
+			}
+		]
+	}
+})
+
+export const getEmployeeBranchReports = async (req, res, next) => {
+
+	const { employeeId } = req.params
+	const { date } = req.query
+
+	const employeePayDay = await getEmployeePayDay({ employeeId })
+
+	const { weekStart, weekEnd } = getWeekRange(new Date(date), employeePayDay, -1)
+
+	try {
+
+		const employeeBranchReports = await Employee.aggregate([
+			{
+				$match: { _id: new Types.ObjectId(employeeId) }
+			},
+			employeeBranchReportsLookup('_id', weekStart, weekEnd),
+			{
+				$project: {
+					_id: 1,
+					name: 1,
+					lastName: 1,
+					branchReports: 1,
+				}
+			}
+		]) ?? []
+
+		console.log(employeeBranchReports)
+
+		res.status(200).json({
+			message: 'Employee branch reports',
+			data: employeeBranchReports[0]?.branchReports ?? [],
+			success: true
+		})
+
+	} catch (error) {
+
+		console.log(error)
+		next(error)
+	}
+}
+
+export const getEmployeeSupervisorReports = async (req, res, next) => {
+
+	const { employeeId } = req.params
+	const { date } = req.query
+
+	const employeePayDay = await getEmployeePayDay({ employeeId })
+
+	const { weekStart, weekEnd } = getWeekRange(new Date(date), employeePayDay, -1)
+
+	try {
+
+		const employeeSupervisorReports = await Employee.aggregate([
+			{
+				$match: { _id: new Types.ObjectId(employeeId) }
+			},
+			employeeSupervisorReportsLookup('_id', weekStart, weekEnd),
+			{
+				$project: {
+					_id: 1,
+					name: 1,
+					lastName: 1,
+					supervisorReports: 1,
+				}
+			}
+		])
+
+		res.status(200).json({
+			message: 'Employee supervisor reports',
+			data: employeeSupervisorReports[0]?.supervisorReports ?? [],
+			success: true
+		})
+
+	} catch (error) {
+
+		console.log(error)
+		next(error)
+	}
+}
 
 export const getEmployees = async (req, res, next) => {
 
@@ -562,7 +1188,7 @@ export const getEmployeePayDay = async ({ employeeId }) => {
 
 	const employee = await Employee.findById(employeeId, 'payDay')
 
-	return employee.payDay || 0
+	return employee?.payDay ?? 0
 }
 
 export const addDailyBalanceInWeeklyBalance = async ({ dailyBalance }) => {
@@ -716,405 +1342,7 @@ export const fetchEmployeesPayroll = async ({ companyId, date }) => {
 					'weekStart': { $gte: new Date(weekStart), $lt: new Date(weekEnd) },
 				}
 			},
-			{
-				$lookup: {
-					from: 'branchreports',
-					localField: 'employee',
-					foreignField: 'employee',
-					as: 'branchReports',
-					pipeline: [
-						{
-							$match: { createdAt: { $gte: new Date(weekStart), $lt: new Date(weekEnd) } }
-						},
-						{
-							$sort: { createdAt: -1 }
-						},
-						{
-							$lookup: {
-								from: 'outputs',
-								localField: 'outputsArray',
-								foreignField: '_id',
-								as: 'outputsArray',
-								pipeline: [
-									{
-										$lookup: {
-											from: 'products',
-											localField: 'product',
-											foreignField: '_id',
-											as: 'product',
-										},
-									},
-									{ $unwind: { path: '$product', preserveNullAndEmptyArrays: true } },
-									{
-										$lookup: {
-											from: 'employees',
-											localField: 'employee',
-											foreignField: '_id',
-											as: 'employee',
-										},
-									},
-									{ $unwind: { path: '$employee', preserveNullAndEmptyArrays: true } },
-									{
-										$lookup: {
-											from: 'branches',
-											localField: 'branch',
-											foreignField: '_id',
-											as: 'branch',
-										},
-									},
-									{ $unwind: { path: '$branch', preserveNullAndEmptyArrays: true } },
-									{
-										$lookup: {
-											from: 'customers',
-											localField: 'customer',
-											foreignField: '_id',
-											as: 'customer',
-										},
-									},
-									{ $unwind: { path: '$customer', preserveNullAndEmptyArrays: true } },
-								]
-							}
-						},
-						{
-							$lookup: {
-								from: 'inputs',
-								localField: 'inputsArray',
-								foreignField: '_id',
-								as: 'inputsArray',
-								pipeline: [
-									{
-										$lookup: {
-											from: 'products',
-											localField: 'product',
-											foreignField: '_id',
-											as: 'product',
-										},
-									},
-									{ $unwind: { path: '$product', preserveNullAndEmptyArrays: true } },
-									{
-										$lookup: {
-											from: 'employees',
-											localField: 'employee',
-											foreignField: '_id',
-											as: 'employee',
-										},
-									},
-									{ $unwind: { path: '$employee', preserveNullAndEmptyArrays: true } },
-									{
-										$lookup: {
-											from: 'branches',
-											localField: 'branch',
-											foreignField: '_id',
-											as: 'branch',
-										},
-									},
-									{ $unwind: { path: '$branch', preserveNullAndEmptyArrays: true } },
-									{
-										$lookup: {
-											from: 'customers',
-											localField: 'customer',
-											foreignField: '_id',
-											as: 'customer',
-										},
-									},
-									{ $unwind: { path: '$customer', preserveNullAndEmptyArrays: true } },
-								],
-							}
-						},
-						{
-							$lookup: {
-								from: 'providerinputs',
-								localField: 'providerInputsArray',
-								foreignField: '_id',
-								as: 'providerInputsArray',
-								pipeline: [
-									{
-										$lookup: {
-											from: 'products',
-											localField: 'product',
-											foreignField: '_id',
-											as: 'product',
-										},
-									},
-									{ $unwind: { path: '$product', preserveNullAndEmptyArrays: true }, },
-									{
-										$lookup: {
-											from: 'employees',
-											localField: 'employee',
-											foreignField: '_id',
-											as: 'employee',
-										},
-									},
-									{ $unwind: { path: '$employee', preserveNullAndEmptyArrays: true } },
-									{
-										$lookup: {
-											from: 'branches',
-											localField: 'branch',
-											foreignField: '_id',
-											as: 'branch',
-										},
-									},
-									{ $unwind: { path: '$branch', preserveNullAndEmptyArrays: true } },
-									{
-										$lookup: {
-											from: 'customers',
-											localField: 'customer',
-											foreignField: '_id',
-											as: 'customer',
-										},
-									},
-									{ $unwind: { path: '$customer', preserveNullAndEmptyArrays: true } },
-								],
-							}
-						},
-						{
-							$lookup: {
-								from: 'incomecollecteds',
-								localField: 'incomesArray',
-								foreignField: '_id',
-								as: 'incomesArray',
-								pipeline: [
-									{
-										$lookup: {
-											from: 'employeepayments',
-											localField: '_id',
-											foreignField: 'income',
-											as: 'employeePayment',
-											pipeline: [
-												{
-													$lookup: {
-														from: 'employees',
-														foreignField: '_id',
-														localField: 'employee',
-														as: 'employee'
-													}
-												},
-												{
-													$lookup: {
-														from: 'employees',
-														foreignField: '_id',
-														localField: 'supervisor',
-														as: 'supervisor'
-													}
-												},
-												{
-													$unwind: { path: '$supervisor', preserveNullAndEmptyArrays: true }
-												},
-												{
-													$unwind: { path: '$employee', preserveNullAndEmptyArrays: true }
-												},
-												{
-													$lookup: {
-														from: 'branches',
-														foreignField: '_id',
-														localField: 'branch',
-														as: 'branch'
-													}
-												},
-												{
-													$unwind: { path: '$branch', preserveNullAndEmptyArrays: true }
-												}
-											]
-										}
-									},
-									{ $unwind: { path: '$employeePayment', preserveNullAndEmptyArrays: true } },
-									{
-										$lookup: {
-											from: 'incometypes',
-											localField: 'type',
-											foreignField: '_id',
-											as: 'type',
-										},
-									},
-									{
-										$unwind: { path: '$type', preserveNullAndEmptyArrays: true }
-									},
-									{
-										$lookup: {
-											from: 'employees',
-											localField: 'employee',
-											foreignField: '_id',
-											as: 'employee'
-										}
-									},
-									{ $unwind: { path: '$employee', preserveNullAndEmptyArrays: true } },
-									{
-										$lookup: {
-											from: 'branches',
-											localField: 'branch',
-											foreignField: '_id',
-											as: 'branch'
-										}
-									},
-									{ $unwind: { path: '$branch', preserveNullAndEmptyArrays: true } },
-									{
-										$lookup: {
-											from: 'customers',
-											localField: 'customer',
-											foreignField: '_id',
-											as: 'customer'
-										}
-									},
-									{ $unwind: { path: '$customer', preserveNullAndEmptyArrays: true } },
-									{
-										$lookup: {
-											from: 'employees',
-											localField: 'owner',
-											foreignField: '_id',
-											as: 'owner'
-										}
-									},
-									{ $unwind: { path: '$owner', preserveNullAndEmptyArrays: true } },
-									{
-										$lookup: {
-											from: 'employees',
-											localField: 'prevOwner',
-											foreignField: '_id',
-											as: 'prevOwner'
-										}
-									},
-									{ $unwind: { path: '$prevOwner', preserveNullAndEmptyArrays: true } }
-								]
-							}
-						},
-						{
-							$lookup: {
-								from: 'outgoings',
-								localField: 'outgoingsArray',
-								foreignField: '_id',
-								as: 'outgoingsArray',
-								pipeline: [
-									{
-										$lookup: {
-											from: 'employees',
-											localField: 'employee',
-											foreignField: '_id',
-											as: 'employee'
-										}
-									},
-									{ $unwind: { path: '$employee', preserveNullAndEmptyArrays: true } },
-									{
-										$lookup: {
-											from: 'branches',
-											localField: 'branch',
-											foreignField: '_id',
-											as: 'branch'
-										}
-									},
-									{ $unwind: { path: '$branch', preserveNullAndEmptyArrays: true } }
-								]
-							}
-						},
-						{
-							$lookup: {
-								from: 'stocks',
-								localField: 'finalStockArray',
-								foreignField: '_id',
-								as: 'finalStockArray',
-								pipeline: [
-									{
-										$lookup: {
-											from: 'products',
-											localField: 'product',
-											foreignField: '_id',
-											as: 'product',
-										}
-									},
-									{ $unwind: { path: '$product', preserveNullAndEmptyArrays: true } },
-									{
-										$lookup: {
-											from: 'employees',
-											localField: 'employee',
-											foreignField: '_id',
-											as: 'employee'
-										}
-									},
-									{ $unwind: { path: '$employee', preserveNullAndEmptyArrays: true } },
-									{
-										$lookup: {
-											from: 'branches',
-											localField: 'branch',
-											foreignField: '_id',
-											as: 'branch'
-										}
-									},
-									{ $unwind: { path: '$branch', preserveNullAndEmptyArrays: true } }
-								]
-							}
-						},
-						{
-							$lookup: {
-								from: 'stocks',
-								localField: 'initialStockArray',
-								foreignField: '_id',
-								as: 'initialStockArray',
-								pipeline: [
-									{
-										$lookup: {
-											from: 'products',
-											localField: 'product',
-											foreignField: '_id',
-											as: 'product',
-										}
-									},
-									{ $unwind: { path: '$product', preserveNullAndEmptyArrays: true } },
-									{
-										$lookup: {
-											from: 'employees',
-											localField: 'employee',
-											foreignField: '_id',
-											as: 'employee'
-										}
-									},
-									{ $unwind: { path: '$employee', preserveNullAndEmptyArrays: true } },
-									{
-										$lookup: {
-											from: 'branches',
-											localField: 'branch',
-											foreignField: '_id',
-											as: 'branch'
-										}
-									},
-									{ $unwind: { path: '$branch', preserveNullAndEmptyArrays: true } }
-								]
-							}
-						},
-						{
-							$lookup: {
-								from: 'branches',
-								localField: 'branch',
-								foreignField: '_id',
-								as: 'branch'
-							}
-						},
-						{
-							$unwind: { path: '$branch' }
-						},
-						{
-							$lookup: {
-								from: 'employees',
-								localField: 'employee',
-								foreignField: '_id',
-								as: 'employee'
-							}
-						},
-						{
-							$unwind: { path: '$employee' }
-						},
-						{
-							$lookup: {
-								from: 'employees',
-								localField: 'assistant',
-								foreignField: '_id',
-								as: 'assistant'
-							}
-						},
-						{
-							$unwind: { path: '$assistant', preserveNullAndEmptyArrays: true }
-						}
-					]
-				}
-			},
+			employeeBranchReportsLookup('employee', weekStart, weekEnd),
 			{
 				$lookup: {
 					from: 'employeedailybalances',
@@ -1128,103 +1356,7 @@ export const fetchEmployeesPayroll = async ({ companyId, date }) => {
 					]
 				}
 			},
-			{
-				$lookup: {
-					from: 'supervisorreports',
-					localField: 'employee',
-					foreignField: 'supervisor',
-					as: 'supervisorReports',
-					pipeline: [
-						{
-							$match: {
-								'createdAt': { $gte: new Date(weekStart), $lt: new Date(weekEnd) },
-							}
-						},
-						{
-							$lookup: {
-								from: 'employees',
-								localField: 'supervisor',
-								foreignField: '_id',
-								as: 'supervisor'
-							}
-						},
-						{ $unwind: { path: '$supervisor', preserveNullAndEmptyArrays: false } },
-						{
-							$lookup: {
-								from: 'extraoutgoings',
-								localField: 'extraOutgoingsArray',
-								foreignField: '_id',
-								as: 'extraOutgoingsArray',
-								pipeline: [
-									{ $sort: { "amount": -1 } },
-									{
-										$lookup: {
-											from: 'employeepayments',
-											localField: '_id',
-											foreignField: 'extraOutgoing',
-											as: 'employeePayment',
-											pipeline: [
-												{
-													$lookup: {
-														from: 'employees',
-														localField: 'employee',
-														foreignField: '_id',
-														as: 'employee'
-													}
-												},
-												{ $unwind: { path: '$employee', preserveNullAndEmptyArrays: true } }
-											]
-										}
-									},
-									{ $unwind: { path: '$employeePayment', preserveNullAndEmptyArrays: true } },
-									{
-										$lookup: {
-											from: 'employees',
-											localField: 'employee',
-											foreignField: '_id',
-											as: 'employee'
-										}
-									},
-									{ $unwind: { path: '$employee', preserveNullAndEmptyArrays: true } }
-								]
-							}
-						},
-						lookupSupervisorReportIncomes('Depósito', 'depositsArray'),
-						lookupSupervisorReportIncomes('Efectivo', 'cashArray'),
-						lookupSupervisorReportIncomes('Terminal', 'terminalIncomesArray'),
-						{
-							$addFields: {
-								extraOutgoings: { $sum: '$extraOutgoingsArray.amount' },
-								cash: { $sum: '$cashArray.amount' },
-								deposits: { $sum: '$depositsArray.amount' },
-								terminalIncomes: { $sum: '$terminalIncomesArray.amount' },
-								verifiedCash: '$verifiedCash',
-								verifiedDeposits: '$verifiedDeposits',
-							}
-						},
-						{
-							$project: {
-								_id: 1,
-								extraOutgoings: 1,
-								cash: 1,
-								deposits: 1,
-								supervisor: 1,
-								createdAt: 1,
-								cashArray: 1,
-								depositsArray: 1,
-								extraOutgoingsArray: 1,
-								terminalIncomes: 1,
-								terminalIncomesArray: 1,
-								missingIncomes: 1,
-								verifiedCash: 1,
-								balance: 1,
-								verifiedDeposits: 1,
-								supervisor: 1
-							}
-						}
-					]
-				}
-			},
+			employeeSupervisorReportsLookup('employee', weekStart, weekEnd),
 			{
 				$addFields: {
 					accountBalance: { $sum: '$employeeDailyBalances.accountBalance' },

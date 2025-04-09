@@ -20,6 +20,7 @@ import { useBranchReports } from "../hooks/BranchReports.js/useBranchReports";
 import { useEmployeeDailyBalance } from '../hooks/Employees/useEmployeeDailyBalance'
 import SupervisorReportList from "../components/SupervisorReportList";
 import SupervisorReportCard from "../components/SupervisorReportCard";
+import PhoneLinks from "../components/PhoneLinks";
 
 export default function Perfil() {
 
@@ -29,11 +30,11 @@ export default function Perfil() {
   const [editEmployee, setEditEmployee] = useState(false)
   const [lastSupervisorReport, setLastSupervisorReport] = useState(null)
   const [employeeBranchReports, setEmployeeBranchReports] = useState([])
-  const { supervisorReports } = useSupervisorReports({ supervisorId: employeeId })
+  const { supervisorReports, totalBalance } = useSupervisorReports({ supervisorId: employeeId })
   const { employeeDailyBalance, handleDailyBalanceInputs, loading } = useEmployeeDailyBalance(employeeId)
   const [lastBranchReport, setLastBranchReport] = useState(null)
   const { payments, total } = useEmployeesPayments({ employeeId, date: formatDate(new Date()) })
-  const { branchReports, replaceReport } = useBranchReports({ reports: employeeBranchReports, profile: true })
+  const { branchReports, replaceReport, totalBalance: supervisorBalance } = useBranchReports({ reports: employeeBranchReports, profile: true })
   const { roles, isManager } = useRoles()
   const { isLoading } = useLoading(loading)
   const { signOut } = useSignOut()
@@ -187,13 +188,12 @@ export default function Perfil() {
                 {employee.payDay > -1 ?
                   <p className="text-lg">{'Día de cobro: ' + weekDays[employee.payDay]}</p>
                   : ''}
-                <p className="text-lg">
-                  Teléfono: {employee.phoneNumber ? (
-                    <a href={`tel:${employee.phoneNumber}`}>
-                      {employee.phoneNumber.replace(/(\d{2})(\d{4})(\d{4})/, '$1-$2-$3')}
-                    </a>
-                  ) : ''}
-                </p>
+                <div className="flex gap-2 items-center flex-wrap">
+                  <p className="text-lg">
+                    Teléfono:
+                  </p>
+                  <PhoneLinks phoneNumber={employee.phoneNumber} name={employee.name} />
+                </div>
               </div>
 
               <div className='bg-white shadow-md my-4'>
@@ -222,7 +222,7 @@ export default function Perfil() {
                   className={'w-full'}
                   ListComponent={SupervisorReportList}
                   ListComponentProps={{ supervisorReports }}
-                  clickableComponent={<p className='w-full text-lg font-semibold text-center p-1 border border-header rounded-md'>{`${supervisorReports.length == 0 || supervisorReports.length > 1 ? 'Reportes de Supervisión' : 'Reporte de Supervisión'} (${supervisorReports.length})`}</p>}
+                  clickableComponent={<p className='w-full text-lg font-semibold text-center p-1 border border-header rounded-md'>{`${supervisorReports.length == 0 || supervisorReports.length > 1 ? 'Reportes de Supervisión' : 'Reporte de Supervisión'} (${supervisorReports.length}) [${currency(totalBalance > 0 ? 0 : totalBalance)}]`}</p>}
                 />
               )}
 
@@ -243,7 +243,7 @@ export default function Perfil() {
                   title={`Cuentas de ${employee.name}`}
                   ListComponent={TarjetaCuenta}
                   ListComponentProps={{ reportArray: branchReports, replaceReport: replaceReport }}
-                  clickableComponent={<p className='mt-4 w-full text-lg font-semibold text-center p-1 border border-header rounded-md'>{`${branchReports.length == 0 || branchReports.length > 1 ? 'Reportes en Pollería' : 'Reporte en Pollería'} (${branchReports.length})`}</p>}
+                  clickableComponent={<p className='mt-4 w-full text-lg font-semibold text-center p-1 border border-header rounded-md'>{`${branchReports.length == 0 || branchReports.length > 1 ? 'Reportes en Pollería' : 'Reporte en Pollería'} (${branchReports.length}) [${supervisorBalance > 0 ? 0 : supervisorBalance}]`}</p>}
                 />
               )}
 
@@ -253,14 +253,12 @@ export default function Perfil() {
                 </div>
               )}
 
-              {employeeId == currentUser._id ?
+              {employeeId == currentUser._id &&
                 <div className='mt-8 grid grid-1'>
                   <button className='shadow-lg rounded-full p-2 flex-col-reverse justify-self-end border bg-red-700'>
                     <span onClick={handleSignOut} className='text-white cursor-pointer font-semibold text-lg'>Cerrar Sesión</span>
                   </button>
-                  <span>{error ? ' Error al fetch' : ''}</span>
                 </div>
-                : ''
               }
             </div >
             : ''}

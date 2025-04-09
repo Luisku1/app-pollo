@@ -29,8 +29,12 @@ import RegistroCliente from './pages/RegistroCliente';
 import RegistroProveedor from './pages/RegistroProveedor';
 import ControlProveedor from './pages/ControlProveedor';
 import './index.css';
+import { useSelector } from 'react-redux';
 
 export default function App() {
+
+  const currentUser = useSelector((state) => state.user);
+
   return (
     <RolesProvider>
       <ModalProvider>
@@ -42,7 +46,21 @@ export default function App() {
             <Route path="/registro" element={<RegistroDueño />} />
             <Route path="/precios-sucursal/:branchId" element={<PreciosSucursal />} />
             <Route element={<PrivateRoute />}>
-              <Route path="/" element={<ListadoDeCuentas />} />
+              <Route
+                path="/"
+                element={
+                  (currentUser.role?._id ?? currentUser.role) == '65f4d024ac6002fac0321cd3' ?
+                    <RegistroCuentaDiaria />
+                    :
+                    (currentUser.role?._id ?? currentUser.role) == '65f4d02bac6002fac0321cd7' ?
+                      <ControlSupervisor />
+                      :
+                      (currentUser.role?._id ?? currentUser.role) == '65f4d02fac6002fac0321cd9'  ?
+                        <Reporte />
+                        :
+                        <Reporte />
+                }
+              />
               <Route path="/perfil/:employeeId" element={<Perfil />} />
               <Route path="/formato" element={<RegistroCuentaDiaria />} />
               <Route path="/formato/:date/:branchId" element={<RegistroCuentaDiaria />} />

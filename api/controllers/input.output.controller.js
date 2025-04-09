@@ -6,6 +6,63 @@ import { getDayRange, today } from '../utils/formatDate.js'
 import { Types } from 'mongoose'
 import { pushOrPullBranchReportRecord } from './branch.report.controller.js'
 import { pushOrPullCustomerReportRecord } from './customer.controller.js'
+import { employeeAggregate } from './employee.controller.js'
+
+const inputLookups = () => {
+  return [
+    ...employeeAggregate('employee'),
+    {
+      $lookup: {
+        from: 'products',
+        localField: 'product',
+        foreignField: '_id',
+        as: 'product'
+      }
+    },
+    {
+      $lookup: {
+        from: 'branches',
+        localField: 'branch',
+        foreignField: '_id',
+        as: 'branch'
+      }
+    },
+    {
+      $unwind: '$product'
+    },
+    {
+      $unwind: '$branch'
+    }
+  ]
+}
+
+const outputLookups = () => {
+  return [
+    ...employeeAggregate('employee'),
+    {
+      $lookup: {
+        from: 'products',
+        localField: 'product',
+        foreignField: '_id',
+        as: 'product'
+      }
+    },
+    {
+      $lookup: {
+        from: 'branches',
+        localField: 'branch',
+        foreignField: '_id',
+        as: 'branch'
+      }
+    },
+    {
+      $unwind: '$product'
+    },
+    {
+      $unwind: '$branch'
+    }
+  ]
+}
 
 export const newBranchInput = async (req, res, next) => {
 
@@ -350,9 +407,6 @@ export const getBranchProviderInputs = async ({ branchId, date }) => {
   return providerInputs.length > 0 ? providerInputs : []
 }
 
-
-
-
 export const getInputs = async (req, res, next) => {
 
   const date = new Date(req.params.date)
@@ -363,27 +417,15 @@ export const getInputs = async (req, res, next) => {
 
   try {
 
-    const inputs = await Input.find({
-
-      $and: [{
-
-        createdAt: {
-
-          $gte: bottomDate
+    const inputs = await Input.aggregate([
+      {
+        $match: {
+          "createdAt": { $gte: new Date(bottomDate), $lt: new Date(topDate) },
+          "company": new Types.ObjectId(companyId)
         }
       },
-      {
-
-        createdAt: {
-
-          $lt: topDate
-        }
-
-      },
-      {
-        company: companyId
-      }]
-    }).populate({ path: 'employee', select: 'name lastName' }).populate({ path: 'product', select: 'name' }).populate({ path: 'branch', select: 'branch position' }).populate({ path: 'customer', select: 'name lastName' })
+      ...inputLookups()
+    ])
 
     if (inputs.length == 0) {
 
@@ -657,27 +699,15 @@ export const getOutputs = async (req, res, next) => {
 
   try {
 
-    const outputs = await Output.find({
-
-      $and: [{
-
-        createdAt: {
-
-          $gte: bottomDate
+    const outputs = await Output.aggregate([
+      {
+        $match: {
+          "createdAt": { $gte: new Date(bottomDate), $lt: new Date(topDate) },
+          "company": new Types.ObjectId(companyId)
         }
       },
-      {
-
-        createdAt: {
-
-          $lt: topDate
-        }
-
-      },
-      {
-        company: companyId
-      }]
-    }).populate({ path: 'employee', select: 'name lastName' }).populate({ path: 'product', select: 'name' }).populate({ path: 'branch', select: 'branch position' })
+      ...outputLookups()
+    ])
 
     if (outputs.length == 0) {
 

@@ -4,6 +4,8 @@ import BranchReportCard from "./BranchReportCard";
 /* eslint-disable react/prop-types */
 export default function TarjetaCuenta({ reportArray, replaceReport, defaultDetailsShowed = null, payrollIndex = null }) {
 
+  console.log(reportArray)
+
   return (
     <div className="w-full relative">
       <div>

@@ -120,7 +120,17 @@ export default function RegistroEmpleadoNuevo({ employee, setEmployee }) {
 
     <div className="p-3 max-w-lg mx-auto">
 
-      <h1 className="text-3xl text-center font-semibold my-7">{isEditing ? 'Actualización de Empleado' : 'Registro de Empleado'}</h1>
+      <h1 className="text-3xl text-center font-semibold my-7 w-full">
+        {isEditing ? (
+          <span className="w-full">
+            Actualización de cuenta
+            <br />
+            {`[${employee.name}]`}
+          </span>
+        ) : (
+          'Registro de Empleado'
+        )}
+      </h1>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4 text-base"> {/* Mantener el tamaño de la fuente */}
         <input

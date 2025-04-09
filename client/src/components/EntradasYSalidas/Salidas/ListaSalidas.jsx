@@ -13,11 +13,14 @@ import { MdStorefront } from 'react-icons/md'
 import ConfirmationButton from '../../Buttons/ConfirmationButton'
 import DeleteButton from '../../Buttons/DeleteButton'
 import MoneyBag from '../../Icons/MoneyBag'
+import { CiSquareInfo } from "react-icons/ci";
+import EmployeeInfo from '../../EmployeeInfo'
 
 export default function ListaSalidas({ outputs, onDelete = null }) {
   const { currentUser } = useSelector((state) => state.user)
   const { isManager } = useRoles()
   const [selectedOutput, setSelectedOutput] = useState(null)
+  const [selectedEmployee, setSelectedEmployee] = useState(null)
   const isAuthorized = (employee) => currentUser._id === employee._id || isManager(currentUser.role) || !onDelete
   const deletable = onDelete != null
 
@@ -54,10 +57,7 @@ export default function ListaSalidas({ outputs, onDelete = null }) {
         <div className="" key={output._id}>
           {output.weight !== 0 ? (
             <div className="grid grid-cols-12 border border-black border-opacity-30 rounded-2xl shadow-sm mb-2 py-1">
-              <button
-                onClick={() => {
-                  setSelectedOutput(tempOutput)
-                }}
+              <div
                 id="list-element"
                 className="col-span-10 items-center"
               >
@@ -66,7 +66,7 @@ export default function ListaSalidas({ outputs, onDelete = null }) {
                     <div className="w-full text-red-800 mb-2">
                       <RowItem>
                         <p className="text-md font-bold flex gap-1 items-center"><MdStorefront />{branch.branch}</p>
-                        <p className="font-bold text-md flex gap-1 truncate items-center"><span><CgProfile /></span>{employee.name}</p>
+                        <button onClick={() => setSelectedEmployee(employee)} className="font-bold text-md flex gap-1 truncate items-center"><span><CgProfile /></span>{employee.name}</button>
                       </RowItem>
                     </div>
                     <div className="w-full text-sm font-semibold">
@@ -77,7 +77,7 @@ export default function ListaSalidas({ outputs, onDelete = null }) {
                         <p className="flex gap-1 items-center"><MoneyBag />{amount.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
                       </RowItem>
                     </div>
-                    <div className="w-full">
+                    <div className="w-full mt-2">
                       <RowItem>
                         <p className="text-xs flex gap-1 items-center"><FaInfoCircle className="text-blue-800" />{comment || 'Sin observaciones.'}</p>
                         <div className="text-sm text-black flex justify-self-end">
@@ -87,13 +87,24 @@ export default function ListaSalidas({ outputs, onDelete = null }) {
                     </div>
                   </div>
                 </div>
-              </button>
-              <div className="col-span-2 my-auto">
-                {deletable && (
-                  <DeleteButton
-                    deleteFunction={() => onDelete(tempOutput)}
-                  />
-                )}
+              </div>
+              <div className="col-span-2 my-auto items-center">
+                <div className='flex flex-col gap-2 justify-center my-auto items-center'>
+                  <button
+                    onClick={() => {
+                      setSelectedOutput(tempOutput)
+                    }} className="border rounded-lg shadow-md w-10 h-10 flex justify-center items-center">
+                    <CiSquareInfo className='w-full h-full text-blue-600' />
+                  </button>
+                  {deletable && (
+                    <div className='w-10 h-10'>
+                      <DeleteButton
+                        deleteFunction={() => onDelete(tempOutput)}
+                        className="w-full h-full"
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           ) : (
@@ -138,6 +149,7 @@ export default function ListaSalidas({ outputs, onDelete = null }) {
 
   return (
     <div>
+      <EmployeeInfo employee={selectedEmployee} toggleInfo={() => setSelectedEmployee(null)} />
       {renderOutputsList()}
       {shouldOpenModal && (
         <ShowDetails

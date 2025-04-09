@@ -14,8 +14,7 @@ const employeeSchema = new mongoose.Schema({
   },
 
   lastName: {
-    type: String,
-    required: true,
+    type: String
   },
 
   salary: {
@@ -39,6 +38,11 @@ const employeeSchema = new mongoose.Schema({
   active: {
     type: Boolean,
     default: true
+  },
+
+  administrativeAccount: {
+    type: Boolean,
+    default: false
   },
 
   hiredBy: {

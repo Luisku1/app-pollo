@@ -8,7 +8,5 @@ export const getSupervisorReportsFetch = async ({ supervisorId }) => {
     throw new Error("Este empleado no tiene reportes de supervisor esta semana");
   }
 
-  console.log(data.data)
-
   return data.data
 }

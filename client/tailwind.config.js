@@ -11,14 +11,14 @@ export default {
       colors: {
         'pastel-pink': '#FEEAF2', // Tono de rosa pastel personalizado
         'header': '#333333',
-        'menu': '#E4E4E4',
+        'menu': '#F4F4F4',
         'button': '#A36A63',
         'options-bar': '#415D43',
-        'supervisor-button': '#CCCCCC',
+        'supervisor-button': '#CBD5E1',
         'inputs': '#FCE8E6',
-        'outputs': '#E6F4F1',
+        'outputs': '#E0F2F1',
         'providers': '#FAF3F3',
-        'delete-button': '#B22211',
+        'delete-button': '#E53E3E',
         'update-button': '#2B6CB0',
       },
     },

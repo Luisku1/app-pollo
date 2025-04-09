@@ -1,15 +1,27 @@
 /* eslint-disable react/prop-types */
 import { useEffect, useContext } from 'react';
 import { MdCancel } from 'react-icons/md';
+import { FaSpinner } from 'react-icons/fa';
 import SectionHeader from '../SectionHeader';
 import { ModalContext } from '../../context/ModalContext';
 
-export default function Modal({ content, title, closeModal, ref, ableToClose = true, extraInformation }) {
+export default function Modal({
+  content,
+  title,
+  closeModal,
+  ref,
+  ableToClose = true,
+  extraInformation,
+  closeOnClickOutside = true,
+  closeOnClickInside = false,
+  width = '11/12',
+  shape = '',
+  loading = false,
+}) {
   const { modals, removeLastModal } = useContext(ModalContext);
   const zIndex = 10000 + modals.length * 10;
 
   useEffect(() => {
-
     document.body.style.overflow = "hidden";
 
     const handleKeyDown = (event) => {
@@ -43,11 +55,34 @@ export default function Modal({ content, title, closeModal, ref, ableToClose = t
 
   const renderModal = () => {
     return (
-      <div className={`fixed transition-all duration-200 inset-0 z-[${zIndex}] bg-black bg-opacity-30 overflow-y-auto backdrop-blur-sm flex items-center justify-center pt-16`}>
+      <div
+        className={`fixed transition-all duration-200 inset-0 z-[${zIndex}] bg-black bg-opacity-30 overflow-y-auto backdrop-blur-sm flex items-center justify-center pt-16`}
+        onClick={(e) => {
+          if (closeOnClickOutside && e.target === e.currentTarget && ableToClose) {
+            closeModal();
+            removeLastModal();
+          }
+        }}
+      >
         <div
           ref={ref}
-          className={`bg-white p-5 rounded-lg shadow-lg max-w-lg w-11/12 h-auto max-h-[90vh] overflow-y-auto relative overscroll-contain`}
+          className={`bg-white p-5 shadow-lg h-auto max-h-[90vh] max-w-lg w-${width} overflow-y-auto relative overscroll-contain ${shape} '
+          `}
+          onClick={(e) => {
+            if (closeOnClickInside && ableToClose) {
+              closeModal();
+              removeLastModal();
+            } else {
+              e.stopPropagation();
+            }
+          }}
         >
+          {loading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-50 z-50 h-full">
+              <FaSpinner className="text-4xl animate-spin" />
+            </div>
+          )}
+
           {ableToClose && (
             <button
               className="sticky top-0 right-0 text-gray-600 hover:text-gray-800 z-30"

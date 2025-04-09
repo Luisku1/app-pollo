@@ -1,15 +1,15 @@
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { getSupervisorReportsFetch } from "../../services/Supervisors/getSupervisorReports"
 
-export const useSupervisorReports = ({ supervisorId }) => {
+export const useSupervisorReports = ({ supervisorId = null, supervisorReports = [] }) => {
 
-  const [supervisorReports, setSupervisorReports] = useState(null)
+  const [finalReports, setFinalReports] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
   const replaceReport = (updatedReport) => {
 
-    setSupervisorReports((prev) => prev.map((report) => {
+    setFinalReports((prev) => prev.map((report) => {
 
       if (report._id === updatedReport._id) {
 
@@ -22,6 +22,14 @@ export const useSupervisorReports = ({ supervisorId }) => {
 
   useEffect(() => {
 
+    if (supervisorReports.length > 0 && finalReports === null) {
+      setFinalReports(supervisorReports)
+    }
+
+  }, [supervisorReports, finalReports])
+
+  useEffect(() => {
+
     if (!supervisorId) return
 
     setLoading(true)
@@ -29,7 +37,7 @@ export const useSupervisorReports = ({ supervisorId }) => {
     getSupervisorReportsFetch({supervisorId}).then((response) => {
 
       console.log(response)
-      setSupervisorReports(response)
+      setFinalReports(response)
 
     }).catch((error) => {
 
@@ -40,5 +48,14 @@ export const useSupervisorReports = ({ supervisorId }) => {
 
   }, [supervisorId])
 
-  return {supervisorReports, replaceReport, loading, error}
+
+  const totalBalance = useMemo(() => {
+
+    if (!finalReports) return 0
+
+    return finalReports.reduce((acc, report) => acc + report.balance, 0)
+
+  }, [finalReports])
+
+  return {supervisorReports: finalReports, totalBalance, setSupervisorReports: setFinalReports, replaceReport, loading, error}
 }

@@ -2,50 +2,15 @@ import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { signInStart, signInSuccess, signInFailiure, addCompany } from '../redux/user/userSlice'
+import { useRoles } from '../context/RolesContext'
 
 export default function InicioSesion() {
 
   const [formData, setFormData] = useState({})
   const { loading, error } = useSelector((state) => state.user)
-  const [roles, setRoles] = useState([])
+  const { isJustSeller, isSupervisor, isManager } = useRoles()
   const navigate = useNavigate()
   const dispatch = useDispatch()
-  let seller
-
-
-  useEffect(() => {
-
-    const fetchRoles = async () => {
-
-      try {
-
-        const res = await fetch('/api/role/get')
-        const data = await res.json()
-
-        if (data.success === false) {
-          dispatch(signInFailiure(data.message))
-          return
-        }
-
-        setRoles(data.roles)
-
-      } catch (error) {
-
-        dispatch(signInFailiure(error.message))
-
-      }
-    }
-
-    fetchRoles()
-
-  }, [dispatch])
-
-
-  if (roles) {
-
-    seller = roles.find((role) => (role.name == "Vendedor"))
-
-  }
 
   const handleChange = (e) => {
 
@@ -138,19 +103,30 @@ export default function InicioSesion() {
 
       dispatch(signInSuccess(data))
 
-      if (data.role == seller._id) {
+
+      if (!data.company) {
+
+        navigate('/registro-empresa')
+        return
+      }
+
+      if(isManager(data.role?._id ?? data.role)) {
+
+        navigate('/reporte')
+        return
+      }
+
+      if (isSupervisor(data.role?._id ?? data.role)) {
+
+        navigate('/supervision-diaria')
+        return
+      }
+
+      if (isJustSeller(data.role?._id ?? data.role)) {
 
         navigate('/formato')
         return
       }
-
-      if (data.company != null) {
-
-        navigate('/')
-        return
-      }
-
-      navigate('/registro-empresa')
 
     } catch (error) {
 
