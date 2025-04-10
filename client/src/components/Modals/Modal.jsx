@@ -18,10 +18,14 @@ export default function Modal({
   shape = '',
   loading = false,
 }) {
-  const { modals, removeLastModal } = useContext(ModalContext);
-  const zIndex = 10000 + modals.length * 10;
+  const { modals, removeLastModal, count, setCount } = useContext(ModalContext);
+
+  console.log(count)
 
   useEffect(() => {
+
+    setCount((prevCount) => prevCount + 1);
+
     document.body.style.overflow = "hidden";
 
     const handleKeyDown = (event) => {
@@ -50,13 +54,15 @@ export default function Modal({
       document.body.style.overflow = "auto";
       document.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('popstate', handlePopState);
+      setCount((prevCount) => prevCount - 1);
     };
   }, [ableToClose, closeModal, removeLastModal, modals.length]);
 
   const renderModal = () => {
+    const zIndex = 1000 + count;
     return (
       <div
-        className={`fixed transition-all duration-200 inset-0 z-[${zIndex}] bg-black bg-opacity-30 overflow-y-auto backdrop-blur-sm flex items-center justify-center pt-16`}
+        className={`fixed transition-all duration-200 inset-0 z-[10000] bg-black bg-opacity-30 overflow-y-auto backdrop-blur-sm flex items-center justify-center pt-16`}
         onClick={(e) => {
           if (closeOnClickOutside && e.target === e.currentTarget && ableToClose) {
             closeModal();
