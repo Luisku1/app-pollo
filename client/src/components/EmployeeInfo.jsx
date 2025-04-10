@@ -6,11 +6,13 @@ import Modal from "./Modals/Modal";
 import EmployeeBranchReports from "./EmployeeBranchReports";
 import EmployeeSupervisorReports from "./EmployeeSupervisorReports";
 import PhoneLinks from "./PhoneLinks";
+import EmployeePayments from "./EmployeePayments";
 
 export default function EmployeeInfo({ employee, toggleInfo }) {
 
   const [showEmployeeBranchReports, setShowEmployeeBranchReports] = useState(false);
   const [showEmployeeSupervisorReports, setShowEmployeeSupervisorReports] = useState(false);
+  const [showPayments, setShowPayments] = useState(false);
 
   if (!employee) return null;
 
@@ -23,6 +25,10 @@ export default function EmployeeInfo({ employee, toggleInfo }) {
   const handleViewSupervisorAccounts = () => {
     setShowEmployeeSupervisorReports(true);
   };
+
+  const handleViewPayments = () => {
+    setShowPayments(true);
+  }
 
   const employeeCard = () => {
     return (
@@ -40,6 +46,12 @@ export default function EmployeeInfo({ employee, toggleInfo }) {
           <PhoneLinks phoneNumber={employee.phoneNumber} name={employee.name} />
         </div>
         <div className="flex flex-col gap-2">
+          <button
+            className="bg-[#3182CE] text-white py-3 px-4 rounded"
+            onClick={handleViewPayments}
+          >
+            Ver Pagos
+          </button>
           <button
             className="bg-[#2B6CB0] text-white py-3 px-4 rounded"
             onClick={handleViewBranchAccounts}
@@ -76,6 +88,9 @@ export default function EmployeeInfo({ employee, toggleInfo }) {
       )}
       {showEmployeeSupervisorReports && (
         <EmployeeSupervisorReports employeeId={employee._id} employee={employee} toggleComponent={() => setShowEmployeeSupervisorReports(prev => !prev)} />
+      )}
+      {showPayments && (
+        <EmployeePayments employeeId={employee._id} employee={employee} toggleComponent={() => setShowPayments(prev => !prev)} />
       )}
     </div>
   );
