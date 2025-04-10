@@ -20,11 +20,14 @@ import ListaSalidas from "./EntradasYSalidas/Salidas/ListaSalidas"
 import ListaEntradas from "./EntradasYSalidas/Entradas/ListaEntradas"
 import { MdPriceChange } from "react-icons/md";
 import ChangeBranchPrices from "./Prices/ChangeBranchPrices"
+import EmployeeInfo from "./EmployeeInfo"
+import { CgProfile } from "react-icons/cg"
 
 export default function BranchReportCard({ reportData = {}, replaceReport, externalIndex, selfChange }) {
 
   const { currentUser } = useSelector((state) => state.user)
   const { isController, isManager } = useRoles()
+  const [selectedEmployee, setSelectedEmployee] = useState(null)
   const [toModifyReport, setToModifyReport] = useState(null)
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
@@ -103,6 +106,7 @@ export default function BranchReportCard({ reportData = {}, replaceReport, exter
             <MdPriceChange />
           </ChangeBranchPrices>
         )}
+        <EmployeeInfo employee={selectedEmployee} toggleInfo={() => setSelectedEmployee(null)} />
       </div>
       <div className="relative">
         {loading && toModifyReport == reportData._id && (
@@ -112,16 +116,15 @@ export default function BranchReportCard({ reportData = {}, replaceReport, exter
         )}
         <div className={`${loading && toModifyReport == reportData._id ? 'blur-sm' : ''} px-3`}>
           <div className="space-y-4">
-            {/* Encargado y Auxiliar */}
             <div className="grid grid-cols-2 gap-4 text-sm text-left">
               <div>
                 <p className="font-bold text-lg text-gray-600">Encargado:</p>
-                <p className="text-black font-semibold">{reportData.employee?.name || 'Sin empleado'}</p>
+                <button onClick={() => setSelectedEmployee(reportData.employee)} className="font-bold text-md flex gap-1 truncate items-center"><span><CgProfile /></span>{reportData.employee.name}</button>
               </div>
               {reportData.assistant?.name && (
                 <div>
                   <p className="font-bold text-lg text-gray-600">Auxiliar:</p>
-                  <p className="text-black font-semibold">{reportData.assistant?.name}</p>
+                  <button onClick={() => setSelectedEmployee(reportData.assistant)} className="font-bold text-md flex gap-1 truncate items-center"><span><CgProfile /></span>{reportData.assistant.name}</button>
                 </div>
               )}
             </div>

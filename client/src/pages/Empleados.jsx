@@ -9,6 +9,8 @@ import SearchBar from "../components/SearchBar";
 import { getEmployeeFullName } from "../helpers/Functions";
 import Modal from "../components/Modals/Modal";
 import RegistroEmpleadoNuevo from "./RegistroEmpleado";
+import { CgProfile } from "react-icons/cg";
+import EmployeeInfo from "../components/EmployeeInfo";
 
 export default function Empleados() {
 
@@ -24,6 +26,7 @@ export default function Empleados() {
   const [searching, setSearching] = useState(false)
   const [editEmployee, setEditEmployee] = useState(null)
   const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  const [selectedEmployee, setSelectedEmployee] = useState(null)
 
   const handleChangeEmployeeStatus = (employee) => {
 
@@ -91,9 +94,8 @@ export default function Empleados() {
           <div className="my-4 bg-white p-4 grid grid-cols-12 rounded-lg">
 
             <div className="col-span-9">
-              <Link to={'/perfil/' + employee._id}>
-                <p className="text-2xl font-bold">{getEmployeeFullName(employee)}</p>
-              </Link>
+
+              <button onClick={() => setSelectedEmployee(employee)} className="font-bold text-xl flex gap-1 items-center text-red-700"><span><CgProfile /></span>{getEmployeeFullName(employee)}</button>
 
               <div className="p-3">
                 <div className="flex gap-2">
@@ -186,6 +188,7 @@ export default function Empleados() {
     <main className="p-3 max-w-lg mx-auto">
 
       {error ? <p>{error}</p> : ''}
+      <EmployeeInfo employee={selectedEmployee} toggleInfo={() => setSelectedEmployee(null)} />
 
       <div className="bg-white">
         <div className="grid grid-cols-2 border w-full mt-4 mb-4 rounded-lg">
