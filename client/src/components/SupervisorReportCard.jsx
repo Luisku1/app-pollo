@@ -18,11 +18,13 @@ import { recalculateSupervisorReport } from "../services/Supervisors/recalculate
 import { setSupervisorReportOnZero } from "../services/Supervisors/setSupervisorReportOnZero.js"
 import Modal from "./Modals/Modal.jsx"
 import RegistrarDineroReportado from "./RegistrarDineroReportado.jsx"
+import EmployeeInfo from "./EmployeeInfo.jsx"
 
 export default function SupervisorReportCard({ supervisorReport, replaceReport, externalIndex, selfChange }) {
 
   const { currentUser } = useSelector((state) => state.user)
   const { isController, isManager } = useRoles()
+  const [selectedEmployee, setSelectedEmployee] = useState(null)
   const [toModifyReport, setToModifyReport] = useState(null)
   const [loading, setLoading] = useState(false)
   const [editingReport, setEditingReport] = useState(false)
@@ -76,8 +78,9 @@ export default function SupervisorReportCard({ supervisorReport, replaceReport, 
           }
         />
       )}
+      <EmployeeInfo employee={selectedEmployee} toggleInfo={() => setSelectedEmployee(null)} />
       <div className="flex justify-between items-center px-2 pt-1 mb-2">
-        <p className="text-lg font-semibold text-red-500 flex items-center gap-1"><CgProfile />{getEmployeeFullName(supervisorReport.supervisor)}</p>
+        <button onClick={() => setSelectedEmployee(supervisorReport.supervisor)} className="font-bold text-md flex gap-1 truncate items-center"><span><CgProfile /></span>{supervisorReport.supervisor.name}</button>
         <div className="flex items-center gap-1">
           <p className="text-lg font-semibold text-red-500">
             {formatInformationDate(new Date(supervisorReport.createdAt))}

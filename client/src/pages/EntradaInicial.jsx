@@ -49,7 +49,7 @@ export default function EntradaInicial({ date, branchAndCustomerSelectOptions, p
 
   return (
     <main className="max-w-lg mx-auto">
-      <div className='border bg-providers border-black rounded-md p-3 mt-4'>
+      <div className='border bg-providers rounded-md p-3 mt-4'>
         <SectionHeader label={'Entradas de Proveedor'} />
         <div className="grid grid-rows-2">
           <div className="flex gap-3 justify-self-end items-center">

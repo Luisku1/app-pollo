@@ -182,7 +182,7 @@ export default function Entradas({ branchAndCustomerSelectOptions, products, dat
 
   return (
     <div>
-      <div className='border border-black rounded-md bg-inputs p-3 mt-4'>
+      <div className='border rounded-md bg-inputs p-3 mt-4'>
         <div className='grid grid-cols-2'>
           <SectionHeader label={'Entradas'} />
           <div className='flex items-center gap-4 justify-self-end mr-12'>
