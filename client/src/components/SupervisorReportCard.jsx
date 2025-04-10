@@ -65,7 +65,7 @@ export default function SupervisorReportCard({ supervisorReport, replaceReport, 
 
   return (
     <div
-      className={`w-full p-1 mb-4 mt-4 rounded-3xl border border-black shadow-md transition-all duration-200 ${supervisorReport.balance < 0 ? 'bg-pastel-pink' : supervisorReport.onZero ? 'bg-yellow-100' : 'bg-white'}`}
+      className={`text-base w-full p-1 mb-4 mt-4 rounded-3xl border border-black shadow-md transition-all duration-200 ${supervisorReport.balance < 0 ? 'bg-pastel-pink' : supervisorReport.onZero ? 'bg-yellow-100' : 'bg-white'}`}
       key={supervisorReport._id}>
       {editingReport && (
         <Modal

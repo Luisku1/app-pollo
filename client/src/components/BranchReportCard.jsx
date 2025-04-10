@@ -119,7 +119,7 @@ export default function BranchReportCard({ reportData = {}, replaceReport, exter
             <div className="grid grid-cols-2 gap-4 text-sm text-left">
               <div>
                 <p className="font-bold text-lg text-gray-600">Encargado:</p>
-                <button onClick={() => setSelectedEmployee(reportData.employee)} className="font-bold text-md flex gap-1 truncate items-center"><span><CgProfile /></span>{reportData.employee.name}</button>
+                <button onClick={() => setSelectedEmployee(reportData.employee)} className="font-bold text-md flex gap-1 truncate items-center"><span><CgProfile /></span>{reportData?.employee?.name ?? 'Sin Encargado'}</button>
               </div>
               {reportData.assistant?.name && (
                 <div>
