@@ -63,11 +63,11 @@ export default function BranchSelect({ branches, selectBranch, ableToClose, sele
           filteredBranches.map(renderBranchElemet)
         )}
         {preSelect && (
-          <div className="fixed bottom-10 right-4 p-4 max-w-lg lg:max-w-full lg:right-10">
+          <div className="fixed bottom-10 p-4 max-w-lg">
             <button
-              className="bg-white hover:bg-gray-100 p-3 border border-black rounded-full active:bg-green-300"
+              className="bg-green-600 p-3 border border-black rounded-full active:bg-green-300"
               onClick={() => { handleSelectBranch(preSelect) }}>
-              <GiConfirmed className="text-green-500 w-16 h-16" />
+              <GiConfirmed className="text-white bg-green-600 w-16 h-16" />
             </button>
           </div>
         )}

@@ -129,7 +129,7 @@ export default function Incomes({ incomes, incomesTotal, onAddIncome, onDeleteIn
 
   return (
     <div>
-      <div className='border bg-white p-3 mt-4'>
+      <div className='border bg-white p-3 rounded-lg mt-4'>
         <div className='grid grid-cols-2'>
           <SectionHeader label={'Efectivos'} />
           <div className='flex items-center gap-4 justify-self-end mr-12'>

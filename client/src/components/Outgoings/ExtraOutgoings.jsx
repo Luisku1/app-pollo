@@ -166,7 +166,7 @@ export default function ExtraOutgoings({ date, pushIncome, employees, branches, 
   useEffect(paymentsButtonControl, [selectedEmployee, selectedBranch])
 
   return (
-    <div className='border p-3 mt-4 bg-white'>
+    <div className='border p-3 mt-4 rounded-lg bg-white'>
       <SectionHeader label={'Gastos'} />
       <div className='border bg-white p-3 mt-4'>
         <div className='grid grid-cols-2'>

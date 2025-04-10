@@ -41,14 +41,14 @@ export default function EmployeeInfo({ employee, toggleInfo }) {
         </div>
         <div className="flex flex-col gap-2">
           <button
-            className="bg-[#2B6CB0] text-white py-2 px-4 rounded"
+            className="bg-[#2B6CB0] text-white py-3 px-4 rounded"
             onClick={handleViewBranchAccounts}
           >
             Ver Cuentas en Pollería
           </button>
           {employeeRole && (
             <button
-              className="bg-[#2F855A] text-white py-2 px-4 rounded"
+              className="bg-[#2F855A] text-white py-3 px-4 rounded"
               onClick={handleViewSupervisorAccounts}
             >
               Ver Cuentas de Supervisión
@@ -61,12 +61,6 @@ export default function EmployeeInfo({ employee, toggleInfo }) {
 
   return (
     <div className="">
-      {showEmployeeBranchReports && (
-        <EmployeeBranchReports employeeId={employee._id} employee={employee} toggleComponent={() => setShowEmployeeBranchReports(prev => !prev)} />
-      )}
-      {showEmployeeSupervisorReports && (
-        <EmployeeSupervisorReports employeeId={employee._id} employee={employee} toggleComponent={() => setShowEmployeeSupervisorReports(prev => !prev)} />
-      )}
       {employee && (
         <Modal
           closeModal={() => toggleInfo()}
@@ -76,6 +70,12 @@ export default function EmployeeInfo({ employee, toggleInfo }) {
           shape="rounded-3xl"
           content={employeeCard()}
         />
+      )}
+      {showEmployeeBranchReports && (
+        <EmployeeBranchReports employeeId={employee._id} employee={employee} toggleComponent={() => setShowEmployeeBranchReports(prev => !prev)} />
+      )}
+      {showEmployeeSupervisorReports && (
+        <EmployeeSupervisorReports employeeId={employee._id} employee={employee} toggleComponent={() => setShowEmployeeSupervisorReports(prev => !prev)} />
       )}
     </div>
   );

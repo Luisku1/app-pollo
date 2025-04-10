@@ -37,22 +37,7 @@ export const employeeAggregate = (localField) => {
 					},
 					{
 						$project: {
-							_id: 1,
-							name: 1,
-							lastName: 1,
-							branch: 1,
-							company: 1,
-							role: {
-								_id: '$role._id',
-								name: '$role.name'
-							},
-							email: 1,
-							phoneNumber: 1,
-							active: 1,
-							hiredBy: 1,
-							hiredDate: 1,
-							salary: 1,
-							createdAt: 1
+							password: 0
 						}
 					}
 				]

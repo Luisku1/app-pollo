@@ -19,7 +19,7 @@ import ProviderInputsList from '../components/Proveedores/ProviderInputsList';
 import BranchPrices from '../components/Prices/BranchPrices';
 import ShowListModal from '../components/Modals/ShowListModal';
 import IncomesList from '../components/Incomes/IncomesList';
-import { getArrayForSelects, getElementForSelect, currency } from '../helpers/Functions';
+import { getArrayForSelects, getElementForSelect, currency, getEmployeeFullName } from '../helpers/Functions';
 import ListaEntradas from '../components/EntradasYSalidas/Entradas/ListaEntradas';
 import ListaSalidas from '../components/EntradasYSalidas/Salidas/ListaSalidas';
 import ShowBalance from '../components/ShowBalance';
@@ -28,6 +28,8 @@ import Switch from '../components/Switch';
 import OutgoingsList from '../components/Outgoings/OutgoingsList';
 import Modal from '../components/Modals/Modal';
 import ConfirmationButton from '../components/Buttons/ConfirmationButton';
+import EmployeeInfo from '../components/EmployeeInfo';
+import { CgProfile } from 'react-icons/cg';
 
 export default function RegistroCuentaDiaria({ edit = true, _branchReport = null, _branch = null }) {
 
@@ -89,6 +91,7 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
   const isLoading = useLoading()
   const [showSelectBranchEmployees, setShowSelectBranchEmployees] = useState(false)
   const [isEditing, setIsEditing] = useState(edit)
+  const [employeeInfo, setEmployeeInfo] = useState(null)
   const isAuthorized = roles && isManager(currentUser.role)
 
   useEffect(() => {
@@ -213,7 +216,7 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
 
     if (selectedBranch != null && stringDatePickerValue != null && edit) {
 
-      document.title = selectedBranch.branch + ' ' + '(' + (new Date(stringDatePickerValue).toLocaleDateString()) + ')'
+      document.title = (selectedBranch?.branch ?? 'Formato') + ' ' + '(' + (new Date(stringDatePickerValue).toLocaleDateString()) + ')'
     }
   }, [selectedBranch, stringDatePickerValue, edit])
 
@@ -284,6 +287,7 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
               )}
             </div>
           )}
+          <EmployeeInfo employee={employeeInfo} toggleInfo={() => { setEmployeeInfo(false) }} />
           <SectionHeader label={'Reporte'} />
           <div className="grid grid-cols-12 items-center mt-1 mb-2">
             <h1 className='col-span-12 text-3xl text-center font-semibold mt-7'>
@@ -292,7 +296,7 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
                   <BranchSelect
                     branches={getArrayForSelects(branches, (branch) => branch.branch)}
                     modalStatus={selectBranch}
-                    selectedBranch={getElementForSelect({ label: ((selectedBranch?.branch || '') + ' (' + reportDate + ')'), ...selectedBranch }, (selectedBranch) => selectedBranch.label)}
+                    selectedBranch={!selectedBranch ? null : getElementForSelect({ label: ((selectedBranch?.branch || '') + ' (' + reportDate + ')'), ...selectedBranch }, (selectedBranch) => selectedBranch.label)}
                     ableToClose={selectedBranch ? true : false}
                     selectBranch={handleBranchSelectChange}
                     isEditing={edit}
@@ -300,6 +304,24 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
                 )}
               </div>
             </h1>
+            {branchReport?.employee &&
+              <h2 className='col-span-12 px-2 rounded-lg border-black mx-2 mt-2 bg-white'>
+                <div className='flex gap-2 py-2 items-center'>
+                  <p className='flex-shrink-0'>Encargado:</p>
+                  <button onClick={() => setEmployeeInfo(branchReport.employee)} className='font-bold text-md flex gap-1 truncate items-center w-full'>
+                    <span><CgProfile /></span> {getEmployeeFullName(branchReport.employee)}
+                  </button>
+                </div>
+                {branchReport?.assistant && (
+                  <div className='flex gap-2 py-2 items-center'>
+                    <p className='flex-shrink-0'>Auxiliar:</p>
+                    <button onClick={() => setEmployeeInfo(branchReport.assistant)} className='font-bold text-md flex gap-1 truncate items-center w-full'>
+                      <span><CgProfile /></span> {getEmployeeFullName(branchReport.assistant)}
+                    </button>
+                  </div>
+                )}
+              </h2>
+            }
           </div>
           {branchReport && (
             <div>

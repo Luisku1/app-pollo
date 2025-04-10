@@ -38,6 +38,15 @@ export const employeeLookup = {
     as: 'employee',
     pipeline: [
       {
+        $lookup: {
+          from: 'roles',
+          localField: 'role',
+          foreignField: '_id',
+          as: 'role',
+        }
+      },
+      { $unwind: { path: '$role', preserveNullAndEmptyArrays: true } },
+      {
         $project: {
           password: 0
         }
@@ -60,6 +69,15 @@ export const assistantLookup = {
     foreignField: '_id',
     as: 'assistant',
     pipeline: [
+      {
+        $lookup: {
+          from: 'roles',
+          localField: 'role',
+          foreignField: '_id',
+          as: 'role',
+        }
+      },
+      { $unwind: { path: '$role', preserveNullAndEmptyArrays: true } },
       {
         $project: {
           password: 0
@@ -845,7 +863,23 @@ const fetchBranchReportInfo = async ({ branchId = null, date = null, reportId = 
                       from: 'employees',
                       localField: 'employee',
                       foreignField: '_id',
-                      as: 'employee'
+                      as: 'employee',
+                      pipeline: [
+                        {
+                          $lookup: {
+                            from: 'roles',
+                            localField: 'role',
+                            foreignField: '_id',
+                            as: 'role'
+                          }
+                        },
+                        { $unwind: { path: '$role', preserveNullAndEmptyArrays: true } },
+                        {
+                          $project: {
+                            password: 0
+                          }
+                        }
+                      ]
                     }
                   },
                   { $unwind: { path: '$employee', preserveNullAndEmptyArrays: true } }
