@@ -82,10 +82,7 @@ export default function IncomesList({ incomes = [], onDeleteIncome }) {
             }
           >
             {/* Botón principal que ocupa 10/12 columnas */}
-            <button
-              onClick={() => { setSelectedIncome(tempIncome) }}
-              className="col-span-10 items-center"
-            >
+            <div id="list-element" className="col-span-10 items-center">
               <div className='col-span-12 items-center'>
                 <div className='w-full text-red-800'>
                   <RowItem>
@@ -108,13 +105,21 @@ export default function IncomesList({ incomes = [], onDeleteIncome }) {
                   </RowItem>
                 </div>
               </div>
-            </button>
+            </div>
             <div className="col-span-2 my-auto">
-              {deletable && !partOfAPayment && (
-                <DeleteButton
-                  deleteFunction={() => onDeleteIncome(tempIncome)}
-                />
-              )}
+              <div className="flex flex-col gap-2 justify-center my-auto items-center">
+                <button
+                  onClick={() => {
+                    setSelectedIncome(tempIncome);
+                  }}
+                  className="border rounded-lg shadow-md w-10 h-10 flex justify-center items-center" >
+                  <CiSquareInfo className="w-full h-full text-blue-600" />
+                </button>
+                {deletable && !partOfAPayment && (
+                  <DeleteButton
+                    deleteFunction={() => onDeleteIncome(tempIncome)} />
+                )}
+              </div>
             </div>
           </div>
         </div>

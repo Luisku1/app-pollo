@@ -48,7 +48,10 @@ export default function OutgoingsList({ outgoings, onDelete, modifyBalance }) {
     return (
       shouldRender && (
         <div key={_id} className='grid grid-cols-12 border border-black border-opacity-30 rounded-2xl shadow-sm mb-2 py-1'>
-          <button onClick={() => { setSelectedOutgoing(tempOutgoing); setMovementDetailsIsOpen(!movementDetailsIsOpen); }} id='list-element' className='col-span-10 items-center'>
+          <div
+            id="list-element"
+            className="col-span-10 items-center"
+          >
             <div id='list-element' className='w-full'>
               <RowItem>
                 <p className='font-bold text-md flex gap-1 items-center text-red-800'><CgProfile className="text-xl" />{employeeName}</p>
@@ -61,16 +64,25 @@ export default function OutgoingsList({ outgoings, onDelete, modifyBalance }) {
                 <p className='flex gap-1 items-center text-orange-700'><MoneyBag />{currency({ amount })}</p>
               </RowItem>
             </div>
-          </button>
-          <div className="col-span-2 my-auto">
-            {deletable && (
-              <DeleteButton
-                id={outgoing._id}
-                deleteFunction={() => onDelete(tempOutgoing, modifyBalance)}
-              />
-            )}
           </div>
-        </div>
+          <div className="col-span-2 my-auto">
+            <div className="flex flex-col gap-2 justify-center my-auto items-center">
+              <button
+                onClick={() => {
+                  setSelectedOutgoing(tempOutgoing);
+                }}
+                className="border rounded-lg shadow-md w-10 h-10 flex justify-center items-center"
+              >
+                <CiSquareInfo className="w-full h-full text-blue-600" />
+              </button>
+              {deletable && (
+                <DeleteButton
+                id={outgoing._id}
+                deleteFunction={() => onDelete(tempOutgoing, modifyBalance)} />
+              )}
+            </div>
+          </div>
+        </div>  
       )
     )
   }

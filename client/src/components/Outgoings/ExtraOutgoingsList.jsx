@@ -46,13 +46,7 @@ export default function ExtraOutgoingsList({ extraOutgoings, totalExtraOutgoings
       isAuthorized(employee) && (
         <div className="" key={outgoing._id}>
           <div className="grid grid-cols-12 border border-black border-opacity-30 rounded-2xl shadow-sm mb-2 py-1">
-            <button
-              onClick={() => {
-                setSelectedOutgoing(tempOutgoing)
-              }}
-              id="list-element"
-              className="col-span-10 items-center"
-            >
+            <div id="list-element" className="col-span-10 items-center">
               <div id="list-element" className="grid grid-cols-12">
                 <div className='col-span-12'>
                   <div className="w-full text-red-800 mb-2">
@@ -81,13 +75,21 @@ export default function ExtraOutgoingsList({ extraOutgoings, totalExtraOutgoings
                   )}
                 </div>
               </div>
-            </button>
+            </div>
             <div className="col-span-2 my-auto">
-              {deletable && !partOfAPayment && (
-                <DeleteButton
-                  deleteFunction={() => onDelete(tempOutgoing)}
-                />
-              )}
+              <div className="flex flex-col gap-2 justify-center my-auto items-center">
+                <button
+                  onClick={() => {
+                    setSelectedOutgoing(tempOutgoing);
+                  }}
+                  className="border rounded-lg shadow-md w-10 h-10 flex justify-center items-center" >
+                  <CiSquareInfo className="w-full h-full text-blue-600" />
+                </button>
+                {deletable && !partOfAPayment && (
+                  <DeleteButton
+                    deleteFunction={() => onDelete(tempOutgoing)} />
+                )}
+              </div>
             </div>
           </div>
         </div>
