@@ -259,7 +259,7 @@ export default function Reporte({ untitled = false }) {
                 <tr className={'border-x ' + (index + 1 != branchReports.length ? "border-b " : '') + 'border-black border-opacity-40'}>
                   <td className="group">
                     <button
-                      className="text-sm text-gray-700 w-full h-full"
+                      className={`text-sm text-gray-700 w-full h-full ${!branchReport.employee ? 'text-red-500 font-bold' : ''}`}
                       onClick={() => { setSelectedBranchReport(branchReport) }}
                     >
                       {branchReport.branch.branch}
