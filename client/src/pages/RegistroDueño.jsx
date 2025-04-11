@@ -68,7 +68,7 @@ export default function RegistroDueño() {
 
       <h1 className='text-3xl text-center font-semibold my-7'>
 
-        Registro de Usuario
+        Regístrate como dueño de empresa
 
       </h1>
 
