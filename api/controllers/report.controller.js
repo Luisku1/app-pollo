@@ -290,7 +290,18 @@ export const getBranchReports = async (req, res, next) => {
           from: 'employees',
           localField: 'employee',
           foreignField: '_id',
-          as: 'employee'
+          as: 'employee',
+          pipeline: [
+            {
+              $lookup: {
+                from: 'roles',
+                localField: 'role',
+                foreignField: '_id',
+                as: 'role'
+              }
+            },
+            { $unwind: { path: '$role', preserveNullAndEmptyArrays: true } }
+          ]
         }
       },
       {
@@ -298,7 +309,18 @@ export const getBranchReports = async (req, res, next) => {
           from: 'employees',
           localField: 'assistant',
           foreignField: '_id',
-          as: 'assistant'
+          as: 'assistant',
+          pipeline: [
+            {
+              $lookup: {
+                from: 'roles',
+                localField: 'role',
+                foreignField: '_id',
+                as: 'role'
+              }
+            },
+            { $unwind: { path: '$role', preserveNullAndEmptyArrays: true } }
+          ]
         }
       },
       {

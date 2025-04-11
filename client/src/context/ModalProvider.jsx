@@ -4,6 +4,7 @@ import { ModalContext } from './ModalContext';
 
 const ModalProvider = ({ children }) => {
   const [modals, setModals] = useState([]);
+  const [count, setCount] = useState(0);
 
   const addModal = useCallback((modal) => {
     setModals((prevModals) => [...prevModals, modal]);
@@ -14,7 +15,7 @@ const ModalProvider = ({ children }) => {
   }, []);
 
   return (
-    <ModalContext.Provider value={{ modals, addModal, removeLastModal }}>
+    <ModalContext.Provider value={{ modals, addModal, removeLastModal, count, setCount }}>
       {children}
     </ModalContext.Provider>
   );

@@ -72,7 +72,7 @@ export default function EmployeeInfo({ employee, toggleInfo }) {
   }
 
   return (
-    <div className="">
+    <div className="text-base">
       {employee && (
         <Modal
           closeModal={() => toggleInfo()}

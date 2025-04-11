@@ -552,7 +552,12 @@ export const getEmployeeBranchReports = async (req, res, next) => {
 
 	const employeePayDay = await getEmployeePayDay({ employeeId })
 
-	const { weekStart, weekEnd } = getWeekRange(new Date(date), employeePayDay, -1)
+	let shiftedWeeks = 0
+
+	if(employeePayDay == new Date().getDate()) shiftedWeeks = -1
+
+
+	const { weekStart, weekEnd } = getWeekRange(new Date(date), employeePayDay, shiftedWeeks)
 
 	try {
 
@@ -570,8 +575,6 @@ export const getEmployeeBranchReports = async (req, res, next) => {
 				}
 			}
 		]) ?? []
-
-		console.log(employeeBranchReports)
 
 		res.status(200).json({
 			message: 'Employee branch reports',
@@ -593,7 +596,11 @@ export const getEmployeeSupervisorReports = async (req, res, next) => {
 
 	const employeePayDay = await getEmployeePayDay({ employeeId })
 
-	const { weekStart, weekEnd } = getWeekRange(new Date(date), employeePayDay, -1)
+	let shiftedWeeks = 0
+
+	if(employeePayDay == new Date().getDate()) shiftedWeeks = -1
+
+	const { weekStart, weekEnd } = getWeekRange(new Date(date), employeePayDay, -1, shiftedWeeks)
 
 	try {
 

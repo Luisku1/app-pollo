@@ -65,8 +65,9 @@ export default function SupervisorReportCard({ supervisorReport, replaceReport, 
 
   return (
     <div
-      className={`w-full p-1 mb-4 mt-4 rounded-3xl border border-black shadow-md transition-all duration-200 ${supervisorReport.balance < 0 ? 'bg-pastel-pink' : supervisorReport.onZero ? 'bg-yellow-100' : 'bg-white'}`}
+      className={`text-base w-full p-1 mb-4 mt-4 rounded-3xl border border-black shadow-md transition-all duration-200 ${supervisorReport.balance < 0 ? 'bg-pastel-pink' : supervisorReport.onZero ? 'bg-yellow-100' : 'bg-white'}`}
       key={supervisorReport._id}>
+      <EmployeeInfo employee={selectedEmployee} toggleInfo={() => setSelectedEmployee(null)} />
       {editingReport && (
         <Modal
           closeModal={() => setEditingReport(false)}
@@ -78,7 +79,6 @@ export default function SupervisorReportCard({ supervisorReport, replaceReport, 
           }
         />
       )}
-      <EmployeeInfo employee={selectedEmployee} toggleInfo={() => setSelectedEmployee(null)} />
       <div className="flex justify-between items-center px-2 pt-1 mb-2">
         <button onClick={() => setSelectedEmployee(supervisorReport.supervisor)} className="font-bold text-md flex gap-1 truncate items-center"><span><CgProfile /></span>{supervisorReport.supervisor.name}</button>
         <div className="flex items-center gap-1">

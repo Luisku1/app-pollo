@@ -67,6 +67,7 @@ export default function Header() {
     });
 
     setFilteredOptions(filtered);
+    setHighlightedIndex(filtered.length > 0 ? 0 : -1); // Default to the first option or none
   }, [searchTerm, currentUser, roles, isToday, currentDate]); // Added isToday and currentDate to dependencies
 
   useEffect(() => {
