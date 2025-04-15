@@ -15,6 +15,7 @@ import Modal from "../components/Modals/Modal";
 import BranchReportCard from "../components/BranchReportCard";
 import SupervisorReportCard from "../components/SupervisorReportCard";
 import EmployeeInfo from "../components/EmployeeInfo";
+import { useDate } from '../context/DateContext';
 
 export default function Nomina() {
 
@@ -28,6 +29,7 @@ export default function Nomina() {
   const [branchReportCard, setBranchReportCard] = useState(null)
   const [supervisorReportCard, setSupervisorReportCard] = useState(null)
   const [selectedEmployee, setSelectedEmployee] = useState(null)
+  const {currentDate, setCurrentDate} = useDate()
 
   const changeDatePickerValue = (e) => {
 
@@ -38,14 +40,20 @@ export default function Nomina() {
   }
 
   const changeDay = (date) => {
-
+    setCurrentDate(date)
     navigate('/nomina/' + date)
 
   }
 
+    useEffect(() => {
+      if (stringDatePickerValue) {
+        setCurrentDate(stringDatePickerValue)
+      }
+    }, [stringDatePickerValue])
+
   useEffect(() => {
 
-    document.title = 'Nómina (' + new Date(stringDatePickerValue).toLocaleDateString() + ')'
+    document.title = 'Nómina (' + new Date(currentDate).toLocaleDateString() + ')'
   })
 
   return (
@@ -81,7 +89,7 @@ export default function Nomina() {
         toggleInfo={() => setSelectedEmployee(null)}
       />
       {roles && isManager(currentUser.role) &&
-        <FechaDePagina changeDay={changeDay} stringDatePickerValue={stringDatePickerValue} changeDatePickerValue={changeDatePickerValue} ></FechaDePagina>
+        <FechaDePagina changeDay={changeDay} stringDatePickerValue={currentDate} changeDatePickerValue={changeDatePickerValue} ></FechaDePagina>
       }
 
       <h1 className='text-3xl text-center font-semibold mt-7'>

@@ -25,6 +25,7 @@ import { useSupervisorsReportInfo } from '../hooks/Supervisors/useSupervisorsRep
 import { MdCurrencyExchange } from "react-icons/md";
 import { FaExchangeAlt } from "react-icons/fa";
 import { GiChicken } from "react-icons/gi";
+import { useDate } from '../context/DateContext';
 
 export default function ControlSupervisor({ hideFechaDePagina = false }) {
 
@@ -45,6 +46,7 @@ export default function ControlSupervisor({ hideFechaDePagina = false }) {
     supervisorsInfo,
     replaceSupervisorReport: replaceReport,
   } = useSupervisorsReportInfo({ companyId: company._id, date: stringDatePickerValue })
+  const {currentDate, setCurrentDate} = useDate()
 
   const handleShowSections = (section) => {
 
@@ -79,18 +81,25 @@ export default function ControlSupervisor({ hideFechaDePagina = false }) {
   }
 
   const changeDay = (date) => {
-
+    setCurrentDate(date)
     navigate('/supervision-diaria/' + date)
 
   }
 
   useEffect(() => {
+    if (stringDatePickerValue) {
+      setCurrentDate(stringDatePickerValue)
+    }
+  }, [stringDatePickerValue])
+  
+
+  useEffect(() => {
 
     if (hideFechaDePagina) return
 
-    document.title = 'Supervisión (' + new Date(stringDatePickerValue).toLocaleDateString() + ')'
+    document.title = 'Supervisión (' + new Date(currentDate).toLocaleDateString() + ')'
 
-  }, [stringDatePickerValue, hideFechaDePagina])
+  }, [currentDate, hideFechaDePagina])
 
   if (isLoading) {
 
@@ -103,10 +112,10 @@ export default function ControlSupervisor({ hideFechaDePagina = false }) {
         <div>
           <div className={`w-fit mx-auto sticky ${hideFechaDePagina ? '-top-[4rem]' : 'top-16'} bg-opacity-60 bg-menu z-10 mb-2`}>
             {isManager(currentUser.role) && !hideFechaDePagina ?
-              <FechaDePagina changeDay={changeDay} stringDatePickerValue={stringDatePickerValue} changeDatePickerValue={changeDatePickerValue} higherZ={true}></FechaDePagina>
+              <FechaDePagina changeDay={changeDay} stringDatePickerValue={currentDate} changeDatePickerValue={changeDatePickerValue} higherZ={true}></FechaDePagina>
               : ''}
           </div>
-          {getDayRange(new Date(stringDatePickerValue)).bottomDate <= getDayRange(new Date()).bottomDate ?
+          {getDayRange(new Date(currentDate)).bottomDate <= getDayRange(new Date()).bottomDate ?
             <SectionsMenu
               handleShowSections={handleShowSections}
               selectedSection={selectedSection}
@@ -123,7 +132,7 @@ export default function ControlSupervisor({ hideFechaDePagina = false }) {
                     ),
                     component: <InputsAndOutputs
                       companyId={company._id}
-                      date={stringDatePickerValue}
+                      date={currentDate}
                       roles={roles}
                       currentUser={currentUser}
                       products={products}
@@ -136,7 +145,7 @@ export default function ControlSupervisor({ hideFechaDePagina = false }) {
                       <MdCurrencyExchange className='justify-self-center text-2xl' />
                     ),
                     component: <IncomesAndOutgoings
-                      date={stringDatePickerValue}
+                      date={currentDate}
                       companyId={company._id}
                       currentUser={currentUser}
                       roles={roles}
@@ -149,7 +158,7 @@ export default function ControlSupervisor({ hideFechaDePagina = false }) {
                     button: (
                       <IoPersonSharp className='justify-self-center text-2xl' />
                     ),
-                    component: <Employees dailyBalances={employeesDailyBalances} employees={employees} companyId={company._id} date={stringDatePickerValue} />
+                    component: <Employees dailyBalances={employeesDailyBalances} employees={employees} companyId={company._id} date={currentDate} />
                   },
                   {
                     label: 'Supervisores',

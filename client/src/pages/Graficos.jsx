@@ -5,6 +5,7 @@ import { useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
 import { formatDate } from '../helpers/DatePickerFunctions';
 import FechaDePagina from '../components/FechaDePagina';
+import { useDate } from '../context/DateContext';
 
 export const ChartComponent = ({ branchName, branchReports }) => {
 
@@ -46,6 +47,7 @@ export default function Graficos() {
   let datePickerValue = (paramsDate ? new Date(paramsDate) : new Date())
   let stringDatePickerValue = formatDate(datePickerValue)
   const [branchesIncomes, setBranchesIncomes] = useState([])
+  const {currentDate, setCurrentDate} = useDate()
 
   const changeDatePickerValue = (e) => {
 
@@ -56,10 +58,17 @@ export default function Graficos() {
   }
 
   const changeDay = (date) => {
-
+    setCurrentDate(date)
     navigate('/graficos/' + date)
 
   }
+
+  useEffect(() => {
+    if (stringDatePickerValue) {
+      setCurrentDate(stringDatePickerValue)
+    }
+  }, [stringDatePickerValue])
+
   useEffect(() => {
 
     const getMonthBranchesIncomes = async () => {
@@ -93,7 +102,7 @@ export default function Graficos() {
     <main className="p-3 max-w-lg mx-auto justify-items-center">
 
 
-      <FechaDePagina changeDay={changeDay} stringDatePickerValue={stringDatePickerValue} changeDatePickerValue={changeDatePickerValue} ></FechaDePagina>
+      <FechaDePagina changeDay={changeDay} stringDatePickerValue={currentDate} changeDatePickerValue={changeDatePickerValue} ></FechaDePagina>
 
       <div id='chart' className='max-w-lg mx-auto'>
         {branchesIncomes.length > 0 && branchesIncomes.map((branch) => (

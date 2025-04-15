@@ -30,6 +30,7 @@ import Modal from '../components/Modals/Modal';
 import ConfirmationButton from '../components/Buttons/ConfirmationButton';
 import EmployeeInfo from '../components/EmployeeInfo';
 import { CgProfile } from 'react-icons/cg';
+import { useDate } from '../context/DateContext';
 
 export default function RegistroCuentaDiaria({ edit = true, _branchReport = null, _branch = null }) {
 
@@ -49,6 +50,7 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
   const [selectedBranch, setSelectedBranch] = useState(_branch)
   const [selectBranch, setSelectBranch] = useState(false)
   const navigate = useNavigate()
+  const {currentDate, setCurrentDate} = useDate()
   const reportDate = (paramsDate ? new Date(paramsDate) : new Date()).toLocaleDateString('es-mx', { weekday: 'long', year: 'numeric', month: '2-digit', day: '2-digit' })
   const {
     branchReport,
@@ -129,10 +131,16 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
   }
 
   const changeDay = (date) => {
-
+    setCurrentDate(date)
     navigate('/formato/' + date + '/' + branchId)
 
   }
+
+  useEffect(() => {
+    if (stringDatePickerValue) {
+      setCurrentDate(stringDatePickerValue)
+    }
+  }, [stringDatePickerValue])
 
   const SectionHeader = (props) => {
 
@@ -214,11 +222,11 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
 
   useEffect(() => {
 
-    if (selectedBranch != null && stringDatePickerValue != null && edit) {
+    if (selectedBranch != null && currentDate != null && edit) {
 
-      document.title = (selectedBranch?.branch ?? 'Formato') + ' ' + '(' + (new Date(stringDatePickerValue).toLocaleDateString()) + ')'
+      document.title = (selectedBranch?.branch ?? 'Formato') + ' ' + '(' + (new Date(currentDate).toLocaleDateString()) + ')'
     }
-  }, [selectedBranch, stringDatePickerValue, edit])
+  }, [selectedBranch, currentDate, edit])
 
   const selectEmployees = () => {
     return (
@@ -274,7 +282,7 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
             <div className={' sticky  z-30' + (isEditing ? ' top-16' : ' -top-4')}>
               {isManager(currentUser.role) ?
                 <div>
-                  <FechaDePagina changeDay={changeDay} stringDatePickerValue={stringDatePickerValue} changeDatePickerValue={changeDatePickerValue} ></FechaDePagina>
+                  <FechaDePagina changeDay={changeDay} stringDatePickerValue={currentDate} changeDatePickerValue={changeDatePickerValue} ></FechaDePagina>
                   {isAuthorized && (
                     <Switch isOn={isEditing} handleToggle={() => setIsEditing((prev) => !prev)} />
                   )}
@@ -338,7 +346,7 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
                           pricesDate={branchReport.pricesDate}
                           branch={branchId || selectedBranch?._id || null}
                           onChange={isEditing ? onChangePrices : false}
-                          date={stringDatePickerValue}
+                          date={currentDate}
                         />
                       }
                     />
@@ -352,7 +360,7 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
                     pricesDate={branchReport.pricesDate}
                     branch={branchId || selectedBranch?._id || null}
                     onChange={isEditing ? onChangePrices : false}
-                    date={stringDatePickerValue}
+                    date={currentDate}
                   />
                 </div>
               }
@@ -392,7 +400,7 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
                       onAddOutgoing={onAddOutgoing}
                       onDeleteOutgoing={isEditing ? onDeleteOutgoing : null}
                       branch={selectedBranch}
-                      date={stringDatePickerValue}
+                      date={currentDate}
                       isEditing={isEditing}
                       listButton={<p className='font-bold text-lg text-center bg-green-100 rounded-lg p-1 border border-header'>{currency({ amount: outgoingsTotal ?? 0 })}</p>}
                     />
@@ -410,7 +418,7 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
                       branchPrices={prices}
                       branch={selectedBranch}
                       employee={selectedEmployee}
-                      date={stringDatePickerValue}
+                      date={currentDate}
                       isEditing={isEditing}
                       listButton={<p className='font-bold text-lg text-center bg-green-100 rounded-lg border p-1 border-header'>{currency({ amount: stockAmount ?? 0 })}</p>}
                     />
@@ -439,7 +447,7 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
                       branchPrices={prices}
                       branch={selectedBranch}
                       employee={selectedEmployee}
-                      date={stringDatePickerValue}
+                      date={currentDate}
                       isEditing={isEditing}
                       listButton={<p className='font-bold text-lg text-center bg-yellow-200 rounded-lg border p-1 border-header'>{currency({ amount: midDayStockAmount ?? 0 })}</p>}
                     />
@@ -518,7 +526,7 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
                     :
                     <div>
                       {isAuthorized &&
-                        <button disabled={loading} className='bg-button text-white border border-black p-3 rounded-lg uppercase w-full' onClick={() => { navigate('/formato/' + stringDatePickerValue + '/' + branchReport.branch._id) }}>Editar Formato</button>
+                        <button disabled={loading} className='bg-button text-white border border-black p-3 rounded-lg uppercase w-full' onClick={() => { navigate('/formato/' + currentDate + '/' + branchReport.branch._id) }}>Editar Formato</button>
                       }
                     </div>
                   }
