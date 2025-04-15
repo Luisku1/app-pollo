@@ -29,6 +29,7 @@ export default function Salidas({ branchAndCustomerSelectOptions, products, date
   const { price, loading: priceIsLoading } = useBranchCustomerProductPrice({ branchCustomerId: selectedCustomerBranchOption ? selectedCustomerBranchOption.value : null, productId: selectedProduct ? selectedProduct.value : null, date, group: selectedGroup == '' ? null : selectedGroup })
   const [amount, setAmount] = useState('$0.00')
   const [loading, setLoading] = useState(false)
+  const [isRegisteredInSurplus, setIsRegisteredInSurplus] = useState(false);
 
   const generarMonto = () => {
 
@@ -131,6 +132,7 @@ export default function Salidas({ branchAndCustomerSelectOptions, products, date
           company: company._id,
           product: selectedProduct,
           employee: currentUser,
+          fromStock: isRegisteredInSurplus,
           branch: selectedCustomerBranchOption,
           createdAt: createdAt
         }
@@ -238,6 +240,21 @@ export default function Salidas({ branchAndCustomerSelectOptions, products, date
               </label>
             </div>
           </div>
+          {selectedGroup === 'Sucursales' && (
+            <div className="flex items-center gap-4 mt-4">
+              <input
+                type="checkbox"
+                id="isRegisteredInSurplus"
+                name="isRegisteredInSurplus"
+                className="w-6 h-6 accent-blue-600"
+                checked={isRegisteredInSurplus}
+                onChange={(e) => setIsRegisteredInSurplus(e.target.checked)}
+              />
+              <label htmlFor="isRegisteredInSurplus" className="text-lg font-bold w-full">
+                ¿Está registrada en el sobrante?
+              </label>
+            </div>
+          )}
           <button type='submit' id='outputButton' disabled className='bg-button text-white p-3 rounded-lg col-span-12 mt-8'>Agregar</button>
         </form>
       </div>

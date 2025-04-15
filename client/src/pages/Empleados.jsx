@@ -190,10 +190,10 @@ export default function Empleados() {
       {error ? <p>{error}</p> : ''}
       <EmployeeInfo employee={selectedEmployee} toggleInfo={() => setSelectedEmployee(null)} />
 
-      <div className="bg-white">
+      <div className="bg-white rounded-lg">
         <div className="grid grid-cols-2 border w-full mt-4 mb-4 rounded-lg">
-          <button className={"h-full rounded-lg hover:shadow-xl p-3 " + (showActiveEmployees && !searching ? 'border border-black bg-green-600 opacity-85 text-white font-bold' : 'bg-green-600 text-white font-bold opacity-40')} onClick={() => { setShowActiveEmployees(true), stopSearching() }}>Empleados Activos</button>
-          <button className={"h-full rounded-lg hover:shadow-xl p-3 " + (!showActiveEmployees && !searching ? 'bg-red-700 text-white font-bold border opacity-85 border-black' : 'bg-red-700 font-bold opacity-40 text-white')} onClick={() => { setShowActiveEmployees(false), stopSearching() }}>Empleados Inactivos</button>
+          <button className={"h-full rounded-lg rounded-r-none hover:shadow-xl p-3 border border-black text-white font-bold border-r-0 " + (showActiveEmployees && !searching ? ' bg-green-600  opacity-85' : 'bg-green-600 text-white font-bold opacity-40')} onClick={() => { setShowActiveEmployees(true), stopSearching() }}>Empleados Activos</button>
+          <button className={"h-full rounded-lg rounded-l-none hover:shadow-xl p-3 border border-black border-l-0 " + (!showActiveEmployees && !searching ? 'bg-red-700 text-white font-bold opacity-85' : 'bg-red-700 font-bold border-opacity-85 opacity-40 text-white')} onClick={() => { setShowActiveEmployees(false), stopSearching() }}>Empleados Inactivos</button>
         </div>
       </div>
       <div className="w-full bg-white  p-3 border rounded-lg sticky top-16 z-10">

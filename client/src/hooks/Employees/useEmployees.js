@@ -3,7 +3,7 @@ import { getEmployeesNameList } from "../../services/employees/employeesNameList
 import { getAllEmployees } from "../../services/employees/getAllEmployees"
 import { changeActiveStatus } from "../../services/employees/changeActiveStatus"
 import { ToastSuccess } from "../../helpers/toastify"
-import { getEmployeeFullName } from "../../helpers/Functions"
+import { getEmployeeFullName, normalizeText } from "../../helpers/Functions"
 import { useUpdateEmployee } from "./useUpdateEmployee"
 
 export const useEmployees = ({ companyId, date, onlyActiveEmployees = true }) => {
@@ -66,7 +66,7 @@ export const useEmployees = ({ companyId, date, onlyActiveEmployees = true }) =>
   const filteredEmployees = useMemo(() => {
 
     return employees.filter((employee) =>
-      getEmployeeFullName(employee).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "").includes(filterString.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ""))
+      normalizeText(getEmployeeFullName(employee)).toLowerCase().includes(normalizeText(filterString).toLowerCase())
     )
   }
     , [employees, filterString])

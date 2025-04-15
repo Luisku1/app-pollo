@@ -7,12 +7,14 @@ import EmployeeBranchReports from "./EmployeeBranchReports";
 import EmployeeSupervisorReports from "./EmployeeSupervisorReports";
 import PhoneLinks from "./PhoneLinks";
 import EmployeePayments from "./EmployeePayments";
+import { useRoles } from "../context/RolesContext";
 
 export default function EmployeeInfo({ employee, toggleInfo }) {
 
   const [showEmployeeBranchReports, setShowEmployeeBranchReports] = useState(false);
   const [showEmployeeSupervisorReports, setShowEmployeeSupervisorReports] = useState(false);
   const [showPayments, setShowPayments] = useState(false);
+  const { isSupervisor } = useRoles();
 
   if (!employee) return null;
 
@@ -58,7 +60,7 @@ export default function EmployeeInfo({ employee, toggleInfo }) {
           >
             Ver Cuentas en Pollería
           </button>
-          {employeeRole && (
+          {isSupervisor(employeeRole) && (
             <button
               className="bg-[#2F855A] text-white py-3 px-4 rounded"
               onClick={handleViewSupervisorAccounts}
@@ -86,7 +88,7 @@ export default function EmployeeInfo({ employee, toggleInfo }) {
       {showEmployeeBranchReports && (
         <EmployeeBranchReports employeeId={employee._id} employee={employee} toggleComponent={() => setShowEmployeeBranchReports(prev => !prev)} />
       )}
-      {showEmployeeSupervisorReports && (
+      {showEmployeeSupervisorReports && is && (
         <EmployeeSupervisorReports employeeId={employee._id} employee={employee} toggleComponent={() => setShowEmployeeSupervisorReports(prev => !prev)} />
       )}
       {showPayments && (

@@ -1,10 +1,24 @@
-import { get, Types } from 'mongoose';
+import { Types } from 'mongoose';
 import Price from '../models/accounts/price.model.js';
 import Branch from '../models/branch.model.js'
 import { errorHandler } from '../utils/error.js'
-import { getMonthRange } from '../utils/formatDate.js';
-import ReportData from '../models/accounts/report.data.model.js';
 import BranchReport from '../models/accounts/branch.report.model.js';
+
+export const branchAggregate = (localField) => {
+	return [
+		{
+			$lookup: {
+				from: 'branches',
+				localField: localField,
+				foreignField: '_id',
+				as: 'branch'
+			}
+		},
+		{
+			$unwind: { path: '$branch', preserveNullAndEmptyArrays: true }
+		}
+	]
+}
 
 export const newBranch = async (req, res, next) => {
 

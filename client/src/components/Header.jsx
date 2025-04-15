@@ -7,6 +7,7 @@ import '../assets/dropdown.css';
 import { useRoles } from '../context/RolesContext';
 import { useDate } from '../context/DateContext'; // Import DateContext
 import { formatDate, formatInformationDate } from '../helpers/DatePickerFunctions';
+import { normalizeText } from '../helpers/Functions';
 
 export default function Header() {
 
@@ -48,8 +49,9 @@ export default function Header() {
   ];
 
   useEffect(() => {
+
     const filtered = menuOptions.flatMap(option => {
-      const matchesSearch = option.text.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesSearch = normalizeText(option.text).toLowerCase().includes(normalizeText(searchTerm).toLowerCase());
       const matchesRole = !option.role ||
         (option.role === 'supervisor' && isSupervisor(currentUser?.role)) ||
         (option.role === 'manager' && isManager(currentUser?.role));
@@ -80,20 +82,44 @@ export default function Header() {
         document.getElementById('search-bar')?.focus();
         setShowDropdown(true);
       }
-      if (showDropdown) { // Handle arrow key navigation
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        const searchBar = document.getElementById('search-bar');
+        if (document.activeElement !== searchBar) {
+          return; // Prevent action if search bar is not focused
+        }
+        if (!showDropdown) {
+          searchBar?.focus();
+          setShowDropdown(true);
+        } else {
+          setHighlightedIndex((prev) => (prev + 1) % filteredOptions.length); // Navigate options
+        }
+      }
+      if (showDropdown) {
         if (e.key === 'ArrowDown') {
           e.preventDefault();
-          setHighlightedIndex((prev) => (prev + 1) % filteredOptions.length); // Wrap to the beginning
+          if (!showDropdown) {
+            setShowDropdown(true);
+          } else {
+            setHighlightedIndex((prev) => (prev + 1) % filteredOptions.length); // Navigate options
+          }
         } else if (e.key === 'ArrowUp') {
           e.preventDefault();
-          setHighlightedIndex((prev) => (prev - 1 + filteredOptions.length) % filteredOptions.length); // Wrap to the end
+          setHighlightedIndex((prev) => (prev - 1 + filteredOptions.length) % filteredOptions.length);
         } else if (e.key === 'Enter' && highlightedIndex >= 0) {
           e.preventDefault();
           const selectedOption = filteredOptions[highlightedIndex];
           if (selectedOption) {
-            setShowDropdown(false);
-            setSearchTerm('');
-            window.location.href = selectedOption.link; // Navigate to the selected option
+            if (e.ctrlKey) {
+              const newTab = window.open(selectedOption.link, '_blank');
+              newTab?.focus();
+              setShowDropdown(false);
+              setSearchTerm('');
+            } else {
+              setShowDropdown(false);
+              setSearchTerm('');
+              window.location.href = selectedOption.link;
+            }
           }
         }
       }
@@ -127,6 +153,18 @@ export default function Header() {
     };
   }, []);
 
+  useEffect(() => {
+    if (showDropdown) {
+      document.body.classList.add('no-scroll'); // Add class to prevent body scroll
+    } else {
+      document.body.classList.remove('no-scroll'); // Remove class to allow body scroll
+    }
+
+    return () => {
+      document.body.classList.remove('no-scroll'); // Cleanup on unmount
+    };
+  }, [showDropdown]);
+
   return (
     <header className='bg-header shadow-md sticky top-0 z-[9999]'>
       <div className='flex justify-between items-center mx-auto p-3 max-w-full flex-row-reverse'>
@@ -158,7 +196,7 @@ export default function Header() {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
             {(searchTerm || showDropdown) && (
-              <ul className='absolute top-full left-0 w-full bg-white border border-gray-300 rounded shadow-md mt-1'>
+              <ul className='absolute top-full left-0 w-full bg-white border border-gray-300 rounded shadow-md mt-1 max-h-screen overflow-y-auto mb-3'>
                 {filteredOptions.map((option, index) => (
                   <li
                     key={index}

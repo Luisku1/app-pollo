@@ -64,7 +64,23 @@ const employeeSupervisorReportsLookup = (localField, bottomDate, topDate) => ({
 					from: 'employees',
 					localField: 'supervisor',
 					foreignField: '_id',
-					as: 'supervisor'
+					as: 'supervisor',
+					pipeline: [
+						{
+							$lookup: {
+								from: 'roles',
+								localField: 'role',
+								foreignField: '_id',
+								as: 'role'
+							}
+						},
+						{ $unwind: { path: '$role', preserveNullAndEmptyArrays: true } },
+						{
+							$project: {
+								password: 0
+							}
+						}
+					]
 				}
 			},
 			{ $unwind: { path: '$supervisor', preserveNullAndEmptyArrays: false } },
@@ -174,15 +190,7 @@ const employeeBranchReportsLookup = (localField, bottomDate, topDate) => ({
 							},
 						},
 						{ $unwind: { path: '$product', preserveNullAndEmptyArrays: true } },
-						{
-							$lookup: {
-								from: 'employees',
-								localField: 'employee',
-								foreignField: '_id',
-								as: 'employee',
-							},
-						},
-						{ $unwind: { path: '$employee', preserveNullAndEmptyArrays: true } },
+						...employeeAggregate('employee'),
 						{
 							$lookup: {
 								from: 'branches',
@@ -519,17 +527,7 @@ const employeeBranchReportsLookup = (localField, bottomDate, topDate) => ({
 			{
 				$unwind: { path: '$branch' }
 			},
-			{
-				$lookup: {
-					from: 'employees',
-					localField: 'employee',
-					foreignField: '_id',
-					as: 'employee'
-				}
-			},
-			{
-				$unwind: { path: '$employee' }
-			},
+			...employeeAggregate('employee'),
 			{
 				$lookup: {
 					from: 'employees',
@@ -554,7 +552,7 @@ export const getEmployeeBranchReports = async (req, res, next) => {
 
 	let shiftedWeeks = 0
 
-	if(employeePayDay == new Date().getDate()) shiftedWeeks = -1
+	if (employeePayDay == new Date().getDate()) shiftedWeeks = -1
 
 
 	const { weekStart, weekEnd } = getWeekRange(new Date(date), employeePayDay, shiftedWeeks)
@@ -598,7 +596,7 @@ export const getEmployeeSupervisorReports = async (req, res, next) => {
 
 	let shiftedWeeks = 0
 
-	if(employeePayDay == new Date().getDate()) shiftedWeeks = -1
+	if (employeePayDay == new Date().getDate()) shiftedWeeks = -1
 
 	const { weekStart, weekEnd } = getWeekRange(new Date(date), employeePayDay, -1, shiftedWeeks)
 
@@ -1350,26 +1348,6 @@ export const fetchEmployeesPayroll = async ({ companyId, date }) => {
 			},
 			employeeSupervisorReportsLookup('employee', weekStart, weekEnd),
 			{
-				$addFields: {
-					accountBalance: { $sum: '$employeeDailyBalances.accountBalance' },
-					supervisorBalance: { $sum: '$supervisorReports.balance' },
-					employeePaymentsAmount: { $sum: '$employeePayments.amount' },
-					missingWorkDiscount: {
-						$multiply: [
-							{ $size: { $filter: { input: '$employeeDailyBalances', as: 'balance', cond: { $eq: ['$$balance.dayDiscount', true] } } } },
-							{ $divide: ['$employee.salary', -7] },
-						],
-					},
-					foodDiscount: {
-						$multiply: [
-							{ $size: { $filter: { input: '$employeeDailyBalances', as: 'balance', cond: { $eq: ['$$balance.foodDiscount', true] } } } },
-							-60,
-						],
-					},
-
-				}
-			},
-			{
 				$lookup: {
 					from: 'employeepayments',
 					localField: 'employee',
@@ -1416,6 +1394,26 @@ export const fetchEmployeesPayroll = async ({ companyId, date }) => {
 							$unwind: { path: '$branch', preserveNullAndEmptyArrays: true }
 						}
 					]
+				}
+			},
+			{
+				$addFields: {
+					accountBalance: { $sum: '$employeeDailyBalances.accountBalance' },
+					supervisorBalance: { $sum: '$supervisorReports.balance' },
+					employeePaymentsAmount: { $sum: '$employeePayments.amount' },
+					missingWorkDiscount: {
+						$multiply: [
+							{ $size: { $filter: { input: '$employeeDailyBalances', as: 'balance', cond: { $eq: ['$$balance.dayDiscount', true] } } } },
+							{ $divide: ['$employee.salary', -7] },
+						],
+					},
+					foodDiscount: {
+						$multiply: [
+							{ $size: { $filter: { input: '$employeeDailyBalances', as: 'balance', cond: { $eq: ['$$balance.foodDiscount', true] } } } },
+							-60,
+						],
+					},
+
 				}
 			},
 			{
@@ -1828,6 +1826,7 @@ export const getEmployeePayments = async (req, res, next) => {
 			{
 				$unwind: { path: '$employee', preserveNullAndEmptyArrays: true }
 			},
+			{ $sort: { createdAt: -1 } },
 			{
 				$project: {
 					_id: 1,

@@ -7,11 +7,11 @@ import FechaDePagina from "../components/FechaDePagina"
 import { formatDate } from "../helpers/DatePickerFunctions"
 import Sobrante from "../pages/Sobrante"
 import { useBranchReports } from "../hooks/BranchReports.js/useBranchReports";
-import { getArrayForSelects, currency } from "../helpers/Functions";
+import { getArrayForSelects, currency, normalizeText } from "../helpers/Functions";
 import PieChart from "../components/Charts/PieChart";
-import EmployeeMultiSelect from "../components/Select/EmployeeMultiSelect";
 import { useSupervisorsReportInfo } from "../hooks/Supervisors/useSupervisorsReportInfo.js";
 import { useRoles } from "../context/RolesContext.jsx";
+import { MdSearch } from "react-icons/md"; // Import search icon
 
 import Modal from "../components/Modals/Modal";
 import { useLoading } from "../hooks/loading.js";
@@ -37,6 +37,9 @@ export default function Reporte({ untitled = false }) {
   const [showGraphs, setShowGrapsh] = useState(false)
   const [selectedSupervisors, setSelectedSupervisors] = useState([])
   const [employees, setEmployees] = useState([])
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filteredSupervisors, setFilteredSupervisors] = useState([]);
+  const [showDropdown, setShowDropdown] = useState(false);
   const {
 
     branchReports,
@@ -133,6 +136,15 @@ export default function Reporte({ untitled = false }) {
     ])
 
   }, [supervisorsInfo, deposits, extraOutgoings, missingIncomes, netIncomes, verifiedCash, terminalIncomes, totalIncomes, verifiedDeposits, verifiedIncomes, cashArray, terminalIncomesArray, depositsArray, extraOutgoingsArray])
+
+  useEffect(() => {
+    const filtered = supervisorsInfo.filter((supervisorReport) =>
+      normalizeText(`${supervisorReport.supervisor.name} ${supervisorReport.supervisor.lastName}`)
+        .toLowerCase()
+        .includes(normalizeText(searchTerm).toLowerCase())
+    );
+    setFilteredSupervisors(filtered);
+  }, [searchTerm, supervisorsInfo]);
 
   const changeDatePickerValue = (e) => {
 
@@ -345,24 +357,35 @@ export default function Reporte({ untitled = false }) {
         </div>
         : ''
       }
-      {
-        supervisorsInfo && showTable && supervisorsInfo.length > 0 ?
 
-          <div className="my-1 border border-slate-500 border-spacing-4 p-2 bg-white z-5 rounded-lg mb-5">
-            <div id="filterBySupervisor" className="w-full sticky top-16 bg-white z-10">
-              <p className="text-lg font-semibold p-3 text-red-600">Filtro de Supervisores</p>
-              <EmployeeMultiSelect employees={getArrayForSelects(employees, (employee) => `${employee.name} ${employee.lastName}`)} setSelectedEmployees={setSelectedSupervisors}></EmployeeMultiSelect>
-            </div>
-            {selectedSupervisors && supervisorsInfo.map((supervisorReport) => (
-              <SupervisorReportCard
-                key={supervisorReport._id}
-                supervisorReport={supervisorReport}
-                replaceReport={replaceSupervisorReport}
+      {supervisorsInfo && showTable && supervisorsInfo.length > 0 && (
+        <div className="my-1 border border-slate-500 border-spacing-4 p-2 bg-white z-5 rounded-lg mb-5">
+          <div id="filterBySupervisor" className="w-full sticky top-16 bg-white z-10">
+            <p className="text-lg font-semibold p-3 text-red-600">Filtro de Supervisores</p>
+            <div className="relative w-full">
+              <MdSearch className="absolute left-2.5 text-gray-500 mt-2.5 w-5 h-5" />
+              <input
+                type="text"
+                className="w-full pl-10 pr-4 py-2 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-400"
+                placeholder="Buscar supervisores..."
+                autoComplete="off"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
               />
-            ))}
+            </div>
           </div>
-          : ''
-      }
+          {filteredSupervisors.map((supervisorReport) => (
+            <SupervisorReportCard
+              key={supervisorReport._id}
+              supervisorReport={supervisorReport}
+              replaceReport={replaceSupervisorReport}
+            />
+          ))}
+          {filteredSupervisors.length === 0 && (
+            <p className="text-center text-gray-500 mt-4">No hay resultados</p>
+          )}
+        </div>
+      )}
       {branchReports.length === 0 && supervisorsInfo.length === 0 && !isLoading && (
         <div className="flex justify-center items-center h-96">
           <p className="text-2xl">Aún no hay información de este día</p>

@@ -12,10 +12,13 @@ import { getArrayForSelects, getElementForSelect, currency } from "../helpers/Fu
 import Modal from "../components/Modals/Modal";
 import ShowListModal from "../components/Modals/ShowListModal";
 import ProviderInputsList from "../components/Proveedores/ProviderInputsList";
+import { ProductsListsMenu } from "../components/EntradasDeProveedor/ProductsListsMenu";
+import { useRoles } from "../context/RolesContext";
 
 export default function EntradaInicial({ date, branchAndCustomerSelectOptions, products }) {
 
-  const { company } = useSelector((state) => state.user)
+  const { company, currentUser } = useSelector((state) => state.user)
+  const { isManager } = useRoles()
   const [selectedProduct, setSelectedProduct] = useState(null)
   const { providerInputs, providerInputsWeight, providerInputsPieces, providerInputsAmount, onAddProviderInput, onDeleteProviderInput } = useProviderInputs({ companyId: company._id, productId: selectedProduct == null ? products.length > 0 ? products[0]._id : null : selectedProduct._id, date })
   const [showProviderInputs, setShowProviderInputs] = useState(false)
@@ -56,8 +59,8 @@ export default function EntradaInicial({ date, branchAndCustomerSelectOptions, p
             <div className="flex gap-3">
               <ShowListModal
                 title={'Entradas de proveedor'}
-                ListComponent={ProviderInputsList}
-                ListComponentProps={{ inputs: providerInputs, totalWeight: providerInputsWeight, totalAmount: providerInputsAmount, onDelete: onDeleteProviderInput }}
+                ListComponent={ProductsListsMenu}
+                ListComponentProps={{ inputs: providerInputs, onDelete: onDeleteProviderInput }}
                 clickableComponent={
                   <div className="w-10 h-10"><FaListAlt className="h-full w-full text-red-600" />
                   </div>
@@ -90,7 +93,19 @@ export default function EntradaInicial({ date, branchAndCustomerSelectOptions, p
                 />
                 : ''}
             </div>
-            <p className='font-bold text-md'><span className=" text-red-700 text-center">{`${providerInputsWeight.toFixed(2)} Kg / ${providerInputsPieces}`}</span><sup className="text-red-700">u</sup><span>:</span><span className="text-green-700">{` ${currency({ amount: providerInputsAmount })}`}</span></p>
+            <p className='font-bold text-md'>
+              {/* Primera Parte: Siempre visible */}
+              <span className="text-red-700 text-center">{`${providerInputsWeight.toFixed(2)} Kg / ${providerInputsPieces}`}</span>
+              <sup className="text-red-700">u</sup>
+
+              {/* Segunda Parte: Condicional */}
+              {isManager(currentUser.role) && (
+                <>
+                  <span>:</span>
+                  <span className="text-green-700">{` ${currency({ amount: providerInputsAmount })}`}</span>
+                </>
+              )}
+            </p>
           </div>
           <h2 className='text-2xl font-semibold mb-4 text-red-800'>
             <div className="">

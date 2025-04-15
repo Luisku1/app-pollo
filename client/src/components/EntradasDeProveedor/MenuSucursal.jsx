@@ -112,7 +112,7 @@ export default function MenuSucursal({ branchAndCustomerSelectOptions, date, sel
           product: selectedProduct,
           company: company._id,
           employee: currentUser,
-          createdAt: date
+          createdAt: new Date().toISOString()
         }
       } else {
         providerInput = {
@@ -126,7 +126,7 @@ export default function MenuSucursal({ branchAndCustomerSelectOptions, date, sel
           product: selectedProduct,
           employee: currentUser,
           customer: selectedBranchCustomerOption,
-          createdAt: date
+          createdAt: new Date().toISOString()
         }
       }
 

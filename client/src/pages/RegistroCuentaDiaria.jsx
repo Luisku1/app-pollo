@@ -275,9 +275,6 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
               {isManager(currentUser.role) ?
                 <div>
                   <FechaDePagina changeDay={changeDay} stringDatePickerValue={stringDatePickerValue} changeDatePickerValue={changeDatePickerValue} ></FechaDePagina>
-                  {isAuthorized && (
-                    <Switch isOn={isEditing} handleToggle={() => setIsEditing((prev) => !prev)} />
-                  )}
                 </div>
                 : ''}
               {branchReport && (
@@ -304,12 +301,11 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
                 )}
               </div>
             </h1>
-            {branchReport?.employee &&
               <h2 className='col-span-12 px-2 rounded-lg border-black mx-2 mt-2 bg-white'>
                 <div className='flex gap-2 py-2 items-center'>
                   <p className='flex-shrink-0'>Encargado:</p>
                   <button onClick={() => setEmployeeInfo(branchReport.employee)} className='font-bold text-md flex gap-1 truncate items-center w-full'>
-                    <span><CgProfile /></span> {getEmployeeFullName(branchReport.employee)}
+                    <span><CgProfile /></span> {!branchReport.employee ? 'Sin encargado' : getEmployeeFullName(branchReport.employee)}
                   </button>
                 </div>
                 {branchReport?.assistant && (
@@ -321,7 +317,6 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
                   </div>
                 )}
               </h2>
-            }
           </div>
           {branchReport && (
             <div>
@@ -507,26 +502,16 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
               {(isAuthorized || branchReport?.balance < 0) &&
                 <p className={`${branchReport?.balance < 0 ? 'bg-red-200' : 'bg-green-100'} font-bold text-lg text-center border rounded-lg p-1 border-header mt-2`}>BALANCE: {currency({ amount: branchReport?.balance ?? 0 })}</p>
               }
-              {branchId ?
-                <div className='flex flex-col gap-4 mt-4'>
-                  {isEditing ?
-                    <div>
-                      {(!branchReport.dateSent || isAuthorized) &&
-                        <button disabled={loading} className='bg-button text-white border border-black p-3 rounded-lg w-full' onClick={() => setShowSelectBranchEmployees(true)}>Continuar</button>
-                      }
-                    </div>
-                    :
-                    <div>
-                      {isAuthorized &&
-                        <button disabled={loading} className='bg-button text-white border border-black p-3 rounded-lg uppercase w-full' onClick={() => { navigate('/formato/' + stringDatePickerValue + '/' + branchReport.branch._id) }}>Editar Formato</button>
-                      }
-                    </div>
-                  }
-                </div>
-                : ''}
               <p className='text-red-700 font-semibold'>{error}</p>
             </div>
           )}
+          {branchId &&
+            <div className='flex flex-col gap-4 mt-4 sticky bottom-4'>
+              {isEditing && (!branchReport?.dateSent || isAuthorized) &&
+                <button disabled={loading} className='bg-button text-white border border-black p-3 rounded-lg w-full' onClick={() => setShowSelectBranchEmployees(true)}>Continuar</button>
+              }
+            </div>
+          }
         </div>
       )}
     </main>
