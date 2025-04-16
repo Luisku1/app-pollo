@@ -62,18 +62,28 @@ export default function ListaEntradasProveedor({ inputs, totalWeight, onDeleteIn
       isAuthorized && (
         <div key={_id || index}>
           <div className={(currentUser._id === employee._id || isManager(currentUser.role) ? '' : 'py-3 ') + (input.specialPrice ? 'border border-red-500 ' : 'border border-black ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-70 shadow-sm mt-2'}>
-            <button onClick={() => { setSelectedInput(input); setMovementDetailsIsOpen(!movementDetailsIsOpen); }} id='list-element' className='flex col-span-10 items-center justify-around h-full'>
+            <div id="list-element" className="col-span-10 items-center">
               <p className='text-center text-xs w-3/12'>{branchInfo || customerInfo}</p>
               <p className='text-center text-xs w-3/12'>{employeeName}</p>
               <p className='text-center text-xs w-3/12'>{product.name || product.label}</p>
               <p className='text-center text-xs w-1/12'>{weight}</p>
-            </button>
-            {isAuthorized && (
-              <DeleteButton
-                id={_id}
-                deleteFunction={() => onDeleteInput(input, index)}
-              />
-            )}
+            </div>
+            <div className="col-span-2 my-auto">
+              <div className="flex flex-col gap-2 justify-center my-auto items-center">
+                <button
+                  onClick={() => {
+                    setSelectedInput(input);
+                  }}
+                  className="border rounded-lg shadow-md w-10 h-10 flex justify-center items-center" >
+                  <CiSquareInfo className="w-full h-full text-blue-600" />
+                </button>
+                {isAuthorized && (
+                  <DeleteButton
+                    id={_id}
+                    deleteFunction={() => onDeleteInput(input, index)} />
+                )}
+              </div>
+            </div>
           </div>
         </div>
       )

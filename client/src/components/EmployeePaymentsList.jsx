@@ -60,12 +60,7 @@ export default function EmployeePaymentsList({ payments, onDelete = null, splice
       isAuthorized(supervisor) && (
         <div className="" key={payment._id}>
           <div className="grid grid-cols-12 border border-black border-opacity-30 rounded-2xl shadow-sm mb-2 py-1">
-            <button
-              onClick={() => {
-                setSelectedPayment(tempPayment)
-              }}
-              className="col-span-10 items-center flex-col"
-            >
+            <div id="list-element" className="col-span-10 items-center">
               <div className="text-red-800 mb-2">
                 <RowItem>
                   <p className="font-bold text-lg flex gap-1 items-center"><span><CgProfile className="text-xl" /></span>{supervisor.name}</p>
@@ -93,13 +88,21 @@ export default function EmployeePaymentsList({ payments, onDelete = null, splice
                   </RowItem>
                 </div>
               ) : <RowItem />}
-            </button>
+            </div>
             <div className="col-span-2 my-auto">
-              {deletable && (
-                <DeleteButton
-                  deleteFunction={() => onDelete(tempPayment, spliceIncome, spliceExtraOutgoing)}
-                />
-              )}
+              <div className="flex flex-col gap-2 justify-center my-auto items-center">
+                <button
+                  onClick={() => {
+                    setSelectedPayment(tempPayment);
+                  }}
+                  className="border rounded-lg shadow-md w-10 h-10 flex justify-center items-center">
+                  <CiSquareInfo className="w-full h-full text-blue-600" />
+                </button>
+                {deletable && (
+                  <DeleteButton
+                    deleteFunction={() => onDelete(tempPayment, spliceIncome, spliceExtraOutgoing)} />
+                )}
+              </div>
             </div>
           </div>
         </div>
