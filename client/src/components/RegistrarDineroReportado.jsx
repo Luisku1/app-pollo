@@ -38,7 +38,7 @@ export default function RegistrarDineroReportado({ supervisorReport, replaceRepo
       }
 
       const updatedReport = await verifyMoney({ typeField, supervisorReportId: supervisorReport._id, companyId: company._id, amount, date: supervisorReport.createdAt })
-      replaceReport({ ...supervisorReport, balance: updatedReport.balance, [typeField]: amount })
+      replaceReport({ ...supervisorReport, balance: updatedReport.balance, [typeField]: amount }, supervisorReport.externalIndex)
 
 
     } catch (error) {

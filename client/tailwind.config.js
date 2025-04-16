@@ -9,10 +9,10 @@ export default {
   theme: {
     extend: {
       colors: {
-        'pastel-pink': '#FEEAF2', // Tono de rosa pastel personalizado
+        'pastel-pink': '#FEEAF2',
         'header': '#333333',
         'menu': '#F4F4F4',
-        'button': '#A36A63',
+        'button': '#7b4e5a',
         'options-bar': '#415D43',
         'supervisor-button': '#CBD5E1',
         'inputs': '#FCE8E6',

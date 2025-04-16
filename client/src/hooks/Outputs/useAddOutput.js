@@ -13,19 +13,11 @@ export const useAddOutput = () => {
     try {
       await addOutputFetch({
         output: {
-          _id: output._id,
-          price: output.price,
-          amount: output.amount,
-          comment: output.comment,
-          weight: output.weight,
-          pieces: output.pieces,
-          specialPrice: output.specialPrice,
-          company: output.company,
+          ...output,
           product: output.product._id,
           employee: output.employee._id,
           branch: output.branch?.value || null,
           customer: output.customer?.value || null,
-          createdAt: output.createdAt
         },
         group
       });

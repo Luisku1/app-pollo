@@ -4,6 +4,22 @@ import Product from '../models/product.model.js'
 import { errorHandler } from '../utils/error.js'
 import { getDayRange } from '../utils/formatDate.js'
 
+export const productAggregate = (localField) => {
+	return [
+		{
+			$lookup: {
+				from: 'products',
+				localField: localField,
+				foreignField: '_id',
+				as: 'product'
+			}
+		},
+		{
+			$unwind: { path: '$product', preserveNullAndEmptyArrays: true }
+		}
+	]
+}
+
 export const newProduct = async (req, res, next) => {
 
 	const { name, company, price } = req.body
@@ -18,7 +34,7 @@ export const newProduct = async (req, res, next) => {
 
 		const branches = await Branch.find({ company }, ['_id'])
 
-		const {bottomDate} = getDayRange(new Date())
+		const { bottomDate } = getDayRange(new Date())
 
 		branches.forEach(branch => {
 

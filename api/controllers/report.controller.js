@@ -351,6 +351,7 @@ export const getBranchReports = async (req, res, next) => {
                 incomesArray: 1,
                 balance: 1,
                 branch: { $first: '$branch' },
+                dateSent: 1,
                 employee: { $first: '$employee' },
                 assistant: { $first: '$assistant' },
                 reportData: 1

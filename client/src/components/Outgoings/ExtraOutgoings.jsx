@@ -24,6 +24,7 @@ export default function ExtraOutgoings({ date, pushIncome, employees, branches, 
   const { payments, total: totalEmployeesPayments, onAddEmployeePayment, onDeleteEmployeePayment } = useEmployeesPayments({ companyId: company._id, date })
   const [selectedBranch, setSelectedBranch] = useState(null)
   const [selectedEmployee, setSelectedEmployee] = useState(null)
+  const [isDirectFromBranch, setIsDirectFromBranch] = useState(false);
 
   const paymentsButtonControl = () => {
 
@@ -102,6 +103,7 @@ export default function ExtraOutgoings({ date, pushIncome, employees, branches, 
 
       onAddEmployeePayment(employeePayment, pushIncome, spliceIncomeById, pushExtraOutgoing, spliceExtraOutgoingById)
 
+      setIsDirectFromBranch(false)
       setSelectedEmployee(null)
       setSelectedBranch(null)
       amount.value = ''
@@ -115,7 +117,6 @@ export default function ExtraOutgoings({ date, pushIncome, employees, branches, 
   }
 
   const handleExtraOutgoingInputsChange = (e) => {
-
     setExtraOutgoingFormData({
 
       ...extraOutgoingFormData,
@@ -133,6 +134,13 @@ export default function ExtraOutgoings({ date, pushIncome, employees, branches, 
 
     setSelectedBranch(branch)
   }
+
+  const handleCheckboxChange = (e) => {
+    setIsDirectFromBranch(e.target.checked);
+    if (!e.target.checked) {
+      setSelectedBranch(null);
+    }
+  };
 
   const extraOutgoingsButtonControl = () => {
 
@@ -207,17 +215,32 @@ export default function ExtraOutgoings({ date, pushIncome, employees, branches, 
             <EmployeesSelect defaultLabel={'¿A quién le pagas?'} employees={employees} handleEmployeeSelectChange={handleEmployeeSelectChange} selectedEmployee={selectedEmployee}></EmployeesSelect>
           </div>
           <div>
-            <p className='text-xs text-red-700'>Si ya tenías el dinero deja vacío el campo de sucursal</p>
-            <Select
-              id='branchSelect'
-              styles={customSelectStyles}
-              value={getElementForSelect(selectedBranch, (branch) => branch.branch)}
-              onChange={handleBranchSelectChange}
-              options={getArrayForSelects(branches, (branch) => branch.branch)}
-              isClearable={true}
-              placeholder='¿De qué sucursal salió el dinero?'
-              isSearchable={true}
-            />
+            <label className="flex items-center gap-2 ml-3">
+              <input
+                type="checkbox"
+                checked={isDirectFromBranch}
+                onChange={handleCheckboxChange}
+                className="h-5 w-5"
+              />
+              ¿El dinero viene directo de una sucursal?
+            </label>
+          </div>
+          <div>
+            {isDirectFromBranch && (
+              <div>
+                <p className='text-xs text-red-700'>Si ya tenías el dinero deja vacío el campo de sucursal</p>
+                <Select
+                  id='branchSelect'
+                  styles={customSelectStyles}
+                  value={getElementForSelect(selectedBranch, (branch) => branch.branch)}
+                  onChange={handleBranchSelectChange}
+                  options={getArrayForSelects(branches, (branch) => branch.branch)}
+                  isClearable={true}
+                  placeholder='¿De qué sucursal salió el dinero?'
+                  isSearchable={true}
+                />
+              </div>
+            )}
           </div>
           <div className='relative'>
             <input type="number" name="paymentAmount" id="paymentAmount" placeholder='$0.00' step={0.01} className='w-full col-span-1 border p-3 rounded-lg border-black' required onInput={paymentsButtonControl} />

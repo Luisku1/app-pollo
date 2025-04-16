@@ -9,7 +9,7 @@ export const formatDate = (date) => {
 
 export const formatInformationDate = (date) => {
 
-  const pivotDate = new Date(date)
+  const pivotDate = new Date(formatDate(date))
 
   return `${(isToday(pivotDate) ? 'Hoy. ' : '') + pivotDate.toLocaleDateString('es-mx', { weekday: 'long', year: 'numeric', month: '2-digit', day: '2-digit' })}`
 }

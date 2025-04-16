@@ -52,7 +52,7 @@ export const useBranchReport = ({ branchId = null, date = null, _branchReport = 
 
   useEffect(() => {
 
-    if (!branchId) return
+    if (!branchId || _branchReport) return
     if ((!branchId || !date || _branchReport) && !shouldFetchBranchReport) return
 
     setBranchReport({

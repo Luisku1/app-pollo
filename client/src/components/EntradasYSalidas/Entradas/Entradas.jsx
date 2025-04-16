@@ -29,6 +29,7 @@ export default function Entradas({ branchAndCustomerSelectOptions, products, dat
   const { price, loading: priceIsLoading } = useBranchCustomerProductPrice({ branchCustomerId: selectedCustomerBranchOption ? selectedCustomerBranchOption.value : null, productId: selectedProduct ? selectedProduct.value : null, date, group: selectedGroup == '' ? null : selectedGroup })
   const [amount, setAmount] = useState('$0.00')
   const [loading, setLoading] = useState(false)
+  const [isRegisteredInSurplus, setIsRegisteredInSurplus] = useState(false)
 
   const generarMonto = () => {
 
@@ -130,6 +131,7 @@ export default function Entradas({ branchAndCustomerSelectOptions, products, dat
           specialPrice: priceInput.value == '' ? false : true,
           company: company._id,
           product: selectedProduct,
+          addInStock: isRegisteredInSurplus,
           employee: currentUser,
           branch: selectedCustomerBranchOption,
           createdAt
@@ -238,6 +240,21 @@ export default function Entradas({ branchAndCustomerSelectOptions, products, dat
               </label>
             </div>
           </div>
+          {selectedGroup === 'Sucursales' && (
+            <div className="flex items-center gap-4 mt-4 w-full">
+              <input
+                type="checkbox"
+                id="isRegisteredInSurplusInputs"
+                name="isRegisteredInSurplusInputs"
+                className="w-6 h-6 accent-blue-600"
+                checked={isRegisteredInSurplus}
+                onChange={(e) => setIsRegisteredInSurplus(e.target.checked)}
+              />
+              <label htmlFor="isRegisteredInSurplusInputs" className="text-lg font-bold w-full">
+                Agregar al sobrante
+              </label>
+            </div>
+          )}
           <button type='submit' id='input-button' disabled className='bg-button text-white p-3 rounded-lg col-span-12 mt-8'>Agregar</button>
         </form>
       </div>

@@ -15,19 +15,12 @@ export const useAddInput = () => {
 
       await addInputFetch({
         input: {
+          ...input,
           _id: input._id || null,
-          price: input.price,
-          amount: input.amount,
-          comment: input.comment,
-          weight: input.weight,
-          pieces: input.pieces,
-          specialPrice: input.specialPrice,
-          company: input.company,
           product: input.product._id,
           employee: input.employee._id,
           branch: input.branch?.value || null,
           customer: input.customer?.value || null,
-          createdAt: input.createdAt
         }, group
       })
     } catch (error) {

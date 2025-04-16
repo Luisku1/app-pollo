@@ -52,6 +52,7 @@ export const createStockAndUpdateBranchReport = async (params) => {
 
 
   try {
+
     stock = isInitial ? null : await createNewStock(stockData);
     initialStock = isInitial ? { isInitial, associatedStock, ...stockData } : await createInitialStock(stock, stockData, price, branch, product, createdAt);
 
@@ -279,7 +280,7 @@ export const deleteStock = async (req, res, next) => {
   }
 }
 
-const deleteStockAndUpdateBranchReport = async ({ stockId, isInitial = false, alsoDeleteInitial = false }) => {
+export const deleteStockAndUpdateBranchReport = async ({ stockId, isInitial = false, alsoDeleteInitial = false }) => {
 
   let deletedStock = null;
   let deletedInitialStock = null;

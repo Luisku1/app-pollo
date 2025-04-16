@@ -19,6 +19,7 @@ export default function ProviderInputsList({ inputs, totalWeight = 0, totalAmoun
   const { currentUser } = useSelector((state) => state.user);
   const { isManager } = useRoles();
   const [selectedInput, setSelectedInput] = useState(null)
+  const [deletingInputId, setDeletingInputId] = useState(null);
   const isAuthorized = (employee) => currentUser._id === employee._id || isManager(currentUser.role) || !onDelete
   const deletable = onDelete
 
@@ -46,17 +47,13 @@ export default function ProviderInputsList({ inputs, totalWeight = 0, totalAmoun
     )
   }
 
-  // const renderHeader = () => {
-  //   return (
-  //     <div id='header' className='grid grid-cols-12 items-center justify-around font-semibold my-4'>
-  //       <p className='col-span-3 text-center'>Encargado</p>
-  //       <p className='col-span-3 text-center'>Producto</p>
-  //       <p className='col-span-2 text-center'>Piezas</p>
-  //       <p className='col-span-2 text-center'>Kg</p>
-  //       <p className='col-span-2 text-center'>Monto</p>
-  //     </div>
-  //   )
-  // }
+  const handleDelete = (input) => {
+    setDeletingInputId(input._id);
+    setTimeout(() => {
+      onDelete(input);
+      setDeletingInputId(null);
+    }, 300);
+  };
 
   const renderInputItem = (input, index) => {
     const { employee, product, pieces, weight, amount, branch, comment, createdAt } = input;
@@ -65,7 +62,10 @@ export default function ProviderInputsList({ inputs, totalWeight = 0, totalAmoun
 
     return (
       isAuthorized(employee) && (
-        <div className="" key={input._id}>
+        <div
+          className={`transition-opacity duration-300 ${deletingInputId === input._id ? "opacity-0" : "opacity-100"}`}
+          key={input._id}
+        >
           {input.weight !== 0 ? (
             <div className="grid grid-cols-12 border border-black border-opacity-30 rounded-2xl shadow-sm mb-2 py-1">
               <button
@@ -103,7 +103,7 @@ export default function ProviderInputsList({ inputs, totalWeight = 0, totalAmoun
               <div className="col-span-2 my-auto">
                 {deletable && (
                   <DeleteButton
-                    deleteFunction={() => onDelete(tempInput)}
+                    deleteFunction={() => handleDelete(tempInput)}
                   />
                 )}
               </div>
@@ -121,6 +121,11 @@ export default function ProviderInputsList({ inputs, totalWeight = 0, totalAmoun
       <div>
         {renderTotal()}
         {inputs && inputs.length > 0 && inputs.map((input, index) => (renderInputItem(input, index)))}
+        {!inputs || inputs.length === 0 && (
+          <div className="flex justify-center items-center h-32">
+            <p className="text-gray-500 text-lg">No hay entradas registradas</p>
+          </div>
+        )}
       </div>
     )
   }

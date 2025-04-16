@@ -219,7 +219,7 @@ export default function Perfil() {
 
                 <ShowListModal
                   title={`Reportes de ${employee.name}`}
-                  className={'w-full'}
+                  className={'w-full h-full'}
                   ListComponent={SupervisorReportList}
                   ListComponentProps={{ supervisorReports }}
                   clickableComponent={<p className='w-full text-lg font-semibold text-center p-1 border border-header rounded-md'>{`${supervisorReports.length == 0 || supervisorReports.length > 1 ? 'Reportes de Supervisión' : 'Reporte de Supervisión'} (${supervisorReports.length}) [${currency(totalBalance > 0 ? 0 : totalBalance)}]`}</p>}
@@ -243,7 +243,7 @@ export default function Perfil() {
                   title={`Cuentas de ${employee.name}`}
                   ListComponent={TarjetaCuenta}
                   ListComponentProps={{ reportArray: branchReports, replaceReport: replaceReport }}
-                  clickableComponent={<p className='mt-4 w-full text-lg font-semibold text-center p-1 border border-header rounded-md'>{`${branchReports.length == 0 || branchReports.length > 1 ? 'Reportes en Pollería' : 'Reporte en Pollería'} (${branchReports.length}) [${supervisorBalance > 0 ? 0 : supervisorBalance}]`}</p>}
+                  clickableComponent={<p className='w-full text-lg font-semibold text-center p-1 border border-header rounded-md'>{`${branchReports.length == 0 || branchReports.length > 1 ? 'Reportes en Pollería' : 'Reporte en Pollería'} (${branchReports.length}) [${supervisorBalance > 0 ? 0 : supervisorBalance}]`}</p>}
                 />
               )}
 

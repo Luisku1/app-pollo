@@ -7,6 +7,9 @@ import { Types } from 'mongoose'
 import { pushOrPullBranchReportRecord } from './branch.report.controller.js'
 import { pushOrPullCustomerReportRecord } from './customer.controller.js'
 import { employeeAggregate } from './employee.controller.js'
+import { createStockAndUpdateBranchReport, deleteStockAndUpdateBranchReport } from './stock.controller.js'
+import { branchAggregate } from './branch.controller.js'
+import { productAggregate } from './product.controller.js'
 
 const inputLookups = () => {
   return [
@@ -66,11 +69,11 @@ const outputLookups = () => {
 
 export const newBranchInput = async (req, res, next) => {
 
-  const { _id, weight, specialPrice, price, amount, comment, pieces, company, product, employee, branch, createdAt } = req.body
+  const { _id, weight, specialPrice, price, amount, comment, pieces, company, product, employee, addInStock, branch, createdAt } = req.body
 
   try {
 
-    const newInput = await newBranchInputAndUpdateBranchReport({ _id, weight, comment, pieces, company, product, employee, branch, amount, price, createdAt, specialPrice })
+    const newInput = await newBranchInputAndUpdateBranchReport({ _id, weight, comment, pieces, company, product, addInStock, employee, branch, amount, price, createdAt, specialPrice })
 
     res.status(200).json({ message: 'New input created', input: newInput })
 
@@ -80,13 +83,14 @@ export const newBranchInput = async (req, res, next) => {
   }
 }
 
-export const newBranchInputAndUpdateBranchReport = async ({ _id, weight, comment, pieces, company, product, employee, branch, amount, price, createdAt, specialPrice }) => {
+export const newBranchInputAndUpdateBranchReport = async ({ _id, weight, comment, pieces, company, addInStock, product, employee, branch, amount, price, createdAt, specialPrice }) => {
 
   let input = null
+  let stock = null
 
   try {
 
-    input = await Input.create({ _id, weight, comment, pieces, company, product, employee, branch, amount, price, createdAt, specialPrice })
+    input = await Input.create({ _id, weight, comment, pieces, company, addInStock, product, employee, branch, amount, price, createdAt, specialPrice })
 
     if (!input) throw new Error("No se logró crear la entrada a sucursal");
 
@@ -100,13 +104,22 @@ export const newBranchInputAndUpdateBranchReport = async ({ _id, weight, comment
       operation: '$addToSet'
     })
 
+    if (input.addInStock) {
+      stock = await createStockAndUpdateBranchReport(input)
+    }
+
     return input
 
   } catch (error) {
 
+    if(stock) {
+
+      await deleteStockAndUpdateBranchReport({ stock_id: stock._id, alsoDeleteInitial: true })
+    }
+
     if (input) {
 
-      await Input.findByIdAndDelete(input._id)
+      await deleteInputById(input._id)
     }
 
     throw error;
@@ -516,6 +529,25 @@ export const deleteInput = async (req, res, next) => {
 
   const inputId = req.params.inputId
 
+  try {
+
+    await deleteInputById(inputId)
+
+    res.status(200).json({ message: 'Input deleted correctly' })
+
+  } catch (error) {
+
+    if (deletedInput) {
+
+      await Input.create({ deletedInput })
+    }
+
+    next(error);
+  }
+}
+
+export const deleteInputById = async (inputId) => {
+
   let deletedInput = null
 
   try {
@@ -536,6 +568,11 @@ export const deleteInput = async (req, res, next) => {
         amountField: 'inputs'
       })
 
+      if (deletedInput.addInStock && deletedInput.stock_id) {
+
+        await deleteStockAndUpdateBranchReport({ stock_id: deletedInput.stock_id, alsoDeleteInitial: true })
+      }
+
     } else {
 
       await pushOrPullCustomerReportRecord({
@@ -549,8 +586,6 @@ export const deleteInput = async (req, res, next) => {
       })
     }
 
-    res.status(200).json({ message: 'Input deleted correctly' })
-
   } catch (error) {
 
     if (deletedInput) {
@@ -558,7 +593,7 @@ export const deleteInput = async (req, res, next) => {
       await Input.create({ deletedInput })
     }
 
-    next(error);
+    throw error;
   }
 }
 
@@ -853,6 +888,70 @@ export const getProviderProductInputs = async (req, res, next) => {
 
   } catch (error) {
 
+    next(error)
+  }
+}
+
+export const getProviderInputs = async (req, res, next) => {
+
+  const date = new Date(req.params.date)
+  const companyId = req.params.companyId
+  const { bottomDate, topDate } = getDayRange(date)
+
+  try {
+
+    const providerInputs = await ProviderInput.aggregate([
+      {
+        $match: {
+          "createdAt": { $gte: new Date(bottomDate), $lt: new Date(topDate) },
+          "company": new Types.ObjectId(companyId)
+        }
+      },
+      ...productAggregate('product'),
+      ...employeeAggregate('employee'),
+      ...branchAggregate('branch'),
+      {
+        $group: {
+          _id: "$product._id",
+          totalWeight: { $sum: "$weight" },
+          totalPieces: { $sum: "$pieces" },
+          totalAmount: { $sum: "$amount" },
+          inputs: { $push: "$$ROOT" }
+        }
+      },
+      {
+        $lookup: {
+          from: "products",
+          localField: "_id",
+          foreignField: "_id",
+          as: "productDetails"
+        }
+      },
+      {
+        $unwind: "$productDetails"
+      },
+      {
+        $sort: { "totalAmount": -1 }
+      },
+      {
+        $project: {
+          _id: 1,
+          weight: 1,
+          pieces: 1,
+          amount: 1,
+          inputs: 1,
+          name: "$productDetails.name"
+        }
+      }
+    ])
+
+    if (providerInputs.length > 0) {
+      res.status(200).json({ providerInputs })
+    } else {
+      next(errorHandler(404, 'No provider inputs found'))
+    }
+
+  } catch (error) {
     next(error)
   }
 }
