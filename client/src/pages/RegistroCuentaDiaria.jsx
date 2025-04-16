@@ -315,8 +315,8 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
               <h2 className='col-span-12 px-2 rounded-lg border-black mx-2 mt-2 bg-white'>
                 <div className='flex gap-2 py-2 items-center'>
                   <p className='flex-shrink-0'>Encargado:</p>
-                  <button onClick={() => setEmployeeInfo(branchReport.employee)} className='font-bold text-md flex gap-1 truncate items-center w-full'>
-                    <span><CgProfile /></span> {!branchReport.employee ? 'Sin encargado' : getEmployeeFullName(branchReport.employee)}
+                  <button onClick={() => setEmployeeInfo(branchReport?.employee ?? null)} className='font-bold text-md flex gap-1 truncate items-center w-full'>
+                    <span><CgProfile /></span> {!branchReport?.employee ? 'Sin encargado' : getEmployeeFullName(branchReport?.employee)}
                   </button>
                 </div>
                 {branchReport?.assistant && (

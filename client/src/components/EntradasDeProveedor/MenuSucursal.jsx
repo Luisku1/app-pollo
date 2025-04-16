@@ -6,6 +6,7 @@ import Select from 'react-select'
 import { customSelectStyles } from '../../helpers/Constants'
 import { useBranchCustomerProductPrice } from '../../hooks/Prices/useBranchCustomerProductPrice'
 import { ToastDanger } from '../../helpers/toastify'
+import { isToday } from '../../helpers/DatePickerFunctions'
 
 export default function MenuSucursal({ branchAndCustomerSelectOptions, date, selectedProduct, onAddProviderInput }) {
 
@@ -112,7 +113,7 @@ export default function MenuSucursal({ branchAndCustomerSelectOptions, date, sel
           product: selectedProduct,
           company: company._id,
           employee: currentUser,
-          createdAt: new Date().toISOString()
+          createdAt: isToday(date) ? new Date().toISOString() : date,
         }
       } else {
         providerInput = {
@@ -126,7 +127,7 @@ export default function MenuSucursal({ branchAndCustomerSelectOptions, date, sel
           product: selectedProduct,
           employee: currentUser,
           customer: selectedBranchCustomerOption,
-          createdAt: new Date().toISOString()
+          createdAt: isToday(date) ? new Date().toISOString() : date,
         }
       }
 

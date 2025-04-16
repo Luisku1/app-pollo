@@ -153,6 +153,10 @@ export const useProviderInputs = ({ companyId = null, productId = null, date = n
 
     const sortedProducts = providerInputs.sort((a, b) => { b.amount - a.amount })
 
+    if (!sortedProducts[0]?.inputs?.length) {
+      return sortedProducts
+    }
+
     return sortedProducts.map((productInput) => {
       const inputs = productInput.inputs
       let clientsInputs = inputs.filter((input) => !input.branch)
@@ -167,10 +171,17 @@ export const useProviderInputs = ({ companyId = null, productId = null, date = n
     })
   }, [providerInputs])
 
+  console.log(sortedProviderInputs)
+
   const finalInputs = useMemo(() => {
+
+    if (!sortedProviderInputs[0]?.inputs?.length) {
+      return sortedProviderInputs
+    }
+
     return sortedProviderInputs.map((productInput) => {
 
-      const { amount, weight, pieces, price } = productInput.inputs.reduce((acc, input) => {
+      const { amount, weight, pieces, price } = (productInput?.inputs ?? []).reduce((acc, input) => {
         return {
           amount: acc.amount + input.amount,
           weight: acc.weight + input.weight,
@@ -202,6 +213,8 @@ export const useProviderInputs = ({ companyId = null, productId = null, date = n
   const providerInputsPieces = useMemo(() => {
     return finalInputs.reduce((acc, input) => acc + input.pieces, 0)
   }, [finalInputs])
+
+  console.log(finalInputs)
 
   return {
     providerInputs: finalInputs,
