@@ -11,10 +11,10 @@ export default function BranchPrices({ prices, pricesDate, branch, onChange, onU
     return (
       <li
         key={price.priceId}
-        className={`flex justify-between gap-2 p-1 mt-1 shadow-sm ${index % 2 === 0 ? "bg-gray-100" : "bg-white"
+        className={`flex justify-between gap-2 p-1 items-center mt-1 shadow-sm ${index % 2 === 0 ? "bg-gray-100" : "bg-white"
           } border-b border-gray-300`}
       >
-        <span className="truncate font-semibold">{price.product}:</span>
+        <span className="font-semibold">{price.product}:</span>
         <span className="text-red-800 font-bold">{currency({amount: price.latestPrice})}</span>
       </li>
     );
