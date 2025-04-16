@@ -22,6 +22,7 @@ import { FaTruck } from "react-icons/fa";
 import { FaUser } from "react-icons/fa";
 import { MdStorefront } from "react-icons/md";
 import SupervisorReportCard from "../components/SupervisorReportCard.jsx";
+import { useDate } from '../context/DateContext';
 
 export default function Reporte({ untitled = false }) {
 
@@ -37,6 +38,7 @@ export default function Reporte({ untitled = false }) {
   const [showGraphs, setShowGrapsh] = useState(false)
   const [selectedSupervisors, setSelectedSupervisors] = useState([])
   const [employees, setEmployees] = useState([])
+  const {currentDate, setCurrentDate} = useDate()  
   const {
 
     branchReports,
@@ -48,7 +50,7 @@ export default function Reporte({ untitled = false }) {
     totalOutgoings,
     totalBalance,
 
-  } = useBranchReports({ companyId: company._id, date: stringDatePickerValue })
+  } = useBranchReports({ companyId: company._id, date: currentDate })
   const {
     supervisorsInfo,
     replaceSupervisorReport,
@@ -66,7 +68,7 @@ export default function Reporte({ untitled = false }) {
     extraOutgoingsArray,
     terminalIncomesArray,
     terminalIncomes,
-  } = useSupervisorsReportInfo({ companyId: company._id, date: stringDatePickerValue })
+  } = useSupervisorsReportInfo({ companyId: company._id, date: currentDate })
   const { isLoading } = useLoading([loadingBranchReports, loadingSupervisors])
   const navigate = useNavigate()
   const [pieChartInfo, setPieChartInfo] = useState([])
@@ -145,6 +147,12 @@ export default function Reporte({ untitled = false }) {
     navigate('/reporte/' + date)
   }
 
+  useEffect(() => {
+    if (stringDatePickerValue) {
+      setCurrentDate(stringDatePickerValue)
+    }
+  }, [stringDatePickerValue])  
+
   const handleShowGraphs = () => {
 
     setShowGrapsh(true)
@@ -203,14 +211,14 @@ export default function Reporte({ untitled = false }) {
 
     if (untitled) return
 
-    document.title = 'Reporte (' + new Date(stringDatePickerValue).toLocaleDateString() + ')'
+    document.title = 'Reporte (' + new Date(currentDate).toLocaleDateString() + ')'
   })
 
   return (
 
     <main className="p-3 max-w-lg mx-auto">
       {!untitled &&
-        <FechaDePagina changeDay={changeDay} stringDatePickerValue={stringDatePickerValue} changeDatePickerValue={changeDatePickerValue} ></FechaDePagina>
+        <FechaDePagina changeDay={changeDay} stringDatePickerValue={currentDate} changeDatePickerValue={changeDatePickerValue} ></FechaDePagina>
       }
       {branchReports && branchReports.length > 0 && roles && roles.manager ?
         <div className="mt-3">
@@ -230,7 +238,7 @@ export default function Reporte({ untitled = false }) {
             <p className="col-span-1 font-bold">{'Formatos: ' + branchReports.length + '/20'}</p>
             <div className="col-span-2 justify-self-end flex items-center">
               <p className="font-semibold">Recargar formatos:</p>
-              <button className="text-black h-10 px-8" onClick={() => getBranchReports({ companyId: company._id, date: stringDatePickerValue })}><IoReload className="w-full h-full" /></button>
+              <button className="text-black h-10 px-8" onClick={() => getBranchReports({ companyId: company._id, date: currentDate })}><IoReload className="w-full h-full" /></button>
             </div>
           </div>
           <table className={'border mt-2 bg-white w-full ' + (!showTable ? 'hidden' : '')}>
@@ -241,12 +249,12 @@ export default function Reporte({ untitled = false }) {
                 {/* <th></th> */}
                 <th className="text-sm">Sucursal</th>
                 <th className="text-sm">
-                  <Link className="flex justify-center" to={'/gastos/' + stringDatePickerValue}>
+                  <Link className="flex justify-center" to={'/gastos/' + currentDate}>
                     Gastos
                   </Link>
                 </th>
                 <th className="text-sm">
-                  <Link className="flex justify-center" to={'/sobrante/' + stringDatePickerValue}>
+                  <Link className="flex justify-center" to={'/sobrante/' + currentDate}>
                     Sobrante
                   </Link>
                 </th>
@@ -322,7 +330,7 @@ export default function Reporte({ untitled = false }) {
             </tfoot>
           </table>
           <div className={!showStock ? 'hidden' : ''}>
-            <Sobrante date={stringDatePickerValue} branchReports={branchReports}></Sobrante>
+            <Sobrante date={currentDate} branchReports={branchReports}></Sobrante>
           </div>
           <div className={!showGraphs ? 'hidden' : ''} >
             <div className="items-center">

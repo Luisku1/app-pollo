@@ -1,9 +1,9 @@
 /* eslint-disable react/prop-types */
-import { useEffect, useContext } from 'react';
-import { MdCancel } from 'react-icons/md';
-import { FaSpinner } from 'react-icons/fa';
-import SectionHeader from '../SectionHeader';
-import { ModalContext } from '../../context/ModalContext';
+import { useEffect, useContext } from "react";
+import { MdCancel } from "react-icons/md";
+import { FaSpinner } from "react-icons/fa";
+import SectionHeader from "../SectionHeader";
+import { ModalContext } from "../../context/ModalContext";
 
 export default function Modal({
   content,
@@ -12,24 +12,24 @@ export default function Modal({
   ref,
   ableToClose = true,
   extraInformation,
+  closeOnEsc = true,
   closeOnClickOutside = true,
   closeOnClickInside = false,
-  width = '11/12',
-  shape = '',
+  width = "11/12",
+  shape = "",
   loading = false,
 }) {
   const { modals, removeLastModal, count, setCount } = useContext(ModalContext);
 
-  console.log(count)
+  console.log(count);
 
   useEffect(() => {
-
     setCount((prevCount) => prevCount + 1);
 
     document.body.style.overflow = "hidden";
 
     const handleKeyDown = (event) => {
-      if (event.key === 'Escape' && ableToClose) {
+      if ((event.key === "Escape" && ableToClose) || closeOnEsc) {
         closeModal();
         removeLastModal();
       }
@@ -45,15 +45,15 @@ export default function Modal({
     };
 
     // Agregar eventos y estado falso al montar
-    document.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('popstate', handlePopState);
+    document.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("popstate", handlePopState);
     history.pushState(null, "", window.location.href);
 
     // Limpiar eventos al desmontar
     return () => {
       document.body.style.overflow = "auto";
-      document.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('popstate', handlePopState);
+      document.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("popstate", handlePopState);
       setCount((prevCount) => prevCount - 1);
     };
   }, [ableToClose, closeModal, removeLastModal, modals.length]);
@@ -64,7 +64,10 @@ export default function Modal({
       <div
         className={`fixed transition-all duration-200 inset-0 z-[10000] bg-black bg-opacity-30 overflow-y-auto backdrop-blur-sm flex items-center justify-center pt-16`}
         onClick={(e) => {
-          if (closeOnClickOutside && e.target === e.currentTarget && ableToClose) {
+          if (
+            (e.target === e.currentTarget && ableToClose) ||
+            (closeOnClickOutside && e.target === e.currentTarget)
+          ) {
             closeModal();
             removeLastModal();
           }
@@ -92,7 +95,7 @@ export default function Modal({
           {ableToClose && (
             <button
               className="sticky top-0 right-0 text-gray-600 hover:text-gray-800 z-30"
-              style={{ float: 'right', margin: '10px' }}
+              style={{ float: "right", margin: "10px" }}
               onClick={() => {
                 closeModal();
                 removeLastModal();

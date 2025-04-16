@@ -2,7 +2,7 @@ import { GiChicken } from 'react-icons/gi';
 import { Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { useEffect, useState } from 'react';
-import { MdSearch, MdHome } from "react-icons/md"; // Added MdHome
+import { MdSearch, MdHome, MdNotifications, MdDehaze } from "react-icons/md"; // Added MdHome
 import '../assets/dropdown.css';
 import { useRoles } from '../context/RolesContext';
 import { useDate } from '../context/DateContext'; // Import DateContext
@@ -58,7 +58,7 @@ export default function Header() {
         if (!isToday && option.date) {
           return [
             option,
-            { ...option, text: `${option.text} (${formatInformationDate(currentDate)})` } // Add option with date
+            { ...option, text: `${option.text} (${formatInformationDate(currentDate)})`, link: option.link + currentDate } // Add option with date
           ];
         }
         return option;
@@ -142,6 +142,8 @@ export default function Header() {
               onClick={() => setShowDropdown(false)}
             ></div>
           )}
+          <div className='flex justify-between items-center mx-auto p-3 max-w-full flex-row-reverse'>
+          </div>
           <div className='relative w-full dropdown-container'>
             <MdSearch
               onClick={() => setShowDropdown(true)}

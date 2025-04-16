@@ -58,7 +58,7 @@ export const signUp = async (req, res, next) => {
 
 export const ownerSignUp = async (req, res, next) => {
 
-  const { name, lastName, phoneNumber, company, password } = req.body
+  const { name, lastName, phoneNumber, company: paramsCompany, password } = req.body
 
   try {
     if (!password) {
@@ -70,7 +70,7 @@ export const ownerSignUp = async (req, res, next) => {
     const hashedPassword = bcryptjs.hashSync(password, 10)
     const role = await Role.findOne({ name: 'Gerente' }).select('_id')
     const newEmployee = await Employee({ name, lastName, password: hashedPassword, role: role._id, phoneNumber })
-    const company = await newCompanyFunction({ name: company, ownerId: newEmployee._id })
+    const company = await newCompanyFunction({ name: paramsCompany, ownerId: newEmployee._id })
 
     newEmployee.company = company._id
     const employeeDailyBalance = new EmployeeDailyBalance({ employee: newEmployee._id, company: newEmployee.company, createdAt: (new Date().toISOString()) })

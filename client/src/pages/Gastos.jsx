@@ -6,6 +6,7 @@ import { fetchEmployees } from "../helpers/FetchFunctions"
 import { MdCancel } from "react-icons/md";
 import { formatDate } from "../helpers/DatePickerFunctions"
 import FechaDePagina from "../components/FechaDePagina"
+import { useDate } from '../context/DateContext';
 
 export default function Gastos() {
 
@@ -23,6 +24,8 @@ export default function Gastos() {
   const [manager, setManagerRole] = useState({})
   const navigate = useNavigate()
 
+  const {currentDate, setCurrentDate} = useDate()
+
   const changeDatePickerValue = (e) => {
 
     stringDatePickerValue = (e.target.value + 'T06:00:00.000Z')
@@ -32,10 +35,16 @@ export default function Gastos() {
   }
 
   const changeDay = (date) => {
-
+    setCurrentDate(date)
     navigate('/supervision-diaria/' + date)
 
   }
+
+  useEffect(() => {
+    if (stringDatePickerValue) {
+      setCurrentDate(stringDatePickerValue)
+    }
+  }, [stringDatePickerValue])
 
   const setOutgoingsTotalFunction = (outgoings) => {
 
@@ -179,7 +188,7 @@ export default function Gastos() {
 
   useEffect(() => {
 
-    document.title = 'Gastos (' + new Date(stringDatePickerValue).toLocaleDateString() + ')'
+    document.title = 'Gastos (' + new Date(currentDate).toLocaleDateString() + ')'
   })
 
 
@@ -193,7 +202,7 @@ export default function Gastos() {
 
       {manager._id == currentUser.role ?
 
-        <FechaDePagina changeDay={changeDay} stringDatePickerValue={stringDatePickerValue} changeDatePickerValue={changeDatePickerValue} ></FechaDePagina>
+        <FechaDePagina changeDay={changeDay} stringDatePickerValue={currentDate} changeDatePickerValue={changeDatePickerValue} ></FechaDePagina>
 
         : ''}
       {error ? <p>{error}</p> : ''}
