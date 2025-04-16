@@ -24,7 +24,7 @@ function ToastInfo(message) {
 function ToastContainerComponent() {
   return <ToastContainer
     draggable
-    position='bottom-center' // Cambiar a bottom-center
+    position='top-center' // Cambiar a bottom-center
     limit={2}
     closeOnClick
     autoClose={3000}
