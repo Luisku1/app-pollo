@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import { useSelector } from 'react-redux'
 import DeleteButton from './Buttons/DeleteButton'
-import { formatInformationDate, formatTime } from '../helpers/DatePickerFunctions'
+import { formatDateAndTime, formatInformationDate, formatTime } from '../helpers/DatePickerFunctions'
 import { useRoles } from '../context/RolesContext'
 import { getEmployeeFullName, currency } from '../helpers/Functions'
 import { useState, useMemo } from 'react'
@@ -12,6 +12,8 @@ import ConfirmationButton from "./Buttons/ConfirmationButton"
 import MoneyBag from './Icons/MoneyBag'
 import Amount from './Incomes/Amount'
 import BranchName from './BranchName'
+import EmployeeInfo from './EmployeeInfo'
+import { CiSquareInfo } from 'react-icons/ci'
 
 export default function EmployeePaymentsList({ payments, onDelete = null, spliceIncome, spliceExtraOutgoing }) {
 
@@ -21,6 +23,7 @@ export default function EmployeePaymentsList({ payments, onDelete = null, splice
   const isEmpty = !payments || payments.length === 0
   const isAuthorized = (employee) => currentUser._id === employee._id || isManager(currentUser.role) || !onDelete
   const deletable = onDelete != null
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
 
   const total = useMemo(() => payments.reduce((acc, payment) => acc + payment.amount, 0), [payments])
 
@@ -30,15 +33,12 @@ export default function EmployeePaymentsList({ payments, onDelete = null, splice
     { key: 'amount', label: 'Monto', format: (data) => Amount({ amount: data.amount }) },
     {
       key: 'createdAt', label: 'Fecha', format: (data) => {
-        return <div>
-          {formatInformationDate(data.createdAt)}
-          {formatTime(data.createdAt)}
-        </div>
+        return formatDateAndTime(data.createdAt)
       }
     },
     { key: 'payment.employee', label: 'Entregado a', format: (data) => data.employee ? getEmployeeFullName(data.employee) : '' },
     ...(selectedPayment?.income ? [
-      { key: 'income.branch.branch', label: 'Dinero de', format: (data) => BranchName({branchName: data?.income?.branch?.branch}) ?? '' }
+      { key: 'income.branch.branch', label: 'Dinero de', format: (data) => BranchName({ branchName: data?.income?.branch?.branch }) ?? '' }
     ] : [])
   ]
 
@@ -53,7 +53,7 @@ export default function EmployeePaymentsList({ payments, onDelete = null, splice
   }
 
   const renderEmployeePayment = (payment, index) => {
-    const { employee, amount, supervisor, income } = payment
+    const { employee, amount, supervisor, income, createdAt } = payment
     const tempPayment = { ...payment, index }
 
     return (
@@ -61,11 +61,11 @@ export default function EmployeePaymentsList({ payments, onDelete = null, splice
         <div className="" key={payment._id}>
           <div className="grid grid-cols-12 border border-black border-opacity-30 rounded-2xl shadow-sm mb-2 py-1">
             <div id="list-element" className="col-span-10 items-center">
-              <div className="text-red-800 mb-2">
+              <div className="text-red-800 mb-1">
                 <RowItem>
-                  <p className="font-bold text-lg flex gap-1 items-center"><span><CgProfile className="text-xl" /></span>{supervisor.name}</p>
+                  <button onClick={() => setSelectedEmployee(supervisor)} className="font-bold text-md flex gap-1 items-center w-full"><span><CgProfile /></span>{supervisor.name}</button>
                   <div className="text-sm text-black flex justify-self-end">
-                    {formatInformationDate(payment.createdAt)} {formatTime(payment.createdAt)}
+                    {formatDateAndTime(createdAt)}
                   </div>
                 </RowItem>
               </div>
@@ -73,13 +73,13 @@ export default function EmployeePaymentsList({ payments, onDelete = null, splice
                 <RowItem>
                   <div className="flex gap-1 items-center">
                     <p className="mr-2 text-md font-semibold">Pago a: </p>
-                    <p className="text-red-800 font-semibold">{getEmployeeFullName(employee) ?? ''}</p>
+                    <button onClick={() => setSelectedEmployee(employee)} className="text-red-800 font-bold text-md flex gap-1 items-center w-full"><span><CgProfile /></span>{employee.name}</button>
                   </div>
                   <p className={`text-md text-orange-500 font-bold flex gap-1 items-center`}><MoneyBag />{currency({ amount })}</p>
                 </RowItem>
               </div>
               {income ? (
-                <div className="">
+                <div className="mt-1">
                   <RowItem>
                     <div className="flex gap-1 items-center">
                       <p className="mr-2 text-md font-semibold">De: </p>
@@ -99,8 +99,10 @@ export default function EmployeePaymentsList({ payments, onDelete = null, splice
                   <CiSquareInfo className="w-full h-full text-blue-600" />
                 </button>
                 {deletable && (
-                  <DeleteButton
-                    deleteFunction={() => onDelete(tempPayment, spliceIncome, spliceExtraOutgoing)} />
+                  <div className='w-10 h-10'>
+                    <DeleteButton
+                      deleteFunction={() => onDelete(tempPayment, spliceIncome, spliceExtraOutgoing)} />
+                  </div>
                 )}
               </div>
             </div>
@@ -145,6 +147,7 @@ export default function EmployeePaymentsList({ payments, onDelete = null, splice
   return (
     <div>
       {renderEmployeesPayments()}
+      <EmployeeInfo employee={selectedEmployee} toggleInfo={() => setSelectedEmployee(null)} />
       {shouldOpenModal && (
         <ShowDetails
           data={selectedPayment}

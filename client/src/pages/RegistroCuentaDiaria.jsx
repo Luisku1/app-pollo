@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { useParams, useNavigate } from 'react-router-dom';
 import FechaDePagina from '../components/FechaDePagina';
-import { formatDate } from '../helpers/DatePickerFunctions';
+import { formatDate, isToday } from '../helpers/DatePickerFunctions';
 import { useEmployees } from '../hooks/Employees/useEmployees';
 import EmployeesSelect from '../components/Select/EmployeesSelect';
 import { useBranches } from '../hooks/Branches/useBranches';
@@ -31,6 +31,7 @@ import ConfirmationButton from '../components/Buttons/ConfirmationButton';
 import EmployeeInfo from '../components/EmployeeInfo';
 import { CgProfile } from 'react-icons/cg';
 import { useDate } from '../context/DateContext';
+import { ToastInfo } from '../helpers/toastify';
 
 export default function RegistroCuentaDiaria({ edit = true, _branchReport = null, _branch = null }) {
 
@@ -38,12 +39,12 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
   const paramsDate = useParams().date
   let datePickerValue = (paramsDate ? new Date(paramsDate) : new Date())
   let stringDatePickerValue = formatDate(datePickerValue)
-  const [branchId, setBranchId] = useState((useParams()?.branchId || _branch?._id) || null)
+  const [branchId, setBranchId] = useState((useParams()?.branchId ?? _branch?._id) ?? null)
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
   const { employees } = useEmployees({ companyId: company._id })
   const { branches } = useBranches({ companyId: company._id })
-  const { roles, isManager } = useRoles()
+  const { roles, isManager, isSupervisor, isJustSeller } = useRoles()
   const { products } = useProducts({ companyId: company._id })
   const [selectedEmployee, setSelectedEmployee] = useState()
   const [selectedAssistant, setSelectedAssistant] = useState(null)
@@ -95,10 +96,32 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
   const [isEditing, setIsEditing] = useState(edit)
   const [employeeInfo, setEmployeeInfo] = useState(null)
   const isAuthorized = roles && isManager(currentUser.role)
+  const [ableToEdit, setAbleToEdit] = useState(false)
 
   useEffect(() => {
+    const currentTime = new Date('2025-04-18T03:00:00.000Z');
+    const currentUTCHours = currentTime.getUTCHours();
+    const currentUTCMinutes = currentTime.getUTCMinutes();
 
+    setAbleToEdit(true)
 
+    if (isJustSeller(currentUser.role) && !isToday(stringDatePickerValue)) {
+      ToastInfo('No puedes editar el formato de otro día')
+      setAbleToEdit(false)
+      return
+    }
+
+    if (isJustSeller(currentUser.role) && isToday(stringDatePickerValue)) {
+      if ((isToday(stringDatePickerValue) && currentUTCHours > 2 && currentUTCHours < 6) || (isToday(stringDatePickerValue) && currentUTCHours > 2 && currentUTCMinutes > 30 && currentUTCHours < 6)) {
+        ToastInfo('No puedes editar el formato después de las 8 pm')
+        setAbleToEdit(false)
+        return
+      }
+    }
+
+  }, [currentUser, currentDate, stringDatePickerValue]);
+
+  useEffect(() => {
     if ((!branchId && !selectedBranch)) {
       setSelectBranch(true)
     }
@@ -262,9 +285,27 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
     )
   }
 
+  const handleShowEmployeeInfo = () => {
+    if (!branchReport?.employee) {
+      ToastInfo('No hay un encargado asignado')
+      setEmployeeInfo(null)
+    } else {
+      setEmployeeInfo(branchReport.employee)
+    }
+  }
+
+  if (!ableToEdit) {
+    return (
+      <div className='flex flex-col gap-4 mt-4 sticky bottom-4'>
+        <p className='bg-red-800 text-white border border-black p-3 rounded-lg w-full'>
+          {isToday(stringDatePickerValue) ? 'No puedes editar el formato después de las 8 pm' : 'No puedes editar el formato de otro día'}
+        </p>
+      </div>
+    )
+  }
+
   return (
     <main className="p-3 max-w-lg mx-auto">
-
       {showSelectBranchEmployees && (
         <Modal
           content={selectEmployees()}
@@ -282,9 +323,6 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
               {isManager(currentUser.role) ?
                 <div>
                   <FechaDePagina changeDay={changeDay} stringDatePickerValue={currentDate} changeDatePickerValue={changeDatePickerValue} ></FechaDePagina>
-                  {isAuthorized && (
-                    <Switch isOn={isEditing} handleToggle={() => setIsEditing((prev) => !prev)} />
-                  )}
                 </div>
                 : ''}
               {branchReport && (
@@ -311,12 +349,14 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
                 )}
               </div>
             </h1>
-            {branchReport && (
+            {branchReport && branchId !== null && (
               <h2 className='col-span-12 px-2 rounded-lg border-black mx-2 mt-2 bg-white'>
                 <div className='flex gap-2 py-2 items-center'>
-                  <p className='flex-shrink-0'>Encargado:</p>
-                  <button onClick={() => setEmployeeInfo(branchReport?.employee ?? null)} className='font-bold text-md flex gap-1 truncate items-center w-full'>
-                    <span><CgProfile /></span> {!branchReport?.employee ? 'Sin encargado' : getEmployeeFullName(branchReport?.employee)}
+                  {branchReport?.employee &&
+                    <p className='flex-shrink-0'>Encargado:</p>
+                  }
+                  <button onClick={() => handleShowEmployeeInfo()} className='font-bold text-md flex gap-1 truncate items-center w-full justify-center'>
+                    <span>{branchReport.employee && <CgProfile />}</span> {!branchReport?.employee ? 'Termina el llenado para asignar un encargado' : getEmployeeFullName(branchReport?.employee)}
                   </button>
                 </div>
                 {branchReport?.assistant && (
@@ -330,7 +370,7 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
               </h2>
             )}
           </div>
-          {branchReport && (
+          {branchReport && branchId !== null && (
             <div>
               {!isEditing ?
                 <div>
@@ -398,6 +438,7 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
                       employee={selectedEmployee}
                       onAddOutgoing={onAddOutgoing}
                       onDeleteOutgoing={isEditing ? onDeleteOutgoing : null}
+                      isReport={true}
                       branch={selectedBranch}
                       date={currentDate}
                       isEditing={isEditing}
@@ -417,6 +458,7 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
                       branchPrices={prices}
                       branch={selectedBranch}
                       employee={selectedEmployee}
+                      isReport={true}
                       date={currentDate}
                       isEditing={isEditing}
                       listButton={<p className='font-bold text-lg text-center bg-green-100 rounded-lg border p-1 border-header'>{currency({ amount: stockAmount ?? 0 })}</p>}
@@ -520,7 +562,7 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
           {branchId &&
             <div className='flex flex-col gap-4 mt-4 sticky bottom-4'>
               {isEditing && (!branchReport?.dateSent || isAuthorized) &&
-                <button disabled={loading} className='bg-button text-white border border-black p-3 rounded-lg w-full' onClick={() => setShowSelectBranchEmployees(true)}>Continuar</button>
+                <button disabled={loading} className='bg-red-800 text-white border border-black p-3 rounded-lg w-full' onClick={() => setShowSelectBranchEmployees(true)}>Terminar llenado</button>
               }
             </div>
           }

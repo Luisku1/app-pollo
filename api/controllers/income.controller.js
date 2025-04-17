@@ -3,9 +3,9 @@ import IncomeCollected from "../models/accounts/incomes/income.collected.model.j
 import IncomeType from "../models/accounts/incomes/income.type.model.js";
 import { errorHandler } from "../utils/error.js";
 import { getDayRange } from "../utils/formatDate.js";
-import { employeeLookup, pushOrPullBranchReportRecord, unwindEmployee } from "./branch.report.controller.js";
+import { pushOrPullBranchReportRecord } from "./branch.report.controller.js";
 import { pushOrPullCustomerReportRecord } from "./customer.controller.js";
-import { pushOrPullSupervisorReportRecord } from "./employee.controller.js";
+import { employeeAggregate, pushOrPullSupervisorReportRecord } from "./employee.controller.js";
 import SupervisorReport from "../models/accounts/supervisor.report.model.js";
 import Employee from "../models/employees/employee.model.js";
 
@@ -45,8 +45,7 @@ export const newTransferredIncome = async (req, res, next) => {
 
 const canAffordTransfer = async (income) => {
 
-  const employee = income.employee
-  const amount = -income.amount
+  const { employee, amount } = income
 
   try {
 
@@ -62,11 +61,11 @@ const canAffordTransfer = async (income) => {
     ]))[0]
     if (!supervisorReport) throw new Error("No hay ingresos en la cuenta de este empleado")
     if (isNaN(supervisorReport.incomes)) throw new Error(`No hay ingresos en la cuenta de este empleado`)
-    if (amount < 0) throw new Error("El monto no puede ser negativo")
-    if (amount > supervisorReport.incomes) {
+    if (-amount < 0) throw new Error("El monto no puede ser negativo")
+    if (-amount > supervisorReport.incomes) {
 
-      const employeeData = await Employee.findById(employee)
-      throw new Error(`${employeeData.name} ${employeeData.lastName} sólo cuenta con $${parseFloat(supervisorReport.incomes).toFixed(2)} en su cuenta`)
+      const { name, lastName } = await Employee.findById(employee)
+      throw new Error(`${name} ${lastName} sólo cuenta con $${parseFloat(supervisorReport.incomes).toFixed(2)} en su cuenta`)
     }
 
   } catch (error) {
@@ -128,7 +127,7 @@ export const newTransferredIncomeFunction = async (actualIncome, prevIncome) => 
 
     if (newOwnerIncome) {
 
-
+      await IncomeCollected.findByIdAndDelete(newOwnerIncome._id)
     }
 
     if (prevOwnerIncome) {
@@ -428,14 +427,7 @@ export const getBranchIncomes = async ({ branchId, date }) => {
         ]
       }
     },
-    {
-      $lookup: {
-        from: 'employees',
-        localField: 'employee',
-        foreignField: '_id',
-        as: 'employee'
-      }
-    },
+    ...employeeAggregate('employee'),
     {
       $lookup: {
         from: 'branches',
@@ -461,9 +453,6 @@ export const getBranchIncomes = async ({ branchId, date }) => {
       }
     },
     { $unwind: { path: '$employeePayment', preserveNullAndEmptyArrays: true } },
-    {
-      $unwind: { path: '$employee', preserveNullAndEmptyArrays: true }
-    },
     {
       $unwind: { path: '$branch', preserveNullAndEmptyArrays: true }
     },
@@ -509,36 +498,9 @@ export const getIncomes = async (req, res, next) => {
           ]
         }
       },
-      {
-        $lookup: {
-          from: 'employees',
-          localField: 'prevOwner',
-          foreignField: '_id',
-          as: 'prevOwner',
-        }
-      },
-      {
-        $unwind: { path: '$prevOwner', preserveNullAndEmptyArrays: true }
-      },
-      {
-        $lookup: {
-          from: 'employees',
-          localField: 'owner',
-          foreignField: '_id',
-          as: 'owner'
-        }
-      },
-      {
-        $unwind: { path: '$owner', preserveNullAndEmptyArrays: true }
-      },
-      {
-        $lookup: {
-          from: 'employees',
-          localField: 'employee',
-          foreignField: '_id',
-          as: 'employee'
-        }
-      },
+      ...employeeAggregate('prevOwner', 'prevOwner'),
+      ...employeeAggregate('owner', 'owner'),
+      ...employeeAggregate('employee'),
       {
         $lookup: {
           from: 'branches',
@@ -564,18 +526,9 @@ export const getIncomes = async (req, res, next) => {
         }
       },
       { $unwind: { path: '$employeePayment', preserveNullAndEmptyArrays: true } },
-      {
-        $unwind: { path: '$employee', preserveNullAndEmptyArrays: true }
-      },
-      {
-        $unwind: { path: '$branch', preserveNullAndEmptyArrays: true }
-      },
-      {
-        $unwind: { path: '$type', preserveNullAndEmptyArrays: true }
-      },
-      {
-        $unwind: { path: '$customer', preserveNullAndEmptyArrays: true }
-      }
+      { $unwind: { path: '$branch', preserveNullAndEmptyArrays: true } },
+      { $unwind: { path: '$type', preserveNullAndEmptyArrays: true } },
+      { $unwind: { path: '$customer', preserveNullAndEmptyArrays: true } }
     ]);
 
     if (incomes.length > 0) {

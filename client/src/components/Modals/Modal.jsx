@@ -21,8 +21,6 @@ export default function Modal({
 }) {
   const { modals, removeLastModal, count, setCount } = useContext(ModalContext);
 
-  console.log(count);
-
   useEffect(() => {
     setCount((prevCount) => prevCount + 1);
 

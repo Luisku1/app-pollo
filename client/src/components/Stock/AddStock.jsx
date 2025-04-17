@@ -7,8 +7,9 @@ import SectionHeader from "../SectionHeader"
 import ShowListModal from "../Modals/ShowListModal"
 import StockList from "./StockList"
 import { getArrayForSelects, getElementForSelect } from "../../helpers/Functions"
+import { ToastInfo, ToastSuccess } from "../../helpers/toastify"
 
-export default function AddStock({ title, midDay, modifyBalance, stock, listButton, weight, amount, products, onAddStock, onDeleteStock, branch, employee, date, branchPrices, isEditing }) {
+export default function AddStock({ title, midDay, modifyBalance, stock, isReport = false, listButton, weight, amount, products, onAddStock, onDeleteStock, branch, employee, date, branchPrices, isEditing }) {
 
   const { company } = useSelector((state) => state.user)
   const [selectedProduct, setSelectedProduct] = useState(null)
@@ -34,12 +35,11 @@ export default function AddStock({ title, midDay, modifyBalance, stock, listButt
   useEffect(() => {
     const stockButtonControl = () => {
       const productSelect = selectedProduct != null
-      const branchSelect = branch != null
       const employeeSelect = employee != null
       const weightInput = stockFormData.weight !== ''
       const piecesInput = stockFormData.pieces !== ''
 
-      setIsButtonDisabled(!(productSelect && branchSelect && employeeSelect && weightInput && piecesInput))
+      setIsButtonDisabled(!(productSelect && employeeSelect && weightInput && piecesInput))
     }
 
     stockButtonControl()
@@ -48,6 +48,12 @@ export default function AddStock({ title, midDay, modifyBalance, stock, listButt
   const addStockItem = async (e) => {
     e.preventDefault()
     setIsButtonDisabled(true)
+
+    if(!branch) {
+      ToastInfo('Selecciona una sucursal')
+      setIsButtonDisabled(false)
+      return
+    }
 
     const price = getProductPrice(selectedProduct.value)
     const amount = parseFloat(price * stockFormData.weight)
@@ -69,6 +75,9 @@ export default function AddStock({ title, midDay, modifyBalance, stock, listButt
         company: company._id
       }
 
+      ToastSuccess(`Se registró el sobrante de ${stock.product?.name ?? stock.product?.label}`)
+      if (isReport)
+        ToastInfo('Recuerda enviar tu formato al finalizar el llenado')
       onAddStock(stock, modifyBalance)
 
       setStockFormData({ pieces: '', weight: '' })

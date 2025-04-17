@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { ToastDanger, ToastSuccess } from "../../helpers/toastify"
+import { ToastDanger } from "../../helpers/toastify"
 import { addStockFetch } from "../../services/Stock/addStock"
 
 export const useAddStock = () => {
@@ -9,8 +9,6 @@ export const useAddStock = () => {
   const addStock = async (stock) => {
 
     setLoading(true)
-
-    ToastSuccess(`Se registró el sobrante de ${stock.product?.name ?? stock.product?.label}`)
 
     try {
       await addStockFetch({

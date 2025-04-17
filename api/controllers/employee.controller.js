@@ -15,14 +15,14 @@ import EmployeeRest from "../models/employees/employee.rest.model.js"
 import { branchLookup, unwindBranch, employeeLookup, unwindEmployee } from "./branch.report.controller.js"
 
 
-export const employeeAggregate = (localField) => {
+export const employeeAggregate = (localField, as = 'employee') => {
 	return [
 		{
 			$lookup: {
 				from: 'employees',
 				localField: localField,
 				foreignField: '_id',
-				as: 'employee',
+				as: as,
 				pipeline: [
 					{
 						$lookup: {
@@ -43,7 +43,7 @@ export const employeeAggregate = (localField) => {
 				]
 			}
 		},
-		{ $unwind: { path: '$employee', preserveNullAndEmptyArrays: true } }
+		{ $unwind: { path: `$${as}`, preserveNullAndEmptyArrays: true } }
 	]
 }
 
@@ -1518,11 +1518,16 @@ export const getPendingEmployeesRests = async (req, res, next) => {
 
 	try {
 
-		const pendingEmployeesRests = await EmployeeRest.find({
-
-			date: { $gte: bottomDate },
-			company: companyId
-		}).populate({ path: 'replacement', select: 'name lastName' }).populate({ path: 'employee', select: 'name lastName' })
+		const pendingEmployeesRests = await EmployeeRest.aggregate([
+			{
+				$match: {
+					"createdAt": { $gte: new Date(bottomDate) },
+					"company": new Types.ObjectId(companyId),
+				}
+			},
+			...employeeAggregate('employee'),
+			...employeeAggregate('replacement', 'replacement'),
+		])
 
 		if (pendingEmployeesRests.length < 1) {
 
@@ -2125,8 +2130,6 @@ export const verifySupervisorMoney = async ({ amount, typeField, date, superviso
 
 		supervisorReport = await fetchSupervisorReport({ reportId: supervisorReportId })
 
-		console.log(supervisorReport)
-
 		if (!supervisorReport) throw new Error("No se encontró el reporte de supervisor")
 
 		updatedSupervisorReport = await SupervisorReport.findByIdAndUpdate(supervisorReport._id, {
@@ -2141,7 +2144,10 @@ export const verifySupervisorMoney = async ({ amount, typeField, date, superviso
 			employee: new Types.ObjectId(supervisorReport.supervisor)
 		})
 
-		if (!dailyBalance) throw new Error("No se encontró el balance del empleado.");
+		if (!dailyBalance) {
+			dailyBalance = await createDailyBalance({ companyId: supervisorReport.company, employeeId: supervisorReport.supervisor, date })
+			if (!dailyBalance) throw new Error("No se pudo crear ni obtener el balance del empleado");
+		}
 
 		updatedDailyBalance = await EmployeeDailyBalance.findByIdAndUpdate(dailyBalance._id, {
 			supervisorBalance: updatedSupervisorReport.balance

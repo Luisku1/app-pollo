@@ -5,7 +5,7 @@ import { TiArrowLeftOutline, TiArrowRightOutline } from "react-icons/ti";
 import { useRoles } from '../../context/RolesContext';
 import { getEmployeeFullName, currency, getEmployeeName } from '../../helpers/Functions';
 import { useMemo, useState } from 'react';
-import { formatInformationDate, formatTime } from '../../helpers/DatePickerFunctions';
+import { formatDateAndTime, formatInformationDate, formatTime } from '../../helpers/DatePickerFunctions';
 import ShowDetails from '../ShowDetails';
 import RowItem from '../RowItem';
 import ConfirmationButton from '../Buttons/ConfirmationButton';
@@ -14,12 +14,15 @@ import MoneyBag from '../Icons/MoneyBag';
 import { MdPendingActions, MdStorefront } from 'react-icons/md';
 import DeleteButton from '../Buttons/DeleteButton';
 import Amount from './Amount';
+import { CiSquareInfo } from 'react-icons/ci';
+import EmployeeInfo from '../EmployeeInfo';
 
 export default function IncomesList({ incomes = [], onDeleteIncome }) {
   const { currentUser } = useSelector((state) => state.user);
   const { isManager } = useRoles();
   const isEmpty = !incomes || incomes.length === 0;
   const [selectedIncome, setSelectedIncome] = useState(null);
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
   const deletable = onDeleteIncome
 
   const incomesTotal = useMemo(() => {
@@ -34,9 +37,15 @@ export default function IncomesList({ incomes = [], onDeleteIncome }) {
 
   const fields = [
     { key: 'amount', label: 'Monto', className: (data) => (data.partOfAPayment ? 'text-orange-700' : 'text-green-700') + ' text-center text-md font-semibold', format: (data) => currency({ amount: data.amount }) },
-    { key: null, label: 'Supervisor', format: (data) => getEmployeeFullName(data.employee) },
-    ...(!selectedIncome?.owner ? [
+    { key: null, label: `${selectedIncome?.owner ? 'Origen' : 'Supervisor'}`, format: (data) => getEmployeeFullName(data.employee) },
+    ...(!selectedIncome?.owner && !selectedIncome?.prevOwner ? [
       { key: null, label: 'Origen', format: (data) => data.branch?.branch ?? data.customer?.name ?? data?.prevOwner?.name ?? '' },
+    ] : []),
+    ...(selectedIncome?.prevOwner ? [
+      { key: null, label: 'Origen', format: (data) => data.branch?.branch ?? data.customer?.name ?? data?.prevOwner?.name ?? '' },
+    ] : []),
+    ...(selectedIncome?.owner ? [
+      { key: null, label: 'Destino', format: (data) => data.branch?.branch ?? data.customer?.name ?? data?.owner?.name ?? '' },
     ] : []),
     {
       key: 'createdAt', label: 'Fecha', format: (data) => {
@@ -81,13 +90,12 @@ export default function IncomesList({ incomes = [], onDeleteIncome }) {
               `grid grid-cols-12 border border-black border-opacity-30 rounded-2xl shadow-sm mb-2 py-1`
             }
           >
-            {/* Botón principal que ocupa 10/12 columnas */}
             <div id="list-element" className="col-span-10 items-center">
               <div className='col-span-12 items-center'>
-                <div className='w-full text-red-800'>
+                <div className='w-full text-red-800 mb-1'>
                   <RowItem>
                     <p className="text-md font-bold flex gap-1 items-center"><MdStorefront />{branchInfo || customerInfo}</p>
-                    <p className="text-md font-bold flex gap-1 items-center truncate"><CgProfile />{employeeName}</p>
+                    <button onClick={() => setSelectedEmployee(employee)} className="font-bold text-md flex gap-1 truncate items-center w-full"><span><CgProfile /></span>{employeeName}</button>
                   </RowItem>
                 </div>
                 <div>
@@ -96,12 +104,12 @@ export default function IncomesList({ incomes = [], onDeleteIncome }) {
                     <p className="text-md items-center flex gap-1 font-semibold">{(partOfAPayment && <MdPendingActions />)}{typeName}</p>
                   </RowItem>
                 </div>
-                <div>
+                <div className='mt-1'>
                   <RowItem>
                     {partOfAPayment && (
                       <span className="text-red-800 text-sm flex gap-1"><span className='text-black font-semibold'>Pago a: </span>{employeePayment?.employee?.name ?? ''}</span>
                     )}
-                    <p className='text-sm flex justify-self-end'>{formatTime(createdAt)}</p>
+                    <p className='text-sm flex justify-self-end'>{formatDateAndTime(createdAt)}</p>
                   </RowItem>
                 </div>
               </div>
@@ -116,8 +124,11 @@ export default function IncomesList({ incomes = [], onDeleteIncome }) {
                   <CiSquareInfo className="w-full h-full text-blue-600" />
                 </button>
                 {deletable && !partOfAPayment && (
-                  <DeleteButton
-                    deleteFunction={() => onDeleteIncome(tempIncome)} />
+                  <div className='w-10 h-10'>
+                    <DeleteButton
+                      deleteFunction={() => onDeleteIncome(tempIncome)}
+                    />
+                  </div>
                 )}
               </div>
             </div>
@@ -144,9 +155,7 @@ export default function IncomesList({ incomes = [], onDeleteIncome }) {
               `grid grid-cols-12 border border-black border-opacity-30 rounded-2xl shadow-sm mb-2 py-1 bg-gray-200`
             }
           >
-            {/* Botón principal que ocupa 10/12 columnas */}
-            <button
-              onClick={() => { setSelectedIncome(tempIncome) }}
+            <div
               className="col-span-10 items-center"
             >
               <div className='col-span-12 items-center'>
@@ -156,12 +165,12 @@ export default function IncomesList({ incomes = [], onDeleteIncome }) {
                       <div>
                         {(isManager(currentUser.role) || currentUser._id === employee._id) && (
                           <div className='grid grid-cols-3 text-center'>
-                            <p className="text-md font-bold flex justify-center gap-1 items-center ">{employeeName}</p>
-                            <div className='flex-wrap justify-center gap-1 items-center text-center'>
+                            <button onClick={() => setSelectedEmployee(employee)} className="font-bold text-md flex gap-1 items-center w-full"><span><CgProfile /></span>{employeeName}</button>
+                            <div className='flex-wrap justify-center gap-1 items-center text-center w-full'>
                               <TiArrowLeftOutline className='mx-auto text-3xl' />
                               <span className='text-xl'>{Amount({ amount })}</span>
                             </div>
-                            <p className="font-bold flex justify-center gap-1 items-center">{prevOwnerName}</p>
+                            <button onClick={() => setSelectedEmployee(prevOwner)} className="font-bold text-md flex gap-1 items-center w-full"><span><CgProfile /></span>{prevOwnerName}</button>
                           </div>
                         )}
                       </div>
@@ -170,22 +179,22 @@ export default function IncomesList({ incomes = [], onDeleteIncome }) {
                       <div>
                         {(currentUser._id === employee._id) && (
                           <div className='grid grid-cols-3 text-center'>
-                            <p className="text-md font-bold flex justify-center gap-1 items-center ">{employeeName}</p>
-                            <div className='flex-wrap justify-center gap-1 items-center text-center'>
+                            <button onClick={() => setSelectedEmployee(employee)} className="font-bold text-md flex gap-1 items-center w-full"><span><CgProfile /></span>{employeeName}</button>
+                            <div className='flex-wrap justify-center gap-1 items-center text-center w-full'>
                               <TiArrowRightOutline className='mx-auto text-3xl' />
                               <span className='text-xl'>{Amount({ amount })}</span>
                             </div>
-                            <p className="font-bold flex justify-center gap-1 items-center">{ownerName}</p>
+                            <button onClick={() => setSelectedEmployee(prevOwner)} className="font-bold text-md flex gap-1 items-center w-full"><span><CgProfile /></span>{prevOwnerName}</button>
                           </div>
                         )}
                         {(isManager(currentUser.role) && currentUser._id !== employee._id) && (
                           <div className='grid grid-cols-3 text-center'>
-                            <p className="text-md font-bold flex justify-center gap-1 items-center ">{employeeName}</p>
-                            <div className='flex-wrap justify-center gap-1 items-center text-center'>
+                            <button onClick={() => setSelectedEmployee(employee)} className="font-bold text-md flex gap-1 items-center w-full"><span><CgProfile /></span>{employeeName}</button>
+                            <div className='flex-wrap justify-center gap-1 items-center text-center w-full'>
                               <TiArrowRightOutline className='mx-auto text-3xl' />
                               <span className='text-xl'>{Amount({ amount })}</span>
                             </div>
-                            <p className="font-bold flex justify-center gap-1 items-center">{ownerName}</p>
+                            <button onClick={() => setSelectedEmployee(owner)} className="font-bold text-md flex gap-1 items-center w-full"><span><CgProfile /></span>{ownerName}</button>
                           </div>
                         )}
                       </div>
@@ -198,13 +207,21 @@ export default function IncomesList({ incomes = [], onDeleteIncome }) {
                   </RowItem>
                 </div>
               </div>
-            </button>
-            <div className="col-span-2 my-auto">
-              {(deletable && (!owner && (currentUser._id == employee._id || isManager(currentUser.role)))) && (
-                <DeleteButton
-                  deleteFunction={() => onDeleteIncome(tempIncome)}
-                />
-              )}
+            </div>
+            <div className="col-span-2 my-auto justify-self-center items-center">
+              <button
+                onClick={() => {
+                  setSelectedIncome(tempIncome)
+                }} className="border rounded-lg shadow-md w-10 h-10 flex justify-center items-center">
+                <CiSquareInfo className='w-full h-full text-blue-600' />
+              </button>
+              <div className='w-10 h-10 justify-self-center'>
+                {(deletable && (!owner && (currentUser._id == employee._id || isManager(currentUser.role)))) && (
+                  <DeleteButton
+                    deleteFunction={() => onDeleteIncome(tempIncome)}
+                  />
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -267,6 +284,7 @@ export default function IncomesList({ incomes = [], onDeleteIncome }) {
     <div>
       {renderTotal()}
       {renderIncomesList()}
+      <EmployeeInfo employee={selectedEmployee} toggleInfo={() => setSelectedEmployee(null)} />
       {selectedIncome && (
         <ShowDetails
           data={selectedIncome}

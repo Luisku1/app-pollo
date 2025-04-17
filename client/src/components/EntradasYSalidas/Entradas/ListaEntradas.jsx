@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import { useState, useMemo } from "react";
 import { useSelector } from "react-redux";
-import { formatTime } from "../../../helpers/DatePickerFunctions";
+import { formatDateAndTime } from "../../../helpers/DatePickerFunctions";
 import { useRoles } from "../../../context/RolesContext";
 import { currency } from "../../../helpers/Functions";
 import ShowDetails from "../../ShowDetails";
@@ -13,11 +13,15 @@ import { MdStorefront } from "react-icons/md";
 import ConfirmationButton from "../../Buttons/ConfirmationButton";
 import MoneyBag from "../../Icons/MoneyBag";
 import DeleteButton from "../../Buttons/DeleteButton";
+import { CiSquareInfo } from "react-icons/ci";
+import EmployeeInfo from "../../EmployeeInfo";
 
 export default function ListaEntradas({ inputs, onDelete = null }) {
   const { currentUser } = useSelector((state) => state.user);
   const { isManager } = useRoles();
   const [selectedInput, setSelectedInput] = useState(null);
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
+
   const isAuthorized = (employee) =>
     currentUser._id === employee._id ||
     isManager(currentUser.role) ||
@@ -59,7 +63,7 @@ export default function ListaEntradas({ inputs, onDelete = null }) {
     {
       key: "createdAt",
       label: "Hora",
-      format: (data) => formatTime(data.createdAt),
+      format: (data) => formatDateAndTime(data.createdAt),
     },
   ];
 
@@ -110,18 +114,13 @@ export default function ListaEntradas({ inputs, onDelete = null }) {
               <div id="list-element" className="col-span-10 items-center">
                 <div id="list-element" className="grid grid-cols-12">
                   <div className="col-span-12">
-                    <div className="w-full text-red-800 mb-2">
+                    <div className="w-full text-red-800 mb-1">
                       <RowItem>
                         <p className="text-md font-bold flex gap-1 items-center">
                           <MdStorefront />
                           {customerInfo || branchInfo}
                         </p>
-                        <p className="font-bold text-md flex gap-1 items-center truncate">
-                          <span>
-                            <CgProfile />
-                          </span>
-                          {employee.name}
-                        </p>
+                        <button onClick={() => setSelectedEmployee(employee)} className="font-bold text-md flex gap-1 items-center w-full"><span><CgProfile /></span>{employee.name}</button>
                       </RowItem>
                     </div>
                     <div className="w-full text-sm font-semibold">
@@ -141,14 +140,14 @@ export default function ListaEntradas({ inputs, onDelete = null }) {
                         </p>
                       </RowItem>
                     </div>
-                    <div className="w-full">
+                    <div className="w-full mt-1">
                       <RowItem>
                         <p className="text-xs flex gap-1 items-center">
                           <FaInfoCircle className="text-blue-800" />
                           {comment || "Sin observaciones."}
                         </p>
                         <div className="text-sm text-black flex justify-self-end">
-                          {formatTime(createdAt)}
+                          {formatDateAndTime(createdAt)}
                         </div>
                       </RowItem>
                     </div>
@@ -165,7 +164,9 @@ export default function ListaEntradas({ inputs, onDelete = null }) {
                     <CiSquareInfo className="w-full h-full text-blue-600" />
                   </button>
                   {deletable && (
-                    <DeleteButton deleteFunction={() => onDelete(tempInput)} />
+                    <div className="w-10 h-10">
+                      <DeleteButton deleteFunction={() => onDelete(tempInput)} />
+                    </div>
                   )}
                 </div>
               </div>
@@ -226,6 +227,7 @@ export default function ListaEntradas({ inputs, onDelete = null }) {
   return (
     <div>
       {renderInputsList()}
+      <EmployeeInfo employee={selectedEmployee} toggleInfo={() => setSelectedEmployee(null)} />
       {shouldOpenModal && (
         <ShowDetails
           data={selectedInput}

@@ -64,12 +64,15 @@ export const useEmployees = ({ companyId, date, onlyActiveEmployees = true }) =>
   };
 
   const filteredEmployees = useMemo(() => {
-
-    return employees.filter((employee) =>
-      normalizeText(getEmployeeFullName(employee)).toLowerCase().includes(normalizeText(filterString).toLowerCase())
-    )
-  }
-    , [employees, filterString])
+    return employees.filter((employee) => {
+      return (
+        normalizeText(getEmployeeFullName(employee))
+          .toLowerCase()
+          .includes(normalizeText(filterString).toLowerCase()) ||
+        (employee.phoneNumber && employee.phoneNumber.includes(filterString.replace('-', '')))
+      );
+    });
+  }, [employees, filterString]);
 
   useEffect(() => {
 
@@ -106,8 +109,14 @@ export const useEmployees = ({ companyId, date, onlyActiveEmployees = true }) =>
 
   const { activeEmployees, inactiveEmployees } = useMemo(() => {
 
-    const activeEmployees = employees.filter((employee) => employee.active && getEmployeeFullName(employee).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "").includes(filterString.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "")))
-    const inactiveEmployees = employees.filter((employee) => !employee.active && getEmployeeFullName(employee).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "").includes(filterString.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "")))
+    const activeEmployees = employees.filter((employee) => employee.active && normalizeText(getEmployeeFullName(employee))
+      .toLowerCase()
+      .includes(normalizeText(filterString).toLowerCase()) ||
+      (employee.phoneNumber && employee.phoneNumber.includes(filterString.replace('-', ''))))
+    const inactiveEmployees = employees.filter((employee) => !employee.active && normalizeText(getEmployeeFullName(employee))
+      .toLowerCase()
+      .includes(normalizeText(filterString).toLowerCase()) ||
+      (employee.phoneNumber && employee.phoneNumber.includes(filterString.replace('-', ''))))
 
     return { activeEmployees, inactiveEmployees }
 

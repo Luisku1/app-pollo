@@ -5,12 +5,14 @@ import { useRoles } from '../../context/RolesContext'
 import ShowDetails from '../ShowDetails'
 import { useMemo, useState } from 'react'
 import { currency } from '../../helpers/Functions'
-import { formatTime } from '../../helpers/DatePickerFunctions'
+import { formatDateAndTime, formatTime } from '../../helpers/DatePickerFunctions'
 import RowItem from '../RowItem'
 import { CgProfile } from 'react-icons/cg'
 import { GiChickenOven } from 'react-icons/gi'
 import { TbMoneybag } from 'react-icons/tb'
 import ConfirmationButton from '../Buttons/ConfirmationButton'
+import { CiSquareInfo } from 'react-icons/ci'
+import EmployeeInfo from '../EmployeeInfo'
 
 export default function StockList({ stock = [], onDelete = null, modifyBalance = null }) {
   const { currentUser } = useSelector((state) => state.user)
@@ -18,6 +20,7 @@ export default function StockList({ stock = [], onDelete = null, modifyBalance =
   const { roles, isManager } = useRoles()
   const [selectedStock, setSelectedStock] = useState(null)
   const deletable = onDelete
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
 
   const fields = [
     { key: 'weight', label: 'Peso', format: (data) => `${data.weight.toFixed(2)} Kg` },
@@ -54,15 +57,15 @@ export default function StockList({ stock = [], onDelete = null, modifyBalance =
         <div key={stock._id} className='grid grid-cols-12 border border-black border-opacity-30 rounded-2xl shadow-sm mb-2 py-1'>
           <div id="list-element" className="col-span-10 items-center">
             <div id='list-element' className='w-full'>
-              <div className='text-red-800 mb-2'>
+              <div className='text-red-800 mb-1'>
                 <RowItem>
                   <p className="flex gap-1 items-center font-semibold"><GiChickenOven />{product.name}</p>
                   <div className="text-md text-black flex justify-self-end">
-                    {formatTime(createdAt)}
+                    {formatDateAndTime(createdAt)}
                   </div>
                 </RowItem>
               </div>
-              <div className="w-full text-md font-semibold">
+              <div className="w-full text-md font-semibold mb-1">
                 <RowItem>
                   <p className="">{`${pieces} pzs`}</p>
                   <p className="">{`${weight} kg`}</p>
@@ -71,7 +74,7 @@ export default function StockList({ stock = [], onDelete = null, modifyBalance =
                 </RowItem>
               </div>
               <RowItem>
-                <p className="font-bold text-md text-orange-800 flex gap-1 items-center my-2"><span><CgProfile /></span>{employee.name}</p>
+                <button onClick={() => setSelectedEmployee(employee)} className="font-bold text-md flex gap-1 items-center w-full"><span><CgProfile /></span>{employee.name}</button>
               </RowItem>
             </div>
           </div>
@@ -86,9 +89,11 @@ export default function StockList({ stock = [], onDelete = null, modifyBalance =
                 <CiSquareInfo className="w-full h-full text-blue-600" />
               </button>
               {shouldShowDeleteButton && (
-                <DeleteButton
-                  id={stock._id}
-                  deleteFunction={() => onDelete(tempStock, modifyBalance)} />
+                <div className='w-10 h-10'>
+                  <DeleteButton
+                    id={stock._id}
+                    deleteFunction={() => onDelete(tempStock, modifyBalance)} />
+                </div>
               )}
             </div>
           </div>
@@ -128,6 +133,7 @@ export default function StockList({ stock = [], onDelete = null, modifyBalance =
   return (
     <div>
       {renderStockList()}
+      <EmployeeInfo employee={selectedEmployee} toggleInfo={() => setSelectedEmployee(null)} />
       {selectedStock && (
         <ShowDetails
           data={selectedStock}

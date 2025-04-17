@@ -5,7 +5,6 @@ export const getEmployeesBranchReports = async (employeeId, date) => {
     const response = await axios.get(`/api/employee/get-employee-branch-reports/${employeeId}`, {
       params: { date },
     });
-    console.log(response.data)
     return response.data?.data ?? response.data;
   } catch (error) {
     console.error('Error fetching employee branch reports:', error);

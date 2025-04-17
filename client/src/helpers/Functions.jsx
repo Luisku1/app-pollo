@@ -12,7 +12,9 @@ export const priceShouldNotBeZero = () => {
   ToastWarning('El precio de los productos no debería de ser $0.00.')
 }
 
-export const normalizeText = (text) => text.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+export const normalizeText = (text) => {
+  return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
 
 export const getEmployeeName = (employee) => {
   return employee?.name ?? ''

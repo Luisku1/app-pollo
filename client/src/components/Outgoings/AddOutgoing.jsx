@@ -5,8 +5,9 @@ import { isToday } from '../../helpers/DatePickerFunctions'
 import SectionHeader from '../SectionHeader'
 import ShowListModal from '../Modals/ShowListModal'
 import OutgoingsList from './OutgoingsList'
+import { ToastInfo } from '../../helpers/toastify'
 
-export default function AddOutgoing({ outgoings, modifyBalance, listButton, outgoingsTotal, onAddOutgoing, onDeleteOutgoing, employee, branch, date, isEditing }) {
+export default function AddOutgoing({ outgoings, modifyBalance, isReport = false, listButton, outgoingsTotal, onAddOutgoing, onDeleteOutgoing, employee, branch, date, isEditing }) {
 
   const { company } = useSelector((state) => state.user)
   const [outgoingFormData, setOutgoingFormData] = useState({})
@@ -25,7 +26,6 @@ export default function AddOutgoing({ outgoings, modifyBalance, listButton, outg
     const conceptInput = document.getElementById('concept')
     const button = document.getElementById('outgoing-button')
     const employeeSelect = employee != null
-    const branchSelect = branch != null
 
     let filledInputs = true
 
@@ -36,7 +36,7 @@ export default function AddOutgoing({ outgoings, modifyBalance, listButton, outg
     if (conceptInput.value == '')
       filledInputs = false
 
-    if (filledInputs && branchSelect && employeeSelect && !loading) {
+    if (filledInputs && employeeSelect && !loading) {
 
       button.disabled = false
 
@@ -54,6 +54,11 @@ export default function AddOutgoing({ outgoings, modifyBalance, listButton, outg
     const createdAt = isToday(date) ? new Date().toISOString() : new Date(date).toISOString()
 
     e.preventDefault()
+
+    if (!branch) {
+      ToastInfo('Selecciona una sucursal')
+      return
+    }
 
     const { amount, concept } = outgoingFormData
 
@@ -73,6 +78,9 @@ export default function AddOutgoing({ outgoings, modifyBalance, listButton, outg
 
     setLoading(true)
 
+    ToastSuccess(`Se agregó el gasto de "${outgoing.concept}"`)
+    if (isReport)
+      ToastInfo('Recuerda enviar tu formato al finalizar el llenado')
     onAddOutgoing(outgoing, modifyBalance)
 
     setLoading(false)

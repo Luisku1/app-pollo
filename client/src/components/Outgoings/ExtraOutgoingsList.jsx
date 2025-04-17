@@ -7,7 +7,9 @@ import RowItem from "../RowItem"
 import { CgProfile } from "react-icons/cg"
 import ConfirmationButton from "../Buttons/ConfirmationButton"
 import DeleteButton from "../Buttons/DeleteButton"
-import { formatTime } from "../../helpers/DatePickerFunctions"
+import { formatDateAndTime } from "../../helpers/DatePickerFunctions"
+import EmployeeInfo from "../EmployeeInfo"
+import { CiSquareInfo } from "react-icons/ci"
 
 /* eslint-disable react/prop-types */
 export default function ExtraOutgoingsList({ extraOutgoings, totalExtraOutgoings = 0, onDelete = null }) {
@@ -16,12 +18,13 @@ export default function ExtraOutgoingsList({ extraOutgoings, totalExtraOutgoings
   const [selectedOutgoing, setSelectedOutgoing] = useState(null)
   const isAuthorized = (employee) => currentUser._id === employee._id || isManager(currentUser.role) || !onDelete
   const deletable = onDelete != null
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
 
   const fields = [
     { key: 'employee.name', label: 'Encargado', format: (data) => data.employee.name },
     { key: 'concept', label: 'Concepto' },
     { key: 'amountt', label: 'Monto', format: (data) => currency({ amount: data.amount }) },
-    { key: 'createdAt', label: 'Hora', format: (data) => formatTime(data.createdAt) },
+    { key: 'createdAt', label: 'Hora', format: (data) => formatDateAndTime(data.createdAt) },
     ...(selectedOutgoing?.partOfAPayment && selectedOutgoing ? [
       { key: 'partOfAPayment', label: 'Parte de un pago', format: (data) => data.partOfAPayment ? 'Sí' : 'No' },
       { key: 'payment.employee', label: 'Deudor', format: (data) => data.employeePayment ? getEmployeeFullName(data.employeePayment.employee) : '' }
@@ -51,9 +54,9 @@ export default function ExtraOutgoingsList({ extraOutgoings, totalExtraOutgoings
                 <div className='col-span-12'>
                   <div className="w-full text-red-800 mb-2">
                     <RowItem>
-                      <p className="font-bold text-md flex gap-1 items-center"><span><CgProfile className="text-xl" /></span>{employee.name}</p>
+                    <button onClick={() => setSelectedEmployee(employee)} className="text-red-800 font-bold text-md flex gap-1 items-center w-full"><span><CgProfile /></span>{employee.name}</button>
                       <div className="text-sm text-black flex justify-self-end">
-                        {formatTime(outgoing.createdAt)}
+                        {formatDateAndTime(outgoing.createdAt)}
                       </div>
                     </RowItem>
                   </div>
@@ -132,6 +135,7 @@ export default function ExtraOutgoingsList({ extraOutgoings, totalExtraOutgoings
   return (
     <div>
       {renderOutgoingsList()}
+      <EmployeeInfo employee={selectedEmployee} toggleInfo={() => setSelectedEmployee(null)} />
       {shouldOpenModal && (
         <ShowDetails
           data={selectedOutgoing}

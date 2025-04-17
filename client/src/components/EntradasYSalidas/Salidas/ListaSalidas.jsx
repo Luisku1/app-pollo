@@ -63,7 +63,7 @@ export default function ListaSalidas({ outputs, onDelete = null }) {
               >
                 <div id="list-element" className="grid grid-cols-12">
                   <div className='col-span-12'>
-                    <div className="w-full text-red-800 mb-2">
+                    <div className="w-full text-red-800 mb-1">
                       <RowItem>
                         <p className="text-md font-bold flex gap-1 items-center"><MdStorefront />{branch.branch}</p>
                         <button onClick={() => setSelectedEmployee(employee)} className="font-bold text-md flex gap-1 truncate items-center"><span><CgProfile /></span>{employee.name}</button>
@@ -77,7 +77,7 @@ export default function ListaSalidas({ outputs, onDelete = null }) {
                         <p className="flex gap-1 items-center"><MoneyBag />{amount.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
                       </RowItem>
                     </div>
-                    <div className="w-full mt-2">
+                    <div className="w-full mt-1">
                       <RowItem>
                         <p className="text-xs flex gap-1 items-center"><FaInfoCircle className="text-blue-800" />{comment || 'Sin observaciones.'}</p>
                         <div className="text-sm text-black flex justify-self-end">

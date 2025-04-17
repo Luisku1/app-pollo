@@ -29,6 +29,7 @@ export const ProductsListsMenu = ({ inputs, onDelete = null }) => {
   const renderOption = (input, index) => {
 
     const { amount, weight, pieces, avgPrice, _id, name, inputs } = input
+    const avgWeight = (weight / pieces)
 
     return (
       <div key={_id} className="mb-2">
@@ -45,6 +46,11 @@ export const ProductsListsMenu = ({ inputs, onDelete = null }) => {
                 Amount({ amount, className: 'items-center text-red-800 font-semibold' })
               )}
             </RowItem>
+            {!(avgWeight == 'Infinity') && (
+              <RowItem>
+                <p className="text-center">{avgWeight.toFixed(2)} kg/pz</p>
+              </RowItem>
+            )}
           </div>
         </button>
       </div>

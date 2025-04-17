@@ -8,7 +8,6 @@ export const useAddOutgoing = () => {
 
   const addOutgoing = async (outgoing) => {
     try {
-      ToastSuccess(`Se agregó el gasto de "${outgoing.concept}"`)
       await addOutgoingFetch(
         {
           _id: outgoing._id || null,

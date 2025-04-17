@@ -12,6 +12,7 @@ import Stock from "../models/accounts/stock.model.js"
 import { branchLookup, employeeLookup, unwindBranch, unwindEmployee } from "./branch.report.controller.js"
 import { lookupSupervisorReportIncomes } from "./income.controller.js"
 import SupervisorReport from "../models/accounts/supervisor.report.model.js"
+import { employeeAggregate } from "./employee.controller.js"
 
 export const getBranchReports = async (req, res, next) => {
 
@@ -533,15 +534,7 @@ export const supervisorsInfoQuery = async (companyId, topDate, bottomDate) => {
           'company': new Types.ObjectId(companyId)
         }
       },
-      {
-        $lookup: {
-          from: 'employees',
-          localField: 'supervisor',
-          foreignField: '_id',
-          as: 'supervisor'
-        }
-      },
-      { $unwind: { path: '$supervisor', preserveNullAndEmptyArrays: false } },
+      ...employeeAggregate('supervisor', 'supervisor'),
       {
         $lookup: {
           from: 'extraoutgoings',
@@ -557,28 +550,12 @@ export const supervisorsInfoQuery = async (companyId, topDate, bottomDate) => {
                 foreignField: 'extraOutgoing',
                 as: 'employeePayment',
                 pipeline: [
-                  {
-                    $lookup: {
-                      from: 'employees',
-                      localField: 'employee',
-                      foreignField: '_id',
-                      as: 'employee'
-                    }
-                  },
-                  { $unwind: { path: '$employee', preserveNullAndEmptyArrays: true } }
+                  ...employeeAggregate('employee'),
                 ]
               }
             },
             { $unwind: { path: '$employeePayment', preserveNullAndEmptyArrays: true } },
-            {
-              $lookup: {
-                from: 'employees',
-                localField: 'employee',
-                foreignField: '_id',
-                as: 'employee'
-              }
-            },
-            { $unwind: { path: '$employee', preserveNullAndEmptyArrays: true } }
+            ...employeeAggregate('employee')
           ]
         }
       },

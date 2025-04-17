@@ -157,16 +157,16 @@ export default function Empleados() {
 
                   {isOpen && employee._id == buttonId ?
                     <div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center items-center'>
-                      <div className='bg-white p-5 rounded-lg flex flex-col justify-center items-center gap-5'>
+                      <div className='bg-white p-5 rounded-lg flex flex-col justify-center items-center gap-5 text-base mx-auto max-w-lg'>
                         <div>
                           <p className='text-3xl font-semibold'>¿Estás seguro de borrar este registro?</p>
                         </div>
                         <div className='flex gap-10'>
                           <div>
-                            <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteEmployee({ employeeId: employee._id, index, spliceEmployee }), setIsOpen(isOpen ? false : true) }}>Si</button>
+                            <button className='rounded-lg border shadow-lg w-20 h-10' onClick={() => { setIsOpen(isOpen ? false : true) }}>No</button>
                           </div>
                           <div>
-                            <button className='rounded-lg border shadow-lg w-20 h-10' onClick={() => { setIsOpen(isOpen ? false : true) }}>No</button>
+                            <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteEmployee({ employeeId: employee._id, index, spliceEmployee }), setIsOpen(isOpen ? false : true) }}>Si</button>
                           </div>
                         </div>
                       </div>

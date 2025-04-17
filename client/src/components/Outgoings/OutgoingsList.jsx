@@ -5,19 +5,21 @@ import DeleteButton from "../Buttons/DeleteButton"
 import { useRoles } from "../../context/RolesContext"
 import { useMemo, useState } from "react"
 import ShowDetails from "../ShowDetails"
-import { formatTime } from "../../helpers/DatePickerFunctions"
+import { formatDateAndTime, formatTime } from "../../helpers/DatePickerFunctions"
 import RowItem from "../RowItem"
 import { CgProfile } from "react-icons/cg"
 import ConfirmationButton from "../Buttons/ConfirmationButton"
 import MoneyBag from "../Icons/MoneyBag"
+import { CiSquareInfo } from "react-icons/ci"
+import EmployeeInfo from "../EmployeeInfo"
 
 export default function OutgoingsList({ outgoings, onDelete, modifyBalance }) {
   const { currentUser } = useSelector((state) => state.user)
   const { roles, isManager } = useRoles()
   const [selectedOutgoing, setSelectedOutgoing] = useState(null)
-  const [movementDetailsIsOpen, setMovementDetailsIsOpen] = useState(false)
   const isEmpty = !outgoings || outgoings.length === 0
   const deletable = onDelete
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
 
   const amount = useMemo(() => outgoings.reduce((acc, outgoing) => acc + outgoing.amount, 0), [outgoings])
 
@@ -25,7 +27,7 @@ export default function OutgoingsList({ outgoings, onDelete, modifyBalance }) {
     { key: 'amount', label: 'Monto', format: (data) => currency({ amount: data.amount }) },
     { key: 'employee.name', label: 'Vendedor', format: (data) => `${data.employee.name} ${data.employee.lastName}` },
     { key: 'concept', label: 'Concepto' },
-    { key: 'createdAt', label: 'Hora', format: (data) => formatTime(data.createdAt) },
+    { key: 'createdAt', label: 'Hora', format: (data) => formatDateAndTime(data.createdAt) },
   ]
 
   const renderTotal = () => {
@@ -53,12 +55,14 @@ export default function OutgoingsList({ outgoings, onDelete, modifyBalance }) {
             className="col-span-10 items-center"
           >
             <div id='list-element' className='w-full'>
-              <RowItem>
-                <p className='font-bold text-md flex gap-1 items-center text-red-800'><CgProfile className="text-xl" />{employeeName}</p>
-                <div className="text-sm text-black flex justify-self-end">
-                  {formatTime(createdAt)}
-                </div>
-              </RowItem>
+              <div className="mb-1">
+                <RowItem>
+                  <button onClick={() => setSelectedEmployee(employee)} className="font-bold text-md flex gap-1 truncate items-center"><span><CgProfile /></span>{employeeName}</button>
+                  <div className="text-sm text-black flex justify-self-end">
+                    {formatDateAndTime(createdAt)}
+                  </div>
+                </RowItem>
+              </div>
               <RowItem>
                 <p className='ml-1 text-md font-semibold'>{concept}</p>
                 <p className='flex gap-1 items-center text-orange-700'><MoneyBag />{currency({ amount })}</p>
@@ -77,12 +81,12 @@ export default function OutgoingsList({ outgoings, onDelete, modifyBalance }) {
               </button>
               {deletable && (
                 <DeleteButton
-                id={outgoing._id}
-                deleteFunction={() => onDelete(tempOutgoing, modifyBalance)} />
+                  id={outgoing._id}
+                  deleteFunction={() => onDelete(tempOutgoing, modifyBalance)} />
               )}
             </div>
           </div>
-        </div>  
+        </div>
       )
     )
   }
@@ -118,13 +122,14 @@ export default function OutgoingsList({ outgoings, onDelete, modifyBalance }) {
   return (
     <div>
       {renderOutgoingsList()}
-      {selectedOutgoing && movementDetailsIsOpen && (
+      <EmployeeInfo employee={selectedEmployee} toggleInfo={() => setSelectedEmployee(null)} />
+      {selectedOutgoing && (
         <ShowDetails
           data={selectedOutgoing}
           actions={renderActions}
           fields={fields}
           title={"Detalles del gasto de " + selectedOutgoing.employee.name}
-          closeModal={() => setMovementDetailsIsOpen(false)}
+          closeModal={() => setSelectedOutgoing(false)}
         />
       )}
     </div>

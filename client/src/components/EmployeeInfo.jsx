@@ -8,9 +8,11 @@ import EmployeeSupervisorReports from "./EmployeeSupervisorReports";
 import PhoneLinks from "./PhoneLinks";
 import EmployeePayments from "./EmployeePayments";
 import { useRoles } from "../context/RolesContext";
+import { useSelector } from "react-redux";
 
 export default function EmployeeInfo({ employee, toggleInfo }) {
 
+  const { currentUser } = useSelector((state) => state.user);
   const [showEmployeeBranchReports, setShowEmployeeBranchReports] = useState(false);
   const [showEmployeeSupervisorReports, setShowEmployeeSupervisorReports] = useState(false);
   const [showPayments, setShowPayments] = useState(false);
@@ -36,9 +38,13 @@ export default function EmployeeInfo({ employee, toggleInfo }) {
     return (
       <div>
         <h2 className="text-xl font-bold mb-4">
-          <NavLink to={`/perfil/${employee._id}`} className="text-[#2B6CB0] hover:underline">
-            {`${employee.name} ${employee.lastName}`}
-          </NavLink>
+          {isSupervisor(currentUser.role) ? (
+            <NavLink to={`/perfil/${employee._id}`} className="text-[#2B6CB0] hover:underline">
+              {`${employee.name} ${employee.lastName}`}
+            </NavLink>
+          ) : (
+            <span className="text-gray-700">{`${employee.name} ${employee.lastName}`}</span>
+          )}
         </h2>
         <p className="text-lg mb-2 text-gray-700">{`Rol: ${employee?.role?.name ?? 'No disponible'}`}</p>
         <div className="flex flex-wrap items-center gap-2 mb-4">
@@ -60,7 +66,7 @@ export default function EmployeeInfo({ employee, toggleInfo }) {
           >
             Ver Cuentas en Pollería
           </button>
-          {isSupervisor(employeeRole) && (
+          {isSupervisor(employeeRole) && isSupervisor(currentUser.role) && (
             <button
               className="bg-[#2F855A] text-white py-3 px-4 rounded"
               onClick={handleViewSupervisorAccounts}

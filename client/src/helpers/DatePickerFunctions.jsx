@@ -25,7 +25,7 @@ export const formatTime = (date) => {
 
   const pivotDate = new Date(date)
 
-  return <div className="flex items-center">{<MdOutlineAccessTimeFilled />} {pivotDate.toLocaleTimeString('es-MX', { hour12: false })}</div>
+  return <p className="flex items-center">{<MdOutlineAccessTimeFilled />} {pivotDate.toLocaleTimeString('es-MX', { hour12: false })}</p>
 }
 
 export const formatDateAndTime = (date) => {

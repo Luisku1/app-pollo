@@ -2,7 +2,7 @@
 import { useSelector } from "react-redux";
 import { useRoles } from "../../context/RolesContext";
 import { getEmployeeFullName, currency } from "../../helpers/Functions";
-import { formatTime } from "../../helpers/DatePickerFunctions";
+import { formatDateAndTime } from "../../helpers/DatePickerFunctions";
 import { useMemo, useState } from "react";
 import ShowDetails from "../ShowDetails";
 import { CgProfile } from "react-icons/cg";
@@ -13,6 +13,8 @@ import { FaInfoCircle } from "react-icons/fa";
 import { MdStorefront } from "react-icons/md";
 import ConfirmationButton from "../Buttons/ConfirmationButton";
 import DeleteButton from "../Buttons/DeleteButton";
+import { CiSquareInfo } from "react-icons/ci";
+import EmployeeInfo from "../EmployeeInfo";
 
 export default function ProviderInputsList({ inputs, totalWeight = 0, totalAmount = 0, onDelete = null }) {
 
@@ -22,6 +24,7 @@ export default function ProviderInputsList({ inputs, totalWeight = 0, totalAmoun
   const [deletingInputId, setDeletingInputId] = useState(null);
   const isAuthorized = (employee) => currentUser._id === employee._id || isManager(currentUser.role) || !onDelete
   const deletable = onDelete
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
 
   const fields = [
     { key: 'weight', label: 'Peso', format: (data) => `${data.weight.toFixed(2)} Kg` },
@@ -31,7 +34,7 @@ export default function ProviderInputsList({ inputs, totalWeight = 0, totalAmoun
     { key: 'branch.branch', label: 'Entró a', format: (data) => data.branch.branch },
     { key: 'employee.name', label: 'Encargado', format: (data) => getEmployeeFullName(data.employee) },
     { key: 'comment', label: 'Comentario' },
-    { key: 'createdAt', label: 'Hora', format: (data) => formatTime(data.createdAt) },
+    { key: 'createdAt', label: 'Hora', format: (data) => formatDateAndTime(data.createdAt) },
   ]
 
   const renderTotal = () => {
@@ -68,21 +71,15 @@ export default function ProviderInputsList({ inputs, totalWeight = 0, totalAmoun
         >
           {input.weight !== 0 ? (
             <div className="grid grid-cols-12 border border-black border-opacity-30 rounded-2xl shadow-sm mb-2 py-1">
-              <button
-                onClick={() => {
-                  setSelectedInput(tempInput);
-                }}
+              <div
                 id="list-element"
                 className="col-span-10 items-center"
               >
                 <div id="list-element" className="col-span-12">
-                  <div className="w-full text-red-800">
+                  <div className="w-full text-red-800 mb-1">
                     <RowItem>
                       <p className="text-md font-bold flex gap-1 items-center"><MdStorefront />{branch.branch}</p>
-                      <p className="font-bold text-md flex gap-1 items-center truncate"><span><CgProfile /></span>{employee.name}</p>
-                      <div>
-                        {formatTime(createdAt)}
-                      </div>
+                      <button onClick={() => setSelectedEmployee(employee)} className="font-bold text-md flex gap-1 truncate items-center"><span><CgProfile /></span>{employee.name}</button>
                     </RowItem>
                   </div>
                   <div className="w-full text-sm font-semibold">
@@ -93,19 +90,35 @@ export default function ProviderInputsList({ inputs, totalWeight = 0, totalAmoun
                       <p className="flex gap-1 items-center"><TbMoneybag className="text-orange-800" />{amount.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
                     </RowItem>
                   </div>
-                  <div className="w-full">
+                  <div className="w-full mt-1">
                     <RowItem>
                       <p className="text-xs flex gap-1 items-center"><FaInfoCircle className="text-blue-800" />{comment || 'Sin observaciones.'}</p>
+                      {formatDateAndTime(createdAt)}
                     </RowItem>
+                    <div>
+                    </div>
                   </div>
                 </div>
-              </button>
+              </div>
               <div className="col-span-2 my-auto">
-                {deletable && (
-                  <DeleteButton
-                    deleteFunction={() => handleDelete(tempInput)}
-                  />
-                )}
+                <div className="flex flex-col gap-2 justify-center my-auto items-center">
+                  <button
+                    onClick={() => {
+                      setSelectedInput(tempInput);
+                    }}
+
+                    className="border rounded-lg shadow-md w-10 h-10 flex justify-center items-center"
+                  >
+                    <CiSquareInfo className="w-full h-full text-blue-600" />
+                  </button>
+                  {deletable && (
+                    <div className="w-10 h-10">
+                      <DeleteButton
+                        deleteFunction={() => handleDelete(tempInput)}
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           ) : (
@@ -165,6 +178,7 @@ export default function ProviderInputsList({ inputs, totalWeight = 0, totalAmoun
   return (
     <div>
       {renderInputList()}
+      <EmployeeInfo employee={selectedEmployee} toggleInfo={() => setSelectedEmployee(null)} />
       {shouldOpenModal && (
         <ShowDetails
           data={selectedInput}

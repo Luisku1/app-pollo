@@ -11,7 +11,7 @@ import { normalizeText } from '../helpers/Functions';
 
 export default function Header() {
 
-  const { currentUser, company } = useSelector((state) => state.user);
+  const { currentUser } = useSelector((state) => state.user);
   const { roles, isSupervisor, isManager } = useRoles();
   const { currentDate } = useDate() || {}; // Add fallback to prevent destructuring error
   const [searchTerm, setSearchTerm] = useState('');
@@ -33,16 +33,16 @@ export default function Header() {
 
   const menuOptions = [
     { text: 'Perfil', link: currentUser ? `/perfil/${currentUser._id}` : '/inicio-sesion' },
-    { text: 'Crear formato', link: '/formato', date: true },
+    { text: 'Crear formato', link: '/formato', date: true, dateRole: true },
     { text: 'Supervisión', link: '/supervision-diaria', role: 'supervisor', date: true },
-    { text: 'Registro Empleado', link: '/registro-empleado', role: 'supervisor' },
+    { text: 'Registro Empleado', link: '/registro-empleado', role: 'supervisor', dateRole: true },
     { text: 'Registro Cliente', link: '/registro-cliente', role: 'supervisor' },
     { text: 'Registro Proveedor', link: '/registro-proveedor', role: 'supervisor' },
     { text: 'Sucursales', link: '/sucursales', role: 'supervisor' },
     { text: 'Reporte', link: '/reporte', role: 'supervisor', date: true },
-    { text: 'Nomina', link: '/nomina', role: 'manager', date: true },
+    { text: 'Nomina', link: '/nomina', role: 'manager', date: true, dateRole: true },
     { text: 'Cuentas', link: '/listado-de-cuentas', role: 'manager' },
-    { text: 'Empleados', link: '/empleados', role: 'manager' },
+    { text: 'Empleados', link: '/empleados', role: 'supervisor' },
     { text: 'Productos', link: '/productos', role: 'manager' },
     { text: 'Precios', link: '/precios', role: 'manager' },
     { text: 'Empresa', link: '/empresas', role: 'manager' },
@@ -58,15 +58,21 @@ export default function Header() {
 
       if (matchesSearch && matchesRole) {
         if (!isToday && option.date) {
+          if (option.dateRole && !isManager(currentUser.role)) {
+            return option;
+          }
           return [
             option,
             { ...option, text: `${option.text} (${formatInformationDate(currentDate)})`, link: `${option.link}/${currentDate}` }
           ];
         } else {
-          if(isToday && option.date) {
+          if (isToday && option.date) {
             let yesterdayDate = new Date(currentDate);
             yesterdayDate.setDate(yesterdayDate.getDate() - 1);
             yesterdayDate = formatDate(yesterdayDate);
+            if (option.dateRole && !isManager(currentUser.role)) {
+              return option;
+            }
             return [
               option,
               { ...option, text: `${option.text} (${formatInformationDate(yesterdayDate)})`, link: `${option.link}/${yesterdayDate}` }
@@ -209,7 +215,7 @@ export default function Header() {
                 {filteredOptions.map((option, index) => (
                   <li
                     key={index}
-                    className={`px-4 py-2 cursor-pointer ${highlightedIndex === index ? 'bg-gray-200' : 'hover:bg-gray-100'
+                    className={`px-4 cursor-pointer ${highlightedIndex === index ? 'bg-gray-200' : 'hover:bg-gray-100'
                       }`} // Highlight selected option
                     onMouseEnter={() => setHighlightedIndex(index)} // Update highlight on hover
                     onClick={() => {
@@ -219,7 +225,7 @@ export default function Header() {
                   >
                     <Link
                       to={option.link}
-                      className='block w-full h-full'
+                      className='block w-full h-full py-2'
                     >
                       {option.text}
                     </Link>
