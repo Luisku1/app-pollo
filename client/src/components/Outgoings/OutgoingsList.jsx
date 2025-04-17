@@ -80,9 +80,11 @@ export default function OutgoingsList({ outgoings, onDelete, modifyBalance }) {
                 <CiSquareInfo className="w-full h-full text-blue-600" />
               </button>
               {deletable && (
-                <DeleteButton
-                  id={outgoing._id}
-                  deleteFunction={() => onDelete(tempOutgoing, modifyBalance)} />
+                <div className="h-10 w-10">
+                  <DeleteButton
+                    id={outgoing._id}
+                    deleteFunction={() => onDelete(tempOutgoing, modifyBalance)} />
+                </div>
               )}
             </div>
           </div>

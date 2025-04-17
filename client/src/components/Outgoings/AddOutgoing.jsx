@@ -5,7 +5,7 @@ import { isToday } from '../../helpers/DatePickerFunctions'
 import SectionHeader from '../SectionHeader'
 import ShowListModal from '../Modals/ShowListModal'
 import OutgoingsList from './OutgoingsList'
-import { ToastInfo } from '../../helpers/toastify'
+import { ToastInfo, ToastSuccess } from '../../helpers/toastify'
 
 export default function AddOutgoing({ outgoings, modifyBalance, isReport = false, listButton, outgoingsTotal, onAddOutgoing, onDeleteOutgoing, employee, branch, date, isEditing }) {
 
@@ -55,6 +55,8 @@ export default function AddOutgoing({ outgoings, modifyBalance, isReport = false
 
     e.preventDefault()
 
+    console.log(branch)
+
     if (!branch) {
       ToastInfo('Selecciona una sucursal')
       return
@@ -77,6 +79,8 @@ export default function AddOutgoing({ outgoings, modifyBalance, isReport = false
     button.disabled = true
 
     setLoading(true)
+
+    console.log('llego hasta aquí ')
 
     ToastSuccess(`Se agregó el gasto de "${outgoing.concept}"`)
     if (isReport)

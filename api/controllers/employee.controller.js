@@ -13,6 +13,7 @@ import { fetchRolesFromDB } from "./role.controller.js"
 import EmployeeWeeklyBalance from "../models/employees/employee.weekly.balance.model.js"
 import EmployeeRest from "../models/employees/employee.rest.model.js"
 import { branchLookup, unwindBranch, employeeLookup, unwindEmployee } from "./branch.report.controller.js"
+import { branchAggregate } from "./branch.controller.js"
 
 
 export const employeeAggregate = (localField, as = 'employee') => {
@@ -1362,37 +1363,19 @@ export const fetchEmployeesPayroll = async ({ companyId, date }) => {
 						},
 						{
 							$lookup: {
-								from: 'employees',
+								from: 'incomecollecteds',
 								foreignField: '_id',
-								localField: 'employee',
-								as: 'employee'
+								localField: 'income',
+								as: 'income',
+								pipeline: [
+									...employeeAggregate('employee'),
+									...branchAggregate('branch'),
+								]
 							}
 						},
-						{
-							$lookup: {
-								from: 'employees',
-								foreignField: '_id',
-								localField: 'supervisor',
-								as: 'supervisor'
-							}
-						},
-						{
-							$unwind: { path: '$supervisor', preserveNullAndEmptyArrays: true }
-						},
-						{
-							$unwind: { path: '$employee', preserveNullAndEmptyArrays: true }
-						},
-						{
-							$lookup: {
-								from: 'branches',
-								foreignField: '_id',
-								localField: 'branch',
-								as: 'branch'
-							}
-						},
-						{
-							$unwind: { path: '$branch', preserveNullAndEmptyArrays: true }
-						}
+						{ $unwind: { path: '$income', preserveNullAndEmptyArrays: true } },
+						...employeeAggregate('employee'),
+						...employeeAggregate('supervisor', 'supervisor')
 					]
 				}
 			},
@@ -1416,30 +1399,7 @@ export const fetchEmployeesPayroll = async ({ companyId, date }) => {
 
 				}
 			},
-			{
-				$lookup: {
-					from: 'employees',
-					localField: 'employee',
-					foreignField: '_id',
-					as: 'employee',
-					pipeline: [
-						{
-							$lookup: {
-								from: 'roles',
-								localField: 'role',
-								foreignField: '_id',
-								as: 'role'
-							}
-						},
-						{
-							$unwind: { path: '$role' }
-						},
-					]
-				}
-			},
-			{
-				$unwind: { path: '$employee' }
-			},
+			...employeeAggregate('employee'),
 			{
 				$addFields: {
 					balance: {
