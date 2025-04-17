@@ -29,7 +29,7 @@ export default function Modal({
     document.body.style.overflow = "hidden";
 
     const handleKeyDown = (event) => {
-      if ((event.key === "Escape" && ableToClose) || closeOnEsc) {
+      if ((event.key === "Escape" && ableToClose) || (closeOnEsc && event.key === "Escape")) {
         closeModal();
         removeLastModal();
       }

@@ -41,7 +41,7 @@ export default function Reporte({ untitled = false }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredSupervisors, setFilteredSupervisors] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
-  const {currentDate, setCurrentDate} = useDate()  
+  const {currentDate, setCurrentDate} = useDate()
   const {
 
     branchReports,
@@ -150,8 +150,9 @@ export default function Reporte({ untitled = false }) {
 
   const changeDatePickerValue = (e) => {
 
-    stringDatePickerValue = (e.target.value + 'T06:00:00.000Z')
-    navigate('/reporte/' + stringDatePickerValue)
+    const newDate = e.target.value + 'T06:00:00.000Z';
+    setCurrentDate(newDate);
+    navigate('/reporte/' + newDate)
   }
 
   const changeDay = (date) => {
@@ -163,7 +164,7 @@ export default function Reporte({ untitled = false }) {
     if (stringDatePickerValue) {
       setCurrentDate(stringDatePickerValue)
     }
-  }, [stringDatePickerValue])  
+  }, [stringDatePickerValue])
 
   const handleShowGraphs = () => {
 

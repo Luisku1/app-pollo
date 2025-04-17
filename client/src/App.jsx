@@ -66,6 +66,7 @@ export default function App() {
                 <Route path="/perfil/:employeeId" element={<Perfil />} />
                 <Route path="/formato" element={<RegistroCuentaDiaria />} />
                 <Route path="/formato/:date/:branchId" element={<RegistroCuentaDiaria />} />
+                <Route path="/formato/:date" element={<RegistroCuentaDiaria />} />
                 <Route path="/listado-de-cuentas" element={<ListadoDeCuentas />} />
                 <Route path="/empleados" element={<Empleados />} />
                 <Route path="/empresas" element={<Empresas />} />

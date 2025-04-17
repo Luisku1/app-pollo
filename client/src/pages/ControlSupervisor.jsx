@@ -46,7 +46,7 @@ export default function ControlSupervisor({ hideFechaDePagina = false }) {
     supervisorsInfo,
     replaceSupervisorReport: replaceReport,
   } = useSupervisorsReportInfo({ companyId: company._id, date: stringDatePickerValue })
-  const {currentDate, setCurrentDate} = useDate()
+  const { currentDate, setCurrentDate } = useDate()
 
   const handleShowSections = (section) => {
 
@@ -73,25 +73,23 @@ export default function ControlSupervisor({ hideFechaDePagina = false }) {
   const isLoading = useLoading(roleLoading, empLoading, branchLoading, custLoading, prodLoading)
 
   const changeDatePickerValue = (e) => {
-
-    stringDatePickerValue = (e.target.value + 'T06:00:00.000Z')
-
-    navigate('/supervision-diaria/' + stringDatePickerValue)
-
-  }
+    const newDate = e.target.value + 'T06:00:00.000Z';
+    setCurrentDate(newDate);
+    navigate('/supervision-diaria/' + newDate);
+  };
 
   const changeDay = (date) => {
-    setCurrentDate(date)
-    navigate('/supervision-diaria/' + date)
-
-  }
+    setCurrentDate(date);
+    navigate('/supervision-diaria/' + date);
+  };
 
   useEffect(() => {
     if (stringDatePickerValue) {
       setCurrentDate(stringDatePickerValue)
+    } else {
+      setCurrentDate(formatDate(new Date()))
     }
   }, [stringDatePickerValue])
-  
 
   useEffect(() => {
 

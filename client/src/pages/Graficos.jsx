@@ -19,9 +19,9 @@ export const ChartComponent = ({ branchName, branchReports }) => {
 
     branchReports.forEach(branchReport => {
 
-      if(!(data.length > 0 && (branchReport.createdAt.slice(0, 10) == data[data.length - 1].time))) {
+      if (!(data.length > 0 && (branchReport.createdAt.slice(0, 10) == data[data.length - 1].time))) {
 
-        data.push({time: branchReport.createdAt.slice(0, 10), value: branchReport.incomes})
+        data.push({ time: branchReport.createdAt.slice(0, 10), value: branchReport.incomes })
       }
     });
 
@@ -47,20 +47,19 @@ export default function Graficos() {
   let datePickerValue = (paramsDate ? new Date(paramsDate) : new Date())
   let stringDatePickerValue = formatDate(datePickerValue)
   const [branchesIncomes, setBranchesIncomes] = useState([])
-  const {currentDate, setCurrentDate} = useDate()
+  const { currentDate, setCurrentDate } = useDate()
 
   const changeDatePickerValue = (e) => {
 
-    stringDatePickerValue = (e.target.value + 'T06:00:00.000Z')
-
-    navigate('/graficos/' + stringDatePickerValue)
+    const newDate = e.target.value + 'T06:00:00.000Z';
+    setCurrentDate(newDate);
+    navigate('/graficos/' + newDate)
 
   }
 
   const changeDay = (date) => {
     setCurrentDate(date)
     navigate('/graficos/' + date)
-
   }
 
   useEffect(() => {

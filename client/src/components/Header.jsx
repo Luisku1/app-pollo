@@ -60,8 +60,18 @@ export default function Header() {
         if (!isToday && option.date) {
           return [
             option,
-            { ...option, text: `${option.text} (${formatInformationDate(currentDate)})`, link: option.link + currentDate } // Add option with date
+            { ...option, text: `${option.text} (${formatInformationDate(currentDate)})`, link: `${option.link}/${currentDate}` }
           ];
+        } else {
+          if(isToday && option.date) {
+            let yesterdayDate = new Date(currentDate);
+            yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+            yesterdayDate = formatDate(yesterdayDate);
+            return [
+              option,
+              { ...option, text: `${option.text} (${formatInformationDate(yesterdayDate)})`, link: `${option.link}/${yesterdayDate}` }
+            ];
+          }
         }
         return option;
       }
@@ -89,10 +99,7 @@ export default function Header() {
           return; // Prevent action if search bar is not focused
         }
         if (!showDropdown) {
-          searchBar?.focus();
           setShowDropdown(true);
-        } else {
-          setHighlightedIndex((prev) => (prev + 1) % filteredOptions.length); // Navigate options
         }
       }
       if (showDropdown) {

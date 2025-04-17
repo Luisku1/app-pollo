@@ -29,7 +29,7 @@ export default function Nomina() {
   const [branchReportCard, setBranchReportCard] = useState(null)
   const [supervisorReportCard, setSupervisorReportCard] = useState(null)
   const [selectedEmployee, setSelectedEmployee] = useState(null)
-  const {currentDate, setCurrentDate} = useDate()
+  const { currentDate, setCurrentDate } = useDate()
 
   const replaceCurrentBranchReport = (report) => {
     replaceReport(report, report.externalIndex)
@@ -43,9 +43,9 @@ export default function Nomina() {
 
   const changeDatePickerValue = (e) => {
 
-    stringDatePickerValue = (e.target.value + 'T06:00:00.000Z')
-
-    navigate('/nomina/' + stringDatePickerValue)
+    const newDate = e.target.value + 'T06:00:00.000Z';
+    setCurrentDate(newDate);
+    navigate('/nomina/' + newDate)
 
   }
 
@@ -55,11 +55,11 @@ export default function Nomina() {
 
   }
 
-    useEffect(() => {
-      if (stringDatePickerValue) {
-        setCurrentDate(stringDatePickerValue)
-      }
-    }, [stringDatePickerValue])
+  useEffect(() => {
+    if (stringDatePickerValue) {
+      setCurrentDate(stringDatePickerValue)
+    }
+  }, [stringDatePickerValue])
 
   useEffect(() => {
 

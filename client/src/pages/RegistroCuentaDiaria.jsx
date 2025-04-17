@@ -50,7 +50,7 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
   const [selectedBranch, setSelectedBranch] = useState(_branch)
   const [selectBranch, setSelectBranch] = useState(false)
   const navigate = useNavigate()
-  const {currentDate, setCurrentDate} = useDate()
+  const { currentDate, setCurrentDate } = useDate()
   const reportDate = (paramsDate ? new Date(paramsDate) : new Date()).toLocaleDateString('es-mx', { weekday: 'long', year: 'numeric', month: '2-digit', day: '2-digit' })
   const {
     branchReport,
@@ -124,10 +124,9 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
 
   const changeDatePickerValue = (e) => {
 
-    stringDatePickerValue = (e.target.value + 'T06:00:00.000Z')
-
-    navigate('/formato/' + stringDatePickerValue + '/' + branchId)
-
+    const newDate = e.target.value + 'T06:00:00.000Z';
+    setCurrentDate(newDate);
+    navigate('/formato/' + newDate + '/' + branchId)
   }
 
   const changeDay = (date) => {
@@ -312,6 +311,7 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
                 )}
               </div>
             </h1>
+            {branchReport && (
               <h2 className='col-span-12 px-2 rounded-lg border-black mx-2 mt-2 bg-white'>
                 <div className='flex gap-2 py-2 items-center'>
                   <p className='flex-shrink-0'>Encargado:</p>
@@ -328,6 +328,7 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
                   </div>
                 )}
               </h2>
+            )}
           </div>
           {branchReport && (
             <div>
@@ -513,23 +514,6 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
               {(isAuthorized || branchReport?.balance < 0) &&
                 <p className={`${branchReport?.balance < 0 ? 'bg-red-200' : 'bg-green-100'} font-bold text-lg text-center border rounded-lg p-1 border-header mt-2`}>BALANCE: {currency({ amount: branchReport?.balance ?? 0 })}</p>
               }
-              {branchId ?
-                <div className='flex flex-col gap-4 mt-4'>
-                  {isEditing ?
-                    <div>
-                      {(!branchReport.dateSent || isAuthorized) &&
-                        <button disabled={loading} className='bg-button text-white border border-black p-3 rounded-lg w-full' onClick={() => setShowSelectBranchEmployees(true)}>Continuar</button>
-                      }
-                    </div>
-                    :
-                    <div>
-                      {isAuthorized &&
-                        <button disabled={loading} className='bg-button text-white border border-black p-3 rounded-lg uppercase w-full' onClick={() => { navigate('/formato/' + currentDate + '/' + branchReport.branch._id) }}>Editar Formato</button>
-                      }
-                    </div>
-                  }
-                </div>
-                : ''}
               <p className='text-red-700 font-semibold'>{error}</p>
             </div>
           )}

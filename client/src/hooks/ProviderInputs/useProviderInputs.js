@@ -171,8 +171,6 @@ export const useProviderInputs = ({ companyId = null, productId = null, date = n
     })
   }, [providerInputs])
 
-  console.log(sortedProviderInputs)
-
   const finalInputs = useMemo(() => {
 
     if (!sortedProviderInputs[0]?.inputs?.length) {
@@ -213,8 +211,6 @@ export const useProviderInputs = ({ companyId = null, productId = null, date = n
   const providerInputsPieces = useMemo(() => {
     return finalInputs.reduce((acc, input) => acc + input.pieces, 0)
   }, [finalInputs])
-
-  console.log(finalInputs)
 
   return {
     providerInputs: finalInputs,
