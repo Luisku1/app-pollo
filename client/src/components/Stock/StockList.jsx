@@ -52,7 +52,7 @@ export default function StockList({ stock = [], onDelete = null, modifyBalance =
     return (
       shouldRender && (
         <div key={stock._id} className='grid grid-cols-12 border border-black border-opacity-30 rounded-2xl shadow-sm mb-2 py-1'>
-          <button onClick={() => { setSelectedStock(tempStock) }} id='list-element' className='col-span-10 items-center'>
+          <div id="list-element" className="col-span-10 items-center">
             <div id='list-element' className='w-full'>
               <div className='text-red-800 mb-2'>
                 <RowItem>
@@ -74,14 +74,23 @@ export default function StockList({ stock = [], onDelete = null, modifyBalance =
                 <p className="font-bold text-md text-orange-800 flex gap-1 items-center my-2"><span><CgProfile /></span>{employee.name}</p>
               </RowItem>
             </div>
-          </button>
+          </div>
           <div className="col-span-2 my-auto">
-            {shouldShowDeleteButton && (
-              <DeleteButton
-                id={stock._id}
-                deleteFunction={() => onDelete(tempStock, modifyBalance)}
-              />
-            )}
+            <div className="flex flex-col gap-2 justify-center my-auto items-center">
+              <button
+                onClick={() => {
+                  setSelectedStock(tempStock);
+                }}
+                className="border rounded-lg shadow-md w-10 h-10 flex justify-center items-center"
+              >
+                <CiSquareInfo className="w-full h-full text-blue-600" />
+              </button>
+              {shouldShowDeleteButton && (
+                <DeleteButton
+                  id={stock._id}
+                  deleteFunction={() => onDelete(tempStock, modifyBalance)} />
+              )}
+            </div>
           </div>
         </div>
       )
