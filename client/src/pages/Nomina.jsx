@@ -108,8 +108,10 @@ export default function Nomina() {
 
       <div className='border bg-white p-3 mt-4'>
         {roles && isManager(currentUser.role) && employeesPayroll && employeesPayroll.length > 0 && employeesPayroll.map((employeePayroll, index) => {
-          const { previousWeekBalance, employeeDailyBalances, employee, branchReports, accountBalance, employeePayments, foodDiscount, supervisorReports, missingWorkDiscount, supervisorBalance, employeePaymentsAmount } = employeePayroll
+          const { previousWeekBalance, employeeDailyBalances, employee, branchReports, employeePayments, foodDiscount, supervisorReports, missingWorkDiscount, employeePaymentsAmount } = employeePayroll
           const salary = employee?.salary ?? 0
+          const accountBalance = branchReports.reduce((acc, report) => acc + (report.balance ?? 0), 0)
+          const supervisorBalance = supervisorReports.reduce((acc, report) => acc + (report.balance ?? 0), 0)
           const totalToPay = accountBalance + supervisorBalance + foodDiscount + missingWorkDiscount - employeePaymentsAmount + salary
           return (
             <div key={employeePayroll._id} className='items-center border border-black rounded-lg shadow-sm my-2'>
