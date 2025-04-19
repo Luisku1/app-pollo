@@ -99,7 +99,7 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
   const [ableToEdit, setAbleToEdit] = useState(false)
 
   useEffect(() => {
-    const currentTime = new Date('2025-04-18T03:00:00.000Z');
+    const currentTime = new Date();
     const currentUTCHours = currentTime.getUTCHours();
     const currentUTCMinutes = currentTime.getUTCMinutes();
 
