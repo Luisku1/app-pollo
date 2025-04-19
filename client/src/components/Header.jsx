@@ -43,6 +43,7 @@ export default function Header() {
     { text: 'Nomina', link: '/nomina', role: 'manager', date: true, dateRole: true },
     { text: 'Cuentas', link: '/listado-de-cuentas', role: 'manager' },
     { text: 'Empleados', link: '/empleados', role: 'supervisor' },
+    { text: 'Proveedores', link: '/proveedores', role: 'manager' },
     { text: 'Productos', link: '/productos', role: 'manager' },
     { text: 'Precios', link: '/precios', role: 'manager' },
     { text: 'Empresa', link: '/empresas', role: 'manager' },

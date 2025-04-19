@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+/*import { useParams } from "react-router-dom";
 import MenuProveedor from "../components/Proveedores/MenuProveedor";
 import { formatDate } from "../helpers/DatePickerFunctions";
 import useProvidersPurchases from "../hooks/Providers/useProvidersPurchases";
@@ -12,9 +12,11 @@ export default function ControlProveedor() {
 
   return (
     <div>
+      <h1>Control de Proveedor</h1>
       <MenuProveedor
         date={stringDatePickerValue}
       />
     </div>
   );
 }
+*/

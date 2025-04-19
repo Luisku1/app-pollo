@@ -25,11 +25,10 @@ export const newBranch = async (req, res, next) => {
 	const { branch, phoneNumber, location, p, rentAmount, zone, rentDay, company, position } = req.body
 	const date = new Date().toISOString()
 
-	const newBranch = new Branch({ branch, phoneNumber, location, p, rentAmount, zone, rentDay, company, position, createdAt: date })
-
+	console.log('newBranch', req.body)
 	try {
-
-		await newBranch.save()
+		
+		const newBranch = await Branch.create({ branch, phoneNumber, location, p, rentAmount, zone, rentDay, company, position, createdAt: date })
 		res.status(201).json({ branch: newBranch })
 
 	} catch (error) {

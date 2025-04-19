@@ -71,7 +71,7 @@ export default function RegistroProveedor() {
 
         <h1 className='text-3xl text-center font-semibold my-7'>
 
-          Registra un nuevo cliente
+          Registra un Nuevo Proveedor
 
         </h1>
 
