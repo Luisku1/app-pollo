@@ -4,10 +4,11 @@ import Product from '../models/product.model.js'
 import Branch from '../models/branch.model.js'
 import { Types } from "mongoose";
 import { getDayRange, today } from "../utils/formatDate.js";
-import { changePricesDate, fetchBranchReport } from "./branch.report.controller.js";
+import { changePricesDate, createDefaultBranchReport, fetchBranchReport, fetchOrCreateBranchReport } from "./branch.report.controller.js";
 import ProviderInput from "../models/providers/provider.input.model.js";
 import Input from "../models/accounts/input.model.js";
 import Output from "../models/accounts/output.model.js";
+import BranchReport from "../models/accounts/branch.report.model.js";
 
 export const newPrice = async (req, res, next) => {
 
@@ -105,6 +106,8 @@ export const initializeBranchPrices = async (req, res, next) => {
 
     const products = await Product.find({ company: companyId }, ['_id'])
 
+    let lastDate = null
+
     if (products.length > 0) {
 
       products.forEach((product) => {
@@ -120,9 +123,13 @@ export const initializeBranchPrices = async (req, res, next) => {
           createdAt: createdAt
         }
 
+        lastDate = createdAt
+
         bulkOps.push({ "insertOne": { "document": document } })
 
       })
+
+      await fetchOrCreateBranchReport({ branchId, companyId, date: createdAt, pricesDate: lastDate })
 
       Price.bulkWrite(bulkOps)
         .then(result => {
@@ -141,6 +148,46 @@ export const initializeBranchPrices = async (req, res, next) => {
   }
 }
 
+export const setInitialBranchPrices = async (branchId, companyId) => {
+
+  const companyId = branchId.company
+  let bulkOps = []
+
+  try {
+    let lastDate = null
+
+    const products = await Product.find({ company: companyId }, ['_id'])
+
+    if (products.length > 0) {
+
+      products.forEach((product) => {
+
+        const createdAt = new Date().toISOString()
+
+        let document = {
+
+          price: 0,
+          product: product._id,
+          branch: branchId._id,
+          company: companyId,
+          createdAt: createdAt
+
+        }
+        lastDate = createdAt
+
+        bulkOps.push({ "insertOne": { "document": document } })
+      })
+    }
+
+    return lastDate
+
+  } catch (error) {
+
+    console.log(error)
+
+  }
+}
+
 export const getBranchCurrentPrices = async (req, res, next) => {
 
   const branchId = req.params.branchId;
@@ -149,7 +196,7 @@ export const getBranchCurrentPrices = async (req, res, next) => {
   const sortOrder = req.params.sortOrder == "null" ? null : req.params.sortOrder;
 
   try {
-    const currentPrices = await getPrices({branchId, date, pricesDate, sortOrder});
+    const currentPrices = await getPrices({ branchId, date, pricesDate, sortOrder });
 
     if (currentPrices) {
       res.status(200).json({ branchPrices: currentPrices });
@@ -162,7 +209,7 @@ export const getBranchCurrentPrices = async (req, res, next) => {
   }
 }
 
-export const getPrices = async ({branchId, date, pricesDate = null, sortOrder = null}) => {
+export const getPrices = async ({ branchId, date, pricesDate = null, sortOrder = null }) => {
 
   let finalDate = null
 

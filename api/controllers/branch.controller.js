@@ -3,6 +3,7 @@ import Price from '../models/accounts/price.model.js';
 import Branch from '../models/branch.model.js'
 import { errorHandler } from '../utils/error.js'
 import BranchReport from '../models/accounts/branch.report.model.js';
+import { setInitialBranchPrices } from './price.controller.js';
 
 export const branchAggregate = (localField) => {
 	return [
@@ -25,10 +26,16 @@ export const newBranch = async (req, res, next) => {
 	const { branch, phoneNumber, location, p, rentAmount, zone, rentDay, company, position } = req.body
 	const date = new Date().toISOString()
 
-	console.log('newBranch', req.body)
 	try {
-		
+
 		const newBranch = await Branch.create({ branch, phoneNumber, location, p, rentAmount, zone, rentDay, company, position, createdAt: date })
+
+		// const pricesDate = await setInitialBranchPrices(newBranch._id, company)
+
+		// newBranch
+
+		if (!newBranch) throw new Error('No se pudo crear la sucursal')
+
 		res.status(201).json({ branch: newBranch })
 
 	} catch (error) {
