@@ -148,46 +148,6 @@ export const initializeBranchPrices = async (req, res, next) => {
   }
 }
 
-export const setInitialBranchPrices = async (branchId, companyId) => {
-
-  const companyId = branchId.company
-  let bulkOps = []
-
-  try {
-    let lastDate = null
-
-    const products = await Product.find({ company: companyId }, ['_id'])
-
-    if (products.length > 0) {
-
-      products.forEach((product) => {
-
-        const createdAt = new Date().toISOString()
-
-        let document = {
-
-          price: 0,
-          product: product._id,
-          branch: branchId._id,
-          company: companyId,
-          createdAt: createdAt
-
-        }
-        lastDate = createdAt
-
-        bulkOps.push({ "insertOne": { "document": document } })
-      })
-    }
-
-    return lastDate
-
-  } catch (error) {
-
-    console.log(error)
-
-  }
-}
-
 export const getBranchCurrentPrices = async (req, res, next) => {
 
   const branchId = req.params.branchId;
