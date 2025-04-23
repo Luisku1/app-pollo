@@ -25,16 +25,80 @@ export const getProviders = async (req, res, next) => {
 
   const companyId = req.params.companyId
 
+	try {
+
+		const providers = await Provider.find({ company: companyId }).sort({ position: 1 })
+
+		res.status(200).json({ providers: providers })
+
+	} catch (error) {
+
+		next(error)
+	}
+
+}
+
+export const deleteProvider = async (req, res, next) => {
+  const companyId = req.params.companyId
+
   try {
 
-    const providers = await Provider.find({
-      active: true,
-      company: companyId
-    })
+    const deleted = await Provider.deleteOne({ _id: companyId })
 
-    if (providers.length < 0) next(errorHandler(404, 'No providers found'))
+    if (deleted.acknowledged) {
 
-    res.status(200).json({ providers })
+      res.status(200).json('Provider deleted successfully')
+
+    } else {
+
+      next(errorHandler(404, 'Something went wrong'))
+    }
+
+  } catch (error) {
+
+    next(error)
+  }
+}
+
+export const getProviderAverage = async (req, res, next) => {
+  
+  const providerId = req.params.providerId
+  const date = new Date()
+
+  date.setDate(date.getDate() - 7)
+
+  try {
+
+
+    const providerAvg = await ProviderReport.aggregate([
+
+      {
+        $match: {
+          "branch": new Types.ObjectId(providerId),
+          "createdAt": { $gte: date }
+        }
+      },
+      {
+        $project: {
+          outgoingsAndIncomes: { $sum: ['$outgoings', '$incomes'] }
+        }
+      },
+      {
+        $group: {
+          _id: providerId,
+          average: { $avg: '$outgoingsAndIncomes' }
+        }
+      }
+    ])
+
+    if (providerAvg.length > 0) {
+
+      res.status(201).json({ providerAvg: providerAvg[0].average })
+
+    } else {
+
+      next(errorHandler(404, 'No data found'))
+    }
 
   } catch (error) {
 

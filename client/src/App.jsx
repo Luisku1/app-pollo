@@ -26,7 +26,7 @@ import Sobrante from './pages/Sobrante';
 import Graficos from './pages/Graficos';
 import PreciosSucursal from './pages/PreciosSucursal';
 import RegistroCliente from './pages/RegistroCliente';
-import RegistroProveedor from './pages/RegistroProveedor';
+import MenuProveedor from './pages/MenuProveedor';
 import ControlProveedor from './pages/ControlProveedor';
 import './index.css';
 import { useSelector } from 'react-redux';
@@ -77,7 +77,7 @@ export default function App() {
                 <Route path="/registro-empresa" element={<RegistroEmpresa />} />
                 <Route path="/registro-empleado" element={<RegistroEmpleado />} />
                 <Route path="/registro-sucursal" element={<RegistroSucursal />} />
-                <Route path="/registro-proveedor" element={<RegistroProveedor />} />
+                <Route path="/registro-proveedor" element={<ControlProveedor />} />
                 <Route path="/registro-cliente" element={<RegistroCliente />} />
                 <Route path="/supervision-diaria" element={<ControlSupervisor />} />
                 <Route path="/supervision-diaria/:date" element={<ControlSupervisor />} />
@@ -93,8 +93,8 @@ export default function App() {
                 <Route path="/sobrante/:date" element={<Sobrante />} />
                 <Route path="/graficos/" element={<Graficos />} />
                 <Route path="/graficos/:date" element={<Graficos />} />
-                <Route path="/proveedores/:date" element={<ControlProveedor />} />
-                <Route path="/proveedores" element={<ControlProveedor />} />
+                <Route path="/proveedores/:date" element={<MenuProveedor />} />
+                <Route path="/proveedores" element={<MenuProveedor />} />
               </Route>
             </Routes>
           </BrowserRouter>
