@@ -25,10 +25,8 @@ const MenuProveedor = ({ date, onAddPurchase,  }) => {
   const [isOpen, setIsOpen] = useState(false);
   const modalStatus =false;
   const [buttonId, setButtonId] = useState(null);
-  const [editButtonId, setEditButtonId] = useState(null);
   const [showModal, setShowModal] = useState();
   const [showOpenModal, setShowOpenModal] = useState();
-  
 
   useEffect(() => {
     setShowModal(modalStatus)
@@ -38,7 +36,7 @@ const MenuProveedor = ({ date, onAddPurchase,  }) => {
   const changeShowModal = () => {
     setShowModal((prev) => !prev);
   };
-  
+
   const editShowModal = () => {
     setShowOpenModal((prev) => !prev);
   }
@@ -288,7 +286,7 @@ const MenuProveedor = ({ date, onAddPurchase,  }) => {
                 <button
                   id={provider._id}
                   onClick={editShowModal}
-              
+
                   className="bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3 "
                 >
                   <span>
