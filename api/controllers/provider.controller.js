@@ -6,6 +6,23 @@ import ProviderReturns from "../models/providers/provider.returns.model.js";
 import ProviderMovements from "../models/providers/provider.movement.model.js";
 import { getDayRange } from "../utils/formatDate.js";
 
+export const providerAggregate = (localField, as) => {
+
+  return [
+    {
+      $lookup: {
+        from: "providers",
+        localField,
+        foreignField: "_id",
+        as,
+      },
+    },
+    {
+      $unwind: { path: `$${as}`, preserveNullAndEmptyArrays: true },
+    }
+  ]
+}
+
 export const newProvider = async (req, res, next) => {
   const { name, phoneNumber, location, company } = req.body;
 
@@ -288,9 +305,13 @@ export const getMovements = async (req, res, next) => {
   const companyId = req.params.companyId;
 
   try {
-    const movements = await ProviderMovements.find({ company: companyId }).sort({
-      position: 1,
-    });
+    const movements = await ProviderMovements.aggregate([
+      {
+        $match: {
+          company: new Types.ObjectId(companyId),
+        },
+      },
+    ])
 
     res.status(200).json(movements);
   } catch (error) {
