@@ -25,9 +25,12 @@ const MenuProveedor = () => {
   const modalStatus = false;
   const [buttonId, setButtonId] = useState(null);
   const [showModal, setShowModal] = useState();
-  const [showOpenModal, setShowOpenModal] = useState();
+  const [providerToUpdate, setProviderToUpdate] = useState(null)
 
+  const handleAddProvider = (provider) => {
 
+    setProviders((prevProviders) => [provider, ...prevProviders])
+  }
 
   useEffect(() => {
     setShowModal(modalStatus);
@@ -35,17 +38,6 @@ const MenuProveedor = () => {
 
   const changeShowModal = () => {
     setShowModal((prev) => !prev);
-  };
-
-  const editShowModal = () => {
-    setShowOpenModal((prev) => !prev);
-  }
-
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.id]: e.target.value,
-    });
   };
 
   const handleSearchBarChange = (e) => {
@@ -246,8 +238,7 @@ const MenuProveedor = () => {
               <div className="col-span-2 my-auto">
                 <button
                   id={provider._id}
-                  onClick={editShowModal}
-
+                  onClick={() => { handleSetProviderToUpdate(provider)}}
                   className="bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3 "
                 >
                   <span>
