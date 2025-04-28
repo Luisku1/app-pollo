@@ -5,6 +5,9 @@ import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import store from './store';
 import { DateProvider } from './context/DateContext';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+const queryClient = new QueryClient();
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
@@ -12,7 +15,9 @@ root.render(
     <Provider store={store}>
       <BrowserRouter>
         <DateProvider>
-          <App />
+          <QueryClientProvider client={queryClient}>
+            <App />
+          </QueryClientProvider>
         </DateProvider>
       </BrowserRouter>
     </Provider>

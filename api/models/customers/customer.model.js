@@ -17,6 +17,15 @@ const customerSchema = mongoose.Schema({
     required: true
   },
 
+  balance: {
+    type: Number,
+    default: 0
+  },
+
+  address: {
+    type: String
+  },
+
   active: {
     type: Boolean,
     default: true
@@ -30,6 +39,7 @@ const customerSchema = mongoose.Schema({
     type: Schema.Types.ObjectId, ref: 'Company',
     required: true
   }
+
 }, {timestamps: {createdAt: true, updatedAt: false}})
 
 customerSchema.index({phoneNumber: 1, company: 1}, {unique: true})
