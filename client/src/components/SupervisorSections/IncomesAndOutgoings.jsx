@@ -3,11 +3,16 @@ import { useSelector } from "react-redux";
 import { useIncomes } from "../../hooks/Incomes/useIncomes";
 import Incomes from "../Incomes/Incomes";
 import ExtraOutgoings from "../Outgoings/ExtraOutgoings";
+import { useDate } from "../../context/DateContext";
 
-export default function IncomesAndOutgoings({ date, companyId, branchAndCustomerSelectOptions, employees, branches }) {
+export default function IncomesAndOutgoings({ companyId, branchAndCustomerSelectOptions, employees, branches }) {
+
+  const { currentDate } = useDate()
+
+  console.log('currentDate', currentDate)
 
   const { currentUser } = useSelector((state) => state.user)
-  const { incomes, incomesTotal, onAddIncome, pushIncome, spliceIncomeById, onDeleteIncome } = useIncomes({ companyId, date })
+  const { incomes, incomesTotal, onAddIncome, pushIncome, spliceIncomeById, onDeleteIncome } = useIncomes({ companyId, date: currentDate })
 
   return (
     <div>
@@ -17,7 +22,7 @@ export default function IncomesAndOutgoings({ date, companyId, branchAndCustomer
         onDeleteIncome={onDeleteIncome}
         onAddIncome={onAddIncome}
         branchAndCustomerSelectOptions={branchAndCustomerSelectOptions}
-        date={date}
+        date={currentDate}
         companyId={companyId}
         currentUser={currentUser}
       />
@@ -25,7 +30,7 @@ export default function IncomesAndOutgoings({ date, companyId, branchAndCustomer
       <ExtraOutgoings
         currentUser={currentUser}
         companyId={companyId}
-        date={date}
+        date={currentDate}
         pushIncome={pushIncome}
         employees={employees}
         branches={branches}

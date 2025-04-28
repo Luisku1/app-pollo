@@ -4,18 +4,18 @@ import Product from '../models/product.model.js'
 import { errorHandler } from '../utils/error.js'
 import { getDayRange } from '../utils/formatDate.js'
 
-export const productAggregate = (localField) => {
+export const productAggregate = (localField, as = null) => {
 	return [
 		{
 			$lookup: {
 				from: 'products',
 				localField: localField,
 				foreignField: '_id',
-				as: 'product'
+				as: as || localField
 			}
 		},
 		{
-			$unwind: { path: '$product', preserveNullAndEmptyArrays: true }
+			$unwind: { path: `$${as || localField}`, preserveNullAndEmptyArrays: true }
 		}
 	]
 }

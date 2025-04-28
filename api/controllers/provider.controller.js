@@ -5,6 +5,9 @@ import ProviderReport from "../models/providers/provider.report.model.js";
 import ProviderReturns from "../models/providers/provider.returns.model.js";
 import ProviderMovements from "../models/providers/provider.movement.model.js";
 import { getDayRange } from "../utils/formatDate.js";
+import { Types } from "mongoose";
+import { productAggregate } from "./product.controller.js";
+import { employeeAggregate } from "./employee.controller.js";
 
 export const providerAggregate = (localField, as) => {
 
@@ -14,11 +17,11 @@ export const providerAggregate = (localField, as) => {
         from: "providers",
         localField,
         foreignField: "_id",
-        as,
+        as: as || localField,
       },
     },
     {
-      $unwind: { path: `$${as}`, preserveNullAndEmptyArrays: true },
+      $unwind: { path: `$${as || localField}`, preserveNullAndEmptyArrays: true },
     }
   ]
 }
@@ -309,8 +312,11 @@ export const getMovements = async (req, res, next) => {
       {
         $match: {
           company: new Types.ObjectId(companyId),
-        },
+        }
       },
+      ...providerAggregate("provider"),
+      ...productAggregate("product"),
+      ...employeeAggregate("employee"),
     ])
 
     res.status(200).json(movements);
@@ -323,9 +329,20 @@ export const getPurchases = async (req, res, next) => {
   const companyId = req.params.companyId;
 
   try {
-    const purchases = await ProviderPurchase.find({ company: companyId }).sort({
-      position: 1,
-    });
+    const purchases = await ProviderMovements.aggregate([
+      {
+        $match: {
+          company: new Types.ObjectId(companyId),
+          isReturn: false,
+        }
+      },
+      ...providerAggregate("provider"),
+      ...productAggregate("product"),
+      ...employeeAggregate("employee"),
+    ]);
+    if (purchases.length === 0) {
+      return res.status(404).json({ message: "No hay compras registradas en este proveedor" });
+    }
 
     res.status(200).json({ purchases: purchases });
   } catch (error) {

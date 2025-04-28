@@ -27,6 +27,8 @@ const MenuProveedor = () => {
   const [showModal, setShowModal] = useState();
   const [showOpenModal, setShowOpenModal] = useState();
 
+
+
   useEffect(() => {
     setShowModal(modalStatus);
   }, [modalStatus]);
@@ -139,7 +141,7 @@ const MenuProveedor = () => {
 
     fetchProviders();
   }, [company._id]);
-  
+
   const handleSetProviderToUpdate = (provider) => {
 
     setProviderToUpdate(provider)

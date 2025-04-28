@@ -289,7 +289,7 @@ export const createDefaultBranchReport = async ({ branchId, date, companyId, pri
 
   const { bottomDate } = getDayRange(date)
 
-  const newBranchReport = await BranchReport.create({ branch: branchId, createdAt: bottomDate, company: companyId, pricesDate: bottomDate, pricesDate })
+  const newBranchReport = await BranchReport.create({ branch: branchId, createdAt: bottomDate, company: companyId, pricesDate: bottomDate, pricesDate: pricesDate || bottomDate })
 
   return newBranchReport
 }

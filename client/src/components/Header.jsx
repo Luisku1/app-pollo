@@ -59,7 +59,7 @@ export default function Header() {
 
       if (matchesSearch && matchesRole) {
         if (!isToday && option.date) {
-          if (option.dateRole && !isManager(currentUser.role)) {
+          if (option.dateRole && !isManager(currentUser?.role)) {
             return option;
           }
           return [

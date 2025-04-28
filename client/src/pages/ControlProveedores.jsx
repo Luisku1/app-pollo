@@ -15,6 +15,7 @@ const ControlProveedores = () => {
   //const [registers, setRegisters] = useState([]);
   const [registerId, setRegisterId] = useState(null);
   const [error, setError] = useState(null);
+  const isEmpty = movements.length === 0 || !movements; // undefined null 0
 
   const handleDetails = () => {
     setShowDetails((prev) => !prev);
@@ -124,7 +125,7 @@ const ControlProveedores = () => {
         </div>
       </div>
       <div>
-        {movements
+        {!isEmpty && movements
           .filter((movement) => movement.isReturn == showRegister)
           .map((register) => (
             <div key={register._id}>
@@ -135,10 +136,10 @@ const ControlProveedores = () => {
                 }}
               >
                 <p className="h-full text-black font-bold text-center">
-                  <b>{register.provider}</b>
+                  <b>{register.provider.name}</b>
                 </p>
                 <p className="h-full text-black font-bold text-center">
-                  <b>{register.product}</b>
+                  <b>{register.product.name}</b>
                 </p>
                 <p className="h-full text-black font-bold text-center">
                   <b>{register.createdAt}</b>
