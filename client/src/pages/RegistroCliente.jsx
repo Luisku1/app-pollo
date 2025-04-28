@@ -80,8 +80,10 @@ export default function RegistroCliente() {
         <form onSubmit={handleSubmit} id="form" className="flex flex-col gap-4">
           <input type="text" name="name" id="name" placeholder="Nombre del cliente o empresa" className='border p-3 rounded-lg' onChange={handleChange} required />
           <input type="text" name="lastName" id="lastName" placeholder="Apellidos (En caso de ser necesario)" className='border p-3 rounded-lg' onChange={handleChange} />
-          <p className="text-xs text-red-700">Ubicación*</p>
-          <input type="text" name="location" id="location" placeholder="https://maps.app.goo.gl/YU99bo6wYVY9AMdL6" required className='border p-3 rounded-lg' onChange={handleChange} />
+          <input type="number" name="balance" id="balance" placeholder="Saldo inicial" className='border p-3 rounded-lg' onChange={handleChange} />
+          <p className="text-xs text-red-700">Ubicación</p>
+          <input type="text" name="address" id="address" placeholder="Dirección del cliente" className='border p-3 rounded-lg' onChange={handleChange} />
+          <input type="text" name="location" id="location" placeholder="https://maps.app.goo.gl/YU99bo6wYVY9AMdL6" className='border p-3 rounded-lg' onChange={handleChange} />
           <input type="tel" name="phoneNumber" id="phoneNumber" placeholder="Teléfono de tu cliente" className='border p-3 rounded-lg' onChange={handleChange} />
           <button disabled={loading} className="bg-button text-white p-3 rounded-lg uppercase hover:opacity-95 disabled:opacity-80">
             {loading ? 'Cargando...' : 'Registrar'}

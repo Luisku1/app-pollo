@@ -12,15 +12,18 @@ import { FaListAlt } from 'react-icons/fa'
 import ShowListModal from '../Modals/ShowListModal'
 import IncomesList from './IncomesList'
 import { ToastDanger, ToastInfo, ToastSuccess } from '../../helpers/toastify'
+import { useSelector } from 'react-redux'
 
-export default function Incomes({ incomes, incomesTotal, onAddIncome, onDeleteIncome, branchAndCustomerSelectOptions, date, companyId, currentUser }) {
+export default function Incomes({ incomes, incomesTotal, onAddIncome, onDeleteIncome, branchAndCustomerSelectOptions, date }) {
 
+  const { currentUser, company } = useSelector((state) => state.user)
   const [incomeFormData, setIncomeFormData] = useState({})
   const { isManager } = useRoles()
   const { incomeTypes } = useIncomeTypes()
   const [selectedCustomerBranchIncomesOption, setSelectedCustomerBranchIncomesOption] = useState(null)
   const [selectedIncomeGroup, setSelectedIncomeGroup] = useState('')
   const [selectedIncomeType, setSelectedIncomeType] = useState(null)
+  const companyId = company?._id ?? company
 
   const resetInputs = () => {
     document.getElementById('income-amount').value = ''
@@ -138,7 +141,7 @@ export default function Incomes({ incomes, incomesTotal, onAddIncome, onDeleteIn
               ListComponent={IncomesList}
               ListComponentProps={{ incomes, incomesTotal, onDeleteIncome }}
               clickableComponent={
-                isManager(currentUser.role) ?
+                isManager(currentUser?.role) ?
                   <p className='font-bold text-lg text-center'>{currency({ amount: incomesTotal ?? 0 })}</p>
                   :
                   <FaListAlt className="h-10 w-10 text-red-600" />

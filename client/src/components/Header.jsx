@@ -7,6 +7,7 @@ import { useRoles } from '../context/RolesContext';
 import { useDate } from '../context/DateContext'; // Import DateContext
 import { formatDate, formatInformationDate } from '../helpers/DatePickerFunctions';
 import { normalizeText } from '../helpers/Functions';
+import { RegistersMenu } from './RegitsersMenu';
 
 export default function Header() {
 
@@ -239,6 +240,7 @@ export default function Header() {
           </div>
         </div>
       </div>
+      <RegistersMenu />
     </header>
   );
 }
