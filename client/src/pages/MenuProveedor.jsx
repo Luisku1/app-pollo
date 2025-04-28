@@ -8,9 +8,9 @@ import { CiSearch } from "react-icons/ci";
 import { useExtraOutgoingsAvg } from "../hooks/ExtraOutgoings/useExtraOutgoingsAvg";
 import { useRoles } from "../context/RolesContext";
 import Modal from "../components/Modals/Modal";
+import CreateUpdateProvider from "../components/CreateUpdateProvider";
 
-
-const MenuProveedor = ({ date, onAddPurchase,  }) => {
+const MenuProveedor = () => {
   const { currentUser } = useSelector((state) => state.user);
   const { company } = useSelector((state) => state.user);
   const [providers, setProviders] = useState([]);
@@ -18,36 +18,26 @@ const MenuProveedor = ({ date, onAddPurchase,  }) => {
     companyId: company._id,
   });
   const [filteredProviders, setFilteredProviders] = useState([]);
-  const [formData, setFormData] = useState({});
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const { isController } = useRoles();
   const [isOpen, setIsOpen] = useState(false);
-  const modalStatus =false;
+  const modalStatus = false;
   const [buttonId, setButtonId] = useState(null);
-  const [editButtonId, setEditButtonId] = useState(null);
   const [showModal, setShowModal] = useState();
-  const [showOpenModal, setShowOpenModal] = useState();
-  
+  const [providerToUpdate, setProviderToUpdate] = useState(null)
+
+  const handleAddProvider = (provider) => {
+
+    setProviders((prevProviders) => [provider, ...prevProviders])
+  }
 
   useEffect(() => {
-    setShowModal(modalStatus)
-    setShowOpenModal(modalStatus);
+    setShowModal(modalStatus);
   }, [modalStatus]);
 
   const changeShowModal = () => {
     setShowModal((prev) => !prev);
-  };
-  
-  const editShowModal = () => {
-    setShowOpenModal((prev) => !prev);
-  }
-
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.id]: e.target.value,
-    });
   };
 
   const handleSearchBarChange = (e) => {
@@ -64,39 +54,29 @@ const MenuProveedor = ({ date, onAddPurchase,  }) => {
     }
   };
 
-  const handleSubmit = async (e) => {
-    const form = document.getElementById("form");
+  const handleUpdateProvider = (paramsProvider) => {
 
-    e.preventDefault();
+    setProviders((prevProviders) => {
 
-    try {
-      setLoading(true);
+      let newProviders = [...prevProviders]
 
-      const res = await fetch("api/provider/create", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          ...formData,
-          company: company._id,
-        }),
-      });
+      newProviders = newProviders.map((provider) => {
 
-      const data = await res.json();
+        if(provider._id === paramsProvider._id) {
+          return paramsProvider
+        }
+        return provider
+      })
 
-      if (data.success === false) {
-        setError(data.message);
-        setLoading(false);
-        return;
-      }
+      return newProviders
+    })
+  }
 
-      form.reset();
-    } catch (error) {
-      setLoading(false);
-      setError(error.message);
-    }
-  };
+  useEffect(() => {
+
+    setFilteredProviders(providers)
+
+  }, [providers])
 
   const clearSearchBar = () => {
     const searchBar = document.getElementById("searchBar");
@@ -129,7 +109,7 @@ const MenuProveedor = ({ date, onAddPurchase,  }) => {
       setError(error.message);
       setLoading(false);
     }
-    console.log(index)
+    console.log(index);
   };
 
   useEffect(() => {
@@ -153,10 +133,10 @@ const MenuProveedor = ({ date, onAddPurchase,  }) => {
 
     fetchProviders();
   }, [company._id]);
+  
+  const handleSetProviderToUpdate = (provider) => {
 
-  const editProvider = async (providerId, index) => {
-    deleteProvider(providerId, index);
-    editShowModal;
+    setProviderToUpdate(provider)
   }
 
   return (
@@ -170,47 +150,18 @@ const MenuProveedor = ({ date, onAddPurchase,  }) => {
             Registra un proveedor
           </button>
         </div>
+        {error && (
+          <Modal
+            content={<p>{error}</p>}
+            closeModal={() => setError(null)}
+            closeOnClickOutside={true}
+            closeOnEsc={true}
+          />
+        )}
         {showModal && (
           <Modal
             title={"Registro de Proveedor"}
-            content={
-              <form
-                onSubmit={handleSubmit}
-                id="form"
-                className="flex flex-col gap-4"
-              >
-                <input
-                  type="text"
-                  name="name"
-                  id="name"
-                  placeholder="Nombre del proveedor"
-                  className="border p-3 rounded-lg"
-                  onChange={handleChange}
-                  required
-                />
-                <input
-                  type="tel"
-                  name="phoneNumber"
-                  id="phoneNumber"
-                  placeholder="Teléfono del proveedor"
-                  className="border p-3 rounded-lg"
-                  onChange={handleChange}
-                  required
-                />
-                <p className="text-xs text-red-700">Ubicación*</p>
-                <input
-                  type="text"
-                  name="location"
-                  id="location"
-                  placeholder="https://maps.app.goo.gl/YU99bo6wYVY9AMdL6"
-                  className="border p-3 rounded-lg"
-                  onChange={handleChange}
-                />
-                <button className="bg-button text-white p-3 rounded-lg uppercase hover:opacity-95 disabled:opacity-80">
-                  REGISTRAR
-                </button>
-              </form>
-            }
+            content={<CreateUpdateProvider handleAddProvider={handleAddProvider} />}
             closeModal={changeShowModal}
             closeOnClickOutside={true}
             closeOnEsc={true}
@@ -287,58 +238,18 @@ const MenuProveedor = ({ date, onAddPurchase,  }) => {
               <div className="col-span-2 my-auto">
                 <button
                   id={provider._id}
-                  onClick={editShowModal}
-              
+                  onClick={() => { handleSetProviderToUpdate(provider)}}
                   className="bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3 "
                 >
                   <span>
                     <MdEdit className="text-blue-700 m-auto" />
                   </span>
                 </button>
-                {showOpenModal && (
+                {providerToUpdate && (
                   <Modal
                     title={"Modificación del Proveedor"}
-                    content={
-                      <form
-                        onSubmit={handleSubmit}
-                        id="form"
-                        className="flex flex-col gap-4"
-                      >
-                        <input
-                          type="text"
-                          name="name"
-                          id="name"
-                          value={provider.name}
-                          placeholder="Nombre del proveedor"
-                          className="border p-3 rounded-lg"
-                          onChange={handleChange}
-                          required
-                        />
-                        <input
-                          type="tel"
-                          name="phoneNumber"
-                          id="phoneNumber"
-                          placeholder="Teléfono del proveedor"
-                          className="border p-3 rounded-lg"
-                          onChange={handleChange}
-                          required
-                        />
-                        <p className="text-xs text-red-700">Ubicación*</p>
-                        <input
-                          type="text"
-                          name="location"
-                          id="location"
-                          placeholder="https://maps.app.goo.gl/YU99bo6wYVY9AMdL6"
-                          className="border p-3 rounded-lg"
-                          onChange={handleChange}
-                        />
-                        <button
-                         className="bg-button text-white p-3 rounded-lg uppercase hover:opacity-95 disabled:opacity-80">
-                          MODIFICAR
-                        </button>
-                      </form>
-                    }
-                    closeModal={editShowModal}
+                    content={<CreateUpdateProvider provider={providerToUpdate} handleUpdateProvider={handleUpdateProvider} closeModal={() => {setProviderToUpdate(null)}} />}
+                    closeModal={() => {setProviderToUpdate(null)}}
                     closeOnClickOutside={true}
                     closeOnEsc={true}
                   ></Modal>

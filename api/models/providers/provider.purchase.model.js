@@ -2,6 +2,31 @@ import mongoose, { Schema } from 'mongoose'
 
 const providerPurchaseSchema = mongoose.Schema({
 
+  isReturn: {
+    type: Boolean,
+    default: false
+  },
+
+  branche: {
+    type: String, ref: 'Branche',
+    required: true
+  },
+
+  supervisor: {
+    type: String, ref: 'Supervisor',
+    required: true
+  },
+
+  provider: {
+    type: String, ref: 'Provider',
+    required: true
+  },
+
+  product: {
+    type: String, ref: 'Product',
+    required: true
+  },
+
   weight: {
     type: Number,
     required: true
@@ -17,50 +42,14 @@ const providerPurchaseSchema = mongoose.Schema({
     required: true
   },
 
-  pieces: {
-    type: Number,
-    required: true
-  },
-
   comment: {
     type: String,
-    validate: {
-      validator: function(v) {
-        return v.length <= 200;
-      },
-      message: 'Comment should be less than 200 characters'
-    }
-  },
-
-  isReturn: {
-    type: Boolean,
-    default: false
   },
 
   specialPrice: {
     type: Boolean,
     default: false
   },
-
-  product: {
-    type: Schema.Types.ObjectId, ref: 'Product',
-    required: true
-  },
-
-  company: {
-    type: Schema.Types.ObjectId, ref: 'Company',
-    required: true
-  },
-
-  supervisor: {
-    type: Schema.Types.ObjectId, ref: 'Employee',
-    required: true
-  },
-
-  provider: {
-    type: Schema.Types.ObjectId, ref: 'Provider',
-    required: true
-  }
 
 }, { timestamps: true })
 

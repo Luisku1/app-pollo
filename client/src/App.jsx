@@ -27,7 +27,7 @@ import Graficos from './pages/Graficos';
 import PreciosSucursal from './pages/PreciosSucursal';
 import RegistroCliente from './pages/RegistroCliente';
 import MenuProveedor from './pages/MenuProveedor';
-import ControlProveedor from './pages/ControlProveedor';
+import ControlProveedor from './pages/ControlProveedores';
 import './index.css';
 import { useSelector } from 'react-redux';
 import { DateProvider } from './context/DateContext';
@@ -77,7 +77,7 @@ export default function App() {
                 <Route path="/registro-empresa" element={<RegistroEmpresa />} />
                 <Route path="/registro-empleado" element={<RegistroEmpleado />} />
                 <Route path="/registro-sucursal" element={<RegistroSucursal />} />
-                <Route path="/registro-proveedor" element={<ControlProveedor />} />
+                <Route path="/control-proveedores" element={<ControlProveedor />} />
                 <Route path="/registro-cliente" element={<RegistroCliente />} />
                 <Route path="/supervision-diaria" element={<ControlSupervisor />} />
                 <Route path="/supervision-diaria/:date" element={<ControlSupervisor />} />

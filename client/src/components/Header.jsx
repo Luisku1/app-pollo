@@ -1,8 +1,7 @@
-import { GiChicken } from 'react-icons/gi';
 import { Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { useEffect, useState } from 'react';
-import { MdSearch, MdHome, MdNotifications, MdDehaze } from "react-icons/md"; // Added MdHome
+import { MdSearch, MdHome } from "react-icons/md"; // Added MdHome
 import '../assets/dropdown.css';
 import { useRoles } from '../context/RolesContext';
 import { useDate } from '../context/DateContext'; // Import DateContext
@@ -37,7 +36,7 @@ export default function Header() {
     { text: 'Supervisión', link: '/supervision-diaria', role: 'supervisor', date: true },
     { text: 'Registro Empleado', link: '/registro-empleado', role: 'supervisor', dateRole: true },
     { text: 'Registro Cliente', link: '/registro-cliente', role: 'supervisor' },
-    { text: 'Registro Proveedor', link: '/registro-proveedor', role: 'supervisor' },
+    { text: 'Control Proveedores', link: '/control-proveedores', role: 'supervisor' },
     { text: 'Sucursales', link: '/sucursales', role: 'supervisor' },
     { text: 'Reporte', link: '/reporte', role: 'supervisor', date: true },
     { text: 'Nomina', link: '/nomina', role: 'manager', date: true, dateRole: true },
