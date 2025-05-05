@@ -9,9 +9,9 @@ import { formatDateAndTime, formatTime } from "../../helpers/DatePickerFunctions
 import RowItem from "../RowItem"
 import { CgProfile } from "react-icons/cg"
 import ConfirmationButton from "../Buttons/ConfirmationButton"
-import MoneyBag from "../Icons/MoneyBag"
 import { CiSquareInfo } from "react-icons/ci"
 import EmployeeInfo from "../EmployeeInfo"
+import { MoneyBag } from "../Reutilizable/Labels"
 
 export default function OutgoingsList({ outgoings, onDelete, modifyBalance }) {
   const { currentUser } = useSelector((state) => state.user)

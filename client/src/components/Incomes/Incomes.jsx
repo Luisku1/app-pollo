@@ -14,7 +14,7 @@ import IncomesList from './IncomesList'
 import { ToastDanger, ToastInfo, ToastSuccess } from '../../helpers/toastify'
 import { useSelector } from 'react-redux'
 
-export default function Incomes({ incomes, incomesTotal, onAddIncome, onDeleteIncome, branchAndCustomerSelectOptions, date }) {
+export default function Incomes({ incomes, incomesTotal, onAddIncome, onDeleteIncome, branchAndCustomerSelectOptions }) {
 
   const { currentUser, company } = useSelector((state) => state.user)
   const [incomeFormData, setIncomeFormData] = useState({})
@@ -154,6 +154,7 @@ export default function Incomes({ incomes, incomesTotal, onAddIncome, onDeleteIn
           <BranchAndCustomerSelect defaultLabel={'Sucursal o Cliente'} options={branchAndCustomerSelectOptions} selectedOption={selectedCustomerBranchIncomesOption} handleSelectChange={handleCustomerBranchIncomesSelectChange}></BranchAndCustomerSelect>
           <Select
             styles={customSelectStyles}
+            menuPortalTarget={document.body}
             value={selectedIncomeType}
             onChange={handleTypesSelectChange}
             options={getArrayForSelects(incomeTypes, (type) => { return type.name })}

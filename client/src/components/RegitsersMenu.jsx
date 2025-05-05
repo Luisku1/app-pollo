@@ -8,10 +8,13 @@ export const RegistersMenu = () => {
   const [isOpen, setIsOpen] = useState(false);
   const menu = [
     { title: "Dinero", onSelec: () => { return <Incomes /> } },
+    { title: "Pago a empleados", onSelec: () => { } },
+    { title: "Entrada de Proveedor", onSelec: () => { } },
     { title: "Entradas", onSelec: () => { } },
     { title: "Salidas", onSelec: () => { } },
     { title: "Gastos", onSelec: () => { } },
-    { title: "Pago a empleados", onSelec: () => { } }
+    { title: "Formato", onSelec: () => { } },
+    { title: "Descansos", onSelec: () => { } },
   ]
 
   const toggleMenu = () => {
@@ -28,7 +31,16 @@ export const RegistersMenu = () => {
       </button>
 
       {isOpen && (
-        <div className="fixed bottom-16 right-4 bg-white shadow-lg rounded-lg p-4 z-50">
+        <div
+          className='fixed inset-0 bg-transparent'
+          onClick={() => setIsOpen(false)}
+        ></div>
+      )}
+
+      {isOpen && (
+        <div
+          className="fixed bottom-16 right-4 bg-white shadow-lg rounded-lg p-4 z-50 max-h-80 overflow-y-auto h-auto border border-gray-300 "
+        >
           <h2 className="text-lg font-bold mb-2">Menu</h2>
           <ul className="space-y-2">
             {menu.map((item, index) => (
@@ -52,6 +64,7 @@ export const RegistersMenu = () => {
         <Modal
           content={showing}
           ableToClose={true}
+          fit={true}
           closeOnClickOutside={true}
           closeModal={() => setShowing(null)}
         />

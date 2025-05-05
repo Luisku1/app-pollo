@@ -16,8 +16,10 @@ export default function Modal({
   closeOnClickOutside = true,
   closeOnClickInside = false,
   width = "11/12",
+  fit = false,
   shape = "",
   loading = false,
+  adjustForKeyboard = false,
 }) {
   const { modals, removeLastModal, count, setCount } = useContext(ModalContext);
 
@@ -42,6 +44,20 @@ export default function Modal({
       }
     };
 
+    const handleResize = () => {
+      if (adjustForKeyboard) {
+        const viewportHeight = window.innerHeight;
+        const modalElement = ref?.current;
+        if (modalElement) {
+          modalElement.style.top = `${(5 / 6) * viewportHeight}px`;
+        }
+      }
+    };
+
+    if (adjustForKeyboard) {
+      window.addEventListener("resize", handleResize);
+    }
+
     // Agregar eventos y estado falso al montar
     document.addEventListener("keydown", handleKeyDown);
     window.addEventListener("popstate", handlePopState);
@@ -52,15 +68,19 @@ export default function Modal({
       document.body.style.overflow = "auto";
       document.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("popstate", handlePopState);
+      if (adjustForKeyboard) {
+        window.removeEventListener("resize", handleResize);
+      }
       setCount((prevCount) => prevCount - 1);
     };
-  }, [ableToClose, closeModal, removeLastModal, modals.length]);
+  }, [ableToClose, closeModal, removeLastModal, modals.length, adjustForKeyboard]);
 
   const renderModal = () => {
     const zIndex = 1000 + count;
     return (
       <div
         className={`fixed transition-all duration-200 inset-0 z-[10000] bg-black bg-opacity-30 overflow-y-auto backdrop-blur-sm flex items-center justify-center pt-16`}
+        style={adjustForKeyboard ? { alignItems: "flex-start" } : {}}
         onClick={(e) => {
           if (
             (e.target === e.currentTarget && ableToClose) ||
@@ -73,8 +93,9 @@ export default function Modal({
       >
         <div
           ref={ref}
-          className={`bg-white p-5 shadow-lg h-auto max-h-[90vh] max-w-lg w-${width} overflow-y-auto relative overscroll-contain ${shape} '
+          className={`bg-white shadow-lg h-auto max-h-[90vh] max-w-lg w-${width} overflow-y-auto relative ${fit ? 'w-fit h-fit' : 'p-5'} overscroll-contain ${shape} '
           `}
+          style={adjustForKeyboard ? { position: "absolute", top: "5/6" } : {}}
           onClick={(e) => {
             if (closeOnClickInside && ableToClose) {
               closeModal();
@@ -105,7 +126,7 @@ export default function Modal({
 
           {extraInformation && extraInformation()}
 
-          <div className="mt-4 mb-4">
+          <div className={`${fit ? '' : 'mt-4 mb-4'}`}>
             {title && <SectionHeader label={title} />}
             <div>{content}</div>
           </div>

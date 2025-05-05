@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import { useSelector } from 'react-redux'
 import DeleteButton from './Buttons/DeleteButton'
-import { formatDateAndTime, formatInformationDate, formatTime } from '../helpers/DatePickerFunctions'
+import { formatDateAndTime } from '../helpers/DatePickerFunctions'
 import { useRoles } from '../context/RolesContext'
 import { getEmployeeFullName, currency } from '../helpers/Functions'
 import { useState, useMemo } from 'react'
@@ -9,11 +9,10 @@ import ShowDetails from "./ShowDetails"
 import RowItem from "./RowItem"
 import { CgProfile } from "react-icons/cg"
 import ConfirmationButton from "./Buttons/ConfirmationButton"
-import MoneyBag from './Icons/MoneyBag'
 import Amount from './Incomes/Amount'
-import BranchName from './BranchName'
 import EmployeeInfo from './EmployeeInfo'
 import { CiSquareInfo } from 'react-icons/ci'
+import { BranchName, MoneyBag } from './Reutilizable/Labels'
 
 export default function EmployeePaymentsList({ payments, onDelete = null, spliceIncome, spliceExtraOutgoing }) {
 

@@ -16,7 +16,7 @@ export default function Empleados() {
 
   const { company } = useSelector((state) => state.user)
   const date = (new Date()).toISOString().split('T')[0]
-  const { employees, activeEmployees, inactiveEmployees, setFilterString, changeEmployeeActiveStatus, onUpdateEmployee, spliceEmployee, loading, error } = useEmployees({ companyId: company._id, date, onlyActiveEmployees: false })
+  const { employees, activeEmployees, inactiveEmployees, setFilterString, changeEmployeeActiveStatus, onUpdateEmployee, spliceEmployee, loading, refetch, error } = useEmployees({ companyId: company._id })
   const { deleteEmployee } = useDeleteEmployee()
   const [hoveredIndex, setHoveredIndex] = useState(null)
   const [isOpen, setIsOpen] = useState(false)

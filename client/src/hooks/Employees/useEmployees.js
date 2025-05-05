@@ -1,18 +1,40 @@
 import { useEffect, useMemo, useState } from "react"
-import { getEmployeesNameList } from "../../services/employees/employeesNameList"
 import { getAllEmployees } from "../../services/employees/getAllEmployees"
 import { changeActiveStatus } from "../../services/employees/changeActiveStatus"
-import { ToastSuccess } from "../../helpers/toastify"
+import { ToastInfo, ToastSuccess } from "../../helpers/toastify"
 import { getEmployeeFullName, normalizeText } from "../../helpers/Functions"
 import { useUpdateEmployee } from "./useUpdateEmployee"
+import { useQuery } from "@tanstack/react-query"
 
-export const useEmployees = ({ companyId, date, onlyActiveEmployees = true }) => {
+export const useEmployees = ({ companyId }) => {
 
   const [employees, setEmployees] = useState([])
   const { updateEmployee, loading: updating } = useUpdateEmployee()
-  const [loading, setLoading] = useState(false)
-  const [filterString, setFilterString] = useState('')
   const [error, setError] = useState(null)
+  const [filterString, setFilterString] = useState('')
+
+  const { data, isLoading, refetch } = useQuery({
+    queryKey: ["employees", companyId],
+    queryFn: async () => {
+      if (!companyId) return [];
+      return await getAllEmployees({ companyId });
+    },
+    enabled: !!companyId,
+    onError: (error) => {
+      setError(error);
+      ToastInfo(error);
+    },
+    onSuccess: () => {
+      setError(null);
+    },
+    retry: false,
+  });
+
+  useEffect(() => {
+    if (data) setEmployees(data);
+  }, [data]);
+
+  const loading = isLoading;
 
   const changeEmployeeActiveStatus = ({ employee }) => {
 
@@ -74,46 +96,13 @@ export const useEmployees = ({ companyId, date, onlyActiveEmployees = true }) =>
     });
   }, [employees, filterString]);
 
-  useEffect(() => {
-
-    if (!companyId) return
-
-    setLoading(true)
-
-    if (onlyActiveEmployees) {
-
-      getEmployeesNameList({ companyId }).then((response) => {
-
-        setEmployees(response)
-
-      }).catch((error) => {
-
-        setError(error)
-      })
-
-    } else {
-
-      getAllEmployees({ companyId }).then((response) => {
-
-        setEmployees(response)
-
-      }).catch((error) => {
-
-        setError(error)
-      })
-    }
-
-    setLoading(false)
-
-  }, [companyId, onlyActiveEmployees, date])
-
   const { activeEmployees, inactiveEmployees } = useMemo(() => {
 
-    const activeEmployees = employees.filter((employee) => employee.active && normalizeText(getEmployeeFullName(employee))
+    const activeEmployees = employees.filter((employee) => !filterString ? employee.active : employee.active && normalizeText(getEmployeeFullName(employee))
       .toLowerCase()
       .includes(normalizeText(filterString).toLowerCase()) ||
       (employee.phoneNumber && employee.phoneNumber.includes(filterString.replace('-', ''))))
-    const inactiveEmployees = employees.filter((employee) => !employee.active && normalizeText(getEmployeeFullName(employee))
+    const inactiveEmployees = employees.filter((employee) => !filterString ? !employee.active : !employee.active && normalizeText(getEmployeeFullName(employee))
       .toLowerCase()
       .includes(normalizeText(filterString).toLowerCase()) ||
       (employee.phoneNumber && employee.phoneNumber.includes(filterString.replace('-', ''))))
@@ -123,7 +112,7 @@ export const useEmployees = ({ companyId, date, onlyActiveEmployees = true }) =>
   }, [employees, filterString])
 
   return {
-    employees: filteredEmployees, activeEmployees, inactiveEmployees,
+    employees: filteredEmployees, activeEmployees, inactiveEmployees, refetch,
     spliceEmployee, onUpdateEmployee, setFilterString, changeEmployeeActiveStatus, loading, updating, error
   }
 }

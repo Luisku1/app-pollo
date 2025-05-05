@@ -175,7 +175,7 @@ export default function Nomina() {
                           <p className="col-span-5 font-semibold">Fecha</p>
                           <div className="col-span-2">
                             <p className="text-xs">Cuenta en pollería</p>
-                            <p className={(accountBalance < 0 ? 'text-red-500' : '') + ' text-xs my-auto'}>{employeePayroll.accountBalance.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>
+                            <p className={(accountBalance < 0 ? 'text-red-500' : '') + ' text-xs my-auto'}>{accountBalance.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>
                           </div>
                           <div className="col-span-2 text-center">
                             <p className="text-xs  text-center">Cuenta</p>

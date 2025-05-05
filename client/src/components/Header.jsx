@@ -59,7 +59,7 @@ export default function Header() {
 
       if (matchesSearch && matchesRole) {
         if (!isToday && option.date) {
-          if (option.dateRole && !isManager(currentUser.role)) {
+          if (option.dateRole && !isManager(currentUser?.role)) {
             return option;
           }
           return [
@@ -71,7 +71,7 @@ export default function Header() {
             let yesterdayDate = new Date(currentDate);
             yesterdayDate.setDate(yesterdayDate.getDate() - 1);
             yesterdayDate = formatDate(yesterdayDate);
-            if (option.dateRole && !isManager(currentUser.role)) {
+            if (option.dateRole && !isManager(currentUser?.role)) {
               return option;
             }
             return [
