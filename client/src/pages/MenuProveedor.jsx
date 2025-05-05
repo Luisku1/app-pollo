@@ -11,8 +11,7 @@ import Modal from "../components/Modals/Modal";
 import CreateUpdateProvider from "../components/CreateUpdateProvider";
 
 const MenuProveedor = () => {
-  const { currentUser } = useSelector((state) => state.user);
-  const { company } = useSelector((state) => state.user);
+  const { currentUser, company } = useSelector((state) => state.user);
   const [providers, setProviders] = useState([]);
   const { extraOutgoingsAvg } = useExtraOutgoingsAvg({
     companyId: company._id,

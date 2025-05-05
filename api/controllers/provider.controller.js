@@ -10,7 +10,6 @@ import { productAggregate } from "./product.controller.js";
 import { employeeAggregate } from "./employee.controller.js";
 
 export const providerAggregate = (localField, as) => {
-
   return [
     {
       $lookup: {
@@ -21,10 +20,13 @@ export const providerAggregate = (localField, as) => {
       },
     },
     {
-      $unwind: { path: `$${as || localField}`, preserveNullAndEmptyArrays: true },
-    }
-  ]
-}
+      $unwind: {
+        path: `$${as || localField}`,
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+  ];
+};
 
 export const newProvider = async (req, res, next) => {
   const { name, phoneNumber, location, company } = req.body;
@@ -304,6 +306,27 @@ export const newMovement = async (req, res, next) => {
   }
 };
 
+export const deleteMovement = async (req, res, next) => {
+  const movementId = req.params.movementId;
+  let deletedMovement = null;
+
+  try {
+    // Buscar y eliminar el movimiento por su ID
+    deletedMovement = await ProviderMovements.findByIdAndDelete(movementId);
+
+    if (!deletedMovement) {
+      throw new Error("No se encontró el movimiento para eliminar");
+    }
+
+    res.status(200).json({
+      message: "Movimiento eliminado con éxito",
+      movement: deletedMovement,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const getMovements = async (req, res, next) => {
   const companyId = req.params.companyId;
 
@@ -312,18 +335,18 @@ export const getMovements = async (req, res, next) => {
       {
         $match: {
           company: new Types.ObjectId(companyId),
-        }
+        },
       },
       ...providerAggregate("provider"),
       ...productAggregate("product"),
       ...employeeAggregate("employee"),
-    ])
+    ]);
 
     res.status(200).json(movements);
   } catch (error) {
     next(error);
   }
-}
+};
 
 export const getPurchases = async (req, res, next) => {
   const companyId = req.params.companyId;
@@ -334,45 +357,19 @@ export const getPurchases = async (req, res, next) => {
         $match: {
           company: new Types.ObjectId(companyId),
           isReturn: false,
-        }
+        },
       },
       ...providerAggregate("provider"),
       ...productAggregate("product"),
       ...employeeAggregate("employee"),
     ]);
     if (purchases.length === 0) {
-      return res.status(404).json({ message: "No hay compras registradas en este proveedor" });
+      return res
+        .status(404)
+        .json({ message: "No hay compras registradas en este proveedor" });
     }
 
     res.status(200).json({ purchases: purchases });
-  } catch (error) {
-    next(error);
-  }
-};
-
-export const deletePurchase = async (req, res, next) => {
-  const purchaseId = req.params.purchaseId;
-  let deletedPurchase = null;
-
-  try {
-    deletedPurchase = await ProviderPurchase.findByIdAndDelete(purchaseId);
-
-    if (!deletedPurchase) throw new Error("No se eliminó el la compra");
-
-    await pushOrPullProviderReportRecord({
-      providerId: deletedPurchase.provider,
-      date: deletedPurchase.createdAt,
-      record: deletedPurchase,
-      affectsBalancePositively: false,
-      operation: "$pull",
-      arrayField: "purchasesArray",
-      amountField: "purchasesAmount",
-    });
-
-    res.status(200).json({
-      message: "Compra eliminada correctamente",
-      deletedPurchase,
-    });
   } catch (error) {
     next(error);
   }
@@ -501,6 +498,16 @@ export const newPayment = async (req, res, next) => {
   }
 };
 
+/*
+export const getPayments = async() =>{
+  
+}
+
+
+export const getProviderPayments = async()=>{
+
+}
+*/
 export const deletePayment = async (req, res, next) => {
   const paymentId = req.params.paymentId;
   let deletedPayment = null;
