@@ -279,11 +279,14 @@ export const newMovement = async (req, res, next) => {
     comment,
     employee,
     company,
+    createdAt,
     specialPrice,
   } = req.body;
 
+  console.log(req.body);
+
   try {
-    const movements = await ProviderMovements.create({
+    const movement = await ProviderMovements.create({
       isReturn,
       employee,
       company,
@@ -293,15 +296,19 @@ export const newMovement = async (req, res, next) => {
       price,
       amount: isReturn ? -amount : amount,
       comment,
+      createdAt,
       specialPrice,
     });
 
+    console.log(movement);
+
     res.status(201).json({
-      data: movements,
+      data: movement,
       message: "transacción registrada correctamente",
       success: true,
     });
   } catch (error) {
+    console.log(error);
     next(error);
   }
 };
@@ -329,11 +336,15 @@ export const deleteMovement = async (req, res, next) => {
 
 export const getMovements = async (req, res, next) => {
   const companyId = req.params.companyId;
+  const date = req.params.date;
+
+  const { bottomDate, topDate } = getDayRange(date);
 
   try {
     const movements = await ProviderMovements.aggregate([
       {
         $match: {
+          createdAt: { $gte: new Date(bottomDate), $lt: new Date(topDate) },
           company: new Types.ObjectId(companyId),
         },
       },
@@ -500,7 +511,7 @@ export const newPayment = async (req, res, next) => {
 
 /*
 export const getPayments = async() =>{
-  
+
 }
 
 

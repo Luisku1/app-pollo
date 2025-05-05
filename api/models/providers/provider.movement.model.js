@@ -38,9 +38,9 @@ const providerMovementsSchema = mongoose.Schema(
     },
 
     provider: {
-        type: Schema.Types.ObjectId, ref: 'Provider',
-        required: true
-      },
+      type: Schema.Types.ObjectId, ref: 'Provider',
+      required: true
+    },
 
     product: {
       type: Schema.Types.ObjectId,
@@ -57,11 +57,8 @@ const providerMovementsSchema = mongoose.Schema(
   { timestamps: { createdAt: true, updatedAt: false } }
 );
 
-providerMovementsSchema.index({ createdAt: -1, provider: 1 }, { unique: true });
-providerMovementsSchema.index(
-  { company: 1, createdAt: -1, provider: 1 },
-  { unique: true }
-);
+providerMovementsSchema.index({ createdAt: -1, provider: 1 });
+providerMovementsSchema.index({ company: 1, createdAt: -1, provider: 1 });
 
 const ProviderMovements = mongoose.model("ProviderMovements", providerMovementsSchema);
 

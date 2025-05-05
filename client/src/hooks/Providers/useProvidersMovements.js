@@ -1,5 +1,4 @@
 import { useEffect, useState, useMemo } from "react";
-import { formatSimpleDate } from "../../helpers/DatePickerFunctions";
 
 export const useProvidersMovements = ({
   companyId = null,
@@ -8,17 +7,17 @@ export const useProvidersMovements = ({
 }) => {
   const [movements, setMovements] = useState([]);
   const [selectedMovement, setSelectedMovement] = useState([]);
-  const [filteredMovement, setFilteredMovement] = useState([]);
-  const [state, setState] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   //Solicitud de Todos los Movimientos hechos a los Proveedores
   useEffect(() => {
+
+    if (!companyId) return;
     const fetchMovements = async () => {
       try {
         const res = await fetch(
-          "/api/provider/get-providers-movements/" + companyId
+          "/api/provider/get-providers-movements/" + companyId + "/" + date,
         );
         const data = await res.json();
 
@@ -32,35 +31,30 @@ export const useProvidersMovements = ({
         setError(error.message);
       }
     };
+    setMovements([])
     fetchMovements();
-  }, [companyId]);
-
-  useEffect(() => {
-    setFilteredMovement(
-      movements.filter(
-        (movement) =>
-          formatSimpleDate(movement.createdAt) == formatSimpleDate(date.dateDay)
-      )
-    );
-  }, [date, movements]);
+  }, [companyId, date]);
 
   useEffect(() => {
     setSelectedMovement(
-      filteredMovement.filter((movement) => movement.isReturn == typeMovement)
+      movements.filter((movement) => movement.isReturn == typeMovement)
     );
-  }, [typeMovement, filteredMovement]);
+  }, [typeMovement, movements]);
 
   const newMovement = async (movementData) => {
-    const form = document.getElementById("form-movement");
-    setLoading(true);
 
     try {
-      const res = await fetch("api/provider/create-providers-movement", {
+      const res = await fetch("/api/provider/create-providers-movement", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(movementData),
+        body: JSON.stringify({
+          ...movementData,
+          employee: movementData?.employee?._id,
+          provider: movementData?.provider?._id,
+          company: movementData?.company?._id,
+        })
       });
 
       const data = await res.json();
@@ -71,13 +65,14 @@ export const useProvidersMovements = ({
         return;
       }
 
-      setMovements((prevMovements) => [data, ...prevMovements]);
+      setMovements((prevMovements) => [movementData, ...prevMovements]);
+      setError(null)
       setLoading(false);
-      form.reset();
     } catch (error) {
+      setError(error)
+      setLoading(false)
       setError(error.message);
     }
-    setState((prevState) => !prevState);
   };
 
   const onDeleteMovement = async (movementId) => {
@@ -123,7 +118,6 @@ export const useProvidersMovements = ({
     selectedMovement,
     totalWeight,
     totalAmount,
-    state,
     loading,
     error,
     newMovement,
