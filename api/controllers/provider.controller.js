@@ -268,97 +268,6 @@ export const pushOrPullProviderReportRecord = async ({
   });
 };
 
-export const newMovement = async (req, res, next) => {
-  const {
-    isReturn,
-    provider,
-    product,
-    weight,
-    price,
-    amount,
-    comment,
-    employee,
-    company,
-    createdAt,
-    specialPrice,
-  } = req.body;
-
-  console.log(req.body);
-
-  try {
-    const movement = await ProviderMovements.create({
-      isReturn,
-      employee,
-      company,
-      provider,
-      product,
-      weight,
-      price,
-      amount: isReturn ? -amount : amount,
-      comment,
-      createdAt,
-      specialPrice,
-    });
-
-    console.log(movement);
-
-    res.status(201).json({
-      data: movement,
-      message: "transacción registrada correctamente",
-      success: true,
-    });
-  } catch (error) {
-    console.log(error);
-    next(error);
-  }
-};
-
-export const deleteMovement = async (req, res, next) => {
-  const movementId = req.params.movementId;
-  let deletedMovement = null;
-
-  try {
-    // Buscar y eliminar el movimiento por su ID
-    deletedMovement = await ProviderMovements.findByIdAndDelete(movementId);
-
-    if (!deletedMovement) {
-      throw new Error("No se encontró el movimiento para eliminar");
-    }
-
-    res.status(200).json({
-      message: "Movimiento eliminado con éxito",
-      movement: deletedMovement,
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-export const getMovements = async (req, res, next) => {
-  const companyId = req.params.companyId;
-  const date = req.params.date;
-
-  const { bottomDate, topDate } = getDayRange(date);
-
-  try {
-    const movements = await ProviderMovements.aggregate([
-      {
-        $match: {
-          createdAt: { $gte: new Date(bottomDate), $lt: new Date(topDate) },
-          company: new Types.ObjectId(companyId),
-        },
-      },
-      ...providerAggregate("provider"),
-      ...productAggregate("product"),
-      ...employeeAggregate("employee"),
-    ]);
-
-    res.status(200).json(movements);
-  } catch (error) {
-    next(error);
-  }
-};
-
 export const getPurchases = async (req, res, next) => {
   const companyId = req.params.companyId;
 
@@ -477,48 +386,151 @@ export const deleteReturn = async (req, res, next) => {
   }
 };
 
-export const newPayment = async (req, res, next) => {
-  const { amount, provider, company } = req.body;
-  let payment = null;
+export const newMovement = async (req, res, next) => {
+  const {
+    isReturn,
+    provider,
+    product,
+    weight,
+    price,
+    pieces,
+    amount,
+    comment,
+    employee,
+    company,
+    createdAt,
+    specialPrice,
+  } = req.body;
 
   try {
-    payment = await ProviderPayment.create({ amount, company, provider });
-
-    if (!payment) throw new Error("No se creó el pago a proveedor");
-
-    await pushOrPullProviderReportRecord({
-      providerId: payment.provider,
-      date: payment.createdAt,
-      record: payment,
-      affectsBalancePositively: true,
-      operation: "$addToSet",
-      arrayField: "paymentsArray",
-      amountField: "paymentsAmount",
+    const movement = await ProviderMovements.create({
+      isReturn,
+      employee,
+      company,
+      provider,
+      product,
+      weight,
+      price,
+      pieces,
+      amount: isReturn ? -amount : amount,
+      comment,
+      createdAt,
+      specialPrice,
     });
 
-    res.status(200).json({
-      message: "Se creó el pago a proveedor",
-      payment,
+    res.status(201).json({
+      data: movement,
+      message: "transacción registrada correctamente",
+      success: true,
     });
   } catch (error) {
-    if (payment) {
-      await ProviderPayment.findByIdAndDelete(payment._id);
-    }
-
+    console.log(error);
     next(error);
   }
 };
 
-/*
-export const getPayments = async() =>{
+export const newPayment = async (req, res, next) => {
+  const {
+    provider,
+    amountCash,
+    amount,
+    isCash,
+    employee,
+    company,
+    createdAt
+  } = req.body;
 
+  try {
+    const payment = await ProviderPayment.create({
+      provider,
+      amount,
+      isCash,
+      amountCash,
+      employee,
+      company,
+      createdAt
+    });
+
+    res.status(201).json({
+      data: Payment,
+      message: "transacción registrada correctamente",
+      success: true,
+    });
+  } catch (error) {
+    console.log(error);
+    next(error);
+  }
+};
+
+export const getMovements = async (req, res, next) => {
+  const companyId = req.params.companyId;
+  const date = req.params.date;
+
+  const { bottomDate, topDate } = getDayRange(date);
+
+  try {
+    const movements = await ProviderMovements.aggregate([
+      {
+        $match: {
+          createdAt: { $gte: new Date(bottomDate), $lt: new Date(topDate) },
+          company: new Types.ObjectId(companyId),
+        },
+      },
+      ...providerAggregate("provider"),
+      ...productAggregate("product"),
+      ...employeeAggregate("employee"),
+    ]);
+
+    res.status(200).json(movements);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getPayments = async(req, res, next) =>{
+  const companyId = req.params.companyId;
+  const date = req.params.date;
+
+  const { bottomDate, topDate } = getDayRange(date);
+
+  try {
+    const payments = await ProviderPayment.aggregate([
+      {
+        $match: {
+          createdAt: { $gte: new Date(bottomDate), $lt: new Date(topDate) },
+          company: new Types.ObjectId(companyId),
+        },
+      },
+      ...providerAggregate("provider"),
+      ...employeeAggregate("employee"),
+    ]);
+
+    res.status(200).json(payments);
+  } catch (error) {
+    next(error);
+  }
 }
 
+export const deleteMovement = async (req, res, next) => {
+  const movementId = req.params.movementId;
+  let deletedMovement = null;
 
-export const getProviderPayments = async()=>{
+  try {
+    deletedMovement = await ProviderMovements.findByIdAndDelete(movementId);
 
-}
-*/
+    if (!deletedMovement) {
+      throw new Error("No se encontró el movimiento para eliminar");
+    }
+
+    res.status(200).json({
+      message: "Movimiento eliminado con éxito",
+      movement: deletedMovement,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const deletePayment = async (req, res, next) => {
   const paymentId = req.params.paymentId;
   let deletedPayment = null;
@@ -528,25 +540,11 @@ export const deletePayment = async (req, res, next) => {
 
     if (!deletedPayment) throw new Error("No se eliminó el pago a proveedor");
 
-    await pushOrPullProviderReportRecord({
-      providerId: deletedPayment.provider,
-      date: deletedPayment.createdAt,
-      record: deletedPayment,
-      affectsBalancePositively: true,
-      operation: "$pull",
-      arrayField: "paymentsArray",
-      amountField: "paymentsAmount",
-    });
-
     res.status(200).json({
       message: "Se eliminó el pago a empleado",
       payment: deletedPayment,
     });
   } catch (error) {
-    if (deletedPayment) {
-      await ProviderPayment.create(deletedPayment);
-    }
-
     next(error);
   }
 };

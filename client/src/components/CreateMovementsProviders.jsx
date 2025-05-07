@@ -1,20 +1,22 @@
 import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import Modal from "./Modals/Modal";
+import ProvidersSelect from "./Select/ProvidersSelect";
+import ProductsSelect from "./Select/ProductsSelect";
 import { useProvidersMovements } from "../hooks/Providers/useProvidersMovements";
 import HistoryMovementsProvideres from "./Proveedores/HistoryMovementsProviders";
+import CreatePaymentsProviders from "./CreatePaymentsProviders";
 import { useDate } from "../context/DateContext";
 import { isToday } from "../helpers/DatePickerFunctions";
 
 export default function CreateMovementsProviders() {
-
   const { currentDate } = useDate();
   const { currentUser, company } = useSelector((state) => state.user);
   const [providers, setProviders] = useState([]);
   const [products, setProducts] = useState([]);
   const [select, setSelect] = useState(false);
-  const [registerProvider, setRegisterProvider] = useState(false);
-  const [registerProduct, setRegisterProduct] = useState(false);
+  const [registerProvider, setRegisterProvider] = useState(null);
+  const [registerProduct, setRegisterProduct] = useState(null);
   const [register, setRegister] = useState(true);
   const [check, setCheck] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -23,6 +25,9 @@ export default function CreateMovementsProviders() {
     isReturn: false,
     specialPrice: false,
     comment: "",
+    prices: 0,
+    amount: 0,
+    pieces: 0
   });
   const {
     selectedMovement,
@@ -39,22 +44,30 @@ export default function CreateMovementsProviders() {
   const [error, setError] = useState(null);
 
   const resetForm = () => {
-
     setSelect(false);
-    setRegisterProvider(false);
-    setRegisterProduct(false);
+    setRegisterProvider(null);
+    setRegisterProduct(null);
     setRegister(true);
     setCheck(false);
     setShowModal(false);
-    setFormData({ isReturn: false, specialPrice: false, comment: "" });
-  }
+    setFormData({
+      isReturn: false,
+      specialPrice: false,
+      comment: "",
+      prices: 0,
+      amount: 0,
+      pieces: 0
+    });
+  };
 
   const handleSubmit = async (e) => {
     const form = document.getElementById("form-movement");
     e.preventDefault();
     setLoading(true);
     try {
-      const movementDate = isToday(currentDate) ? new Date() : new Date(currentDate);
+      const movementDate = isToday(currentDate)
+        ? new Date()
+        : new Date(currentDate);
       const data = {
         ...formData,
         company: company,
@@ -63,7 +76,7 @@ export default function CreateMovementsProviders() {
       };
       resetForm();
       await newMovement(data);
-      setError(null)
+      setError(null);
       setLoading(loadingMovements);
       form.reset();
     } catch (error) {
@@ -76,36 +89,55 @@ export default function CreateMovementsProviders() {
     setShowModal((prev) => !prev);
   };
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.id]:
-        e.target.type == "number" ? parseFloat(e.target.value) : e.target.value,
-    });
-
-    providers.map((elemProvider) => {
-      if (e.target.value == elemProvider._id && e.target.value != "") {
-        setFormData({
-          ...formData,
-          [e.target.id]: elemProvider,
-        });
-        setRegisterProvider(true);
-      }
-    });
-
-    products.map((elemProduct) => {
-      if (e.target.value == elemProduct._id && e.target.value != "") {
-        setFormData({
-          ...formData,
-          [e.target.id]: elemProduct,
-        });
-        setRegisterProduct(true);
-      }
-    });
+  const handleSelectProvider = (provider) => {
+    setRegisterProvider(provider);
   };
+
+  const handleSelectProduct = (product) => {
+    setRegisterProduct(product);
+  };
+
+  const handleChange = (e) => {
+    switch (e.target.id) {
+      case "weight":
+        setFormData({
+          ...formData,
+          [e.target.id]: parseFloat(e.target.value),
+        });
+        break;
+      case "prices" || "specialPrice":
+        if (check) {
+          setFormData({
+            ...formData,
+            [e.target.id]: parseFloat(e.target.value),
+            amount: parseFloat(formData.pieces) * parseFloat(e.target.value),
+          });
+        }
+        break;
+      case "pieces":
+        setFormData({
+          ...formData,
+          [e.target.id]: parseFloat(e.target.value),
+          amount: parseFloat(formData.prices) * parseFloat(e.target.value),
+        });
+        break;
+      default:
+        setFormData({
+          ...formData,
+          [e.target.id]: e.target.value,
+        });
+        break;
+    }
+  };
+
   useEffect(() => {
-    if (registerProduct && registerProduct) {
+    if (registerProvider != null && registerProduct != null) {
       setRegister(false);
+      setFormData({
+        ...formData,
+        provider: registerProvider,
+        product: registerProduct,
+      });
     }
   }, [registerProvider, registerProduct]);
 
@@ -150,6 +182,7 @@ export default function CreateMovementsProviders() {
     fetchProducts();
   }, [company._id]);
 
+
   return (
     <main className="space-y-3">
       <div className="p-5 border border-black rounded-lg bg-white">
@@ -159,8 +192,9 @@ export default function CreateMovementsProviders() {
             className="flex flex-cols-2 bg-white text text-black font-bold p-2 border border-header rounded-lg w-full"
             onClick={changeShowModal}
           >
-            <div className="w-3/4  ml-12">{`${select ? "Devoluciones" : "Compras"
-              } del Día:`}</div>
+            <div className="w-3/4  ml-12">{`${
+              select ? "Devoluciones" : "Compras"
+            } del Día:`}</div>
             <div className="w-1/4 font-bold border border-header rounded-lg ">
               {(totalWeight ? totalWeight.toFixed(2) : "0.00") + " Kg"}
             </div>
@@ -180,6 +214,34 @@ export default function CreateMovementsProviders() {
             closeOnEsc={true}
           ></Modal>
         )}
+        <div className="grid grid-cols-2 relative mb-4 mt-3 border border-black rounded-lg">
+          <button
+            disabled={!select}
+            className={
+              (!select
+                ? "bg-blue-700 opacity-75 text-white "
+                : "bg-white text-black ") + "w-full h-full p-1 rounded-lg"
+            }
+            onClick={() => {
+              setSelect(false), setFormData({ ...formData, isReturn: !select });
+            }}
+          >
+            Compra
+          </button>
+          <button
+            disabled={select}
+            className={
+              (select
+                ? "bg-red-700 opacity-75 text-white "
+                : "bg-white text-black ") + "w-full h-full p-1 rounded-lg"
+            }
+            onClick={() => {
+              setSelect(true), setFormData({ ...formData, isReturn: !select });
+            }}
+          >
+            Devolucion
+          </button>
+        </div>
         <form
           onSubmit={handleSubmit}
           id="form-movement"
@@ -194,107 +256,94 @@ export default function CreateMovementsProviders() {
             />
           )}
           <div className="flex flex-col space-y-3">
-            <div className="grid grid-col-1 gap-2">
+            <div className="grid grid-cols-1 gap-2">
               <div className="relative">
+                <ProvidersSelect
+                  options={providers}
+                  defaultLabel={"Proveedores"}
+                  selectedOption={registerProvider}
+                  handleSelectChange={handleSelectProvider}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 gap-2">
+              <div className="relative">
+                <ProductsSelect
+                  options={products}
+                  defaultLabel={"Productos"}
+                  selectedOption={registerProduct}
+                  handleSelectChange={handleSelectProduct}
+                />
+              </div>
+            </div>
+            <div className="flex flex-col-2 ">
+              <div className="bg-white w-3/4 h-full relative">
                 <label className="-translate-y-full px-1 absolute top-1/4 left-2 transform border border-header rounded-lg bg-white text-black text-sm font-semibold">
-                  Tipo de Transacción
+                  Precio
                 </label>
-                <select
-                  id="isReturn"
+                <input
+                  type="number"
+                  id="prices"
+                  disabled={!check}
+                  value={formData.prices == 0 ? 0 : formData.prices}
+                  placeholder="$0.00"
+                  onChange={handleChange}
                   className="border border-black p-3 rounded-lg w-full"
-                  onChange={() => {
-                    setSelect((prev) => !prev),
-                      setFormData({ ...formData, isReturn: !select });
-                  }}
-                >
-                  {["Compra", "Devolución"].map((option) => (
-                    <option key={option}>{option}</option>
-                  ))}
-                </select>
+                  required
+                />
               </div>
-            </div>
-            <div className="grid grid-cols-1 gap-2">
-              <div className="relative">
-                <label className="-translate-y-full px-1 absolute top-1/4 left-2 transform border border-header rounded-lg bg-white text-black text-sm font-semibold">
-                  Proveedor
-                </label>
-                <select
-                  id="provider"
-                  onClick={handleChange}
-                  className="w-full border border-black p-3 rounded-lg"
-                >
-                  <option value="">Selecione un proveedor</option>
-                  {providers.map((provider) => (
-                    <option key={provider.name} value={provider._id}>
-                      {provider.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 gap-2">
-              <div className="relative">
-                <label className="-translate-y-full px-1 absolute top-1/4 left-2 transform border border-header rounded-lg bg-white text-black text-sm font-semibold">
-                  Producto
-                </label>
-                <select
-                  id="product"
-                  onClick={handleChange}
-                  className="w-full border border-black p-3 rounded-lg "
-                >
-                  <option value="">Selecione un producto</option>
-                  {products.map((product) => (
-                    <option key={product.name} value={product._id}>
-                      {product.name}
-                    </option>
-                  ))}
-                </select>
+              <div className="flex flex-cols-2 relative w-1/4 h-full ml-1">
+                <div className="flex items-center w-1/2 h-full">
+                  <input
+                    type="checkbox"
+                    id="specialPrice"
+                    className="accent-blue-800 w-8 h-8"
+                    onClick={() => {
+                      setCheck((prev) => !prev),
+                        setFormData({ ...formData, specialPrice: !check });
+                    }}
+                  />
+                </div>
+                <div className="flex items-center w-full text-sm font-semibold text-black">
+                  CAMBIO DE PRECIO
+                </div>
               </div>
             </div>
             <div className="grid grid-cols-3 gap-2">
-              <div>
-                <div className="relative">
-                  <label className="-translate-y-full px-1 absolute top-1/4 left-2 transform border border-header rounded-lg bg-white text-black text-sm font-semibold">
-                    Peso
-                  </label>
-                  <input
-                    type="number"
-                    id="weight"
-                    placeholder="0.00 Kg"
-                    onChange={handleChange}
-                    className="w-full border border-black p-3 rounded-lg"
-                    required
-                  />
-                </div>
+              <div className="relative">
+                <label className="-translate-y-full px-1 absolute top-1/4 left-2 transform border border-header rounded-lg bg-white text-black text-sm font-semibold">
+                  Piezas
+                </label>
+                <input
+                  type="number"
+                  id="pieces"
+                  placeholder="0.00 Pzs"
+                  onChange={handleChange}
+                  className="w-full border border-black p-3 rounded-lg"
+                  required
+                />
               </div>
-              <div>
-                <div className="relative">
-                  <label className="-translate-y-full px-1 absolute top-1/4 left-2 transform border border-header rounded-lg bg-white text-black text-sm font-semibold">
-                    Precio
-                  </label>
-                  <input
-                    type="number"
-                    id="price"
-                    placeholder="$0.00"
-                    onChange={handleChange}
-                    className="w-full border border-black p-3 rounded-lg"
-                    required
-                  />
-                </div>
+              <div className="relative">
+                <label className="-translate-y-full px-1 absolute top-1/4 left-2 transform border border-header rounded-lg bg-white text-black text-sm font-semibold">
+                  Peso
+                </label>
+                <input
+                  type="number"
+                  id="weight"
+                  placeholder="0.00 Kg"
+                  onChange={handleChange}
+                  className="w-full border border-black p-3 rounded-lg"
+                  required
+                />
               </div>
-              <div>
-                <div className="relative">
-                  <label className="-translate-y-full px-1 absolute top-1/4 left-2 transform border border-header rounded-lg bg-white text-black text-sm font-semibold">
-                    Monto
-                  </label>
-                  <input
-                    type="number"
-                    id="amount"
-                    placeholder="$0.00"
-                    onChange={handleChange}
-                    className="w-full border border-black p-3 rounded-lg"
-                    required
-                  />
+              <div className="relative">
+                <label className="-translate-y-full px-1 absolute top-1/4 left-2 transform border border-header rounded-lg bg-white text-black text-sm font-semibold">
+                  Monto Total
+                </label>
+                <div className="w-full border border-black p-3 rounded-lg">
+                  {formData.pieces * formData.prices >= 0
+                    ? "$" + formData.pieces * formData.prices
+                    : "-$" + -1 * (formData.pieces * formData.prices)}
                 </div>
               </div>
             </div>
@@ -312,20 +361,6 @@ export default function CreateMovementsProviders() {
                 />
               </div>
             </div>
-            <div className="flex items-center gap-4 mt-4 w-full">
-              <input
-                type="checkbox"
-                id="specialPrice"
-                className="w-6 h-6 accent-blue-600"
-                onClick={() => {
-                  setCheck((prev) => !prev),
-                    setFormData({ ...formData, specialPrice: !check });
-                }}
-              />
-              <label className="text-black font-bold w-full">
-                PRECIO ESPECIAL
-              </label>
-            </div>
             <button
               disabled={loading || register}
               className={
@@ -338,77 +373,9 @@ export default function CreateMovementsProviders() {
             </button>
           </div>
         </form>
-        {showModal && (
-          <Modal
-            title={`${select ? "Devoluciones" : "Compras"} del Día`}
-            content={
-              <HistoryMovementsProvideres
-                movements={selectedMovement}
-                onDelete={onDeleteMovement}
-              />
-            }
-            closeModal={changeShowModal}
-            closeOnClickOutside={true}
-            closeOnEsc={true}
-          ></Modal>
-        )}
       </div>
       <div className="p-5 border border-black rounded-lg bg-white">
-        <div className="mb-5">
-          <button
-            title={`${select ? "Devoluciones" : "Compras"} del Día`}
-            className="flex flex-cols-2 bg-white text text-black font-bold p-2 border border-header rounded-lg w-full"
-            onClick={changeShowModal}
-          >
-            <div className="w-3/4  ml-12">{`${select ? "Devoluciones" : "Compras"
-              } del Día:`}</div>
-            <div className="w-1/4 font-bold border border-header rounded-lg ">
-              {(totalWeight ? totalWeight.toFixed(2) : "0.00") + " Kg"}
-            </div>
-          </button>
-        </div>
-        <form>
-          <div className="grid grid-cols-1 mt-3">
-            <div className="flex flex-col-2">
-              <div className="relative w-3/4">
-                <label className="-translate-y-full px-1 absolute top-1/4 left-2 transform border border-header rounded-lg bg-white text-black text-sm font-semibold">
-                  Proveedor
-                </label>
-                <select
-                  id="provider"
-                  onClick={handleChange}
-                  className="w-full border border-black p-3 rounded-lg h-full"
-                >
-                  <option value="">Selecione un proveedor</option>
-                  {providers.map((provider) => (
-                    <option key={provider.name} value={provider._id}>
-                      {provider.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="relative w-1/4 ml-1">
-                <label className="-translate-y-full px-1 absolute top-1/4 left-2 transform border border-header rounded-lg bg-white text-black text-sm font-semibold">
-                  Pago
-                </label>
-                <input
-                  type="number"
-                  id="price"
-                  placeholder="$0.00"
-                  onChange={handleChange}
-                  className="w-full border border-black p-3 rounded-lg h-full"
-                  required
-                />
-              </div>
-            </div>
-            <button
-              disabled={loading || register}
-              className={"bg-green-500 text-white p-3 rounded-lg col-span-3 mt-4"}
-            >
-              <b>REGISTRAR PAGO</b>
-            </button>
-          </div>
-        </form>
+        <CreatePaymentsProviders providers={providers} />
       </div>
     </main>
   );

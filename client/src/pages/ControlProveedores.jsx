@@ -94,7 +94,7 @@ export default function ControlProveedores() {
                       <GiCardExchange className="justify-self-center text-2xl" />
                     </div>
                   ),
-                  component: <CreateMovementsProviders dateDay={currentDate} />,
+                  component: <CreateMovementsProviders />,
                 },
                 {
                   label: "Proveedores",

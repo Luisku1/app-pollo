@@ -1,4 +1,3 @@
-/* eslint-disable react/prop-types */
 import { useState, useMemo, useEffect } from 'react'
 import { useSelector } from 'react-redux'
 import { formatReviewDate, formatTime } from '../../helpers/DatePickerFunctions'
