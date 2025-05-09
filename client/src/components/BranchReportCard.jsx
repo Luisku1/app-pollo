@@ -18,9 +18,10 @@ import StockList from "./Stock/StockList"
 import OutgoingsList from "./Outgoings/OutgoingsList"
 import ListaSalidas from "./EntradasYSalidas/Salidas/ListaSalidas"
 import ListaEntradas from "./EntradasYSalidas/Entradas/ListaEntradas"
-import { MdPriceChange } from "react-icons/md";
+import { MdPriceChange, MdStorefront } from "react-icons/md";
 import ChangeBranchPrices from "./Prices/ChangeBranchPrices"
 import EmployeeInfo from "./EmployeeInfo"
+import BranchInfo from "./Sucursales/BranchInfo"
 import { CgProfile } from "react-icons/cg"
 import { toPng } from "html-to-image";
 import { AiOutlineDownload, AiOutlineCopy } from "react-icons/ai";
@@ -30,6 +31,7 @@ export default function BranchReportCard({ reportData = {}, replaceReport, exter
   const { currentUser } = useSelector((state) => state.user)
   const { isController, isManager } = useRoles()
   const [selectedEmployee, setSelectedEmployee] = useState(null)
+  const [selectedBranch, setSelectedBranch] = useState(null)
   const [toModifyReport, setToModifyReport] = useState(null)
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
@@ -133,7 +135,7 @@ export default function BranchReportCard({ reportData = {}, replaceReport, exter
       <div id={`report-card-${reportData._id}`} className={`${reportData.balance < 0 ? 'bg-pastel-pink' : reportData.onZero ? 'bg-yellow-100' : 'bg-white'}`}>
 
         <div className="flex justify-between items-center px-2 pt-1 mb-4">
-          <p className="text-lg font-semibold text-red-500">{reportData.branch.branch}</p>
+          <button onClick={() => setSelectedBranch(reportData.branch)} className="font-bold text-md flex gap-1 truncate items-center"><span><MdStorefront /></span>{reportData.branch.branch}</button>
           <div className="flex items-center gap-1">
             <p className="text-lg font-semibold text-red-500">
               {formatInformationDate(new Date(reportData.createdAt))}
@@ -162,6 +164,7 @@ export default function BranchReportCard({ reportData = {}, replaceReport, exter
             <AiOutlineCopy />
           </button>
           <EmployeeInfo employee={selectedEmployee} toggleInfo={() => setSelectedEmployee(null)} />
+          <BranchInfo branch={selectedBranch} toggleInfo={() => setSelectedBranch(null)} />
         </div>
         <div className="relative">
           {loading && toModifyReport == reportData._id && (

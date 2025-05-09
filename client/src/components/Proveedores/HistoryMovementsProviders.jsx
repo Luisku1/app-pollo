@@ -15,6 +15,7 @@ import DeleteButton from '../Buttons/DeleteButton'
 import MoneyBag from '../Icons/MoneyBag'
 import { CiSquareInfo } from "react-icons/ci";
 import EmployeeInfo from '../EmployeeInfo'
+import ProviderInfo from './ProviderInfo'
 
 export default function HistoryMovementsProvideres({ movements, onDelete = null }) {
   const { currentUser } = useSelector((state) => state.user)
@@ -22,6 +23,7 @@ export default function HistoryMovementsProvideres({ movements, onDelete = null 
   const [selectedMovement, setSelectedMovement] = useState(null)
   const [shouldOpenModal, setShouldOpenModal] = useState(null)
   const [selectedEmployee, setSelectedEmployee] = useState(null)
+  const [selectedProvider, setSelectedProvider] = useState(null)
   const isAuthorized = (employee) => currentUser._id === employee._id || isManager(currentUser.role) || !onDelete
   const deletable = onDelete != null
 
@@ -66,7 +68,7 @@ export default function HistoryMovementsProvideres({ movements, onDelete = null 
                   <div className='col-span-12'>
                     <div className="w-full text-red-800 mb-1">
                       <RowItem>
-                        <p className="text-md font-bold flex gap-1 items-center"><MdDomain />{provider.name}</p>
+                        <button onClick={() => setSelectedProvider(provider)} className="font-bold text-md flex gap-1 truncate items-center"><span><MdDomain /></span>{provider.name}</button>
                         <button onClick={() => setSelectedEmployee(employee)} className="font-bold text-md flex gap-1 truncate items-center"><span><CgProfile /></span>{employee.name}  {employee.lastName}</button>
                       </RowItem>
                     </div>
@@ -151,6 +153,7 @@ export default function HistoryMovementsProvideres({ movements, onDelete = null 
 
   return (
     <div>
+      <ProviderInfo provider={selectedProvider} toggleInfo={() => setSelectedProvider(null)} />
       <EmployeeInfo employee={selectedEmployee} toggleInfo={() => setSelectedEmployee(null)} />
       {renderMovementsList()}
       {shouldOpenModal && (

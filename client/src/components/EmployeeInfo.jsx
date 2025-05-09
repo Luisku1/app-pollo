@@ -94,7 +94,7 @@ export default function EmployeeInfo({ employee, toggleInfo }) {
       {showEmployeeBranchReports && (
         <EmployeeBranchReports employeeId={employee._id} employee={employee} toggleComponent={() => setShowEmployeeBranchReports(prev => !prev)} />
       )}
-      {showEmployeeSupervisorReports && is && (
+      {showEmployeeSupervisorReports && (
         <EmployeeSupervisorReports employeeId={employee._id} employee={employee} toggleComponent={() => setShowEmployeeSupervisorReports(prev => !prev)} />
       )}
       {showPayments && (
