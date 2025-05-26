@@ -4,7 +4,7 @@ import BranchReport from "../models/accounts/branch.report.model.js"
 import EmployeeDailyBalance from "../models/employees/employee.daily.balance.js"
 import Employee from "../models/employees/employee.model.js"
 import { errorHandler } from "../utils/error.js"
-import { getDayRange, getWeekRange } from "../utils/formatDate.js"
+import { formatDate, getDayRange, getWeekRange } from "../utils/formatDate.js"
 import { deleteExtraOutgoingFunction, newExtraOutgoingFunction } from "./outgoing.controller.js"
 import { deleteIncome, getIncomeTypeId, lookupSupervisorReportIncomes, newBranchIncomeFunction } from "./income.controller.js"
 import EmployeePayment from "../models/employees/employee.payment.model.js"
@@ -13,6 +13,28 @@ import { fetchRolesFromDB } from "./role.controller.js"
 import EmployeeWeeklyBalance from "../models/employees/employee.weekly.balance.model.js"
 import EmployeeRest from "../models/employees/employee.rest.model.js"
 import { branchLookup, unwindBranch, employeeLookup, unwindEmployee } from "./branch.report.controller.js"
+import EmployeeBalanceAdjustment from "../models/employees/balance.adjustment.model.js"
+import { toCurrency } from "../../common/formatters.js"
+import CompanyPenalties from "../models/company.penalties.model.js"
+
+export const employeePaymentIncomeAggregate = (localField, as = 'employeePayment') => {
+	return [
+		{
+			$lookup: {
+				from: 'employeePayments',
+				localField: localField,
+				foreignField: 'income',
+				as: as,
+				pipeline: [
+					...employeeAggregate('employee'),
+				]
+			}
+		},
+		{
+			$unwind: { path: `$${as}`, preserveNullAndEmptyArrays: true }
+		},
+	]
+}
 
 
 export const employeeAggregate = (localField, as = 'employee') => {
@@ -548,7 +570,7 @@ export const getEmployeeBranchReports = async (req, res, next) => {
 	const { employeeId } = req.params
 	const { date } = req.query
 
-	const employeePayDay = await getEmployeePayDay({ employeeId })
+	const employeePayDay = await getEmployeePayDay(employeeId)
 
 	let shiftedWeeks = 0
 
@@ -592,7 +614,7 @@ export const getEmployeeSupervisorReports = async (req, res, next) => {
 	const { employeeId } = req.params
 	const { date } = req.query
 
-	const employeePayDay = await getEmployeePayDay({ employeeId })
+	const employeePayDay = await getEmployeePayDay(employeeId)
 
 	let shiftedWeeks = 0
 
@@ -1174,11 +1196,39 @@ export const refactorEmployeesWeeklyBalances = async ({ companyId }) => {
 	}
 }
 
-export const getEmployeePayDay = async ({ employeeId }) => {
+export const getEmployeePayDay = async (employeeId) => {
 
 	const employee = await Employee.findById(employeeId, 'payDay')
 
 	return employee?.payDay ?? 0
+}
+
+export const isCurrentOrInmediateWeek = (date, payDay) => {
+
+	const currentDate = new Date()
+	const dateToCheck = new Date(date)
+	const { bottomDate } = getDayRange(currentDate)
+	console.log(date, payDay, currentDate)
+	const { weekStart: currentStart, weekEnd: currentEnd } = getWeekRange(currentDate, payDay)
+	const { weekStart: checkStart, weekEnd: checkEnd } = getWeekRange(dateToCheck, payDay)
+	const isInmediatePrevWeek = bottomDate === checkEnd
+	const isCurrentWeek = currentStart === checkStart && currentEnd === checkEnd
+
+	console.log('dateToCheck', dateToCheck)
+	console.log('currentDate', currentDate)
+
+	return {
+		paramsWeekRange: {
+			weekStart: checkStart,
+			weekEnd: checkEnd
+		},
+		currentWeekRange: {
+			weekStart: currentStart,
+			weekEnd: currentEnd
+		},
+		isCurrentWeek: isCurrentWeek,
+		isInmediatePrevWeek: isInmediatePrevWeek
+	}
 }
 
 export const addDailyBalanceInWeeklyBalance = async ({ dailyBalance }) => {
@@ -1187,7 +1237,7 @@ export const addDailyBalanceInWeeklyBalance = async ({ dailyBalance }) => {
 
 		if (!dailyBalance) return
 
-		const payDay = await getEmployeePayDay({ employeeId: dailyBalance.employee })
+		const payDay = await getEmployeePayDay(dailyBalance.employee)
 
 		let employeeWeeklyBalance = await fetchEmployeeWeeklyBalance({ employeeId: dailyBalance.employee, date: dailyBalance.createdAt, payDay })
 
@@ -1206,6 +1256,10 @@ export const addDailyBalanceInWeeklyBalance = async ({ dailyBalance }) => {
 			$addToSet: { employeeDailyBalances: dailyBalance._id }
 		})
 
+		await EmployeeDailyBalance.findByIdAndUpdate(dailyBalance._id, {
+			weeklyBalance: employeeWeeklyBalance._id
+		})
+
 	} catch (error) {
 
 		throw error
@@ -1214,26 +1268,27 @@ export const addDailyBalanceInWeeklyBalance = async ({ dailyBalance }) => {
 
 export const createEmployeeWeeklyBalance = async ({ employeeId, employeePayDay, companyId, date }) => {
 
-	const { weekStart, weekEnd } = getWeekRange(date, employeePayDay)
+	const { weekStart, weekEnd } = getWeekRange(date, employeePayDay, -1)
 
 	const lastEmployeeWeeklyBalance = await EmployeeWeeklyBalance.findOne({
-		weekStart: { $lt: weekStart },
-		employee: employeeId
+		employee: employeeId,
+		weekStart: { $eq: weekStart }
 	})
 
 	const lastWeekBalance = lastEmployeeWeeklyBalance?.balance || 0
+	const employeeWeeklyData = { lastWeekBalance, employee: employeeId, company: companyId, weekStart, currentPayDay: employeePayDay, weekEnd }
 
-	return await EmployeeWeeklyBalance.create({ previousWeekBalance: lastWeekBalance, balance: lastWeekBalance, employee: employeeId, company: companyId, weekStart, weekEnd })
+	return await EmployeeWeeklyBalance.create(employeeWeeklyData)
 }
 
 export const fetchEmployeeWeeklyBalance = async ({ employeeId, date, payDay }) => {
 
 	try {
 
-		const { weekStart, weekEnd } = getWeekRange(date, payDay)
+		const { weekStart } = getWeekRange(date, payDay)
 
 		const employeeWeeklyBalance = await EmployeeWeeklyBalance.findOne({
-			weekStart: { $gte: weekStart, $lt: weekEnd },
+			weekStart: weekStart,
 			employee: employeeId
 		})
 
@@ -1245,12 +1300,24 @@ export const fetchEmployeeWeeklyBalance = async ({ employeeId, date, payDay }) =
 	}
 }
 
+export const fetchEmployeeWeeklyBalanceByDailyBalance = async (employee, weekStart) => {
+	try {
+		const employeeWeeklyBalance = await EmployeeWeeklyBalance.findOne({
+			employee: employee,
+			weekStart: weekStart
+		})
+		return employeeWeeklyBalance || null
+	} catch (error) {
+		throw error
+	}
+}
+
 export const fetchEmployeePayroll = async ({ employeeId, weekRange }) => {
 
 	try {
 
 		const { weekStart, weekEnd } = weekRange
-		const payDay = await getEmployeePayDay({ employeeId })
+		const payDay = await getEmployeePayDay(employeeId)
 
 		const weeklyBalance = await EmployeeWeeklyBalance.aggregate([
 			{
@@ -1312,14 +1379,6 @@ export const fetchEmployeesPayroll = async ({ companyId, date }) => {
 
 		// await refactorEmployeesWeeklyBalances({companyId})
 
-		const employeesId = await Employee.find({
-
-			company: companyId,
-			active: true,
-			payDay: day
-
-		}, '_id')
-
 		const { weekStart, weekEnd } = getWeekRange(date, day, -1)
 		const firstTopDate = getDayRange(weekStart).topDate
 		const lastTopDate = getDayRange(weekEnd).topDate
@@ -1328,8 +1387,7 @@ export const fetchEmployeesPayroll = async ({ companyId, date }) => {
 			{
 				$match: {
 					'company': new Types.ObjectId(companyId),
-					'employee': { $in: employeesId.map(id => new Types.ObjectId(id)) },
-					'weekStart': { $gte: new Date(weekStart), $lt: new Date(weekEnd) },
+					'weekStart': { $eq: new Date(weekStart) }
 				}
 			},
 			employeeBranchReportsLookup('employee', weekStart, weekEnd),
@@ -1347,6 +1405,14 @@ export const fetchEmployeesPayroll = async ({ companyId, date }) => {
 				}
 			},
 			employeeSupervisorReportsLookup('employee', weekStart, weekEnd),
+			{
+				$lookup: {
+					from: 'employeebalanceadjustments',
+					localField: 'balanceAdjustments',
+					foreignField: '_id',
+					as: 'balanceAdjustments'
+				}
+			},
 			{
 				$lookup: {
 					from: 'employeepayments',
@@ -1397,26 +1463,6 @@ export const fetchEmployeesPayroll = async ({ companyId, date }) => {
 				}
 			},
 			{
-				$addFields: {
-					accountBalance: { $sum: '$employeeDailyBalances.accountBalance' },
-					supervisorBalance: { $sum: '$supervisorReports.balance' },
-					employeePaymentsAmount: { $sum: '$employeePayments.amount' },
-					missingWorkDiscount: {
-						$multiply: [
-							{ $size: { $filter: { input: '$employeeDailyBalances', as: 'balance', cond: { $eq: ['$$balance.dayDiscount', true] } } } },
-							{ $divide: ['$employee.salary', -7] },
-						],
-					},
-					foodDiscount: {
-						$multiply: [
-							{ $size: { $filter: { input: '$employeeDailyBalances', as: 'balance', cond: { $eq: ['$$balance.foodDiscount', true] } } } },
-							-60,
-						],
-					},
-
-				}
-			},
-			{
 				$lookup: {
 					from: 'employees',
 					localField: 'employee',
@@ -1442,12 +1488,32 @@ export const fetchEmployeesPayroll = async ({ companyId, date }) => {
 			},
 			{
 				$addFields: {
+					accountBalance: { $sum: '$employeeDailyBalances.accountBalance' },
+					supervisorBalance: { $sum: '$supervisorReports.balance' },
+					employeePaymentsAmount: { $sum: '$employeePayments.amount' },
+					missingWorkDiscount: {
+						$multiply: [
+							{ $size: { $filter: { input: '$employeeDailyBalances', as: 'balance', cond: { $eq: ['$$balance.dayDiscount', true] } } } },
+							{ $divide: ['$employee.salary', -7] },
+						],
+					},
+					lateDiscount: {
+						$multiply: [
+							{ $size: { $filter: { input: '$employeeDailyBalances', as: 'balance', cond: { $eq: ['$$balance.lateDiscount', true] } } } },
+							-60,
+						],
+					},
+
+				}
+			},
+			{
+				$addFields: {
 					balance: {
 						$add: [
 							{ $ifNull: ['$supervisorBalance', 0] },
 							{ $ifNull: ['$accountBalance', 0] },
 							{ $ifNull: ['$missingWorkDiscount', 0] },
-							{ $ifNull: ['$foodDiscount', 0] }
+							{ $ifNull: ['$lateDiscount', 0] }
 						]
 					}
 				}
@@ -2024,16 +2090,40 @@ export const getEmployeePayroll = async (req, res, next) => {
 	}
 }
 
+export const createPenalty = async (req, res, next) => {
+	const { companyId, name, amount, weeklyBalanceField } = req.body
+
+	try {
+		const newPenalty = await CompanyPenalties.create({ name, amount, company: companyId, weeklyBalanceField })
+
+		if (!newPenalty) throw new Error("No se pudo crear la penalización");
+
+		res.status(200).json({ newPenalty })
+	} catch (error) {
+
+		console.log(error)
+		next(error)
+	}
+}
+
 export const updateEmployeeDailyBalance = async (req, res, next) => {
 
 	const body = req.body
 	const balanceId = req.params.balanceId
 
 	try {
+		const updatedDailyBalance = await EmployeeDailyBalance.findByIdAndUpdate(balanceId, body, { new: true })
+		const penalty = await CompanyPenalties.findOne({ penalty: Object.keys(body)[0] })
 
-		const updated = await EmployeeDailyBalance.updateOne({ _id: balanceId }, body)
+		if (penalty) {
 
-		if (updated.acknowledged) {
+			await Employee.findByIdAndUpdate(updatedDailyBalance.employee, {balance: Object.keys(body)[0] ? penalty.amount : -penalty.amount}, {new: true})
+		}
+		if (!updatedDailyBalance) throw new Error("No se pudo actualizar el balance diario del empleado");
+
+		if (updatedDailyBalance) {
+
+			console.log(updatedDailyBalance)
 
 			res.status(200).json('Balance updated')
 
@@ -2043,6 +2133,10 @@ export const updateEmployeeDailyBalance = async (req, res, next) => {
 		}
 
 	} catch (error) {
+
+		if (updatedDailyBalance) {
+			await EmployeeDailyBalance.findByIdAndUpdate(balanceId, { [Object.keys(body)[0]]: !updatedDailyBalance[Object.keys(body)[0]] })
+		}
 
 		next(error)
 	}
@@ -2155,6 +2249,11 @@ export const verifySupervisorMoney = async ({ amount, typeField, date, superviso
 
 		if (!updatedDailyBalance) throw new Error("No se editó el balance del supervisor");
 
+		await Employee.findByIdAndUpdate(supervisorReport.supervisor, {
+			$inc: { balance: (amount - supervisorReport[typeField]) }
+		}
+			, { new: true })
+
 		return updatedSupervisorReport
 
 	} catch (error) {
@@ -2261,24 +2360,55 @@ export const updateEmployeeDailyBalances = async ({ branchReport = null, supervi
 export const updateSupervisorBalance = async (supervisorReport) => {
 
 	let updatedDailyBalance = null
+	let dailyBalance = null
+	let employee = null
+	const employeeId = supervisorReport.supervisor?._id ?? supervisorReport.supervisor
+	if (!employeeId) throw new Error("No hay empleado en el reporte");
 
 	try {
 
+		const employeePayday = await getEmployeePayDay(employeeId)
+		const { currentWeekRange, isCurrentWeek, isInmediatePrevWeek } = isCurrentOrInmediateWeek(branchReport.createdAt, employeePayday)
 		let dailyBalance = await fetchOrCreateDailyBalance({ companyId: supervisorReport.company, employeeId: supervisorReport.supervisor, date: supervisorReport.createdAt })
+
+		if (!dailyBalance) throw new Error("No se encontró el balance del empleado");
+
+		const currentBalance = dailyBalance.accountBalance
+		const reportBalance = branchReport.balance
+		const adjustmentBalance = changedEmployee ? -currentBalance : reportBalance - currentBalance
 
 		updatedDailyBalance = await EmployeeDailyBalance.findByIdAndUpdate(dailyBalance._id, { supervisorBalance: supervisorReport.balance }, { new: true })
 
-		if (!updatedDailyBalance) throw new Error("No se actualizó el balance del supervisor")
+		if (!updatedDailyBalance) throw new Error("No se actualizó el balance del empleado")
+
+		if (adjustmentBalance === 0)
+			return dailyBalance
+
+		console.log(employee, adjustmentBalance)
+
+		employee = await Employee.findByIdAndUpdate(employeeId, {
+			$inc: { balance: adjustmentBalance }
+		}, { new: true })
+
+		if (!(isCurrentWeek || isInmediatePrevWeek)) {
+			await adjustBalanceSupervisorReport(supervisorReport, adjustmentBalance, currentWeekRange.startDate)
+		}
 
 		return updatedDailyBalance
 
 	} catch (error) {
 
+		if (employee) {
+			await Employee.findByIdAndUpdate(employeeId, {
+				$inc: { balance: -employee.balance }
+			}, { new: false })
+		}
+
 		if (updatedDailyBalance) {
 
 			await EmployeeDailyBalance.findByIdAndUpdate(dailyBalance._id, { supervisorBalance: dailyBalance.supervisorBalance })
 		}
-		console.log("Error al actualizar el balance del supervisor", error)
+		console.error("Error al actualizar el balance del supervisor", error)
 		throw new Error("No se pudo actualizar el balance del supervisor");
 	}
 }
@@ -2311,18 +2441,46 @@ export const updateAccountBalance = async (branchReport, changedEmployee) => {
 
 	let updatedDailyBalance = null
 	let dailyBalance = null
+	let employee = null
+	const employeeId = branchReport.employee?._id ?? branchReport.employee
+	if (!employeeId) throw new Error("No hay empleado en el reporte");
 
 	try {
+		const employeePayday = await getEmployeePayDay(employeeId)
+		const { currentWeekRange, isCurrentWeek, isInmediatePrevWeek } = isCurrentOrInmediateWeek(branchReport.createdAt, employeePayday)
+		dailyBalance = await fetchOrCreateDailyBalance({ companyId: branchReport.company, employeeId: employeeId, date: branchReport.createdAt })
 
-		dailyBalance = await fetchOrCreateDailyBalance({ companyId: branchReport.company, employeeId: branchReport?.employee?._id ? branchReport.employee._id : branchReport.employee, date: branchReport.createdAt })
+		if (!dailyBalance) throw new Error("No se encontró el balance del empleado");
+
+		const currentBalance = dailyBalance.accountBalance
+		const reportBalance = branchReport.balance
+		const adjustmentBalance = changedEmployee ? -currentBalance : reportBalance - currentBalance
 
 		updatedDailyBalance = await EmployeeDailyBalance.findByIdAndUpdate(dailyBalance._id, { accountBalance: changedEmployee ? 0 : branchReport.balance }, { new: true })
 
 		if (!updatedDailyBalance) throw new Error("No se actualizó el balance del empleado")
 
+		if (adjustmentBalance === 0)
+			return dailyBalance
+
+		employee = await Employee.findByIdAndUpdate(employeeId, {
+			$inc: { balance: adjustmentBalance }
+		}, { new: true })
+
+		if (!(isCurrentWeek || isInmediatePrevWeek)) {
+
+			await adjustBalanceBranchReport(branchReport, adjustmentBalance, currentWeekRange.startDate)
+		}
+
 		return updatedDailyBalance
 
 	} catch (error) {
+
+		if (employee) {
+			await Employee.findByIdAndUpdate(employeeId, {
+				$inc: { balance: -employee.balance }
+			}, { new: false })
+		}
 
 		if (updatedDailyBalance) {
 
@@ -2331,6 +2489,128 @@ export const updateAccountBalance = async (branchReport, changedEmployee) => {
 
 		console.log("Error al actualizar el balance del empleado", error)
 		throw new Error("No se pudo actualizar el balance del empleado");
+	}
+}
+
+const adjustBalanceSupervisorReport = async (supervisorReport, adjustmentBalance, currentWeekStart) => {
+
+	let employeeWeeklyBalance = null
+	let updatedEmployeeWeeklyBalance = null
+	const defaultSupervisorReport = null
+	const updatedSupervisorReport = null
+	const adjBalanceObj = null
+	const employeeId = supervisorReport.supervisor?._id ?? supervisorReport.supervisor
+
+	try {
+
+		employeeWeeklyBalance = await fetchEmployeeWeeklyBalanceByDailyBalance(employeeId, currentWeekStart)
+
+		if (!employeeWeeklyBalance) throw new Error("No se encontró el balance semanal del empleado");
+
+		const adjBalanceData = {
+			employee: employeeId,
+			date: supervisorReport.createdAt,
+			concept: `${formatDate(new Date()).split('T')[0]}: modificación en reporte de supervisor el día: ${formatDate(supervisorReport?.createdAt).split('T')[0]} por ${adjustmentBalance > 0 ? '+' : ''} ${toCurrency(adjustmentBalance)}`,
+			amount: adjustmentBalance,
+		}
+
+		adjBalanceObj = await createAdjustmentBalance(adjBalanceData)
+
+		if (!adjBalanceObj) throw new Error("No se pudo crear el ajuste de balance");
+
+		defaultSupervisorReport = await SupervisorReport.findById(supervisorReport._id)
+
+		updatedSupervisorReport = SupervisorReport.findByIdAndUpdate(supervisorReport._id, {
+			$push: { adjustmentBalances: adjBalanceObj._id }
+		}, { new: true })
+
+		updatedEmployeeWeeklyBalance = await EmployeeWeeklyBalance.findByIdAndUpdate(employeeWeeklyBalance._id, {
+			$push: { adjustmentBalances: adjBalanceObj._id },
+			$inc: { balance: adjustmentBalance }
+		}, { new: true })
+
+		if (!updatedEmployeeWeeklyBalance) throw new Error("No se actualizó el balance semanal del empleado");
+
+	} catch (error) {
+
+		if (updatedEmployeeWeeklyBalance) {
+			await EmployeeWeeklyBalance.findByIdAndUpdate(updatedEmployeeWeeklyBalance._id, employeeWeeklyBalance
+				, { new: false })
+		}
+
+		if (updatedSupervisorReport) {
+			await SupervisorReport.findByIdAndUpdate(updatedSupervisorReport._id, defaultSupervisorReport, { new: false })
+		}
+
+		console.error(error)
+		throw new Error("Error al crear el ajuste de balance");
+	}
+}
+
+const adjustBalanceBranchReport = async (branchReport, adjustmentBalance, currentWeekStart) => {
+
+	let employeeWeeklyBalance = null
+	let updatedEmployeeWeeklyBalance = null
+	const defaultBranchReport = null
+	const updatedBranchReport = null
+	const adjBalanceObj = null
+	const employeeId = branchReport.employee?._id ?? branchReport.employee
+
+	try {
+
+		employeeWeeklyBalance = await fetchEmployeeWeeklyBalanceByDailyBalance(employeeId, currentWeekStart)
+
+		if (!employeeWeeklyBalance) throw new Error("No se encontró el balance semanal del empleado");
+
+		const adjBalanceData = {
+			employee: employeeId,
+			date: branchReport.createdAt,
+			concept: `${formatDate(new Date()).split('T')[0]}: modificación en reporte de pollería el día: ${formatDate(branchReport?.createdAt).split('T')[0]} por ${adjustmentBalance > 0 ? '+' : ''} ${toCurrency(adjustmentBalance)}`,
+			amount: adjustmentBalance,
+		}
+
+		adjBalanceObj = await createAdjustmentBalance(adjBalanceData)
+
+		if (!adjBalanceObj) throw new Error("No se pudo crear el ajuste de balance");
+
+		defaultBranchReport = await BranchReport.findById(branchReport._id)
+
+		updatedBranchReport = BranchReport.findByIdAndUpdate(branchReport._id, {
+			$push: { adjustmentBalances: adjBalanceObj._id }
+		}, { new: true })
+
+		updatedEmployeeWeeklyBalance = await EmployeeWeeklyBalance.findByIdAndUpdate(employeeWeeklyBalance._id, {
+			$push: { adjustmentBalances: adjBalanceObj._id },
+			$inc: { balance: adjustmentBalance }
+		}, { new: true })
+
+		if (!updatedEmployeeWeeklyBalance) throw new Error("No se actualizó el balance semanal del empleado");
+
+	} catch (error) {
+
+		if (updatedEmployeeWeeklyBalance) {
+			await EmployeeWeeklyBalance.findByIdAndUpdate(updatedEmployeeWeeklyBalance._id, employeeWeeklyBalance
+				, { new: false })
+		}
+
+		if (updatedBranchReport) {
+			await BranchReport.findByIdAndUpdate(updatedBranchReport._id, defaultBranchReport, { new: false })
+		}
+
+		console.error(error)
+		throw new Error("Error al crear el ajuste de balance");
+	}
+}
+
+const createAdjustmentBalance = async ({ amount, date, concept, employee }) => {
+
+	try {
+
+		return await EmployeeBalanceAdjustment.create({ amount, date, concept, employee })
+
+	} catch (error) {
+		console.log("Error al crear el ajuste de balance de semana actual", error)
+		throw new Error("No se pudo crear el ajuste de balance de semana actual");
 	}
 }
 

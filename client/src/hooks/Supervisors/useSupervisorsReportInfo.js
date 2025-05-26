@@ -1,50 +1,52 @@
-import { useEffect, useMemo, useState } from "react"
+import { useMemo } from "react"
+import { useQuery } from '@tanstack/react-query';
 import { getSupervisorsInfoReportFetch } from "../../services/Supervisors/getSupervisorsReportInfo"
 
-export const useSupervisorsReportInfo = ({ companyId, date }) => {
+export const useSupervisorsReportInfo = ({ companyId, date, onlyNegativeBalances = false }) => {
+  // React Query para supervisorsInfo
+  const {
+    data: supervisorsInfoData,
+    isLoading: loading,
+    refetch: refetchSupervisorsInfo,
+  } = useQuery({
+    queryKey: ["supervisorsReportInfo", companyId, date],
+    queryFn: () => getSupervisorsInfoReportFetch({ companyId, date }).then(res => res.reports),
+    enabled: !!companyId && !!date,
+    staleTime: 1000 * 60 * 3
+  });
 
-  const [supervisorsInfo, setSupervisorsInfo] = useState([]);
-  const [loading, setLoading] = useState(false);
-
-  const initializeInfo = () => {
-    setSupervisorsInfo([]);
-  };
-
-  const getSupervisorsInfo = async ({ companyId, date }) => {
-    setLoading(true);
-    try {
-      const response = await getSupervisorsInfoReportFetch({ companyId, date });
-      setSupervisorsInfo(response.reports);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (!(companyId && date)) return;
-    initializeInfo();
-    getSupervisorsInfo({ companyId, date });
-  }, [companyId, date]);
+  const supervisorsInfo = supervisorsInfoData || [];
 
   const deposits = useMemo(() => supervisorsInfo.reduce((acc, report) => acc + report.deposits, 0), [supervisorsInfo]);
+  const terminalIncomes = useMemo(() => supervisorsInfo.reduce((acc, report) => acc + report.terminalIncomes, 0), [supervisorsInfo]);
   const grossCash = useMemo(() => supervisorsInfo.reduce((acc, report) => acc + report.cash, 0), [supervisorsInfo]);
   const extraOutgoings = useMemo(() => supervisorsInfo.reduce((acc, report) => acc + report.extraOutgoings, 0), [supervisorsInfo]);
-  const netIncomes = useMemo(() => grossCash - extraOutgoings, [grossCash, extraOutgoings]);
-  const missingIncomes = useMemo(() => supervisorsInfo.reduce((acc, report) => acc + report.balance, 0), [supervisorsInfo]);
+  const netIncomes = useMemo(() => grossCash + deposits + terminalIncomes - extraOutgoings, [grossCash, extraOutgoings, deposits, terminalIncomes]);
   const verifiedDeposits = useMemo(() => supervisorsInfo.reduce((acc, report) => acc + report.verifiedDeposits, 0), [supervisorsInfo]);
   const verifiedCash = useMemo(() => supervisorsInfo.reduce((acc, report) => acc + report.verifiedCash, 0), [supervisorsInfo]);
+  const missingIncomes = useMemo(() => grossCash - extraOutgoings - verifiedCash, [grossCash, extraOutgoings, verifiedCash]);
   const verifiedIncomes = useMemo(() => verifiedDeposits + verifiedCash, [verifiedCash, verifiedDeposits]);
+  const extraOutgoingsArray = useMemo(() => supervisorsInfo.flatMap(report => report.extraOutgoingsArray), [supervisorsInfo]);
   const cashArray = useMemo(() => supervisorsInfo.flatMap(report => report.cashArray), [supervisorsInfo]);
   const depositsArray = useMemo(() => supervisorsInfo.flatMap(report => report.depositsArray), [supervisorsInfo]);
   const terminalIncomesArray = useMemo(() => supervisorsInfo.flatMap(report => report.terminalIncomesArray), [supervisorsInfo]);
-  const terminalIncomes = useMemo(() => supervisorsInfo.reduce((acc, report) => acc + report.terminalIncomes, 0), [supervisorsInfo]);
+  const totalBalance = useMemo(() => supervisorsInfo.reduce((acc, report) => acc + report.balance, 0), [supervisorsInfo]);
+  const grossIncomes = useMemo(() => grossCash + deposits + terminalIncomes, [grossCash, deposits, terminalIncomes]);
+
+  // Filtrado por balances negativos
+  const filteredSupervisorsInfo = useMemo(() => {
+    if (!onlyNegativeBalances) return supervisorsInfo;
+    return supervisorsInfo.filter(report => report.balance < 0);
+  }, [supervisorsInfo, onlyNegativeBalances]);
 
   return {
-    supervisorsInfo,
+    supervisorsInfo: filteredSupervisorsInfo,
     replaceSupervisorReport: (report) => {
-      setSupervisorsInfo((prevReports) => prevReports.map((prevReport) => prevReport._id === report._id ? report : prevReport));
+      // Optimistic update: sólo para UI, no muta cache de React Query
+      if (!supervisorsInfoData) return;
+      supervisorsInfoData.forEach((r, i) => {
+        if (r._id === report._id) supervisorsInfoData[i] = report;
+      });
     },
     loading,
     deposits,
@@ -55,10 +57,13 @@ export const useSupervisorsReportInfo = ({ companyId, date }) => {
     verifiedIncomes,
     cashArray,
     verifiedCash,
+    grossIncomes,
+    totalBalance,
     depositsArray,
+    extraOutgoingsArray,
     verifiedDeposits,
     terminalIncomesArray,
     terminalIncomes,
-    getSupervisorsInfo,
+    getSupervisorsInfo: refetchSupervisorsInfo,
   };
 };

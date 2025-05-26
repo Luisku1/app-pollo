@@ -1,5 +1,5 @@
 import express from 'express'
-import { getEmployees, deleteEmployee, getEmployeesDailyBalances, updateEmployeeDailyBalance, getEmployee, getEmployeeReports, getEmployeeDayInfo, getEmployeePayroll, deleteDuplicatedEmployeeDailyBalances, newEmployeePaymentQuery, getEmployeesPaymentsQuery, deleteEmployeePaymentQuery, getEmployeePayments, getAllEmployees, changeEmployeeActiveStatus, createEmployeeRest, getPendingEmployeesRests, deleteEmployeeRest, updateEmployee, getEmployeePayment, getSignedUser, getEmployeeBranchReports, getEmployeeSupervisorReports } from '../controllers/employee.controller.js'
+import { getEmployees, deleteEmployee, getEmployeesDailyBalances, updateEmployeeDailyBalance, getEmployee, getEmployeeReports, getEmployeeDayInfo, getEmployeePayroll, deleteDuplicatedEmployeeDailyBalances, newEmployeePaymentQuery, getEmployeesPaymentsQuery, deleteEmployeePaymentQuery, getEmployeePayments, getAllEmployees, changeEmployeeActiveStatus, createEmployeeRest, getPendingEmployeesRests, deleteEmployeeRest, updateEmployee, getEmployeePayment, getSignedUser, getEmployeeBranchReports, getEmployeeSupervisorReports, createPenalty } from '../controllers/employee.controller.js'
 import { getSupervisorReport, getSupervisorReports, recalculateSupervisorReport, setBalanceOnZero } from '../controllers/supervisor.report.js'
 
 const router = express.Router()
@@ -9,6 +9,7 @@ router.put('/change-active-status/:employeeId', changeEmployeeActiveStatus)
 router.put('/:employeeId', updateEmployee)
 router.post('/create-employee-rest', createEmployeeRest)
 router.post('/employee-payment/create', newEmployeePaymentQuery)
+router.post('/penalties/create', createPenalty)
 router.get('/:employeeId', getSignedUser)
 router.get('/get-employee-branch-reports/:employeeId', getEmployeeBranchReports)
 router.get('/get-employee-supervisor-reports/:employeeId', getEmployeeSupervisorReports)

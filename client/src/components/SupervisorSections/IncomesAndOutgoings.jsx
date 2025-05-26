@@ -7,7 +7,6 @@ import ExtraOutgoings from "../Outgoings/ExtraOutgoings";
 export default function IncomesAndOutgoings({ date, companyId, branchAndCustomerSelectOptions, employees, branches }) {
 
   const { currentUser } = useSelector((state) => state.user)
-  const { incomes, incomesTotal, onAddIncome, pushIncome, spliceIncomeById, onDeleteIncome } = useIncomes({ companyId, date })
 
   return (
     <div>

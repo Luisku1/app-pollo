@@ -13,17 +13,21 @@ import ShowListModal from '../Modals/ShowListModal'
 import IncomesList from './IncomesList'
 import { ToastDanger, ToastInfo, ToastSuccess } from '../../helpers/toastify'
 import { useSelector } from 'react-redux'
+import { useDate } from '../../context/DateContext'
+import { useIncomes } from '../../hooks/Incomes/useIncomes'
 
-export default function Incomes({ incomes, incomesTotal, onAddIncome, onDeleteIncome, branchAndCustomerSelectOptions }) {
+export default function Incomes({ branchAndCustomerSelectOptions }) {
 
   const { currentUser, company } = useSelector((state) => state.user)
   const [incomeFormData, setIncomeFormData] = useState({})
   const { isManager } = useRoles()
   const { incomeTypes } = useIncomeTypes()
+  const companyId = company?._id ?? company
   const [selectedCustomerBranchIncomesOption, setSelectedCustomerBranchIncomesOption] = useState(null)
   const [selectedIncomeGroup, setSelectedIncomeGroup] = useState('')
   const [selectedIncomeType, setSelectedIncomeType] = useState(null)
-  const companyId = company?._id ?? company
+  const { incomes, incomesTotal, onAddIncome, pushIncome, spliceIncomeById, onDeleteIncome } = useIncomes({ companyId, date })
+  const { currentDate } = useDate()
 
   const resetInputs = () => {
     document.getElementById('income-amount').value = ''
@@ -42,9 +46,10 @@ export default function Incomes({ incomes, incomesTotal, onAddIncome, onDeleteIn
 
   const addIncomeSubmit = async (e) => {
 
-    const createdAt = isToday(date) ? new Date().toISOString() : new Date(date).toISOString()
-    let income = null
     e.preventDefault()
+
+    const createdAt = isToday(currentDate) ? new Date().toISOString() : new Date(currentDate).toISOString()
+    let income = null
 
     try {
 
@@ -80,7 +85,6 @@ export default function Incomes({ incomes, incomesTotal, onAddIncome, onDeleteIn
       ToastSuccess(`Se registró el efectivo de ${income.amount.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}`)
       resetInputs()
       await onAddIncome(income, prevOwnerIncome ? prevOwnerIncome : null, selectedIncomeGroup)
-
 
     } catch (error) {
 
@@ -132,7 +136,7 @@ export default function Incomes({ incomes, incomesTotal, onAddIncome, onDeleteIn
 
   return (
     <div>
-      <div className='border bg-white p-3 rounded-lg mt-4'>
+      <div className='border bg-white p-3 rounded-lg'>
         <div className='grid grid-cols-2'>
           <SectionHeader label={'Efectivos'} />
           <div className='flex items-center gap-4 justify-self-end mr-12'>

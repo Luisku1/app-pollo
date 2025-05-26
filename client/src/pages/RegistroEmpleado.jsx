@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux'
 import { weekDays } from '../helpers/Constants'
 import { ToastSuccess } from '../helpers/toastify'
 import { useRoles } from '../context/RolesContext'
+import { Prev } from 'react-bootstrap/esm/PageItem'
 
 export default function RegistroEmpleadoNuevo({ employee, setEmployee }) {
 
@@ -73,7 +74,7 @@ export default function RegistroEmpleadoNuevo({ employee, setEmployee }) {
         return
       }
 
-      setEmployee({...data.employee})
+      setEmployee({ ...data.employee, role: roles.find(role => role._id == data.employee.role) })
       setError(null)
       ToastSuccess('Empleado actualizado correctamente')
 
@@ -101,6 +102,7 @@ export default function RegistroEmpleadoNuevo({ employee, setEmployee }) {
     if (isEditing) {
       data._id = employee._id
       if (data.password === '') delete data.password
+      setEmployee(prev => ({ ...prev, ...data }))
       await updateEmployee(data)
 
     } else {
@@ -125,7 +127,10 @@ export default function RegistroEmpleadoNuevo({ employee, setEmployee }) {
           <span className="w-full">
             Actualización de cuenta
             <br />
-            {`[${employee.name}]`}
+            <span className='text-employee-name'>
+
+              {`[${employee.name} ${employee.lastName}]`}
+            </span>
           </span>
         ) : (
           'Registro de Empleado'

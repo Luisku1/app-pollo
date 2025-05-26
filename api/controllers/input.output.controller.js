@@ -112,7 +112,7 @@ export const newBranchInputAndUpdateBranchReport = async ({ _id, weight, comment
 
   } catch (error) {
 
-    if(stock) {
+    if (stock) {
 
       await deleteStockAndUpdateBranchReport({ stock_id: stock._id, alsoDeleteInitial: true })
     }
@@ -659,7 +659,7 @@ export const newCustomerOutput = async (req, res, next) => {
       record: output,
       affectsBalancePositively: true,
       operation: '$addToSet',
-      amountField: 'returnsAmount',
+      amountField: 'returns',
       arrayField: 'returnsArray'
     })
 
@@ -1105,8 +1105,8 @@ export const deleteProviderInput = async (req, res, next) => {
         record: deletedProviderInput,
         affectsBalancePositively: false,
         operation: '$pull',
-        arrayField: 'inputsArray',
-        amountField: 'inputs'
+        arrayField: 'providerInputsArray',
+        amountField: 'providerInputs',
       })
 
     } else {
@@ -1169,7 +1169,7 @@ export const deleteOutput = async (req, res, next) => {
         affectsBalancePositively: true,
         operation: '$pull',
         arrayField: 'returnsArray',
-        amountField: 'returnsAmount'
+        amountField: 'returns'
       })
     }
 

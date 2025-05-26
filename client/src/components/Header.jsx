@@ -1,14 +1,14 @@
-import { GiChicken } from 'react-icons/gi';
 import { Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { useEffect, useState } from 'react';
-import { MdSearch, MdHome, MdNotifications, MdDehaze } from "react-icons/md"; // Added MdHome
+import { MdSearch, MdHome } from "react-icons/md"; // Added MdHome
 import '../assets/dropdown.css';
 import { useRoles } from '../context/RolesContext';
 import { useDate } from '../context/DateContext'; // Import DateContext
 import { formatDate, formatInformationDate } from '../helpers/DatePickerFunctions';
 import { normalizeText } from '../helpers/Functions';
 import { RegistersMenu } from './RegitsersMenu';
+import { SearchMenu } from './Search';
 
 export default function Header() {
 
@@ -179,6 +179,15 @@ export default function Header() {
     };
   }, [showDropdown]);
 
+  const onActivateSearch = () => {
+    setShowDropdown(true);
+    console.log('Activating search');
+    const searchBar = document.getElementById('search-bar');
+    if (searchBar) {
+      searchBar.focus();
+    }
+  }
+
   return (
     <header className='bg-header shadow-md sticky top-0 z-[9999]'>
       <div className='flex justify-between items-center mx-auto p-3 max-w-full flex-row-reverse'>
@@ -240,6 +249,7 @@ export default function Header() {
           </div>
         </div>
       </div>
+      <SearchMenu onActivateSearch={onActivateSearch} />
       <RegistersMenu />
     </header>
   );

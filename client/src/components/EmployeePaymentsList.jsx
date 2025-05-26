@@ -72,7 +72,7 @@ export default function EmployeePaymentsList({ payments, onDelete = null, splice
                 <RowItem>
                   <div className="flex gap-1 items-center">
                     <p className="mr-2 text-md font-semibold">Pago a: </p>
-                    <button onClick={() => setSelectedEmployee(employee)} className="text-red-800 font-bold text-md flex gap-1 items-center w-full"><span><CgProfile /></span>{employee.name}</button>
+                    <button onClick={() => setSelectedEmployee(employee)} className="text-red-800 font-bold text-md flex gap-1 items-center w-full"><span><CgProfile /></span>{employee?.name ?? 'Ex empleado'}</button>
                   </div>
                   <p className={`text-md text-orange-500 font-bold flex gap-1 items-center`}><MoneyBag />{currency({ amount })}</p>
                 </RowItem>

@@ -13,6 +13,8 @@ export const useEmployeesPayroll = ({ companyId, date }) => {
     setEmployeesPayroll((prevEmployeesPayroll) => {
 
       const newEmployeesPayroll = [...prevEmployeesPayroll]
+
+      console.log(report, payrollIndex)
       newEmployeesPayroll[payrollIndex].branchReports.forEach((branchReport, index) => {
 
         if (branchReport._id === report._id) {

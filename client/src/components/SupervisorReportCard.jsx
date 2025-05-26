@@ -95,11 +95,9 @@ export default function SupervisorReportCard({ supervisorReport, replaceReport, 
       document.body.removeChild(clonedNode);
       toolsDiv.style.display = ""; // Restore tools
       const blob = await (await fetch(dataUrl)).blob();
-      const text = `Link de la cuenta: ${window.location.origin}/formato/${supervisorReport.createdAt}/${supervisorReport.supervisor._id}`;
       await navigator.clipboard.write([
         new ClipboardItem({
-          "image/png": blob,
-          "text/plain": new Blob([text], { type: "text/plain" }),
+          "image/png": blob
         }),
       ]);
       ToastSuccess("Imagen copiada al portapapeles");
@@ -112,7 +110,7 @@ export default function SupervisorReportCard({ supervisorReport, replaceReport, 
   return (
     <div
       id={`supervisor-report-container-${supervisorReport._id}`}
-      className={`text-base w-full p-1 mb-4 mt-4 rounded-3xl border border-black shadow-md transition-all duration-200 ${supervisorReport.balance < 0 ? 'bg-pastel-pink' : supervisorReport.onZero ? 'bg-yellow-100' : 'bg-white'}`}
+      className={`text-base w-full p-1 rounded-lg border border-black shadow-md transition-all duration-200 ${supervisorReport.balance < 0 ? 'bg-pastel-pink' : supervisorReport.onZero ? 'bg-yellow-100' : 'bg-white'}`}
       key={supervisorReport._id}>
       <div id={`supervisor-report-card-${supervisorReport._id}`} className={`${supervisorReport.balance < 0 ? 'bg-pastel-pink' : supervisorReport.onZero ? 'bg-yellow-100' : 'bg-white'}`}>
         <EmployeeInfo employee={selectedEmployee} toggleInfo={() => setSelectedEmployee(null)} />
@@ -123,6 +121,7 @@ export default function SupervisorReportCard({ supervisorReport, replaceReport, 
               <RegistrarDineroReportado
                 supervisorReport={supervisorReport}
                 replaceReport={replaceReport}
+                selfChange={selfChange}
               />
             }
           />

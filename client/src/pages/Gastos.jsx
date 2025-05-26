@@ -2,7 +2,6 @@ import { useEffect, useState } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { useSelector } from 'react-redux'
 import { FaCheck } from "react-icons/fa"
-import { fetchEmployees } from "../helpers/FetchFunctions"
 import { MdCancel } from "react-icons/md";
 import { formatDate } from "../helpers/DatePickerFunctions"
 import FechaDePagina from "../components/FechaDePagina"
@@ -24,7 +23,7 @@ export default function Gastos() {
   const [manager, setManagerRole] = useState({})
   const navigate = useNavigate()
 
-  const {currentDate, setCurrentDate} = useDate()
+  const { currentDate, setCurrentDate } = useDate()
 
   const changeDatePickerValue = (e) => {
 
@@ -165,23 +164,6 @@ export default function Gastos() {
       }
     }
 
-    const setEmployeesFunction = async () => {
-
-      const { error, data } = await fetchEmployees(company._id)
-
-      if (error == null) {
-
-        setError(null)
-        setEmployees(data)
-
-      } else {
-
-        setError(error)
-      }
-
-    }
-
-    setEmployeesFunction()
     fetchOutgoings()
 
   }, [paramsDate, company])

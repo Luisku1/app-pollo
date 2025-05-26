@@ -43,8 +43,8 @@ export default function OutgoingsList({ outgoings, onDelete, modifyBalance }) {
   const renderOutgoingItem = ({ outgoing, index }) => {
     const { _id, employee, concept, amount, createdAt } = outgoing
     const tempOutgoing = { ...outgoing, index }
-    const employeeName = `${employee.name || employee}`
-    const isAuthorized = currentUser._id == employee._id || isManager(currentUser.role)
+    const employeeName = `${employee ? employee?.name ?? '' : 'Ex empleado'}`
+    const isAuthorized = currentUser?._id == employee?._id || isManager(currentUser.role)
     const shouldRender = isAuthorized || isManager(currentUser.role)
 
     return (
@@ -80,9 +80,11 @@ export default function OutgoingsList({ outgoings, onDelete, modifyBalance }) {
                 <CiSquareInfo className="w-full h-full text-blue-600" />
               </button>
               {deletable && (
-                <DeleteButton
-                  id={outgoing._id}
-                  deleteFunction={() => onDelete(tempOutgoing, modifyBalance)} />
+                <div className="mx-auto my-auto h-10 w-10">
+                  <DeleteButton
+                    id={outgoing._id}
+                    deleteFunction={() => onDelete(tempOutgoing, modifyBalance)} />
+                </div>
               )}
             </div>
           </div>

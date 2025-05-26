@@ -34,6 +34,7 @@ export default function FechaDePagina({ changeDatePickerValue, changeDay, higher
           type="date"
           name="date"
           id="date"
+          max={formatDate(new Date()).slice(0, 10)}
           onChange={changeDatePickerValue}
           value={formatDate(currentDate).slice(0, 10)}
         />

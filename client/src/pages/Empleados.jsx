@@ -27,6 +27,7 @@ export default function Empleados() {
   const [editEmployee, setEditEmployee] = useState(null)
   const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
   const [selectedEmployee, setSelectedEmployee] = useState(null)
+  const [employeeToEdit, setEmployeeToEdit] = useState(null)
 
   const handleChangeEmployeeStatus = (employee) => {
 
@@ -81,12 +82,8 @@ export default function Empleados() {
     document.title = 'Empleados'
   }, [])
 
-  const toggleEditEmployee = () => {
-
-    setEditEmployee((prev) => !prev)
-  }
-
   const renderEmployeesList = (employeesList = []) => {
+
 
     return employeesList.map((employee, index) => (
       <div key={employee._id}>
@@ -137,17 +134,9 @@ export default function Empleados() {
                     </div>
                   }
                 </button>
-                <button className="border shadow-lg rounded-lg text-center h-10 w-10 m-3" onClick={toggleEditEmployee}>
+                <button className="border shadow-lg rounded-lg text-center h-10 w-10 m-3" onClick={() => setEmployeeToEdit(employee)}>
                   <FaEdit className="text-blue-500 m-auto h-fit w-fit" />
                 </button>
-
-                {editEmployee && (
-                  <Modal
-                    content={<RegistroEmpleadoNuevo setEmployee={onUpdateEmployee} employee={employee} />}
-                    closeModal={toggleEditEmployee}
-                    ableToClose={true}
-                  />
-                )}
                 <div>
                   <button id={employee._id} onClick={() => { setIsOpen(isOpen ? false : true), setButtonId(employee._id) }} disabled={loading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
                     <span>
@@ -186,7 +175,12 @@ export default function Empleados() {
   return (
 
     <main className="p-3 max-w-lg mx-auto">
-
+      <Modal
+        content={<RegistroEmpleadoNuevo setEmployee={onUpdateEmployee} employee={employeeToEdit} />}
+        closeModal={() => setEmployeeToEdit(null)}
+        ableToClose={true}
+        isShown={employeeToEdit}
+      />
       {error ? <p>{error}</p> : ''}
       <EmployeeInfo employee={selectedEmployee} toggleInfo={() => setSelectedEmployee(null)} />
 

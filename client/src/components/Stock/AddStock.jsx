@@ -9,7 +9,7 @@ import StockList from "./StockList"
 import { getArrayForSelects, getElementForSelect } from "../../helpers/Functions"
 import { ToastInfo, ToastSuccess } from "../../helpers/toastify"
 
-export default function AddStock({ title, midDay, modifyBalance, stock, isReport = false, listButton, weight, amount, products, onAddStock, onDeleteStock, branch, employee, date, branchPrices, isEditing }) {
+export default function AddStock({ title, midDay, modifyBalance, stock, isReport = false, listButton, weight, amount, products, onAddStock, onDeleteStock, branch, employee, date, branchPrices }) {
 
   const { company } = useSelector((state) => state.user)
   const [selectedProduct, setSelectedProduct] = useState(null)
@@ -49,7 +49,7 @@ export default function AddStock({ title, midDay, modifyBalance, stock, isReport
     e.preventDefault()
     setIsButtonDisabled(true)
 
-    if(!branch) {
+    if (!branch) {
       ToastInfo('Selecciona una sucursal')
       setIsButtonDisabled(false)
       return
@@ -133,25 +133,23 @@ export default function AddStock({ title, midDay, modifyBalance, stock, isReport
       <div className='grid grid-cols-1'>
         <SectionHeader label={title} />
       </div>
-      {isEditing && (
-        <form onSubmit={addStockItem} className="grid grid-cols-4">
-          <Select
-            styles={customStockSelectStyles}
-            options={getArrayForSelects(products, (product) => { return product.name })}
-            isSearchable={true}
-            value={getElementForSelect(selectedProduct, (product) => { return product.name }) || null}
-            onChange={handleProductSelectChange}
-            placeholder={'Productos'}
-          />
-          <div className=''>
-            <input type="number" name="pieces" id="pieces" placeholder='Piezas' step={0.1} className='w-full border border-black p-3 rounded-lg' required value={stockFormData.pieces} onChange={handleStockInputsChange} />
-          </div>
-          <div className=''>
-            <input type="number" name="weight" id="weight" placeholder='0.00 kg' step={0.001} className='w-full border border-black p-3 rounded-lg' required value={stockFormData.weight} onChange={handleStockInputsChange} />
-          </div>
-          <button type='submit' id='stock-button' disabled={isButtonDisabled} className='bg-button text-white p-3 rounded-lg'>Agregar</button>
-        </form>
-      )}
+      <form onSubmit={addStockItem} className="grid grid-cols-4">
+        <Select
+          styles={customStockSelectStyles}
+          options={getArrayForSelects(products, (product) => { return product.name })}
+          isSearchable={true}
+          value={getElementForSelect(selectedProduct, (product) => { return product.name }) || null}
+          onChange={handleProductSelectChange}
+          placeholder={'Productos'}
+        />
+        <div className=''>
+          <input type="number" name="pieces" id="pieces" placeholder='Piezas' step={0.1} className='w-full border border-black p-3 rounded-lg' required value={stockFormData.pieces} onChange={handleStockInputsChange} />
+        </div>
+        <div className=''>
+          <input type="number" name="weight" id="weight" placeholder='0.00 kg' step={0.001} className='w-full border border-black p-3 rounded-lg' required value={stockFormData.weight} onChange={handleStockInputsChange} />
+        </div>
+        <button type='submit' id='stock-button' disabled={isButtonDisabled} className='bg-button text-white p-3 rounded-lg'>Agregar</button>
+      </form>
       <div className='w-full mt-2'>
         <ShowListModal
           title={'Sobrante'}

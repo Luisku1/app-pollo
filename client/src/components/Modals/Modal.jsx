@@ -20,10 +20,13 @@ export default function Modal({
   shape = "",
   loading = false,
   adjustForKeyboard = false,
+  isShown = true,
 }) {
   const { modals, removeLastModal, count, setCount } = useContext(ModalContext);
 
   useEffect(() => {
+
+    if (!isShown) return;
     setCount((prevCount) => prevCount + 1);
 
     document.body.style.overflow = "hidden";
@@ -73,13 +76,16 @@ export default function Modal({
       }
       setCount((prevCount) => prevCount - 1);
     };
-  }, [ableToClose, closeModal, removeLastModal, modals.length, adjustForKeyboard]);
+  }, [ableToClose, closeModal, removeLastModal, isShown, modals.length, adjustForKeyboard]);
 
+  if (!isShown) {
+    return null;
+  }
   const renderModal = () => {
     const zIndex = 1000 + count;
     return (
       <div
-        className={`fixed transition-all duration-200 inset-0 z-[10000] bg-black bg-opacity-30 overflow-y-auto backdrop-blur-sm flex items-center justify-center pt-16`}
+        className={`fixed transition-all 'backdrop-blur-xs' duration-200 inset-0 z-[10000] bg-opacity-10 bg-black overflow-y-auto  flex items-center justify-center pt-16`}
         style={adjustForKeyboard ? { alignItems: "flex-start" } : {}}
         onClick={(e) => {
           if (
@@ -93,7 +99,7 @@ export default function Modal({
       >
         <div
           ref={ref}
-          className={`bg-white shadow-lg h-auto max-h-[90vh] max-w-lg w-${width} overflow-y-auto relative ${fit ? 'w-fit h-fit' : 'p-5'} overscroll-contain ${shape} '
+          className={`bg-white shadow-lg h-auto max-h-[90vh] max-w-lg w-${width} overflow-y-auto relative overscroll-contain ${shape} rounded-lg border-2 border-gray-300'
           `}
           style={adjustForKeyboard ? { position: "absolute", top: "5/6" } : {}}
           onClick={(e) => {
@@ -126,7 +132,7 @@ export default function Modal({
 
           {extraInformation && extraInformation()}
 
-          <div className={`${fit ? '' : 'mt-4 mb-4'}`}>
+          <div className={`${fit ? '' : 'px-1 mt-4 mb-4'}`}>
             {title && <SectionHeader label={title} />}
             <div>{content}</div>
           </div>

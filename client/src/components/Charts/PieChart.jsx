@@ -34,6 +34,12 @@ export default function PieChart({ verifiedIncomes = null, netIncomes = null, ch
 
     if (!info) return
 
+
+    const action = info?.action || null;
+    if (action) {
+      action()
+      return
+    }
     setList(info.data)
 
     switch (info.label) {
@@ -121,42 +127,43 @@ export default function PieChart({ verifiedIncomes = null, netIncomes = null, ch
   };
 
   const options = {
-    mantainAspectRatio: false,
+    maintainAspectRatio: false, // Asegura que el gráfico se ajuste al contenedor
     responsive: true,
     plugins: {
       legend: {
-        position: 'top', // Posición de la leyenda
+        position: 'bottom',
       },
       datalabels: {
-        color: '#000', // Cambiar a un color que contraste bien
+        color: '#000',
         formatter: (value, context) => {
           return !value ? '' : currency({ amount: value });
         },
         font: {
           weight: 'bold',
-          size: 16, // Aumentar el tamaño de la fuente
-        }
+          size: 12,
+        },
       },
       tooltip: {
         callbacks: {
           label: function (tooltipItem) {
             const label = data.labels[tooltipItem.dataIndex] || '';
-            const value = data.datasets[0].data[tooltipItem.dataIndex] || 0
-            return `${label}: ${currency({ amount: value })}` // Muestra el label y el valor en el tooltip
+            const value = data.datasets[0].data[tooltipItem.dataIndex] || 0;
+            return `${label}: ${currency({ amount: value })}`;
           },
         },
       },
-
     },
     onClick: (event, elements) => {
-      const index = elements[0].index
-      handleChartClick(index)
+      const index = elements[0].index;
+      handleChartClick(index);
     },
-  }
+  };
 
   return (
-    <div>
-      <Pie data={data} options={options}></Pie>
+    <div className=' items-center w-full'>
+      <div className=''> {/* Incrementa aún más el tamaño del contenedor */}
+        <Pie data={data} options={options} style={{ width: '100%', height: '100%' }} />
+      </div>
       {list.length > 0 && (
         <ShowListModal
           title={listTitle}
@@ -177,5 +184,5 @@ export default function PieChart({ verifiedIncomes = null, netIncomes = null, ch
         />
       )}
     </div>
-  )
+  );
 }

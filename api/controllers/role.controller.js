@@ -1,6 +1,22 @@
 import Role from '../models/role.model.js'
 import { errorHandler } from '../utils/error.js'
 
+export const roleAggregate = (localField = 'role') => {
+	return [
+		{
+			$lookup: {
+				from: 'roles',
+				localField: localField,
+				foreignField: '_id',
+				as: localField
+			}
+		},
+		{
+			$unwind: { path: `$${localField}`, preserveNullAndEmptyArrays: true }
+		}
+	]
+}
+
 export const newRole = async (req, res, next) => {
 
 	const name = req.body.name

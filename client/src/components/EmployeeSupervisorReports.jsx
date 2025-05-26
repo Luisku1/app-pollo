@@ -17,7 +17,6 @@ export default function EmployeeSupervisorReports({ employeeId, employee, toggle
         setLoading(true);
         const data = await getEmployeeSupervisorReports(employeeId, new Date().toISOString());
         setLoading(false);
-        console.log(data)
         setSupervisorReports(data);
       } catch (error) {
         console.error("Error fetching supervisor reports:", error);

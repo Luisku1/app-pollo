@@ -206,7 +206,7 @@ export default function Perfil() {
                     </div>
                     <div key={employeeDailyBalance._id} className='grid grid-cols-12 items-center border border-black border-opacity-30 rounded-lg shadow-sm mt-2'>
                       <div id='list-element' className='flex col-span-12 items-center justify-around py-3'>
-                        <input className='w-4/12' type="checkbox" name="foodDiscount" id="foodDiscount" disabled={currentUser.role == roles.seller} defaultChecked={employeeDailyBalance.foodDiscount} onChange={(e) => handleDailyBalanceInputs(e, employeeDailyBalance._id)} />
+                        <input className='w-4/12' type="checkbox" name="lateDiscount" id="lateDiscount" disabled={currentUser.role == roles.seller} defaultChecked={employeeDailyBalance.lateDiscount} onChange={(e) => handleDailyBalanceInputs(e, employeeDailyBalance._id)} />
                         <input className='w-4/12' type="checkbox" name="restDay" id="restDay" disabled={currentUser.role == roles.seller} defaultChecked={employeeDailyBalance.restDay} onChange={(e) => handleDailyBalanceInputs(e, employeeDailyBalance._id)} />
                         <input className='w-4/12' type="checkbox" name="dayDiscount" id="dayDiscount" disabled={currentUser.role == roles.seller} defaultChecked={employeeDailyBalance.dayDiscount} onChange={(e) => handleDailyBalanceInputs(e, employeeDailyBalance._id)} />
                       </div>

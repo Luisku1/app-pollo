@@ -1,7 +1,28 @@
+import { Types } from 'mongoose'
 import Customer from '../models/customers/customer.model.js'
 import CustomerReport from '../models/customers/customer.report.model.js'
 import { errorHandler } from '../utils/error.js'
 import { getDayRange } from '../utils/formatDate.js'
+import { branchAggregate } from './branch.controller.js'
+import { employeeAggregate, employeePaymentIncomeAggregate } from './employee.controller.js'
+import { incomeAggregate, typeAggregate } from './income.controller.js'
+import { productAggregate } from './product.controller.js'
+
+export const customerAggregate = (localField = 'customer') => {
+  return [
+    {
+      $lookup: {
+        from: 'customers',
+        localField: localField,
+        foreignField: '_id',
+        as: localField
+      }
+    },
+    {
+      $unwind: { path: `$${localField}`, preserveNullAndEmptyArrays: true }
+    }
+  ]
+}
 
 export const newCustomer = async (req, res, next) => {
 
@@ -71,8 +92,8 @@ export const createDefaultCustomerReport = async ({ customerId, date, companyId 
   const { bottomDate } = getDayRange(date)
 
   const lastCustomerReport = await CustomerReport.findOne({
-    createdAt: { $lt: bottomDate },
-    customer: customerId
+    customer: customerId,
+    createdAt: { $lt: bottomDate }
   })
 
   const previousBalance = lastCustomerReport?.balance || 0
@@ -149,3 +170,116 @@ export const pushOrPullCustomerReportRecord = async ({
     updatedFields: [arrayField, amountField]
   })
 }
+
+export const getCustomersReports = async (req, res, next) => {
+  const { companyId, date } = req.params
+
+  try {
+
+    const customersReports = await fetchCustomerReports(companyId, date)
+    if (!customersReports) throw new Error("No se encontraron reportes de clientes")
+
+    if (customersReports.length < 0) next(errorHandler(404, 'No customers found'))
+
+    res.status(200).json({ customersReports })
+
+  } catch (error) {
+
+    next(error)
+  }
+}
+
+const fetchCustomerReports = async (companyId, date) => {
+
+  const { bottomDate, topDate } = getDayRange(date);
+
+  try {
+    const customerReportsAggregate = await CustomerReport.aggregate([
+      {
+        $match: {
+          company: new Types.ObjectId(companyId),
+          createdAt: { $gte: new Date(bottomDate), $lt: new Date(topDate) }
+        },
+      },
+      {
+        $lookup: {
+          from: 'inputs',
+          localField: 'branchSales',
+          foreignField: '_id',
+          as: 'branchSales',
+          pipeline: [
+            ...branchAggregate(),
+            ...productAggregate('product'),
+            ...employeeAggregate('employee'),
+          ]
+        },
+      },
+      {
+        $lookup: {
+          from: 'providerinputs',
+          localField: 'directSales',
+          foreignField: '_id',
+          as: 'directSales',
+          pipeline: [
+            ...branchAggregate(),
+            ...productAggregate('product'),
+            ...employeeAggregate('employee'),
+          ]
+        },
+      },
+      {
+        $lookup: {
+          from: 'outputs',
+          localField: 'returnsArray',
+          foreignField: '_id',
+          as: 'returnsArray',
+          pipeline: [
+            ...branchAggregate(),
+            ...productAggregate('product'),
+            ...employeeAggregate('employee'),
+          ]
+        },
+      },
+      {
+        $lookup: {
+          from: 'incomecollecteds',
+          localField: 'paymentsArray',
+          foreignField: '_id',
+          as: 'paymentsArray',
+          pipeline: [
+            ...branchAggregate(),
+            ...employeeAggregate('employee', 'employee'),
+            ...employeePaymentIncomeAggregate('_id'),
+            ...typeAggregate(),
+          ]
+        },
+      },
+      ...customerAggregate('customer'),
+      {
+        $sort: { 'customer.name': 1 },
+      },
+      {
+        $project: {
+          _id: 1,
+          balance: 1,
+          previousBalance: 1,
+          sales: 1,
+          branchSales: 1,
+          directSales: 1,
+          returns: 1,
+          returnsArray: 1,
+          payments: 1,
+          paymentsArray: 1,
+          customer: 1,
+          company: 1,
+          createdAt: 1,
+        },
+      },
+    ]);
+
+    return customerReportsAggregate;
+
+  } catch (error) {
+    throw error;
+  }
+};

@@ -36,7 +36,6 @@ export const useSupervisorReports = ({ supervisorId = null, supervisorReports = 
 
     getSupervisorReportsFetch({supervisorId}).then((response) => {
 
-      console.log(response)
       setFinalReports(response)
 
     }).catch((error) => {

@@ -1,123 +1,66 @@
 import { useEffect, useMemo, useState } from "react"
-import { getOutputs } from "../../services/Outputs/getOutputs"
+import { useMutation } from '@tanstack/react-query';
 import { useAddOutput } from "./useAddOutput"
 import { useDeleteOutput } from "./useDeleteOutput"
 import { Types } from "mongoose"
 
 export const useOutput = ({ companyId = null, date = null, initialOutputs = null }) => {
+  const [outputs, setOutputs] = useState(initialOutputs || []);
+  const { addOutput, loading: addLoading } = useAddOutput();
+  const { deleteOutput, loading: deleteLoading } = useDeleteOutput();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  const [outputs, setOutputs] = useState([])
-  const { addOutput, loading: addLoading } = useAddOutput()
-  const { deleteOutput, loading: deleteLoading } = useDeleteOutput()
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
-
-  const initialize = (initialArray) => {
-    setOutputs(initialArray);
-  };
-
-  const pushOutput = (output) => {
-
-    setOutputs((prevOutputs) => [output, ...prevOutputs])
-  }
-
-  const spliceOutput = (index) => {
-    setOutputs((prevOutputs) => {
-      const newOutputs = prevOutputs.filter((_, i) => i !== index);
-      return newOutputs;
-    });
-  };
-
-  const onAddOutput = async (output, group) => {
-
-    const tempId = new Types.ObjectId().toHexString()
-
-    try {
-
-      const tempOutput = { ...output, _id: tempId }
-
-      pushOutput(tempOutput, group)
-      await addOutput(tempOutput, group)
-
-    } catch (error) {
-
-      spliceOutput(outputs.findIndex((output) => output._id === tempId))
-      console.log(error)
-    }
-  }
-
-  const onDeleteOutput = async (output) => {
-
-    try {
-
-      spliceOutput(output.index)
-      await deleteOutput(output)
-
-    } catch (error) {
-
-      pushOutput(output)
-      console.log(error)
-    }
-  }
-
-  useEffect(() => {
-    if (!initialOutputs) return
-    initialize(initialOutputs)
-  }, [initialOutputs, outputs])
-
-  useEffect(() => {
-
-    if (!companyId || !date) return
-
-    const fetchOutputs = async () => {
-      setLoading(true)
-      setOutputs([])
-
-      try {
-        const response = await getOutputs({ companyId, date })
-        setOutputs(response.outputs)
-      } catch (error) {
-        setError(error)
-
-      } finally {
-        setLoading(false)
+  // Mutación para eliminar output (optimista)
+  const deleteMutation = useMutation({
+    mutationFn: (output) => deleteOutput(output),
+    onMutate: (output) => {
+      if (initialOutputs !== null) {
+        setOutputs((prev) => prev.filter((o) => o._id !== output._id));
       }
+    },
+    onError: (err, output, context) => {
+      // Revertir si hay error
+      if (initialOutputs !== null) {
+        setOutputs((prev) => [output, ...prev]);
+      }
+      setError(err);
+    },
+    // No se hace nada en onSuccess ni onSettled
+  });
+
+  // Mutación para agregar output (opcional, solo si se usa el estado local)
+  const onAddOutput = async (output, group) => {
+    const tempId = new Types.ObjectId().toHexString();
+    try {
+      const tempOutput = { ...output, _id: tempId };
+      if (initialOutputs !== null) setOutputs((prev) => [tempOutput, ...prev]);
+      await addOutput(tempOutput, group);
+    } catch (error) {
+      if (initialOutputs !== null) setOutputs((prev) => prev.filter((o) => o._id !== tempId));
+      setError(error);
     }
+  };
 
-    fetchOutputs()
+  // Sincroniza outputs solo si initialOutputs está definido
+  useEffect(() => {
+    if (initialOutputs !== null) setOutputs(initialOutputs);
+  }, [initialOutputs]);
 
-  }, [companyId, date])
+  // Si initialOutputs es null, outputs no se expone ni se sincroniza
 
   const { totalWeight, totalAmount } = useMemo(() => {
-
-    const totalWeight = outputs.reduce((acc, output) => acc + output.weight, 0)
-    const totalAmount = outputs.reduce((acc, output) => acc + output.amount, 0)
-
-    return { totalWeight, totalAmount }
-
-  }, [outputs])
-
-  const sortedOutputs = useMemo(() => {
-
-    const clientsOutputs = outputs.filter((output) => !output.branch)
-    const branchesOutputs = outputs
-      .filter((output) => output.branch)
-      .sort((a, b) => a.branch.position - b.branch.position)
-
-    return [...branchesOutputs, ...clientsOutputs]
-
-  }, [outputs])
+    const arr = initialOutputs !== null ? outputs : [];
+    const totalWeight = arr.reduce((acc, output) => acc + (output.weight || 0), 0);
+    const totalAmount = arr.reduce((acc, output) => acc + (output.amount || 0), 0);
+    return { totalWeight, totalAmount };
+  }, [outputs, initialOutputs]);
 
   return {
-    outputs: sortedOutputs,
-    totalWeight,
-    totalAmount,
+    ...(initialOutputs !== null ? { outputs, totalWeight, totalAmount } : { totalWeight, totalAmount }),
     onAddOutput,
-    onDeleteOutput,
-    loading: loading || addLoading || deleteLoading,
-    error,
-    pushOutput,
-    spliceOutput,
-    initialize
-  }
+    onDeleteOutput: deleteMutation.mutate,
+    loading: loading || addLoading || deleteLoading || deleteMutation.isLoading,
+    error: error || deleteMutation.error
+  };
 }
