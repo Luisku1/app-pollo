@@ -3,7 +3,8 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAddOutput } from "./useAddOutput"
 import { useDeleteOutput } from "./useDeleteOutput"
 import { Types } from "mongoose"
-import { recalculateBranchReport } from "../../../../common/recalculateReports";
+import { recalculateBranchReport } from '../../../../common/recalculateReports';
+import { optimisticUpdateReport, rollbackReport } from "../../helpers/optimisticReportUpdate";
 
 export const useOutput = ({ companyId = null, date = null, initialOutputs = null }) => {
   const [outputs, setOutputs] = useState(initialOutputs || []);
@@ -34,32 +35,82 @@ export const useOutput = ({ companyId = null, date = null, initialOutputs = null
   // Mutación para agregar output (opcional, solo si se usa el estado local)
   const onAddOutput = async (output, group) => {
     const tempId = new Types.ObjectId().toHexString();
+    let prevBranchReports = null;
     try {
       const tempOutput = { ...output, _id: tempId };
       if (initialOutputs !== null) setOutputs((prev) => [tempOutput, ...prev]);
       // --- ACTUALIZACIÓN OPTIMISTA DEL BRANCHREPORT ---
       if (output.branch) {
-        queryClient.setQueryData(['branchReports', companyId, date], (oldReports) => {
-          if (!oldReports) return oldReports;
-          return oldReports.map(report => {
-            if (report.branch._id === output.branch) {
-              const newOutputsArray = [tempOutput, ...(report.outputsArray || [])];
-              const newOutputs = (report.outputs || 0) + output.amount;
-              const updatedReport = {
-                ...report,
-                outputsArray: newOutputsArray,
-                outputs: newOutputs,
-              };
-              return recalculateBranchReport(updatedReport);
-            }
-            return report;
-          });
+        prevBranchReports = optimisticUpdateReport({
+          queryClient,
+          queryKey: ['branchReports', companyId, date],
+          matchFn: (report, item) => report.branch._id === item.branch,
+          updateFn: (report, item) => {
+            const newOutputsArray = [item, ...(report.outputsArray || [])];
+            const newOutputs = (report.outputs || 0) + item.amount;
+            const updatedReport = {
+              ...report,
+              outputsArray: newOutputsArray,
+              outputs: newOutputs,
+            };
+            return recalculateBranchReport(updatedReport);
+          },
+          item: tempOutput
         });
       }
       // --- FIN ACTUALIZACIÓN OPTIMISTA ---
       await addOutput(tempOutput, group);
     } catch (error) {
       if (initialOutputs !== null) setOutputs((prev) => prev.filter((o) => o._id !== tempId));
+      // Rollback branchReports si corresponde
+      if (output.branch && prevBranchReports) {
+        rollbackReport({
+          queryClient,
+          queryKey: ['branchReports', companyId, date],
+          prevReports: prevBranchReports
+        });
+      }
+      setError(error);
+    }
+  };
+
+  // Mutación para eliminar output (optimista y con rollback)
+  const onDeleteOutput = async (output) => {
+    let prevBranchReports = null;
+    let prevOutputs = outputs;
+    try {
+      if (initialOutputs !== null) setOutputs((prev) => prev.filter((o) => o._id !== output._id));
+      // --- ACTUALIZACIÓN OPTIMISTA DEL BRANCHREPORT ---
+      if (output.branch) {
+        prevBranchReports = optimisticUpdateReport({
+          queryClient,
+          queryKey: ['branchReports', companyId, date],
+          matchFn: (report, item) => report.branch._id === item.branch,
+          updateFn: (report, item) => {
+            const newOutputsArray = (report.outputsArray || []).filter(o => o._id !== item._id);
+            const newOutputs = (report.outputs || 0) - item.amount;
+            const updatedReport = {
+              ...report,
+              outputsArray: newOutputsArray,
+              outputs: newOutputs,
+            };
+            return recalculateBranchReport(updatedReport);
+          },
+          item: output
+        });
+      }
+      // --- FIN ACTUALIZACIÓN OPTIMISTA ---
+      await deleteOutput(output);
+    } catch (error) {
+      if (initialOutputs !== null) setOutputs(prevOutputs);
+      // Rollback branchReports si corresponde
+      if (output.branch && prevBranchReports) {
+        rollbackReport({
+          queryClient,
+          queryKey: ['branchReports', companyId, date],
+          prevReports: prevBranchReports
+        });
+      }
       setError(error);
     }
   };
@@ -81,7 +132,7 @@ export const useOutput = ({ companyId = null, date = null, initialOutputs = null
   return {
     ...(initialOutputs !== null ? { outputs, totalWeight, totalAmount } : { totalWeight, totalAmount }),
     onAddOutput,
-    onDeleteOutput: deleteMutation.mutate,
+    onDeleteOutput,
     loading: loading || addLoading || deleteLoading || deleteMutation.isLoading,
     error: error || deleteMutation.error
   };

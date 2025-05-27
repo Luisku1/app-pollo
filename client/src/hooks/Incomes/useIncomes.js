@@ -4,7 +4,8 @@ import { getIncomesFetch } from "../../services/Incomes/getIncomes";
 import { useAddIncome } from "./useAddIncome";
 import { useDeleteIncome } from "./useDeleteIncome";
 import { Types } from "mongoose";
-import { recalculateBranchReport } from "../../../../common/recalculateReports";
+import { recalculateBranchReport } from '../../../../common/recalculateReports';
+import { optimisticUpdateReport, rollbackReport } from "../../helpers/optimisticReportUpdate";
 
 
 export const useIncomes = ({ companyId = null, date = null, initialIncomes = null }) => {
@@ -80,6 +81,9 @@ export const useIncomes = ({ companyId = null, date = null, initialIncomes = nul
     const tempId = new Types.ObjectId().toHexString();
     const tempPrevOwnerIncome = prevOwnerIncome ? { ...prevOwnerIncome, _id: new Types.ObjectId().toHexString() } : null;
     const tempIncome = { ...income, _id: tempId, prevOwnerIncome: tempPrevOwnerIncome?._id ?? null };
+    // Guardar snapshots para posible rollback
+    let prevBranchReports = null;
+    let prevSupervisorsReports = null;
     try {
       if (prevOwnerIncome)
         pushIncome([tempIncome, tempPrevOwnerIncome]);
@@ -88,50 +92,74 @@ export const useIncomes = ({ companyId = null, date = null, initialIncomes = nul
 
       // --- ACTUALIZACIÓN OPTIMISTA DEL BRANCHREPORT ---
       if (income.branch) {
-        queryClient.setQueryData(['branchReports', companyId, date], (oldReports) => {
-          if (!oldReports) return oldReports;
-          return oldReports.map(report => {
-            if (report.branch._id === income.branch) {
-              const newIncomesArray = [tempIncome, ...(report.incomesArray || [])];
-              const newIncomes = (report.incomes || 0) + income.amount;
-              const updatedReport = {
-                ...report,
-                incomesArray: newIncomesArray,
-                incomes: newIncomes,
-              };
-              return recalculateBranchReport(updatedReport);
-            }
-            return report;
-          });
+        prevBranchReports = optimisticUpdateReport({
+          queryClient,
+          queryKey: ['branchReports', companyId, date],
+          matchFn: (report, item) => report.branch._id === item.branch,
+          updateFn: (report, item) => {
+            const newIncomesArray = [item, ...(report.incomesArray || [])];
+            const newIncomes = (report.incomes || 0) + item.amount;
+            const updatedReport = {
+              ...report,
+              incomesArray: newIncomesArray,
+              incomes: newIncomes,
+            };
+            return recalculateBranchReport(updatedReport);
+          },
+          item: tempIncome
         });
       }
-      // --- ACTUALIZACIÓN OPTIMISTA DEL SUPERVISORREPORT ---
-      if (income.supervisor) {
-        queryClient.setQueryData(['supervisorsReportInfo', companyId, date], (oldReports) => {
-          if (!oldReports) return oldReports;
-          return oldReports.map(report => {
-            if (report.supervisor && report.supervisor._id === income.supervisor) {
-              const newCashArray = [tempIncome, ...(report.cashArray || [])];
-              const newCash = (report.cash || 0) + income.amount;
-              return {
-                ...report,
-                cashArray: newCashArray,
-                cash: newCash,
-              };
+      // --- ACTUALIZACIÓN OPTIMISTA DEL SUPERVISORREPORT (usa .employee y tipo de income) ---
+      if (income.employee) {
+        prevSupervisorsReports = optimisticUpdateReport({
+          queryClient,
+          queryKey: ['supervisorsReportInfo', companyId, date],
+          matchFn: (report, item) => report.supervisor && report.supervisor._id === item.employee,
+          updateFn: (report, item) => {
+            // Determinar el tipo de income
+            let newReport = { ...report };
+            const typeName = (item.type && item.type.name) ? item.type.name : null;
+            if (typeName === 'Efectivo') {
+              newReport.cashArray = [item, ...(report.cashArray || [])];
+              newReport.cash = (report.cash || 0) + item.amount;
+            } else if (typeName === 'Depósito') {
+              newReport.depositsArray = [item, ...(report.depositsArray || [])];
+              newReport.deposits = (report.deposits || 0) + item.amount;
+            } else if (typeName === 'Terminal') {
+              newReport.terminalIncomesArray = [item, ...(report.terminalIncomesArray || [])];
+              newReport.terminalIncomes = (report.terminalIncomes || 0) + item.amount;
             }
-            return report;
-          });
+            return newReport;
+          },
+          item: tempIncome
         });
       }
       // --- FIN ACTUALIZACIÓN OPTIMISTA ---
 
       await addIncome(tempIncome, tempPrevOwnerIncome, group);
+
     } catch (error) {
       spliceIncome(incomes.findIndex((income) => income._id === tempId));
       if (prevOwnerIncome)
         spliceIncomeById([tempPrevOwnerIncome._id, tempIncome._id]);
       else
         spliceIncomeById(tempIncome._id)
+      // Rollback branchReports si corresponde
+      if (income.branch && prevBranchReports) {
+        rollbackReport({
+          queryClient,
+          queryKey: ['branchReports', companyId, date],
+          prevReports: prevBranchReports
+        });
+      }
+      // Rollback supervisorsReportInfo si corresponde
+      if (income.employee && prevSupervisorsReports) {
+        rollbackReport({
+          queryClient,
+          queryKey: ['supervisorsReportInfo', companyId, date],
+          prevReports: prevSupervisorsReports
+        });
+      }
       setError(error);
       throw new Error(error);
     }

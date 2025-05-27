@@ -4,6 +4,8 @@ import { useDeleteInput } from "./useDeleteInput"
 import { useAddInput } from "./useAddInput"
 import { Types } from "mongoose"
 import { useQueryClient } from '@tanstack/react-query';
+import { recalculateBranchReport } from '../../../../common/recalculateReports';
+import { optimisticUpdateReport, rollbackReport } from "../../helpers/optimisticReportUpdate"
 
 export const useInputs = ({ companyId = null, date = null, initialInputs = null }) => {
 
@@ -38,53 +40,82 @@ export const useInputs = ({ companyId = null, date = null, initialInputs = null 
   };
 
   const onAddInput = async (input, group) => {
-
     const tempId = new Types.ObjectId().toHexString()
-
+    let prevBranchReports = null;
     try {
-
       const tempInput = { ...input, _id: tempId }
-
       pushInput(tempInput)
       // --- ACTUALIZACIÓN OPTIMISTA DEL BRANCHREPORT ---
       if (input.branch) {
-        queryClient.setQueryData(['branchReports', companyId, date], (oldReports) => {
-          if (!oldReports) return oldReports;
-          return oldReports.map(report => {
-            if (report.branch._id === input.branch) {
-              const newInputsArray = [tempInput, ...(report.inputsArray || [])];
-              const newInputs = (report.inputs || 0) + input.amount;
-              const updatedReport = {
-                ...report,
-                inputsArray: newInputsArray,
-                inputs: newInputs,
-              };
-              return recalculateBranchReport(updatedReport);
-            }
-            return report;
-          });
+        prevBranchReports = optimisticUpdateReport({
+          queryClient,
+          queryKey: ['branchReports', companyId, date],
+          matchFn: (report, item) => report.branch._id === item.branch,
+          updateFn: (report, item) => {
+            const newInputsArray = [item, ...(report.inputsArray || [])];
+            const newInputs = (report.inputs || 0) + item.amount;
+            const updatedReport = {
+              ...report,
+              inputsArray: newInputsArray,
+              inputs: newInputs,
+            };
+            return recalculateBranchReport(updatedReport);
+          },
+          item: tempInput
         });
       }
       // --- FIN ACTUALIZACIÓN OPTIMISTA ---
       await addInput(tempInput, group)
-
     } catch (error) {
-
       spliceInput(inputs.findIndex((input) => input._id === tempId))
+      // Rollback branchReports si corresponde
+      if (input.branch && prevBranchReports) {
+        rollbackReport({
+          queryClient,
+          queryKey: ['branchReports', companyId, date],
+          prevReports: prevBranchReports
+        });
+      }
       console.log(error)
     }
   }
 
   const onDeleteInput = async (input) => {
-
+    let prevBranchReports = null;
+    let prevInputs = inputs;
     try {
-
       spliceInput(input.index)
+      // --- ACTUALIZACIÓN OPTIMISTA DEL BRANCHREPORT ---
+      if (input.branch) {
+        prevBranchReports = optimisticUpdateReport({
+          queryClient,
+          queryKey: ['branchReports', companyId, date],
+          matchFn: (report, item) => report.branch._id === item.branch,
+          updateFn: (report, item) => {
+            const newInputsArray = (report.inputsArray || []).filter(i => i._id !== item._id);
+            const newInputs = (report.inputs || 0) - item.amount;
+            const updatedReport = {
+              ...report,
+              inputsArray: newInputsArray,
+              inputs: newInputs,
+            };
+            return recalculateBranchReport(updatedReport);
+          },
+          item: input
+        });
+      }
+      // --- FIN ACTUALIZACIÓN OPTIMISTA ---
       await deleteInput(input)
-
     } catch (error) {
-
-      pushInput(input)
+      setInputs(prevInputs);
+      // Rollback branchReports si corresponde
+      if (input.branch && prevBranchReports) {
+        rollbackReport({
+          queryClient,
+          queryKey: ['branchReports', companyId, date],
+          prevReports: prevBranchReports
+        });
+      }
       console.log(error)
     }
   }
