@@ -16,6 +16,7 @@ export default function PieChart({ verifiedIncomes = null, netIncomes = null, ch
   const [showExtraOutgoings, setShowExtraOutgoings] = useState(false)
   const [listTitle, setListTitle] = useState('')
   const [list, setList] = useState([])
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [data, setData] = useState({
     labels: [],
     datasets: [
@@ -132,6 +133,19 @@ export default function PieChart({ verifiedIncomes = null, netIncomes = null, ch
     plugins: {
       legend: {
         position: 'bottom',
+        labels: {
+          boxWidth: 16,
+          boxHeight: 16,
+          padding: 10,
+          font: {
+            size: 12,
+          },
+          // Permite el wrap de los labels
+          maxWidth: isMobile ? 150 : 250, // Ajusta según el tamaño de pantalla
+          textAlign: 'center',
+        },
+        // Custom plugin para forzar el wrap en Chart.js
+        // Si usas Chart.js >=4, puedes usar maxWidth en labels
       },
       datalabels: {
         color: '#000',
@@ -160,7 +174,7 @@ export default function PieChart({ verifiedIncomes = null, netIncomes = null, ch
   };
 
   return (
-    <div className=' items-center w-full'>
+    <div className={` items-center ${isMobile ? 'w-3/4' : 'w-2/4'} mx-auto`}>
       <div className=''> {/* Incrementa aún más el tamaño del contenedor */}
         <Pie data={data} options={options} style={{ width: '100%', height: '100%' }} />
       </div>
@@ -186,3 +200,8 @@ export default function PieChart({ verifiedIncomes = null, netIncomes = null, ch
     </div>
   );
 }
+
+// Agrega un estilo CSS para forzar el wrap de los labels del legend
+// Puedes poner esto en tu CSS global o en el archivo correspondiente:
+// .chartjs-legend ul { flex-wrap: wrap !important; max-width: 100% !important; }
+// .chartjs-legend li { white-space: normal !important; max-width: 120px; text-align: center; }

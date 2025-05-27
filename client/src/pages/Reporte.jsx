@@ -42,7 +42,7 @@ export default function Reporte({ untitled = false }) {
   const [onlyNegativeBalances, setOnlyNegativeBalances] = useState(false);
   const {
     branchReports,
-    getBranchReports,
+    refetchBranchReports,
     totalIncomes,
     replaceReport,
     loading: loadingBranchReports,
@@ -70,7 +70,6 @@ export default function Reporte({ untitled = false }) {
     netIncomes,
     verifiedIncomes,
     verifiedCash,
-    grossCash,
     grossIncomes,
     verifiedDeposits,
     cashArray,
@@ -79,6 +78,7 @@ export default function Reporte({ untitled = false }) {
     extraOutgoingsArray,
     terminalIncomesArray,
     terminalIncomes,
+    refetchSupervisorsInfo
   } = useSupervisorsReportInfo({ companyId: company._id, date: currentDate, onlyNegativeBalances })
 
   const {
@@ -89,10 +89,11 @@ export default function Reporte({ untitled = false }) {
     totalSales,
     totalReturns,
     totalPayments,
+    refetchCustomerReports,
     totalBalance: totalCustomerBalance,
   } = useCustomersReports({ companyId: company._id, date: currentDate, onlyNegativeBalances })
 
-  const { providerReports, loading: loadingProviders, getProvidersReports, paymentsArray, providersReports, purchasesArray, replaceReport: replaceProviderReport, returnsArray, setReports, totalBalance: totalProvidersBalance, totalPayments: totalProviderPayments, totalPreviousBalance, totalPurchases, totalReturns: totalProviderReturns } = useProvidersReports({
+  const { providerReports, loading: loadingProviders, refetchProvidersReports, paymentsArray, providersReports, purchasesArray, replaceReport: replaceProviderReport, returnsArray, setReports, totalBalance: totalProvidersBalance, totalPayments: totalProviderPayments, totalPreviousBalance, totalPurchases, totalReturns: totalProviderReturns } = useProvidersReports({
     companyId: company._id,
     date: currentDate,
     onlyNegativeBalances
@@ -111,10 +112,15 @@ export default function Reporte({ untitled = false }) {
   const [showStock, setShowStock] = useState(false);
   const [showInitialStock, setShowInitialStock] = useState(false);
   const supervisorTableRef = useRef(null);
-  const [showTableDropdown, setShowTableDropdown] = useState(false);
-  const tableDropdownRef = useRef(null);
   const [showTableBar, setShowTableBar] = useState(false);
   const tableBarRef = useRef(null);
+
+  const refetchReports = () => {
+    refetchCustomerReports();
+    refetchProvidersReports();
+    refetchBranchReports();
+    refetchSupervisorsInfo();
+  }
 
   useEffect(() => {
     if (supervisorsInfo?.length === 0) return
@@ -164,7 +170,7 @@ export default function Reporte({ untitled = false }) {
         value: missingIncomes < 0 ? 0 : missingIncomes,
         bgColor: '#a85959',
         borderColor: '#801313',
-        hoverBgColor: '#ff0000',
+        hoverBgColor: '#AF0000',
         action: () => {
           setCurrentView({ view: 'supervisors', props: {} });
           setShowTable(false);
@@ -192,7 +198,6 @@ export default function Reporte({ untitled = false }) {
   }
 
   useEffect(() => {
-
     const handleResize = () => {
       const size = window.innerWidth
       if (size > 1024) {
@@ -203,14 +208,40 @@ export default function Reporte({ untitled = false }) {
       }
     }
 
-    console.log('handleResize')
-
     handleResize()
-
     window.addEventListener('resize', handleResize)
+
+    // Atajo de teclado para alternar tablas con ctrl+shift+1,2,3,4
+    const handleKeyDown = (e) => {
+      // e.code es más confiable para teclas numéricas
+      if (e.ctrlKey && e.shiftKey && !e.altKey) {
+        switch (e.code) {
+          case 'Digit1':
+            setCurrentView({ view: 'branches', props: {} });
+            setShowTable(true);
+            break;
+          case 'Digit2':
+            setCurrentView({ view: 'supervisors', props: {} });
+            setShowTable(true);
+            break;
+          case 'Digit3':
+            setCurrentView({ view: 'customers', props: {} });
+            setShowTable(true);
+            break;
+          case 'Digit4':
+            setCurrentView({ view: 'providers', props: {} });
+            setShowTable(true);
+            break;
+          default:
+            break;
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
 
     return () => {
       window.removeEventListener('resize', handleResize)
+      window.removeEventListener('keydown', handleKeyDown)
     }
   }, [])
 
@@ -225,8 +256,20 @@ export default function Reporte({ untitled = false }) {
     document.title = 'Reporte (' + new Date(currentDate).toLocaleDateString() + ')'
   }, [currentDate, untitled])
 
+  // Ayuda visual para shortcuts de tablas
+  const shortcutsHelp = (
+    <div className="fixed bottom-20 right-4 z-50 bg-white border border-gray-400 rounded-lg shadow-lg p-3 text-xs text-gray-700 opacity-80 select-none pointer-events-none">
+      <div className="font-bold mb-1">Atajos de tablas:</div>
+      <div><b>Ctrl+Shift+1</b>: Sucursales</div>
+      <div><b>Ctrl+Shift+2</b>: Supervisores</div>
+      <div><b>Ctrl+Shift+3</b>: Clientes</div>
+      <div><b>Ctrl+Shift+4</b>: Proveedores</div>
+    </div>
+  );
+
   return (
     <main className="p-3 mx-auto mb-40">
+      {shortcutsHelp}
       {selectedBranchReport && (
         <Modal
           content={
@@ -361,7 +404,7 @@ export default function Reporte({ untitled = false }) {
                   className="transition px-4 py-2 rounded-lg border font-semibold shadow-sm bg-white text-black border-gray-300 hover:bg-gray-100 flex items-center"
                   title="Recargar información"
                   onClick={() =>
-                    getBranchReports({ companyId: company._id, date: currentDate })
+                    refetchReports()
                   }
                 >
                   <IoReload className="w-5 h-5" />
@@ -555,7 +598,7 @@ export default function Reporte({ untitled = false }) {
                           <span className="text-red-600">{currency(extraOutgoings)}</span>
                         </p>
                         <p>
-                          <span className="font-bold">Ingresos restantes: </span>
+                          <span className="font-bold">Ingresos netos: </span>
                           <span className="text-green-600">{currency(netIncomes)}</span>
                         </p>
                       </div>

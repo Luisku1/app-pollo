@@ -1,14 +1,17 @@
 import { useEffect, useState, useMemo } from "react";
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getIncomesFetch } from "../../services/Incomes/getIncomes";
 import { useAddIncome } from "./useAddIncome";
 import { useDeleteIncome } from "./useDeleteIncome";
 import { Types } from "mongoose";
+import { recalculateBranchReport } from "../../../../common/recalculateReports";
+
 
 export const useIncomes = ({ companyId = null, date = null, initialIncomes = null }) => {
   const { addIncome, loading: addLoading } = useAddIncome();
   const { deleteIncome, loading: deleteLoading } = useDeleteIncome();
   const [error, setError] = useState(null);
+  const queryClient = useQueryClient();
 
   // React Query para obtener incomes
   const {
@@ -82,8 +85,47 @@ export const useIncomes = ({ companyId = null, date = null, initialIncomes = nul
         pushIncome([tempIncome, tempPrevOwnerIncome]);
       else
         pushIncome(tempIncome);
+
+      // --- ACTUALIZACIÓN OPTIMISTA DEL BRANCHREPORT ---
+      if (income.branch) {
+        queryClient.setQueryData(['branchReports', companyId, date], (oldReports) => {
+          if (!oldReports) return oldReports;
+          return oldReports.map(report => {
+            if (report.branch._id === income.branch) {
+              const newIncomesArray = [tempIncome, ...(report.incomesArray || [])];
+              const newIncomes = (report.incomes || 0) + income.amount;
+              const updatedReport = {
+                ...report,
+                incomesArray: newIncomesArray,
+                incomes: newIncomes,
+              };
+              return recalculateBranchReport(updatedReport);
+            }
+            return report;
+          });
+        });
+      }
+      // --- ACTUALIZACIÓN OPTIMISTA DEL SUPERVISORREPORT ---
+      if (income.supervisor) {
+        queryClient.setQueryData(['supervisorsReportInfo', companyId, date], (oldReports) => {
+          if (!oldReports) return oldReports;
+          return oldReports.map(report => {
+            if (report.supervisor && report.supervisor._id === income.supervisor) {
+              const newCashArray = [tempIncome, ...(report.cashArray || [])];
+              const newCash = (report.cash || 0) + income.amount;
+              return {
+                ...report,
+                cashArray: newCashArray,
+                cash: newCash,
+              };
+            }
+            return report;
+          });
+        });
+      }
+      // --- FIN ACTUALIZACIÓN OPTIMISTA ---
+
       await addIncome(tempIncome, tempPrevOwnerIncome, group);
-      refetchIncomes();
     } catch (error) {
       spliceIncome(incomes.findIndex((income) => income._id === tempId));
       if (prevOwnerIncome)
@@ -102,7 +144,6 @@ export const useIncomes = ({ companyId = null, date = null, initialIncomes = nul
       else
         spliceIncome(income.index);
       await deleteIncome(income);
-      refetchIncomes();
     } catch (error) {
       pushIncome(income);
       if (income.prevOwnerIncome)

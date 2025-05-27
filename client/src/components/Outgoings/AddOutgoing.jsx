@@ -6,8 +6,11 @@ import SectionHeader from '../SectionHeader'
 import ShowListModal from '../Modals/ShowListModal'
 import OutgoingsList from './OutgoingsList'
 import { ToastInfo, ToastSuccess } from '../../helpers/toastify'
+import { useDate } from '../../context/DateContext'
 
-export default function AddOutgoing({ outgoings, modifyBalance, isReport = false, listButton, outgoingsTotal, onAddOutgoing, onDeleteOutgoing, employee, branch, date, isEditing }) {
+export default function AddOutgoing({ outgoings, modifyBalance, isReport = false, listButton, outgoingsTotal, onAddOutgoing, onDeleteOutgoing, employee, branch }) {
+
+  const { currentDate: date } = useDate()
 
   const { company } = useSelector((state) => state.user)
   const [outgoingFormData, setOutgoingFormData] = useState({})
@@ -55,37 +58,46 @@ export default function AddOutgoing({ outgoings, modifyBalance, isReport = false
 
     e.preventDefault()
 
-    if (!branch) {
-      ToastInfo('Selecciona una sucursal')
-      return
+    try {
+
+
+
+      if (!branch) {
+        ToastInfo('Selecciona una sucursal')
+        return
+      }
+
+      const { amount, concept } = outgoingFormData
+
+      const outgoing = {
+        amount: parseFloat(amount),
+        concept,
+        company: company._id,
+        employee: employee,
+        branch: branch,
+        createdAt
+      }
+
+      conceptInput.value = ''
+      amountInput.value = ''
+      conceptInput.focus()
+      button.disabled = true
+
+      setLoading(true)
+
+      ToastSuccess(`Se agregó el gasto de "${outgoing.concept}"`)
+      if (isReport)
+        ToastInfo('Recuerda enviar tu formato al finalizar el llenado')
+      onAddOutgoing(outgoing, modifyBalance)
+
+      setLoading(false)
+
+      button.disabled = false
+
+    } catch (error) {
+
+      console.error('Error al agregar el gasto:', error)
     }
-
-    const { amount, concept } = outgoingFormData
-
-    const outgoing = {
-      amount: parseFloat(amount),
-      concept,
-      company: company._id,
-      employee: employee,
-      branch: branch,
-      createdAt
-    }
-
-    conceptInput.value = ''
-    amountInput.value = ''
-    conceptInput.focus()
-    button.disabled = true
-
-    setLoading(true)
-
-    ToastSuccess(`Se agregó el gasto de "${outgoing.concept}"`)
-    if (isReport)
-      ToastInfo('Recuerda enviar tu formato al finalizar el llenado')
-    onAddOutgoing(outgoing, modifyBalance)
-
-    setLoading(false)
-
-    button.disabled = false
   }
 
   return (

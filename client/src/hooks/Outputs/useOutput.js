@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react"
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAddOutput } from "./useAddOutput"
 import { useDeleteOutput } from "./useDeleteOutput"
 import { Types } from "mongoose"
+import { recalculateBranchReport } from "../../../../common/recalculateReports";
 
 export const useOutput = ({ companyId = null, date = null, initialOutputs = null }) => {
   const [outputs, setOutputs] = useState(initialOutputs || []);
@@ -10,6 +11,7 @@ export const useOutput = ({ companyId = null, date = null, initialOutputs = null
   const { deleteOutput, loading: deleteLoading } = useDeleteOutput();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const queryClient = useQueryClient();
 
   // Mutación para eliminar output (optimista)
   const deleteMutation = useMutation({
@@ -35,6 +37,26 @@ export const useOutput = ({ companyId = null, date = null, initialOutputs = null
     try {
       const tempOutput = { ...output, _id: tempId };
       if (initialOutputs !== null) setOutputs((prev) => [tempOutput, ...prev]);
+      // --- ACTUALIZACIÓN OPTIMISTA DEL BRANCHREPORT ---
+      if (output.branch) {
+        queryClient.setQueryData(['branchReports', companyId, date], (oldReports) => {
+          if (!oldReports) return oldReports;
+          return oldReports.map(report => {
+            if (report.branch._id === output.branch) {
+              const newOutputsArray = [tempOutput, ...(report.outputsArray || [])];
+              const newOutputs = (report.outputs || 0) + output.amount;
+              const updatedReport = {
+                ...report,
+                outputsArray: newOutputsArray,
+                outputs: newOutputs,
+              };
+              return recalculateBranchReport(updatedReport);
+            }
+            return report;
+          });
+        });
+      }
+      // --- FIN ACTUALIZACIÓN OPTIMISTA ---
       await addOutput(tempOutput, group);
     } catch (error) {
       if (initialOutputs !== null) setOutputs((prev) => prev.filter((o) => o._id !== tempId));

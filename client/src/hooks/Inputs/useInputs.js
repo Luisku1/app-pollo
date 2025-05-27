@@ -3,6 +3,7 @@ import { getInputs } from "../../services/Inputs/getInputs"
 import { useDeleteInput } from "./useDeleteInput"
 import { useAddInput } from "./useAddInput"
 import { Types } from "mongoose"
+import { useQueryClient } from '@tanstack/react-query';
 
 export const useInputs = ({ companyId = null, date = null, initialInputs = null }) => {
 
@@ -11,6 +12,7 @@ export const useInputs = ({ companyId = null, date = null, initialInputs = null 
   const [totalAmount, setTotalAmount] = useState(0.0)
   const { deleteInput } = useDeleteInput()
   const { addInput } = useAddInput()
+  const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
@@ -44,6 +46,26 @@ export const useInputs = ({ companyId = null, date = null, initialInputs = null 
       const tempInput = { ...input, _id: tempId }
 
       pushInput(tempInput)
+      // --- ACTUALIZACIÓN OPTIMISTA DEL BRANCHREPORT ---
+      if (input.branch) {
+        queryClient.setQueryData(['branchReports', companyId, date], (oldReports) => {
+          if (!oldReports) return oldReports;
+          return oldReports.map(report => {
+            if (report.branch._id === input.branch) {
+              const newInputsArray = [tempInput, ...(report.inputsArray || [])];
+              const newInputs = (report.inputs || 0) + input.amount;
+              const updatedReport = {
+                ...report,
+                inputsArray: newInputsArray,
+                inputs: newInputs,
+              };
+              return recalculateBranchReport(updatedReport);
+            }
+            return report;
+          });
+        });
+      }
+      // --- FIN ACTUALIZACIÓN OPTIMISTA ---
       await addInput(tempInput, group)
 
     } catch (error) {

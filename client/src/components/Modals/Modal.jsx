@@ -1,9 +1,10 @@
 /* eslint-disable react/prop-types */
-import { useEffect, useContext } from "react";
+import { useEffect, useContext, useState } from "react";
 import { MdCancel } from "react-icons/md";
 import { FaSpinner } from "react-icons/fa";
 import SectionHeader from "../SectionHeader";
 import { ModalContext } from "../../context/ModalContext";
+import { v4 as uuidv4 } from "uuid";
 
 export default function Modal({
   content,
@@ -21,18 +22,26 @@ export default function Modal({
   loading = false,
   adjustForKeyboard = false,
   isShown = true,
+  modalId: propModalId, // Permite pasar un id opcional
 }) {
-  const { modals, removeLastModal, count, setCount } = useContext(ModalContext);
+  const { modals, addModal, removeLastModal, count, setCount } = useContext(ModalContext);
+  // Genera un id único si no se pasa uno
+  const [modalId] = useState(propModalId || uuidv4());
 
   useEffect(() => {
 
     if (!isShown) return;
+    addModal({ id: modalId });
     setCount((prevCount) => prevCount + 1);
-
+    // Agrega la modal al stack al montar
     document.body.style.overflow = "hidden";
 
     const handleKeyDown = (event) => {
-      if ((event.key === "Escape" && ableToClose) || (closeOnEsc && event.key === "Escape")) {
+      // Solo la última modal debe cerrar con Escape
+      if (
+        ((event.key === "Escape" && ableToClose) || (closeOnEsc && event.key === "Escape")) &&
+        modals[modals.length - 1]?.id === modalId
+      ) {
         closeModal();
         removeLastModal();
       }
@@ -75,6 +84,8 @@ export default function Modal({
         window.removeEventListener("resize", handleResize);
       }
       setCount((prevCount) => prevCount - 1);
+      // Quita la modal del stack al desmontar
+      removeLastModal();
     };
   }, [ableToClose, closeModal, removeLastModal, isShown, modals.length, adjustForKeyboard]);
 

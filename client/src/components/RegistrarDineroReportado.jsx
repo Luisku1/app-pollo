@@ -40,6 +40,7 @@ export default function RegistrarDineroReportado({ supervisorReport, replaceRepo
       }
 
       const newReport = recalculateSupervisorReport({ ...supervisorReport, [typeField]: amount })
+      console.log(newReport)
       if (selfChange) selfChange(newReport)
       replaceReport(newReport, supervisorReport.externalIndex)
 

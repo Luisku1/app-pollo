@@ -61,7 +61,7 @@ export const useProvidersReports = ({ companyId = null, date = null, reports = [
     providersReports: filteredProvidersReports,
     replaceReport,
     setReports: setProvidersReports,
-    getProvidersReports: refetchProvidersReports,
+    refetchProvidersReports,
     purchasesArray,
     returnsArray,
     paymentsArray,

@@ -29,35 +29,6 @@ export const useBranchReports = ({ companyId = null, date = null, reports = [], 
     );
   };
 
-  const onAddListItem = (item, list, reportId) => {
-
-    setBranchReports((prevReports) =>
-      prevReports.map((report) => {
-        if (report._id === reportId) {
-          return {
-            ...report,
-            [list]: [...report[list], item]
-          };
-        }
-        return report;
-      })
-    );
-  };
-
-  const onDeleteListItem = (itemId, list, reportId) => {
-    setBranchReports((prevReports) =>
-      prevReports.map((report) => {
-        if (report._id === reportId) {
-          return {
-            ...report,
-            [list]: report[list].filter(item => item._id !== itemId)
-          };
-        }
-        return report;
-      })
-    );
-  }
-
   // Set reports if provided as prop
   useEffect(() => {
     if (reports.length > 0) {
@@ -109,7 +80,7 @@ export const useBranchReports = ({ companyId = null, date = null, reports = [], 
     branchReports: filteredBranchReports,
     replaceReport,
     setReports: setBranchReports,
-    getBranchReports: refetchBranchReports,
+    refetchBranchReports,
     incomesArray,
     outputsArray,
     providerInputsArray,

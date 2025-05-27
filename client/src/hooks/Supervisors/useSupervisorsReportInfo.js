@@ -1,4 +1,4 @@
-import { useMemo } from "react"
+import { useMemo, useState, useEffect } from "react"
 import { useQuery } from '@tanstack/react-query';
 import { getSupervisorsInfoReportFetch } from "../../services/Supervisors/getSupervisorsReportInfo"
 
@@ -15,7 +15,13 @@ export const useSupervisorsReportInfo = ({ companyId, date, onlyNegativeBalances
     staleTime: 1000 * 60 * 3
   });
 
-  const supervisorsInfo = supervisorsInfoData || [];
+  // Estado local para permitir replaceSupervisorReport
+  const [supervisorsInfo, setSupervisorsInfo] = useState([]);
+
+  // Sincroniza el estado local con la data de React Query
+  useEffect(() => {
+    if (supervisorsInfoData) setSupervisorsInfo(supervisorsInfoData);
+  }, [supervisorsInfoData]);
 
   const deposits = useMemo(() => supervisorsInfo.reduce((acc, report) => acc + report.deposits, 0), [supervisorsInfo]);
   const terminalIncomes = useMemo(() => supervisorsInfo.reduce((acc, report) => acc + report.terminalIncomes, 0), [supervisorsInfo]);
@@ -24,7 +30,7 @@ export const useSupervisorsReportInfo = ({ companyId, date, onlyNegativeBalances
   const netIncomes = useMemo(() => grossCash + deposits + terminalIncomes - extraOutgoings, [grossCash, extraOutgoings, deposits, terminalIncomes]);
   const verifiedDeposits = useMemo(() => supervisorsInfo.reduce((acc, report) => acc + report.verifiedDeposits, 0), [supervisorsInfo]);
   const verifiedCash = useMemo(() => supervisorsInfo.reduce((acc, report) => acc + report.verifiedCash, 0), [supervisorsInfo]);
-  const missingIncomes = useMemo(() => grossCash - extraOutgoings - verifiedCash, [grossCash, extraOutgoings, verifiedCash]);
+  const missingIncomes = useMemo(() => grossCash - extraOutgoings - verifiedCash, [grossCash, extraOutgoings, verifiedCash, supervisorsInfo]);
   const verifiedIncomes = useMemo(() => verifiedDeposits + verifiedCash, [verifiedCash, verifiedDeposits]);
   const extraOutgoingsArray = useMemo(() => supervisorsInfo.flatMap(report => report.extraOutgoingsArray), [supervisorsInfo]);
   const cashArray = useMemo(() => supervisorsInfo.flatMap(report => report.cashArray), [supervisorsInfo]);
@@ -39,15 +45,14 @@ export const useSupervisorsReportInfo = ({ companyId, date, onlyNegativeBalances
     return supervisorsInfo.filter(report => report.balance < 0);
   }, [supervisorsInfo, onlyNegativeBalances]);
 
+  // Reemplaza un reporte en el estado local
+  const replaceSupervisorReport = (report) => {
+    setSupervisorsInfo(prev => prev.map(r => r._id === report._id ? report : r));
+  };
+
   return {
     supervisorsInfo: filteredSupervisorsInfo,
-    replaceSupervisorReport: (report) => {
-      // Optimistic update: sólo para UI, no muta cache de React Query
-      if (!supervisorsInfoData) return;
-      supervisorsInfoData.forEach((r, i) => {
-        if (r._id === report._id) supervisorsInfoData[i] = report;
-      });
-    },
+    replaceSupervisorReport,
     loading,
     deposits,
     extraOutgoings,
@@ -64,6 +69,6 @@ export const useSupervisorsReportInfo = ({ companyId, date, onlyNegativeBalances
     verifiedDeposits,
     terminalIncomesArray,
     terminalIncomes,
-    getSupervisorsInfo: refetchSupervisorsInfo,
+    refetchSupervisorsInfo,
   };
 };
