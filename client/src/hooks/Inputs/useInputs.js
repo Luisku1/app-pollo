@@ -6,6 +6,7 @@ import { Types } from "mongoose"
 import { useQueryClient } from '@tanstack/react-query';
 import { recalculateBranchReport } from '../../../../common/recalculateReports';
 import { optimisticUpdateReport, rollbackReport } from "../../helpers/optimisticReportUpdate"
+import { addToArrayAndSum, removeFromArrayAndSum } from '../../helpers/reportActions';
 
 export const useInputs = ({ companyId = null, date = null, initialInputs = null }) => {
 
@@ -51,16 +52,7 @@ export const useInputs = ({ companyId = null, date = null, initialInputs = null 
           queryClient,
           queryKey: ['branchReports', companyId, date],
           matchFn: (report, item) => report.branch._id === item.branch,
-          updateFn: (report, item) => {
-            const newInputsArray = [item, ...(report.inputsArray || [])];
-            const newInputs = (report.inputs || 0) + item.amount;
-            const updatedReport = {
-              ...report,
-              inputsArray: newInputsArray,
-              inputs: newInputs,
-            };
-            return recalculateBranchReport(updatedReport);
-          },
+          updateFn: (report, item) => addToArrayAndSum(report, 'inputsArray', 'inputs', item),
           item: tempInput
         });
       }
@@ -91,16 +83,7 @@ export const useInputs = ({ companyId = null, date = null, initialInputs = null 
           queryClient,
           queryKey: ['branchReports', companyId, date],
           matchFn: (report, item) => report.branch._id === item.branch,
-          updateFn: (report, item) => {
-            const newInputsArray = (report.inputsArray || []).filter(i => i._id !== item._id);
-            const newInputs = (report.inputs || 0) - item.amount;
-            const updatedReport = {
-              ...report,
-              inputsArray: newInputsArray,
-              inputs: newInputs,
-            };
-            return recalculateBranchReport(updatedReport);
-          },
+          updateFn: (report, item) => removeFromArrayAndSum(report, 'inputsArray', 'inputs', item),
           item: input
         });
       }

@@ -6,6 +6,7 @@ import { useDeleteIncome } from "./useDeleteIncome";
 import { Types } from "mongoose";
 import { recalculateBranchReport } from '../../../../common/recalculateReports';
 import { optimisticUpdateReport, rollbackReport } from "../../helpers/optimisticReportUpdate";
+import { addToArrayAndSum, removeFromArrayAndSum } from '../../helpers/reportActions';
 
 
 export const useIncomes = ({ companyId = null, date = null, initialIncomes = null }) => {
@@ -96,16 +97,7 @@ export const useIncomes = ({ companyId = null, date = null, initialIncomes = nul
           queryClient,
           queryKey: ['branchReports', companyId, date],
           matchFn: (report, item) => report.branch._id === item.branch,
-          updateFn: (report, item) => {
-            const newIncomesArray = [item, ...(report.incomesArray || [])];
-            const newIncomes = (report.incomes || 0) + item.amount;
-            const updatedReport = {
-              ...report,
-              incomesArray: newIncomesArray,
-              incomes: newIncomes,
-            };
-            return recalculateBranchReport(updatedReport);
-          },
+          updateFn: (report, item) => addToArrayAndSum(report, 'incomesArray', 'incomes', item),
           item: tempIncome
         });
       }
@@ -166,16 +158,68 @@ export const useIncomes = ({ companyId = null, date = null, initialIncomes = nul
   };
 
   const onDeleteIncome = async (income) => {
+    let prevBranchReports = null;
+    let prevSupervisorsReports = null;
+    let prevIncomes = incomes;
     try {
       if (income?.prevOwnerIncome)
         spliceIncomeById([income.prevOwnerIncome, income._id]);
       else
         spliceIncome(income.index);
+      // --- ACTUALIZACIÓN OPTIMISTA DEL BRANCHREPORT ---
+      if (income.branch) {
+        prevBranchReports = optimisticUpdateReport({
+          queryClient,
+          queryKey: ['branchReports', companyId, date],
+          matchFn: (report, item) => report.branch._id === item.branch,
+          updateFn: (report, item) => removeFromArrayAndSum(report, 'incomesArray', 'incomes', item),
+          item: income
+        });
+      }
+      // --- ACTUALIZACIÓN OPTIMISTA DEL SUPERVISORREPORT (usa .employee y tipo de income) ---
+      if (income.employee) {
+        prevSupervisorsReports = optimisticUpdateReport({
+          queryClient,
+          queryKey: ['supervisorsReportInfo', companyId, date],
+          matchFn: (report, item) => report.supervisor && report.supervisor._id === item.employee,
+          updateFn: (report, item) => {
+            let newReport = { ...report };
+            const typeName = (item.type && item.type.name) ? item.type.name : null;
+            if (typeName === 'Efectivo') {
+              newReport.cashArray = (report.cashArray || []).filter(i => i._id !== item._id);
+              newReport.cash = (report.cash || 0) - item.amount;
+            } else if (typeName === 'Depósito') {
+              newReport.depositsArray = (report.depositsArray || []).filter(i => i._id !== item._id);
+              newReport.deposits = (report.deposits || 0) - item.amount;
+            } else if (typeName === 'Terminal') {
+              newReport.terminalIncomesArray = (report.terminalIncomesArray || []).filter(i => i._id !== item._id);
+              newReport.terminalIncomes = (report.terminalIncomes || 0) - item.amount;
+            }
+            return newReport;
+          },
+          item: income
+        });
+      }
+      // --- FIN ACTUALIZACIÓN OPTIMISTA ---
       await deleteIncome(income);
     } catch (error) {
-      pushIncome(income);
-      if (income.prevOwnerIncome)
-        pushIncome({ ...income, _id: income.prevOwnerIncome, owner: income.employee, amount: -income.amount, employee: income.prevOwner });
+      setIncomes(prevIncomes);
+      // Rollback branchReports si corresponde
+      if (income.branch && prevBranchReports) {
+        rollbackReport({
+          queryClient,
+          queryKey: ['branchReports', companyId, date],
+          prevReports: prevBranchReports
+        });
+      }
+      // Rollback supervisorsReportInfo si corresponde
+      if (income.employee && prevSupervisorsReports) {
+        rollbackReport({
+          queryClient,
+          queryKey: ['supervisorsReportInfo', companyId, date],
+          prevReports: prevSupervisorsReports
+        });
+      }
       setError(error);
       throw new Error(error);
     }

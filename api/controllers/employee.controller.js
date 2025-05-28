@@ -1513,11 +1513,11 @@ export const fetchEmployeesPayroll = async ({ companyId, date }) => {
 							{ $ifNull: ['$supervisorBalance', 0] },
 							{ $ifNull: ['$accountBalance', 0] },
 							{ $ifNull: ['$missingWorkDiscount', 0] },
-							{ $ifNull: ['$lateDiscount', 0] }
+							{ $ifNull: ['$lateDiscount', 0] },
 						]
 					}
 				}
-			}
+			},
 		])
 
 		return weeklyBalances || null
@@ -1529,10 +1529,143 @@ export const fetchEmployeesPayroll = async ({ companyId, date }) => {
 	}
 }
 
-export const fetchEmployeeWeeklyBalanceById = ({ weeklyBalanceId }) => {
+export const getSingleEmployeePayroll = async (req, res, next) => {
+	const { employeeId, date } = req.params;
+	try {
+		// Get the employee's payDay
+		const payDay = await getEmployeePayDay(employeeId);
+		// Calculate week range for the given date and payDay
+		const { weekStart, weekEnd } = getWeekRange(date, payDay, -1);
+		const firstTopDate = getDayRange(weekStart).topDate;
+		const lastTopDate = getDayRange(weekEnd).topDate;
 
-	return EmployeeWeeklyBalance.findById(weeklyBalanceId)
-}
+		// Use the same aggregation pipeline as fetchEmployeesPayroll, but filter for one employee
+		const weeklyBalances = await EmployeeWeeklyBalance.aggregate([
+			{
+				$match: {
+					employee: new Types.ObjectId(employeeId),
+					weekStart: { $eq: new Date(weekStart) },
+				},
+			},
+			employeeBranchReportsLookup('employee', weekStart, weekEnd),
+			{
+				$lookup: {
+					from: 'employeedailybalances',
+					localField: 'employeeDailyBalances',
+					foreignField: '_id',
+					as: 'employeeDailyBalances',
+					pipeline: [
+						{ $match: { createdAt: { $gte: new Date(weekStart), $lt: new Date(weekEnd) } } },
+					],
+				},
+			},
+			employeeSupervisorReportsLookup('employee', weekStart, weekEnd),
+			{
+				$lookup: {
+					from: 'employeebalanceadjustments',
+					localField: 'balanceAdjustments',
+					foreignField: '_id',
+					as: 'balanceAdjustments',
+				},
+			},
+			{
+				$lookup: {
+					from: 'employeepayments',
+					localField: 'employee',
+					foreignField: 'employee',
+					as: 'employeePayments',
+					pipeline: [
+						{ $match: { createdAt: { $gte: new Date(firstTopDate), $lt: new Date(lastTopDate) } } },
+						{ $sort: { createdAt: -1 } },
+						{
+							$lookup: {
+								from: 'employees',
+								foreignField: '_id',
+								localField: 'employee',
+								as: 'employee',
+							},
+						},
+						{
+							$lookup: {
+								from: 'employees',
+								foreignField: '_id',
+								localField: 'supervisor',
+								as: 'supervisor',
+							},
+						},
+						{ $unwind: { path: '$supervisor', preserveNullAndEmptyArrays: true } },
+						{ $unwind: { path: '$employee', preserveNullAndEmptyArrays: true } },
+						{
+							$lookup: {
+								from: 'branches',
+								foreignField: '_id',
+								localField: 'branch',
+								as: 'branch',
+							},
+						},
+						{ $unwind: { path: '$branch', preserveNullAndEmptyArrays: true } },
+					],
+				},
+			},
+			{
+				$lookup: {
+					from: 'employees',
+					localField: 'employee',
+					foreignField: '_id',
+					as: 'employee',
+					pipeline: [
+						{
+							$lookup: {
+								from: 'roles',
+								localField: 'role',
+								foreignField: '_id',
+								as: 'role',
+							},
+						},
+						{ $unwind: { path: '$role' } },
+					],
+				},
+			},
+			{ $unwind: { path: '$employee' } },
+			{
+				$addFields: {
+					accountBalance: { $sum: '$employeeDailyBalances.accountBalance' },
+					supervisorBalance: { $sum: '$supervisorReports.balance' },
+					employeePaymentsAmount: { $sum: '$employeePayments.amount' },
+					missingWorkDiscount: {
+						$multiply: [
+							{ $size: { $filter: { input: '$employeeDailyBalances', as: 'balance', cond: { $eq: ['$$balance.dayDiscount', true] } } } },
+							{ $divide: ['$employee.salary', -7] },
+						],
+					},
+					lateDiscount: {
+						$multiply: [
+							{ $size: { $filter: { input: '$employeeDailyBalances', as: 'balance', cond: { $eq: ['$$balance.lateDiscount', true] } } } },
+							-60,
+						],
+					},
+				},
+			},
+			{
+				$addFields: {
+					balance: {
+						$add: [
+							{ $ifNull: ['$supervisorBalance', 0] },
+							{ $ifNull: ['$accountBalance', 0] },
+							{ $ifNull: ['$missingWorkDiscount', 0] },
+							{ $ifNull: ['$lateDiscount', 0] },
+						],
+					},
+				},
+			},
+		]);
+
+		res.status(200).json({ employeePayroll: weeklyBalances?.[0] || null, date: weekStart });
+	} catch (error) {
+		console.log(error);
+		next(error);
+	}
+};
 
 export const deleteDuplicatedEmployeeDailyBalances = async (req, res, next) => {
 

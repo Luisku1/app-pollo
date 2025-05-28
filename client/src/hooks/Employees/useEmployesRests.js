@@ -1,87 +1,62 @@
-import { useEffect, useMemo, useState } from "react"
+import { useMemo } from "react"
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getPendingEmployeesRestsFetch } from "../../services/employees/getPendingEmployeesRests"
 import { Types } from "mongoose"
 import { useAddEmployeeRest } from "./useAddEmployeeRest"
 import { useDeleteEmployeeRest } from "./useDeleteEmployeeRest"
 
 export const usePendingEmployeesRests = ({ companyId }) => {
+  const queryClient = useQueryClient();
+  const { addEmployeeRest } = useAddEmployeeRest();
+  const { deleteEmployeeRest } = useDeleteEmployeeRest();
 
-  const [pendingRests, setPendingRests] = useState([])
-  const { addEmployeeRest } = useAddEmployeeRest()
-  const { deleteEmployeeRest } = useDeleteEmployeeRest()
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
+  // React Query para obtener los rests pendientes
+  const {
+    data: pendingRestsData = [],
+    isLoading: loading,
+    error,
+  } = useQuery({
+    queryKey: ["pendingEmployeesRests", companyId],
+    queryFn: () => getPendingEmployeesRestsFetch(companyId).then(res => res.pendingEmployeesRests),
+    enabled: !!companyId,
+    staleTime: 1000 * 60 * 3
+  });
 
-  const pushPendingEmployeeRest = (employeeRest) => {
-
-    setPendingRests((prev) => [employeeRest, ...prev])
-  }
-
-  const splicePendingEmployeeRest = (index) => {
-
-    setPendingRests((prev) => prev.filter((_, i) => i != index))
-  }
-
+  // Mutación optimista para agregar un descanso pendiente
   const onAddEmployeeRest = async (employeeRest) => {
-
-    const tempId = new Types.ObjectId().toHexString()
-
+    const tempId = new Types.ObjectId().toHexString();
+    const tempEmployeeRest = { ...employeeRest, _id: tempId };
+    // Guardar snapshot para rollback
+    const prevRests = queryClient.getQueryData(["pendingEmployeesRests", companyId]);
+    queryClient.setQueryData(["pendingEmployeesRests", companyId], (old = []) => [tempEmployeeRest, ...old]);
     try {
-
-      const tempEmployeeRest = { ...employeeRest, _id: tempId };
-      pushPendingEmployeeRest(tempEmployeeRest);
-
       await addEmployeeRest(tempEmployeeRest);
-
     } catch (error) {
-
-      splicePendingEmployeeRest(pendingRests.findIndex((rest) => rest._id === tempId));
-      console.log(error);
+      // Rollback si hay error
+      queryClient.setQueryData(["pendingEmployeesRests", companyId], prevRests);
+      throw error;
     }
   };
 
+  // Mutación optimista para eliminar un descanso pendiente
   const onDeleteEmployeeRest = async (employeeRest, index) => {
+    const prevRests = queryClient.getQueryData(["pendingEmployeesRests", companyId]);
+    queryClient.setQueryData(["pendingEmployeesRests", companyId], (old = []) => old.filter((_, i) => i !== index));
     try {
-
-      splicePendingEmployeeRest(index);
       await deleteEmployeeRest(employeeRest);
-
     } catch (error) {
-      pushPendingEmployeeRest(employeeRest);
-      console.log(error);
+      // Rollback si hay error
+      queryClient.setQueryData(["pendingEmployeesRests", companyId], prevRests);
+      throw error;
     }
   };
-
-  useEffect(() => {
-
-    if (!companyId) return
-
-    setLoading(true)
-
-    const fetchPendingEmployeesRests = async () => {
-      try {
-        const response = await getPendingEmployeesRestsFetch(companyId)
-        setPendingRests(response.pendingEmployeesRests)
-      } catch (error) {
-        console.log(error)
-        setError(error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchPendingEmployeesRests()
-
-  }, [companyId])
 
   const sortedPendingRest = useMemo(() => {
-    return pendingRests.sort((a, b) => a.createdAt - b.createdAt)
-  }, [pendingRests])
+    return [...(pendingRestsData || [])].sort((a, b) => a.createdAt - b.createdAt)
+  }, [pendingRestsData])
 
   return {
     pendingRests: sortedPendingRest,
-    pushPendingEmployeeRest,
-    splicePendingEmployeeRest,
     onAddEmployeeRest,
     onDeleteEmployeeRest,
     loading,

@@ -1,5 +1,81 @@
+import { useEffect, useState, useRef } from "react"
+import SectionHeader from "./SectionHeader"
+import SearchBar from "./SearchBar"
+
 export default function Penalties() {
 
+
+  const [dailyBalancesFilterText, setDailyBalancesFilterText] = useState('')
+  const [checkboxStates, setCheckboxStates] = useState({})
+  const searchBarRef = useRef(null)
+
+  useEffect(() => {
+    const currentScrollPosition = window.scrollY;
+    window.scrollTo(0, currentScrollPosition);
+  }, [dailyBalancesFilterText])
+
+  useEffect(() => {
+    if (searchBarRef.current) {
+      searchBarRef.current.focus()
+    }
+  }, [])
+
+  useEffect(() => {
+    const initialCheckboxStates = {}
+    dailyBalances.forEach(dailyBalance => {
+      initialCheckboxStates[dailyBalance._id] = {
+        lateDiscount: dailyBalance.lateDiscount,
+        restDay: dailyBalance.restDay,
+        dayDiscount: dailyBalance.dayDiscount
+      }
+    })
+    setCheckboxStates(initialCheckboxStates)
+  }, [dailyBalances])
+
+  const handleDailyBalanceInputs = async (e, dailyBalanceId) => {
+    const { id, checked } = e.target
+    setCheckboxStates(prevState => ({
+      ...prevState,
+      [dailyBalanceId]: {
+        ...prevState[dailyBalanceId],
+        [id]: checked
+      }
+    }))
+
+    try {
+      const res = await fetch('/api/employee/update-daily-balance/' + dailyBalanceId, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ [id]: checked })
+      })
+
+      const data = await res.json()
+
+      if (data.success === false) {
+        setCheckboxStates(prevState => ({
+          ...prevState,
+          [dailyBalanceId]: {
+            ...prevState[dailyBalanceId],
+            [id]: !checked
+          }
+        }))
+      }
+    } catch (error) {
+      setCheckboxStates(prevState => ({
+        ...prevState,
+        [dailyBalanceId]: {
+          ...prevState[dailyBalanceId],
+          [id]: !checked
+        }
+      }))
+    }
+  }
+
+  const handleDailyBalancesFilterText = (text) => {
+    setDailyBalancesFilterText(text)
+  }
 
   return (
     <div>

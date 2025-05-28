@@ -5,6 +5,7 @@ import { useDeleteOutput } from "./useDeleteOutput"
 import { Types } from "mongoose"
 import { recalculateBranchReport } from '../../../../common/recalculateReports';
 import { optimisticUpdateReport, rollbackReport } from "../../helpers/optimisticReportUpdate";
+import { addToArrayAndSum, removeFromArrayAndSum } from '../../helpers/reportActions';
 
 export const useOutput = ({ companyId = null, date = null, initialOutputs = null }) => {
   const [outputs, setOutputs] = useState(initialOutputs || []);
@@ -45,16 +46,7 @@ export const useOutput = ({ companyId = null, date = null, initialOutputs = null
           queryClient,
           queryKey: ['branchReports', companyId, date],
           matchFn: (report, item) => report.branch._id === item.branch,
-          updateFn: (report, item) => {
-            const newOutputsArray = [item, ...(report.outputsArray || [])];
-            const newOutputs = (report.outputs || 0) + item.amount;
-            const updatedReport = {
-              ...report,
-              outputsArray: newOutputsArray,
-              outputs: newOutputs,
-            };
-            return recalculateBranchReport(updatedReport);
-          },
+          updateFn: (report, item) => addToArrayAndSum(report, 'outputsArray', 'outputs', item),
           item: tempOutput
         });
       }
@@ -86,16 +78,7 @@ export const useOutput = ({ companyId = null, date = null, initialOutputs = null
           queryClient,
           queryKey: ['branchReports', companyId, date],
           matchFn: (report, item) => report.branch._id === item.branch,
-          updateFn: (report, item) => {
-            const newOutputsArray = (report.outputsArray || []).filter(o => o._id !== item._id);
-            const newOutputs = (report.outputs || 0) - item.amount;
-            const updatedReport = {
-              ...report,
-              outputsArray: newOutputsArray,
-              outputs: newOutputs,
-            };
-            return recalculateBranchReport(updatedReport);
-          },
+          updateFn: (report, item) => removeFromArrayAndSum(report, 'outputsArray', 'outputs', item),
           item: output
         });
       }

@@ -21,6 +21,7 @@ import { useEmployeeDailyBalance } from '../hooks/Employees/useEmployeeDailyBala
 import SupervisorReportList from "../components/SupervisorReportList";
 import SupervisorReportCard from "../components/SupervisorReportCard";
 import PhoneLinks from "../components/PhoneLinks";
+import { useEmployeePayroll } from '../hooks/Employees/useEmployeePayroll'
 
 export default function Perfil() {
 
@@ -40,6 +41,16 @@ export default function Perfil() {
   const { signOut } = useSignOut()
   const dispatch = useDispatch()
   const isAuthorizedToEdit = isManager(currentUser.role)
+
+  const {
+    payroll: employeePayroll,
+    loading: payrollLoading,
+    error: payrollError,
+    date: payrollDate,
+    setPayrollDate,
+    goToPreviousWeek,
+    goToNextWeek,
+  } = useEmployeePayroll({ employee, initialDate: new Date() })
 
   useEffect(() => {
 
@@ -215,6 +226,37 @@ export default function Perfil() {
                   : ''}
               </div>
 
+              {/* Payroll week navigation and summary */}
+              <div className="my-4 bg-gray-50 p-3 rounded-lg border border-gray-200">
+                <div className="flex justify-between items-center mb-2">
+                  <button onClick={goToPreviousWeek} className="px-2 py-1 border rounded bg-gray-200 hover:bg-gray-300">Semana anterior</button>
+                  <div className="text-center">
+                    <p className="font-semibold">Semana de nómina</p>
+                    <p className="font-bold">{payrollDate}</p>
+                  </div>
+                  <button onClick={goToNextWeek} className="px-2 py-1 border rounded bg-gray-200 hover:bg-gray-300">Semana siguiente</button>
+                </div>
+                {payrollLoading ? (
+                  <p>Cargando nómina...</p>
+                ) : payrollError ? (
+                  <p className="text-red-600">{payrollError}</p>
+                ) : employeePayroll ? (
+                  <div className="border rounded p-2 bg-white">
+                    <p className="font-bold">Resumen de nómina semanal</p>
+                    <div className="flex flex-col gap-1 mt-2">
+                      <span>Saldo cuenta: <b>{employeePayroll.accountBalance?.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</b></span>
+                      <span>Saldo supervisor: <b>{employeePayroll.supervisorBalance?.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</b></span>
+                      <span>Pagos: <b>{employeePayroll.employeePaymentsAmount?.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</b></span>
+                      <span>Descuento retardo: <b>{employeePayroll.lateDiscount?.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</b></span>
+                      <span>Descuento falta: <b>{employeePayroll.missingWorkDiscount?.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</b></span>
+                      <span className="font-bold">Balance total: <b>{employeePayroll.balance?.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</b></span>
+                    </div>
+                  </div>
+                ) : (
+                  <p>No hay nómina para esta semana.</p>
+                )}
+              </div>
+
               {supervisorReports && supervisorReports.length > 0 && (currentUser._id == employeeId || isManager(currentUser.role)) && (
 
                 <ShowListModal
@@ -243,7 +285,7 @@ export default function Perfil() {
                   title={`Cuentas de ${employee.name}`}
                   ListComponent={TarjetaCuenta}
                   ListComponentProps={{ reportArray: branchReports, replaceReport: replaceReport }}
-                  clickableComponent={<p className='w-full text-lg font-semibold text-center p-1 border border-header rounded-md'>{`${branchReports.length == 0 || branchReports.length > 1 ? 'Reportes en Pollería' : 'Reporte en Pollería'} (${branchReports.length}) [${supervisorBalance > 0 ? 0 : supervisorBalance}]`}</p>}
+                  clickableComponent={<p className='w-full text-lg font-semibold text-center p-1 border border-header rounded-md'>{`${branchReports.length == 0 || branchReports.length > 1 ? 'Reportes in Pollería' : 'Reporte en Pollería'} (${branchReports.length}) [${supervisorBalance > 0 ? 0 : supervisorBalance}]`}</p>}
                 />
               )}
 
