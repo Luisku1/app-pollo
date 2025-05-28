@@ -61,7 +61,13 @@ export default function Nomina() {
         <Modal
           closeModal={() => setSelectedEmployeePayroll(null)}
           content={
-            <EmployeePayroll employeePayroll={selectedEmployeePayroll?.employeePayroll} replaceReport={replaceReport} index={selectedEmployeePayroll?.externalIndex} replaceSupervisorReport={replaceSupervisorReport} />
+            <EmployeePayroll
+              employeePayroll={selectedEmployeePayroll?.employeePayroll}
+              updateBranchReportGroup={replaceReport}
+              updateSupervisorReportGroup={replaceSupervisorReport}
+              employeeId={selectedEmployeePayroll?.employeePayroll?.employee?._id}
+              index={selectedEmployeePayroll?.externalIndex}
+            />
           }
           fit={true}
           width="11/12"

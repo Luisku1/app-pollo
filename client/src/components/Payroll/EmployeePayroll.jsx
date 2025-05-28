@@ -13,7 +13,15 @@ import TarjetaCuenta from "../TarjetaCuenta"
 import Modal from "../Modals/Modal"
 import PayrollResume from "./PayrollResume"
 
-export default function EmployeePayroll({ employeePayroll, replaceReport, replaceSupervisorReport, index = -1 }) {
+export default function EmployeePayroll({
+  employeePayroll,
+  updateBranchReportGroup, // (employeeId, report)
+  updateBranchReportSingle, // (report)
+  updateSupervisorReportGroup, // (employeeId, report)
+  updateSupervisorReportSingle, // (report)
+  employeeId, // for group cache
+  index = -1
+}) {
 
   const { currentDate } = useDate()
   const [selectedEmployee, setSelectedEmployee] = useState(null)
@@ -27,16 +35,6 @@ export default function EmployeePayroll({ employeePayroll, replaceReport, replac
   const totalToPay = accountBalance + supervisorBalance + lateDiscount + missingWorkDiscount - employeePaymentsAmount + adjustments + salary
 
 
-  const replaceCurrentBranchReport = (report, externalIndex) => {
-    replaceReport(report, externalIndex)
-    setBranchReportCard(report)
-  }
-
-  const replaceCurrentSupervisorReport = (report) => {
-    replaceSupervisorReport(report, report.externalIndex)
-    setSupervisorReportCard(report)
-  }
-
   return (
     <div key={employeePayroll._id} className=' w-fit items-center border border-black rounded-lg shadow-sm my-2'>
       <Modal
@@ -44,7 +42,9 @@ export default function EmployeePayroll({ employeePayroll, replaceReport, replac
         content={
           <BranchReportCard
             reportData={branchReportCard}
-            replaceReport={replaceCurrentBranchReport}
+            updateBranchReportGroup={updateBranchReportGroup}
+            updateBranchReportSingle={updateBranchReportSingle}
+            employeeId={employeeId}
             externalIndex={branchReportCard?.externalIndex}
             selfChange={setBranchReportCard}
           />
@@ -57,7 +57,9 @@ export default function EmployeePayroll({ employeePayroll, replaceReport, replac
         content={
           <SupervisorReportCard
             supervisorReport={supervisorReportCard}
-            replaceReport={replaceCurrentSupervisorReport}
+            updateSupervisorReportGroup={updateSupervisorReportGroup}
+            updateSupervisorReportSingle={updateSupervisorReportSingle}
+            employeeId={employeeId}
             externalIndex={supervisorReportCard?.externalIndex}
             selfChange={setSupervisorReportCard}
           />
@@ -81,6 +83,30 @@ export default function EmployeePayroll({ employeePayroll, replaceReport, replac
                 {`${employee.name} ${employee.lastName}`}
               </p>
               <PayrollResume />
+            </div>
+            <div className="grid grid-cols-12 row-span-1 mt-3 text-center border-black">
+              <p className="col-span-5 font-semibold">Fecha</p>
+              <div className="col-span-2">
+                <p className="text-xs">Cuenta en pollería</p>
+                <p className={(accountBalance < 0 ? 'text-red-500' : '') + ' text-xs my-auto'}>{accountBalance.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>
+              </div>
+              <div className="col-span-2 text-center">
+                <p className="text-xs  text-center">Cuenta</p>
+                <p className="text-xs truncate text-center">Supervisor</p>
+                <p className={(supervisorBalance < 0 ? 'text-red-500' : '') + ' text-xs my-auto'}>{employeePayroll.supervisorBalance.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>
+              </div>
+              <div className="col-span-1">
+                <p className="text-xs">R</p>
+                <p className={(lateDiscount < 0 ? 'text-red-500 ' : ' ') + 'text-xs my-auto'}>{employeePayroll.lateDiscount.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>
+              </div>
+              <div className="col-span-1">
+                <p className="text-xs">D</p>
+                <p className="text-xs">{employeePayroll.didEmployeeRest || 'No'}</p>
+              </div>
+              <div className="col-span-1">
+                <p className="text-xs">F</p>
+                <p className={(missingWorkDiscount < 0 ? 'text-red-500' : '') + ' text-xs my-auto'}>{(employeePayroll?.missingWorkDiscount ?? 0).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>
+              </div>
             </div>
           </div>
         </div>

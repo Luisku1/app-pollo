@@ -25,7 +25,14 @@ import { toPng } from "html-to-image";
 import { AiOutlineDownload, AiOutlineCopy } from "react-icons/ai";
 import { recalculateBranchReport } from "../services/BranchReports/updateBranchReport"
 
-export default function BranchReportCard({ reportData = {}, replaceReport, externalIndex, selfChange }) {
+export default function BranchReportCard({
+  reportData = {},
+  updateBranchReportGroup, // (employeeId, report)
+  updateBranchReportSingle, // (report)
+  employeeId, // for group cache
+  externalIndex,
+  selfChange
+}) {
 
   const { currentUser } = useSelector((state) => state.user)
   const { isController, isManager } = useRoles()
@@ -34,26 +41,29 @@ export default function BranchReportCard({ reportData = {}, replaceReport, exter
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
 
+  // On set to zero, update both caches
   const handleSetReportOnZero = async (report) => {
 
     try {
       setToModifyReport(report._id)
       const newReport = { ...report, balance: 0 }
       if (selfChange) selfChange(newReport)
-      replaceReport(newReport, externalIndex)
+      if (updateBranchReportGroup && employeeId) updateBranchReportGroup(employeeId, newReport)
+      if (updateBranchReportSingle) updateBranchReportSingle(newReport)
       await setBalanceOnZero(report._id)
       setToModifyReport(null)
 
     } catch (error) {
 
       console.log(error)
-      selfChange()
+      selfChange && selfChange()
       setToModifyReport(null)
       setLoading(false)
       ToastDanger('Hubo un error al establecer el balance en cero')
     }
   }
 
+  // On reload, update both caches
   const handleReloadReport = async (report) => {
 
     try {
@@ -61,8 +71,8 @@ export default function BranchReportCard({ reportData = {}, replaceReport, exter
       setLoading(true)
       setToModifyReport(report._id)
       const updatedReport = await recalculateBranchReport(report)
-      console.log(externalIndex)
-      replaceReport(updatedReport, externalIndex)
+      if (updateBranchReportGroup && employeeId) updateBranchReportGroup(employeeId, updatedReport)
+      if (updateBranchReportSingle) updateBranchReportSingle(updatedReport)
       if (selfChange) selfChange({ ...report, balance: updatedReport.balance })
       setToModifyReport(null)
       setLoading(false)
@@ -70,7 +80,8 @@ export default function BranchReportCard({ reportData = {}, replaceReport, exter
     } catch (error) {
 
       console.error(error)
-      replaceReport(report, externalIndex)
+      if (updateBranchReportGroup && employeeId) updateBranchReportGroup(employeeId, report)
+      if (updateBranchReportSingle) updateBranchReportSingle(report)
       if (selfChange) selfChange(report)
       setToModifyReport(null)
       setLoading(false)

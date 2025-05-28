@@ -22,7 +22,14 @@ import EmployeeInfo from "./EmployeeInfo.jsx"
 import { toPng } from "html-to-image";
 import { AiOutlineDownload, AiOutlineCopy } from "react-icons/ai";
 
-export default function SupervisorReportCard({ supervisorReport, replaceReport, externalIndex, selfChange }) {
+export default function SupervisorReportCard({
+  supervisorReport,
+  updateSupervisorReportGroup, // (employeeId, report)
+  updateSupervisorReportSingle, // (report)
+  employeeId, // for group cache
+  externalIndex,
+  selfChange
+}) {
 
   const { currentUser } = useSelector((state) => state.user)
   const { isController, isManager } = useRoles()
@@ -36,8 +43,10 @@ export default function SupervisorReportCard({ supervisorReport, replaceReport, 
       setLoading(true)
       setToModifyReport(reportId)
       await setSupervisorReportOnZero(reportId)
-      replaceReport({ ...supervisorReport, balance: 0 }, externalIndex)
-      if (selfChange) selfChange({ ...supervisorReport, balance: 0 })
+      const newReport = { ...supervisorReport, balance: 0 }
+      if (updateSupervisorReportGroup && employeeId) updateSupervisorReportGroup(employeeId, newReport)
+      if (updateSupervisorReportSingle) updateSupervisorReportSingle(newReport)
+      if (selfChange) selfChange(newReport)
       setToModifyReport(null)
       setLoading(false)
     } catch (error) {
@@ -53,12 +62,16 @@ export default function SupervisorReportCard({ supervisorReport, replaceReport, 
       setLoading(true)
       setToModifyReport(supervisorReport._id)
       const updatedReport = await recalculateSupervisorReport(supervisorReport._id)
-      replaceReport({ ...supervisorReport, balance: updatedReport.balance }, externalIndex)
+      if (updateSupervisorReportGroup && employeeId) updateSupervisorReportGroup(employeeId, updatedReport)
+      if (updateSupervisorReportSingle) updateSupervisorReportSingle(updatedReport)
       if (selfChange) selfChange({ ...supervisorReport, balance: updatedReport.balance })
       setToModifyReport(null)
       setLoading(false)
     } catch (error) {
       console.error(error)
+      if (updateSupervisorReportGroup && employeeId) updateSupervisorReportGroup(employeeId, supervisorReport)
+      if (updateSupervisorReportSingle) updateSupervisorReportSingle(supervisorReport)
+      if (selfChange) selfChange(supervisorReport)
       setToModifyReport(null)
       setLoading(false)
       ToastDanger('Hubo un error al recalcular el reporte')

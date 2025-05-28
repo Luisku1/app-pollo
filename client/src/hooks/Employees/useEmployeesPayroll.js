@@ -1,66 +1,54 @@
-import { useEffect, useState } from "react"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { getEmployeesPayrollFetch } from "../../services/employees/getEmployeesPayroll"
-import { ToastDanger } from "../../helpers/toastify"
+
+export const EMPLOYEES_PAYROLL_QUERY_KEY = (companyId, date) => ['employeesPayroll', companyId, date]
 
 export const useEmployeesPayroll = ({ companyId, date }) => {
+  const queryClient = useQueryClient()
+  const queryKey = EMPLOYEES_PAYROLL_QUERY_KEY(companyId, date)
 
-  const [employeesPayroll, setEmployeesPayroll] = useState()
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
+  const {
+    data: employeesPayroll,
+    isLoading: loading,
+    error,
+  } = useQuery({
+    queryKey,
+    queryFn: () => getEmployeesPayrollFetch({ companyId, date }).then(r => r.employeesPayroll),
+    enabled: !!companyId && !!date,
+  })
 
-  const replaceReport = (report, payrollIndex) => {
-
-    setEmployeesPayroll((prevEmployeesPayroll) => {
-
-      const newEmployeesPayroll = [...prevEmployeesPayroll]
-
-      console.log(report, payrollIndex)
-      newEmployeesPayroll[payrollIndex].branchReports.forEach((branchReport, index) => {
-
-        if (branchReport._id === report._id) {
-
-          newEmployeesPayroll[payrollIndex].branchReports[index] = report
+  // Helpers para updates optimistas
+  const updateBranchReport = (employeeId, report) => {
+    queryClient.setQueryData(queryKey, (old) => {
+      if (!old) return old
+      return old.map((payroll) => {
+        if (payroll.employee._id === employeeId) {
+          return {
+            ...payroll,
+            branchReports: payroll.branchReports.map((r) => r._id === report._id ? report : r),
+          }
         }
+        return payroll
       })
-      return newEmployeesPayroll
+    })
+  }
+  const updateSupervisorReport = (employeeId, report) => {
+    queryClient.setQueryData(queryKey, (old) => {
+      if (!old) return old
+      return old.map((payroll) => {
+        if (payroll.employee._id === employeeId) {
+          return {
+            ...payroll,
+            supervisorReports: payroll.supervisorReports.map((r) => r._id === report._id ? report : r),
+          }
+        }
+        return payroll
+      })
     })
   }
 
-  const replaceSupervisorReport = (report, payrollIndex) => {
+  // Para invalidar/recargar
+  const refetch = () => queryClient.invalidateQueries({ queryKey })
 
-    setEmployeesPayroll((prevEmployeesPayroll) => {
-
-      const newEmployeesPayroll = [...prevEmployeesPayroll]
-      newEmployeesPayroll[payrollIndex].supervisorReports.forEach((supervisorReport, index) => {
-
-        if (supervisorReport._id === report._id) {
-
-          newEmployeesPayroll[payrollIndex].supervisorReports[index] = report
-        }
-      })
-      return newEmployeesPayroll
-    })
-  }
-
-  useEffect(() => {
-
-    if (!companyId || !date) return
-
-    setLoading(true)
-
-    getEmployeesPayrollFetch({ companyId, date }).then((response) => {
-
-      setEmployeesPayroll(response.employeesPayroll)
-
-    }).catch((error) => {
-
-      ToastDanger(error.message)
-      setError(error)
-    })
-
-    setLoading(false)
-
-  }, [companyId, date])
-
-  return { employeesPayroll, replaceReport, replaceSupervisorReport, loading, error }
+  return { employeesPayroll, loading, error, queryKey, updateBranchReport, updateSupervisorReport, refetch }
 }
