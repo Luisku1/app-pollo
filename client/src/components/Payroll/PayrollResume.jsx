@@ -1,6 +1,18 @@
-export default function PayrollResume({employeePayroll, replaceReport, replaceSupervisorReport, index = -1}) {
+import { currency, getEmployeeFullName } from "../../helpers/Functions"
+import EmployeePaymentsList from "../EmployeePaymentsList"
+import Amount from "../Incomes/Amount"
+import ShowListModal from "../Modals/ShowListModal"
+import SupervisorReportList from "../SupervisorReportList"
+import TarjetaCuenta from "../TarjetaCuenta"
+
+export default function PayrollResume({ employeePayroll, replaceReport, replaceSupervisorReport, index = -1 }) {
 
   const { previousWeekBalance, employeeDailyBalances, employee, branchReports, employeePayments, lateDiscount, supervisorReports, missingWorkDiscount, employeePaymentsAmount, balanceAdjustments = [], adjustments = 0 } = employeePayroll
+
+  const accountBalance = branchReports.reduce((acc, report) => acc + (report.balance ?? 0), 0)
+  const supervisorBalance = supervisorReports.reduce((acc, report) => acc + (report.balance ?? 0), 0)
+  const salary = employee?.salary ?? 0
+  const totalToPay = accountBalance + supervisorBalance + lateDiscount + missingWorkDiscount - employeePaymentsAmount + adjustments + salary
 
   return (
     <div className="">
@@ -50,30 +62,6 @@ export default function PayrollResume({employeePayroll, replaceReport, replaceSu
           <p className=" border border-black w-fit rounded-lg px-1">
             {Amount({ amount: totalToPay })}
           </p>
-        </div>
-      </div>
-      <div className="grid grid-cols-12 row-span-1 mt-3 text-center border-black">
-        <p className="col-span-5 font-semibold">Fecha</p>
-        <div className="col-span-2">
-          <p className="text-xs">Cuenta en pollería</p>
-          <p className={(accountBalance < 0 ? 'text-red-500' : '') + ' text-xs my-auto'}>{accountBalance.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>
-        </div>
-        <div className="col-span-2 text-center">
-          <p className="text-xs  text-center">Cuenta</p>
-          <p className="text-xs truncate text-center">Supervisor</p>
-          <p className={(supervisorBalance < 0 ? 'text-red-500' : '') + ' text-xs my-auto'}>{employeePayroll.supervisorBalance.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>
-        </div>
-        <div className="col-span-1">
-          <p className="text-xs">R</p>
-          <p className={(lateDiscount < 0 ? 'text-red-500 ' : ' ') + 'text-xs my-auto'}>{employeePayroll.lateDiscount.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>
-        </div>
-        <div className="col-span-1">
-          <p className="text-xs">D</p>
-          <p className="text-xs">{employeePayroll.didEmployeeRest || 'No'}</p>
-        </div>
-        <div className="col-span-1">
-          <p className="text-xs">F</p>
-          <p className={(missingWorkDiscount < 0 ? 'text-red-500' : '') + ' text-xs my-auto'}>{(employeePayroll?.missingWorkDiscount ?? 0).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>
         </div>
       </div>
     </div>

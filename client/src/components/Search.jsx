@@ -1,7 +1,12 @@
 import { MdSearch } from "react-icons/md";
-import { useState } from "react";
+import { useSelector } from "react-redux";
+
 
 export const SearchMenu = ({ onActivateSearch }) => {
+
+  const { currentUser } = useSelector((state) => state.user)
+
+  if (!currentUser) return null
 
   return (
     <div>

@@ -27,7 +27,6 @@ export default function SupervisorReportCard({
   updateSupervisorReportGroup, // (employeeId, report)
   updateSupervisorReportSingle, // (report)
   employeeId, // for group cache
-  externalIndex,
   selfChange
 }) {
 

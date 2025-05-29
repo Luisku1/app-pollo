@@ -30,7 +30,6 @@ export default function BranchReportCard({
   updateBranchReportGroup, // (employeeId, report)
   updateBranchReportSingle, // (report)
   employeeId, // for group cache
-  externalIndex,
   selfChange
 }) {
 

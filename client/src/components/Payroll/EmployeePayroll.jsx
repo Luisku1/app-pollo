@@ -32,11 +32,10 @@ export default function EmployeePayroll({
   const salary = employee?.salary ?? 0
   const accountBalance = branchReports.reduce((acc, report) => acc + (report.balance ?? 0), 0)
   const supervisorBalance = supervisorReports.reduce((acc, report) => acc + (report.balance ?? 0), 0)
-  const totalToPay = accountBalance + supervisorBalance + lateDiscount + missingWorkDiscount - employeePaymentsAmount + adjustments + salary
 
 
   return (
-    <div key={employeePayroll._id} className=' w-fit items-center border border-black rounded-lg shadow-sm my-2'>
+    <div key={employeePayroll._id} className=' w-fit items-center border border-black rounded-lg shadow-sm'>
       <Modal
         closeModal={() => setBranchReportCard(null)}
         content={
@@ -45,7 +44,6 @@ export default function EmployeePayroll({
             updateBranchReportGroup={updateBranchReportGroup}
             updateBranchReportSingle={updateBranchReportSingle}
             employeeId={employeeId}
-            externalIndex={branchReportCard?.externalIndex}
             selfChange={setBranchReportCard}
           />
         }
@@ -60,7 +58,6 @@ export default function EmployeePayroll({
             updateSupervisorReportGroup={updateSupervisorReportGroup}
             updateSupervisorReportSingle={updateSupervisorReportSingle}
             employeeId={employeeId}
-            externalIndex={supervisorReportCard?.externalIndex}
             selfChange={setSupervisorReportCard}
           />
         }
@@ -77,13 +74,17 @@ export default function EmployeePayroll({
           <div className="w-full">
             <div className="w-full">
               <p
-                className="justify-self-start w-fit text-2xl font-semibold my-4 shadow-sm text-employee-name hover:underline rounded-lg text-left"
+                className="justify-self-start w-fit text-2xl font-semibold my-4 shadow-sm text-employee-name hover:underline rounded-lg cursor-pointer text-left"
                 onClick={() => setSelectedEmployee(employee)}
               >
                 {`${employee.name} ${employee.lastName}`}
               </p>
-              <PayrollResume />
             </div>
+            <PayrollResume
+              employeePayroll={employeePayroll}
+              updateSupervisorReportGroup={updateSupervisorReportGroup}
+              updateSupervisorReportSingle={updateSupervisorReportSingle}
+            />
             <div className="grid grid-cols-12 row-span-1 mt-3 text-center border-black">
               <p className="col-span-5 font-semibold">Fecha</p>
               <div className="col-span-2">

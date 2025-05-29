@@ -55,6 +55,8 @@ export default function Nomina() {
     document.title = 'Nómina (' + new Date(currentDate).toLocaleDateString() + ')'
   })
 
+  console.log(selectedEmployeePayroll, 'selectedEmployeePayroll')
+
   return (
     <main className="p-3 mx-auto">
       <div className="max-w-lg">

@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { useEffect, useState } from 'react';
 import { MdSearch, MdHome } from "react-icons/md"; // Added MdHome
@@ -19,6 +19,7 @@ export default function Header() {
   const [filteredOptions, setFilteredOptions] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1); // Added state for highlighted index
+  const navigate = useNavigate();
   const homeLink = !currentUser ?
     '/inicio-sesion'
     :
@@ -90,6 +91,9 @@ export default function Header() {
   }, [searchTerm, currentUser, roles, isToday, currentDate]); // Added isToday and currentDate to dependencies
 
   useEffect(() => {
+
+    if (!currentUser) return
+
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') {
         setShowDropdown(false);
@@ -132,7 +136,7 @@ export default function Header() {
             } else {
               setShowDropdown(false);
               setSearchTerm('');
-              window.location.href = selectedOption.link;
+              navigate(selectedOption.link); // SPA navigation
             }
           }
         }
@@ -150,7 +154,7 @@ export default function Header() {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('popstate', handlePopState);
     };
-  }, [showDropdown, filteredOptions, highlightedIndex]); // Added dependencies
+  }, [showDropdown, filteredOptions, highlightedIndex, currentUser]); // Added dependencies
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -205,48 +209,50 @@ export default function Header() {
           )}
           <div className='flex justify-between items-center mx-auto p-3 max-w-full flex-row-reverse'>
           </div>
-          <div className='relative w-full dropdown-container'>
-            <MdSearch
-              onClick={() => setShowDropdown(true)}
-              className='absolute left-2.5 text-gray-500 mt-2.5 w-5 h-5 '
-            />
-            <input
-              id='search-bar' // Added id for search bar
-              onClick={() => setShowDropdown(true)}
-              type='text'
-              className='w-full pl-10 pr-4 py-2 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-400'
-              placeholder='Buscar...'
-              autoComplete='off'
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            {(searchTerm || showDropdown) && (
-              <ul className='absolute top-full left-0 w-full bg-white border border-gray-300 rounded shadow-md mt-1 max-h-screen overflow-y-auto mb-3'>
-                {filteredOptions.map((option, index) => (
-                  <li
-                    key={index}
-                    className={`px-4 cursor-pointer ${highlightedIndex === index ? 'bg-gray-200' : 'hover:bg-gray-100'
-                      }`} // Highlight selected option
-                    onMouseEnter={() => setHighlightedIndex(index)} // Update highlight on hover
-                    onClick={() => {
-                      setShowDropdown(false);
-                      setSearchTerm('');
-                    }}
-                  >
-                    <Link
-                      to={option.link}
-                      className='block w-full h-full py-2'
+          {currentUser &&
+            <div className='relative w-full dropdown-container'>
+              <MdSearch
+                onClick={() => setShowDropdown(true)}
+                className='absolute left-2.5 text-gray-500 mt-2.5 w-5 h-5 '
+              />
+              <input
+                id='search-bar' // Added id for search bar
+                onClick={() => setShowDropdown(true)}
+                type='text'
+                className='w-full pl-10 pr-4 py-2 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-400'
+                placeholder='Buscar...'
+                autoComplete='off'
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              {(searchTerm || showDropdown) && (
+                <ul className='absolute top-full left-0 w-full bg-white border border-gray-300 rounded shadow-md mt-1 max-h-screen overflow-y-auto mb-3'>
+                  {filteredOptions.map((option, index) => (
+                    <li
+                      key={index}
+                      className={`px-4 cursor-pointer ${highlightedIndex === index ? 'bg-gray-200' : 'hover:bg-gray-100'
+                        }`} // Highlight selected option
+                      onMouseEnter={() => setHighlightedIndex(index)} // Update highlight on hover
+                      onClick={() => {
+                        setShowDropdown(false);
+                        setSearchTerm('');
+                      }}
                     >
-                      {option.text}
-                    </Link>
-                  </li>
-                ))}
-                {filteredOptions.length === 0 && (
-                  <li className='px-4 py-2 text-gray-500'>No hay resultados</li>
-                )}
-              </ul>
-            )}
-          </div>
+                      <Link
+                        to={option.link}
+                        className='block w-full h-full py-2'
+                      >
+                        {option.text}
+                      </Link>
+                    </li>
+                  ))}
+                  {filteredOptions.length === 0 && (
+                    <li className='px-4 py-2 text-gray-500'>No hay resultados</li>
+                  )}
+                </ul>
+              )}
+            </div>
+          }
         </div>
       </div>
       <SearchMenu onActivateSearch={onActivateSearch} />
