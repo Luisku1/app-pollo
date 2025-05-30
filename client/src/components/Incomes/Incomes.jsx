@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useIncomeTypes } from '../../hooks/Incomes/useIncomeTypes'
 import { isToday } from '../../helpers/DatePickerFunctions'
 import SectionHeader from '../SectionHeader'
@@ -15,19 +15,45 @@ import { ToastDanger, ToastInfo, ToastSuccess } from '../../helpers/toastify'
 import { useSelector } from 'react-redux'
 import { useDate } from '../../context/DateContext'
 import { useIncomes } from '../../hooks/Incomes/useIncomes'
+import { useBranches } from '../../hooks/Branches/useBranches'
+import { useCustomers } from '../../hooks/Customers/useCustomers'
+import { useProducts } from '../../hooks/Products/useProducts'
+import { useEmployees } from '../../hooks/Employees/useEmployees'
 
-export default function Incomes({ branchAndCustomerSelectOptions }) {
+export default function Incomes() {
 
   const { currentUser, company } = useSelector((state) => state.user)
   const [incomeFormData, setIncomeFormData] = useState({})
-  const { isManager } = useRoles()
+  const { isManager, isSupervisor } = useRoles()
   const { incomeTypes } = useIncomeTypes()
   const companyId = company?._id ?? company
   const [selectedCustomerBranchIncomesOption, setSelectedCustomerBranchIncomesOption] = useState(null)
+  const [branchAndCustomerSelectOptions, setBranchAndCustomerSelectOptions] = useState([])
   const [selectedIncomeGroup, setSelectedIncomeGroup] = useState('')
   const [selectedIncomeType, setSelectedIncomeType] = useState(null)
-  const { incomes, incomesTotal, onAddIncome, pushIncome, spliceIncomeById, onDeleteIncome } = useIncomes({ companyId, date })
   const { currentDate } = useDate()
+  const { incomes, incomesTotal, onAddIncome, onDeleteIncome } = useIncomes({ companyId, date: currentDate })
+  const { branches } = useBranches({ companyId: company._id })
+  const { employees } = useEmployees({ companyId: company._id })
+  const { customers } = useCustomers({ companyId: company._id })
+
+  useEffect(() => {
+    setBranchAndCustomerSelectOptions([
+      {
+        label: 'Sucursales',
+        options: getArrayForSelects(branches, (branch) => branch.branch)
+      },
+      {
+        label: 'Empleados',
+        options: getArrayForSelects(employees.filter(employee => isSupervisor(employee.role) && employee._id !== currentUser._id), (employee) => employee.name + ' ' + employee.lastName)
+      },
+      {
+        label: 'Clientes',
+        options: getArrayForSelects(customers, (customer) => customer.name + ' ' + (customer?.lastName ?? ''))
+      }
+    ])
+  }, [branches, customers, employees, isSupervisor, currentUser])
+
 
   const resetInputs = () => {
     document.getElementById('income-amount').value = ''

@@ -15,7 +15,9 @@ import DeleteButton from '../Buttons/DeleteButton';
 import Amount from './Amount';
 import { CiSquareInfo } from 'react-icons/ci';
 import EmployeeInfo from '../EmployeeInfo';
-import { EmployeeName, MoneyBag } from '../Reutilizable/Labels';
+import { MoneyBag } from '../Reutilizable/Labels';
+import EmployeeName from '../Names/EmployeeName';
+
 
 export default function IncomesList({ incomes = [], onDeleteIncome }) {
   const { currentUser } = useSelector((state) => state.user);
@@ -95,7 +97,7 @@ export default function IncomesList({ incomes = [], onDeleteIncome }) {
                 <div className='w-full text-red-800 mb-1'>
                   <RowItem>
                     <p className="text-md font-bold flex gap-1 items-center"><MdStorefront />{branchInfo || customerInfo}</p>
-                    <EmployeeName employeeName={employeeName} onClick={() => setSelectedEmployee(employee)} />
+                    <EmployeeName employee={employee} />
                   </RowItem>
                 </div>
                 <div>

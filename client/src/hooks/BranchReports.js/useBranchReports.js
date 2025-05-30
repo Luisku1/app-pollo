@@ -13,7 +13,7 @@ export const useBranchReports = ({ companyId = null, date = null, reports = [], 
   } = useQuery({
     queryKey: ["branchReports", companyId, date],
     queryFn: () => getBranchReportsFetch({ companyId, date }).then(res => res.branchReports),
-    enabled: !!companyId && !!date,
+    enabled: !!companyId && !!date && !profile,
     staleTime: 1000 * 60 * 3
   });
 

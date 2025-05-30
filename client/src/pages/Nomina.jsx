@@ -24,7 +24,7 @@ export default function Nomina() {
   let datePickerValue = (paramsDate ? new Date(paramsDate) : new Date())
   let stringDatePickerValue = formatDate(datePickerValue)
   const { company, currentUser } = useSelector((state) => state.user)
-  const { employeesPayroll, replaceReport, replaceSupervisorReport } = useEmployeesPayroll({ companyId: company._id, date: stringDatePickerValue })
+  const { employeesPayroll, updateBranchReport, updateSupervisorReport } = useEmployeesPayroll({ companyId: company._id, date: stringDatePickerValue })
   const { roles, isManager } = useRoles()
   const navigate = useNavigate()
   const { currentDate, setCurrentDate } = useDate()
@@ -65,8 +65,8 @@ export default function Nomina() {
           content={
             <EmployeePayroll
               employeePayroll={selectedEmployeePayroll?.employeePayroll}
-              updateBranchReportGroup={replaceReport}
-              updateSupervisorReportGroup={replaceSupervisorReport}
+              updateBranchReportGroup={updateBranchReport}
+              updateSupervisorReportGroup={updateSupervisorReport}
               employeeId={selectedEmployeePayroll?.employeePayroll?.employee?._id}
               index={selectedEmployeePayroll?.externalIndex}
             />

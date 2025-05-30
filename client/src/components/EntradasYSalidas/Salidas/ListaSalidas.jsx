@@ -16,7 +16,7 @@ import { CiSquareInfo } from "react-icons/ci";
 import EmployeeInfo from '../../EmployeeInfo'
 import { EmployeeName, MoneyBag } from '../../Reutilizable/Labels'
 
-export default function ListaSalidas({ outputs, onDelete = null }) {
+export default function ListaSalidas({ outputs = [], onDelete = null }) {
   const { currentUser } = useSelector((state) => state.user)
   const { isManager } = useRoles()
   const [selectedOutput, setSelectedOutput] = useState(null)

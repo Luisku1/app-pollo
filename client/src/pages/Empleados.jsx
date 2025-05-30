@@ -11,11 +11,11 @@ import Modal from "../components/Modals/Modal";
 import RegistroEmpleadoNuevo from "./RegistroEmpleado";
 import { CgProfile } from "react-icons/cg";
 import EmployeeInfo from "../components/EmployeeInfo";
+import PhoneLinks from "../components/PhoneLinks";
 
 export default function Empleados() {
 
   const { company } = useSelector((state) => state.user)
-  const date = (new Date()).toISOString().split('T')[0]
   const { employees, activeEmployees, inactiveEmployees, setFilterString, changeEmployeeActiveStatus, onUpdateEmployee, spliceEmployee, loading, refetch, error } = useEmployees({ companyId: company._id })
   const { deleteEmployee } = useDeleteEmployee()
   const [hoveredIndex, setHoveredIndex] = useState(null)
@@ -24,10 +24,15 @@ export default function Empleados() {
   const searchBarRef = useRef(null);
   const [showActiveEmployees, setShowActiveEmployees] = useState(true)
   const [searching, setSearching] = useState(false)
-  const [editEmployee, setEditEmployee] = useState(null)
   const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
   const [selectedEmployee, setSelectedEmployee] = useState(null)
   const [employeeToEdit, setEmployeeToEdit] = useState(null)
+
+  const handleEmployeeUpdate = (employee) => {
+
+    onUpdateEmployee(employee)
+    setEmployeeToEdit(null)
+  }
 
   const handleChangeEmployeeStatus = (employee) => {
 
@@ -92,7 +97,7 @@ export default function Empleados() {
 
             <div className="col-span-9">
 
-              <button onClick={() => setSelectedEmployee(employee)} className="font-bold text-xl flex gap-1 items-center text-red-700"><span><CgProfile /></span>{getEmployeeFullName(employee)}</button>
+              <button onClick={() => setSelectedEmployee(employee)} className="font-bold text-xl flex gap-1 items-center text-employee-name">{getEmployeeFullName(employee)}</button>
 
               <div className="p-3">
                 <div className="flex gap-2">
@@ -106,7 +111,7 @@ export default function Empleados() {
                 {employee.payDay > -1 ?
                   <p className="text-lg">{'Día de cobro: ' + weekDays[employee.payDay]}</p>
                   : ''}
-                <p className="text-lg">Teléfono: {employee.phoneNumber ? employee.phoneNumber.replace(/(\d{2})(\d{4})(\d{4})/, '$1-$2-$3') : ''}</p>
+                <p className="text-lg mt-2">{employee.phoneNumber ? <PhoneLinks phoneNumber={employee.phoneNumber} name={getEmployeeFullName(employee)} /> : ''}</p>
               </div>
             </div>
 
@@ -176,7 +181,7 @@ export default function Empleados() {
 
     <main className="p-3 max-w-lg mx-auto">
       <Modal
-        content={<RegistroEmpleadoNuevo setEmployee={onUpdateEmployee} employee={employeeToEdit} />}
+        content={<RegistroEmpleadoNuevo setEmployee={handleEmployeeUpdate} employee={employeeToEdit} />}
         closeModal={() => setEmployeeToEdit(null)}
         ableToClose={true}
         isShown={employeeToEdit}

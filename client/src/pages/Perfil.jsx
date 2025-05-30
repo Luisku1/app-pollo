@@ -22,21 +22,19 @@ import SupervisorReportList from "../components/SupervisorReportList";
 import SupervisorReportCard from "../components/SupervisorReportCard";
 import PhoneLinks from "../components/PhoneLinks";
 import { useEmployeePayroll } from '../hooks/Employees/useEmployeePayroll'
+import PayrollResume from "../components/Payroll/PayrollResume";
 
 export default function Perfil() {
 
-  const { error, currentUser } = useSelector((state) => state.user)
+  const { currentUser } = useSelector((state) => state.user)
   const { employeeId } = useParams()
   const [employee, setEmployee] = useState(null)
   const [editEmployee, setEditEmployee] = useState(false)
   const [lastSupervisorReport, setLastSupervisorReport] = useState(null)
-  const [employeeBranchReports, setEmployeeBranchReports] = useState([])
-  const { supervisorReports, totalBalance } = useSupervisorReports({ supervisorId: employeeId })
   const { employeeDailyBalance, handleDailyBalanceInputs, loading } = useEmployeeDailyBalance(employeeId)
   const [lastBranchReport, setLastBranchReport] = useState(null)
   const { payments, total } = useEmployeesPayments({ employeeId, date: formatDate(new Date()) })
-  const { branchReports, replaceReport, totalBalance: supervisorBalance } = useBranchReports({ reports: employeeBranchReports, profile: true })
-  const { roles, isManager } = useRoles()
+  const { roles, isManager, isJustSeller } = useRoles()
   const { isLoading } = useLoading(loading)
   const { signOut } = useSignOut()
   const dispatch = useDispatch()
@@ -47,10 +45,15 @@ export default function Perfil() {
     loading: payrollLoading,
     error: payrollError,
     date: payrollDate,
-    setPayrollDate,
+    updateBranchReport,
+    updateSupervisorReport,
+    branchBalance,
+    supervisorBalance,
+    branchReports,
+    supervisorReports,
     goToPreviousWeek,
     goToNextWeek,
-  } = useEmployeePayroll({ employee, initialDate: new Date() })
+  } = useEmployeePayroll({ employee })
 
   useEffect(() => {
 
@@ -86,8 +89,6 @@ export default function Perfil() {
 
   useEffect(() => {
 
-    setEmployeeBranchReports([])
-
     const fetchEmployee = async () => {
 
       try {
@@ -108,38 +109,15 @@ export default function Perfil() {
       }
     }
 
-    const fetchEmployeeReports = async () => {
-
-      try {
-
-        const res = await fetch('/api/employee/get-employee-reports/' + employeeId + '/' + currentUser.role)
-        const data = await res.json()
-
-        if (data.success === false) {
-
-          console.log(data.message)
-          return
-        }
-
-        setEmployeeBranchReports(data.employeeBranchReports)
-
-      } catch (error) {
-
-        console.log(error.message)
-      }
-    }
-
     fetchEmployee()
-    fetchEmployeeReports()
 
-
-  }, [employeeId, currentUser])
+  }, [employeeId])
 
   useEffect(() => {
 
     if (employee) {
 
-      document.title = employee.name + ' ' + employee.lastName
+      document.title = getEmployeeFullName(employee) + ' - Perfil'
     }
   }, [employee])
 
@@ -149,9 +127,8 @@ export default function Perfil() {
   }
 
   return (
-
     <main className="p-3 max-w-lg mx-auto">
-      {error ? <p>{error}</p> : ''}
+
       {!isLoading && (
         <div>
           {employee && roles ?
@@ -228,10 +205,10 @@ export default function Perfil() {
 
               {/* Payroll week navigation and summary */}
               <div className="my-4 bg-gray-50 p-3 rounded-lg border border-gray-200">
-                <div className="flex justify-between items-center mb-2">
+                <div className="flex justify-between items-center mb-3">
                   <button onClick={goToPreviousWeek} className="px-2 py-1 border rounded bg-gray-200 hover:bg-gray-300">Semana anterior</button>
                   <div className="text-center">
-                    <p className="font-semibold">Semana de nómina</p>
+                    <p className="font-semibold">Nómina</p>
                     <p className="font-bold">{payrollDate}</p>
                   </div>
                   <button onClick={goToNextWeek} className="px-2 py-1 border rounded bg-gray-200 hover:bg-gray-300">Semana siguiente</button>
@@ -239,19 +216,14 @@ export default function Perfil() {
                 {payrollLoading ? (
                   <p>Cargando nómina...</p>
                 ) : payrollError ? (
-                  <p className="text-red-600">{payrollError}</p>
+                  <p className="text-red-600">{'No se encontraron datos de esta semana.'}</p>
                 ) : employeePayroll ? (
-                  <div className="border rounded p-2 bg-white">
-                    <p className="font-bold">Resumen de nómina semanal</p>
-                    <div className="flex flex-col gap-1 mt-2">
-                      <span>Saldo cuenta: <b>{employeePayroll.accountBalance?.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</b></span>
-                      <span>Saldo supervisor: <b>{employeePayroll.supervisorBalance?.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</b></span>
-                      <span>Pagos: <b>{employeePayroll.employeePaymentsAmount?.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</b></span>
-                      <span>Descuento retardo: <b>{employeePayroll.lateDiscount?.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</b></span>
-                      <span>Descuento falta: <b>{employeePayroll.missingWorkDiscount?.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</b></span>
-                      <span className="font-bold">Balance total: <b>{employeePayroll.balance?.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</b></span>
-                    </div>
-                  </div>
+                  <PayrollResume
+                    employeePayroll={employeePayroll}
+                    updateBranchReportGroup={updateBranchReport}
+                    updateSupervisorReportGroup={updateSupervisorReport}
+                    employeeId={employeeId}
+                  />
                 ) : (
                   <p>No hay nómina para esta semana.</p>
                 )}
@@ -263,36 +235,9 @@ export default function Perfil() {
                   title={`Reportes de ${employee.name}`}
                   className={'w-full h-full'}
                   ListComponent={SupervisorReportList}
-                  ListComponentProps={{ supervisorReports }}
-                  clickableComponent={<p className='w-full text-lg font-semibold text-center p-1 border border-header rounded-md'>{`${supervisorReports.length == 0 || supervisorReports.length > 1 ? 'Reportes de Supervisión' : 'Reporte de Supervisión'} (${supervisorReports.length}) [${currency(totalBalance > 0 ? 0 : totalBalance)}]`}</p>}
+                  ListComponentProps={{ supervisorReports, updateSupervisorReportSingle: updateSupervisorReport }}
+                  clickableComponent={<p className='w-full text-lg font-semibold text-center p-1 border border-header rounded-md'>{`${supervisorReports.length == 0 || supervisorReports.length > 1 ? 'Reportes de Supervisión' : 'Reporte de Supervisión'} (${supervisorReports.length}) [${currency(supervisorBalance > 0 ? 0 : supervisorBalance)}]`}</p>}
                 />
-              )}
-
-              {roles.seller._id != employee.role._id && (employee._id == currentUser._id || isManager(currentUser.role)) ?
-                <div className=''>
-                  {lastSupervisorReport && (
-                    <SupervisorReportCard
-                      supervisorReport={lastSupervisorReport}
-                      replaceReport={replaceReport}
-                    />
-                  )}
-                </div>
-                : ''}
-
-              {branchReports && branchReports.length > 0 && (
-                <ShowListModal
-                  className={'mt-4 w-full'}
-                  title={`Cuentas de ${employee.name}`}
-                  ListComponent={TarjetaCuenta}
-                  ListComponentProps={{ reportArray: branchReports, replaceReport: replaceReport }}
-                  clickableComponent={<p className='w-full text-lg font-semibold text-center p-1 border border-header rounded-md'>{`${branchReports.length == 0 || branchReports.length > 1 ? 'Reportes in Pollería' : 'Reporte en Pollería'} (${branchReports.length}) [${supervisorBalance > 0 ? 0 : supervisorBalance}]`}</p>}
-                />
-              )}
-
-              {lastBranchReport && (
-                <div className='mt-1'>
-                  <TarjetaCuenta reportArray={[lastBranchReport]} replaceReport={replaceReport} currentUser={currentUser} />
-                </div>
               )}
 
               {employeeId == currentUser._id &&

@@ -7,22 +7,9 @@ export const useSupervisorReports = ({ supervisorId = null, supervisorReports = 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
-  const replaceReport = (updatedReport) => {
-
-    setFinalReports((prev) => prev.map((report) => {
-
-      if (report._id === updatedReport._id) {
-
-        return updatedReport
-      }
-
-      return report
-    }))
-  }
-
   useEffect(() => {
 
-    if (supervisorReports.length > 0 && finalReports === null) {
+    if (supervisorReports.length > 0 && finalReports.length === 0) {
       setFinalReports(supervisorReports)
     }
 
@@ -34,7 +21,7 @@ export const useSupervisorReports = ({ supervisorId = null, supervisorReports = 
 
     setLoading(true)
 
-    getSupervisorReportsFetch({supervisorId}).then((response) => {
+    getSupervisorReportsFetch({ supervisorId }).then((response) => {
 
       setFinalReports(response)
 
@@ -56,5 +43,5 @@ export const useSupervisorReports = ({ supervisorId = null, supervisorReports = 
 
   }, [finalReports])
 
-  return {supervisorReports: finalReports, totalBalance, setSupervisorReports: setFinalReports, replaceReport, loading, error}
+  return { supervisorReports: finalReports, totalBalance, setSupervisorReports: setFinalReports, loading, error }
 }

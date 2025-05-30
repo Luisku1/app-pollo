@@ -12,7 +12,7 @@ import { useSelector } from "react-redux";
 import { weekDays } from "../helpers/Constants";
 import { FaEdit } from "react-icons/fa";
 
-export default function EmployeeInfo({ employee, toggleInfo }) {
+export default function EmployeeInfo({ employee, toggleInfo, isShown }) {
 
   const { currentUser } = useSelector((state) => state.user);
   const [showEmployeeBranchReports, setShowEmployeeBranchReports] = useState(false);
@@ -94,16 +94,15 @@ export default function EmployeeInfo({ employee, toggleInfo }) {
 
   return (
     <div className="text-base">
-      {employee && (
-        <Modal
-          closeModal={() => toggleInfo()}
-          closeOnClickOutside={true}
-          closeOnClickInside={false}
-          width="4/6"
-          shape="rounded-3xl"
-          content={employeeCard()}
-        />
-      )}
+      <Modal
+        closeModal={() => toggleInfo()}
+        closeOnClickOutside={true}
+        closeOnClickInside={false}
+        width="4/6"
+        shape="rounded-3xl"
+        isShown={isShown}
+        content={employeeCard()}
+      />
       {showEmployeeBranchReports && (
         <EmployeeBranchReports employeeId={employee._id} employee={employee} toggleComponent={() => setShowEmployeeBranchReports(prev => !prev)} />
       )}

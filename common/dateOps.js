@@ -40,8 +40,6 @@ export const getWeekRange = (date, startWeekDay, shiftWeeks = 0) => {
   principalDate.setDate(principalDate.getDate() - difference)
   principalDate.setDate(principalDate.getDate() + shiftWeeks * 7)
 
-  console.log('getWeekRange: principalDate', principalDate, 'startWeekDay', startWeekDay, 'shiftWeeks', shiftWeeks)
-
   const topDate = new Date(principalDate.toISOString())
   topDate.setDate(topDate.getDate() + 7)
 

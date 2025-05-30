@@ -12,8 +12,11 @@ import { ToastDanger } from "../../../helpers/toastify"
 import { useBranchCustomerProductPrice } from "../../../hooks/Prices/useBranchCustomerProductPrice"
 import { getArrayForSelects, getElementForSelect, priceShouldNotBeZero } from "../../../helpers/Functions"
 import ShowListModal from "../../Modals/ShowListModal"
+import { useBranches } from '../../../hooks/Branches/useBranches'
+import { useCustomers } from '../../../hooks/Customers/useCustomers'
+import { useProducts } from '../../../hooks/Products/useProducts'
 
-export default function Salidas({ branchAndCustomerSelectOptions, products, date, selectedProduct, setSelectedProduct, setSelectedProductToNull }) {
+export default function Salidas({ selectedProduct, setSelectedProduct, setSelectedProductToNull }) {
 
   const { company, currentUser } = useSelector((state) => state.user)
   const [outputFormData, setOutputFormData] = useState({})
@@ -30,6 +33,27 @@ export default function Salidas({ branchAndCustomerSelectOptions, products, date
   const [amount, setAmount] = useState('$0.00')
   const [loading, setLoading] = useState(false)
   const [isRegisteredInSurplus, setIsRegisteredInSurplus] = useState(false);
+
+  const {
+    branches
+  } = useBranches({ companyId: company._id })
+  const {
+    customers
+  } = useCustomers({ companyId: company._id })
+  const {
+    products
+  } = useProducts({ companyId: company._id })
+
+  const branchAndCustomerSelectOptions = [
+    {
+      label: 'Sucursales',
+      options: getArrayForSelects(branches, (branch) => branch.branch)
+    },
+    {
+      label: 'Clientes',
+      options: getArrayForSelects(customers, (customer) => customer.name)
+    }
+  ]
 
   const generarMonto = () => {
 
@@ -170,9 +194,18 @@ export default function Salidas({ branchAndCustomerSelectOptions, products, date
     }
   }
 
-  const handleProductSelectChange = (product) => {
+  // Estado interno para el producto seleccionado
+  const [internalSelectedProduct, setInternalSelectedProduct] = useState(selectedProduct);
 
-    setSelectedProduct(product)
+  // Sincroniza el estado interno cuando cambia el del padre
+  useEffect(() => {
+    setInternalSelectedProduct(selectedProduct);
+  }, [selectedProduct]);
+
+  // Cuando cambia el select, actualiza ambos estados
+  const handleProductSelectChange = (product) => {
+    setInternalSelectedProduct(product);
+    setSelectedProduct(product);
   }
 
   const handleBranchCustomerSelectChange = (option) => {
@@ -184,7 +217,7 @@ export default function Salidas({ branchAndCustomerSelectOptions, products, date
 
   return (
     <div>
-      <div className='border rounded-md bg-outputs p-3 mt-4'>
+      <div className='border rounded-md p-3 mt-4'>
         <div className='grid grid-cols-2'>
           <SectionHeader label={'Salidas'} />
           <div className='flex items-center gap-4 justify-self-end mr-12'>
@@ -204,7 +237,7 @@ export default function Salidas({ branchAndCustomerSelectOptions, products, date
             <Select
               styles={customSelectStyles}
               onChange={handleProductSelectChange}
-              value={getElementForSelect(selectedProduct, (product) => product.name)}
+              value={getElementForSelect(internalSelectedProduct, (product) => product.name)}
               options={getArrayForSelects(products, (product) => product.name)}
               placeholder={'Producto'}
               isSearchable={true}

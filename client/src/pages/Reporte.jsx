@@ -256,6 +256,18 @@ export default function Reporte({ untitled = false }) {
     document.title = 'Reporte (' + new Date(currentDate).toLocaleDateString() + ')'
   }, [currentDate, untitled])
 
+  // Mostrar ayuda de atajos solo en pantallas grandes (desktop)
+  const [showShortcutsHelp, setShowShortcutsHelp] = useState(false);
+  useEffect(() => {
+    const checkShowShortcuts = () => {
+      // Considera desktop si el ancho es mayor a 1024px
+      setShowShortcutsHelp(window.innerWidth > 1024);
+    };
+    checkShowShortcuts();
+    window.addEventListener('resize', checkShowShortcuts);
+    return () => window.removeEventListener('resize', checkShowShortcuts);
+  }, []);
+
   // Ayuda visual para shortcuts de tablas
   const shortcutsHelp = (
     <div className="fixed bottom-20 right-4 z-50 bg-white border border-gray-400 rounded-lg shadow-lg p-3 text-xs text-gray-700 opacity-80 select-none pointer-events-none">
@@ -269,13 +281,13 @@ export default function Reporte({ untitled = false }) {
 
   return (
     <main className="p-3 mx-auto mb-40">
-      {shortcutsHelp}
+      {showShortcutsHelp && shortcutsHelp}
       {selectedBranchReport && (
         <Modal
           content={
             <BranchReportCard
               reportData={selectedBranchReport}
-              replaceReport={replaceReport}
+              updateBranchReportSingle={replaceReport}
               defaultDetailsShowed={null}
               selfChange={setSelectedBranchReport}
             />

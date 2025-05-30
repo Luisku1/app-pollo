@@ -8,7 +8,7 @@ import { CgProfile } from "react-icons/cg"
 import { formatInformationDate } from "../helpers/DatePickerFunctions"
 import { recalculateSupervisorReport } from "../../../common/recalculateReports"
 
-export default function RegistrarDineroReportado({ supervisorReport, replaceReport, selfChange }) {
+export default function RegistrarDineroReportado({ supervisorReport, updateSupervisorReportGroup, updateSupervisorReportSingle, selfChange }) {
 
   const { company } = useSelector((state) => state.user)
   const [verifiedCash, setVerifiedCash] = useState(0.00)
@@ -42,7 +42,8 @@ export default function RegistrarDineroReportado({ supervisorReport, replaceRepo
       const newReport = recalculateSupervisorReport({ ...supervisorReport, [typeField]: amount })
       console.log(newReport)
       if (selfChange) selfChange(newReport)
-      replaceReport(newReport, supervisorReport.externalIndex)
+      if (updateSupervisorReportGroup && supervisorReport.supervisor?._id) updateSupervisorReportGroup(supervisorReport.supervisor._id, newReport)
+      if (updateSupervisorReportSingle) updateSupervisorReportSingle(newReport)
 
       ToastSuccess(`${typeField == "verifiedCash" ? "Efectivo" : "Depósitos"} verificado${type == "Efectivo" ? '' : 's'} correctamente`)
       ToastInfo(`Ahora el balance de ${supervisorReport.supervisor.name} es ${currency(newReport.balance)}`)
@@ -114,7 +115,7 @@ export default function RegistrarDineroReportado({ supervisorReport, replaceRepo
       <div className="w-full">
         <form onSubmit={(e) => { submitVerifyMoney(e, "verifiedDeposits") }}>
           <div className="grid grid-cols-2 px-2 items-center py-2">
-            <p className="w-full">Depositos a verificar</p>
+            <p className="w-full text-left">Depositos a verificar</p>
             <p>{currency(supervisorReport.deposits + supervisorReport.terminalIncomes)}</p>
           </div>
           <div className="grid grid-cols-2 items-center px-2">

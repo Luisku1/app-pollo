@@ -76,13 +76,6 @@ export const useEmployees = ({ companyId }) => {
         prevEmployee._id === employee._id ? employee : prevEmployee
       )
     );
-    try {
-
-      updateEmployee(employee);
-
-    } catch (error) {
-      console.error('Error updating employee:', error);
-    }
   };
 
   const filteredEmployees = useMemo(() => {

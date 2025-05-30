@@ -159,11 +159,17 @@ export default function BranchReportCard({
           <button onClick={() => { navToEditReport(reportData) }} className="border h-fit border-black rounded-lg">
             <MdEdit />
           </button>
-          <button className={`border h-fit border-black rounded-lg ${!isController(currentUser.role) ? blockedButton : ''}`} disabled={!isController(currentUser.role)} onClick={() => handleSetReportOnZero(reportData)}>
-            <PiNumberZeroBold />
-          </button>
+          {isController(currentUser.role) &&
+            <button className={`border h-fit border-black rounded-lg`} disabled={!isController(currentUser.role)} onClick={() => handleSetReportOnZero(reportData)}>
+              <PiNumberZeroBold />
+            </button>
+          }
           {isManager(currentUser.role) && (
-            <ChangeBranchPrices onUpdateBranchReport={replaceReport} branch={reportData.branch._id} date={reportData.createdAt} pricesDate={reportData.pricesDate}>
+            <ChangeBranchPrices
+              branch={reportData.branch._id}
+              date={reportData.createdAt}
+              pricesDate={reportData.pricesDate}
+            >
               <MdPriceChange />
             </ChangeBranchPrices>
           )}

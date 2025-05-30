@@ -132,7 +132,8 @@ export default function SupervisorReportCard({
             content={
               <RegistrarDineroReportado
                 supervisorReport={supervisorReport}
-                replaceReport={replaceReport}
+                updateSupervisorReportGroup={updateSupervisorReportGroup}
+                updateSupervisorReportSingle={updateSupervisorReportSingle}
                 selfChange={selfChange}
               />
             }

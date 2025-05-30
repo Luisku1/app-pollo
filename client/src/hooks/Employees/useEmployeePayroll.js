@@ -4,35 +4,35 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState, useEffect } from 'react'
 import { ToastDanger } from '../../helpers/toastify'
 import { getWeekRange } from '../../../../common/dateOps'
+import { useSupervisorReports } from '../Supervisors/useSupervisorReports'
+import { useBranchReports } from '../BranchReports.js/useBranchReports'
 
-export const EMPLOYEE_PAYROLL_QUERY_KEY = (employeeId, date) => ['employeePayroll', employeeId, date]
+export const EMPLOYEE_PAYROLL_QUERY_KEY = (employeeId) => ['employeePayroll', employeeId]
 
 // Helper to get ISO string for a date (yyyy-mm-dd)
 const toISODate = (date) => {
-  console.log('toISODate', date)
   if (!date) return ''
   if (typeof date === 'string') return date.split('T')[0]
   return date.toISOString().split('T')[0]
 }
 
-export function useEmployeePayroll({ employee, initialDate, week = 0 }) {
+export function useEmployeePayroll({ employee }) {
   const [date, setDate] = useState(null)
+  const [week, setWeek] = useState(0) // Week offset from the initial date
   const queryClient = useQueryClient()
   const employeeId = employee?._id
 
   useEffect(() => {
 
-    if (!employee || !initialDate) return
+    if (!employee) return
 
-    console.log(employee, initialDate, week)
-
-    const weekStart = toISODate(getWeekRange(initialDate ? initialDate : (new Date()), employee?.payDay, week).weekStart)
+    const weekStart = toISODate(getWeekRange(new Date(), employee?.payDay, week).weekStart)
 
     setDate(weekStart)
 
-  }, [initialDate, employee?.payDay, week])
+  }, [employee?.payDay, week])
 
-  const queryKey = EMPLOYEE_PAYROLL_QUERY_KEY(employeeId, date)
+  const queryKey = EMPLOYEE_PAYROLL_QUERY_KEY(employeeId)
 
   const {
     data: payroll,
@@ -41,13 +41,21 @@ export function useEmployeePayroll({ employee, initialDate, week = 0 }) {
   } = useQuery({
     queryKey,
     queryFn: async () => {
-      const res = await fetch(`/api/employee/get-employee-payroll/${employeeId}/${date}`)
+      const res = await fetch(`/api/employee/get-employee-payroll/${employeeId}?page=${week}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      })
       const data = await res.json()
       if (!data || data.employeePayroll === undefined) throw new Error('No se encontró la nómina')
       return data.employeePayroll
     },
-    enabled: !!employeeId && !!date,
+    enabled: !!employeeId
   })
+
+  const { branchReports, totalBalance: branchBalance } = useBranchReports({ reports: payroll?.branchReports ?? [], profile: true })
+  const { supervisorReports, totalBalance: supervisorBalance } = useSupervisorReports({ supervisorReports: payroll?.supervisorReports ?? [], profile: true })
 
   // Helpers para updates optimistas
   const updateBranchReport = (report) => {
@@ -72,28 +80,31 @@ export function useEmployeePayroll({ employee, initialDate, week = 0 }) {
 
   // Pagination helpers
   const goToPreviousWeek = () => {
-    const d = new Date(date)
-    d.setDate(d.getDate() - 7)
-    setDate(toISODate(d))
+    if (week <= -1 && !isSupervisor(employee?.role._id))
+      setWeek((prev) => prev - 1)
   }
   const goToNextWeek = () => {
-    const d = new Date(date)
-    d.setDate(d.getDate() + 7)
-    setDate(toISODate(d))
+    if (week >= 0) {
+      ToastDanger('No puedes avanzar más allá de la semana actual')
+      return
+    }
+    setWeek((prev) => prev + 1)
   }
-  const setPayrollDate = (newDate) => setDate(toISODate(newDate))
 
   return {
     payroll,
     loading,
     error,
     date,
-    setPayrollDate,
     goToPreviousWeek,
     goToNextWeek,
     queryKey,
     updateBranchReport,
     updateSupervisorReport,
     refetch,
+    branchBalance,
+    supervisorBalance,
+    branchReports,
+    supervisorReports,
   }
 }

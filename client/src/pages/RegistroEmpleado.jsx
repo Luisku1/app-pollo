@@ -5,6 +5,7 @@ import { weekDays } from '../helpers/Constants'
 import { ToastSuccess } from '../helpers/toastify'
 import { useRoles } from '../context/RolesContext'
 import { Prev } from 'react-bootstrap/esm/PageItem'
+import { useUpdateEmployee } from '../hooks/Employees/useUpdateEmployee'
 
 export default function RegistroEmpleadoNuevo({ employee, setEmployee }) {
 
@@ -15,6 +16,7 @@ export default function RegistroEmpleadoNuevo({ employee, setEmployee }) {
   const [isEditing] = useState(employee ? true : false)
   const { roles } = useRoles()
   const day = new Date().getDay()
+  const { updateEmployee: updateEmployeeFetch } = useUpdateEmployee()
 
   const handleChange = (e) => {
     setFormData({
@@ -52,34 +54,29 @@ export default function RegistroEmpleadoNuevo({ employee, setEmployee }) {
     }
   }
 
-  const updateEmployee = async (employee) => {
+  const updateEmployee = async (updatedFields) => {
+    // Solo enviar los campos modificados
+    const changes = {};
+    Object.keys(updatedFields).forEach((key) => {
+      if (employee[key] !== updatedFields[key]) {
+        changes[key] = updatedFields[key];
+      }
+    });
+    if (Object.keys(changes).length === 0) return;
+    // Optimistic update: actualiza el estado antes de la petición
+    const prevEmployee = { ...employee };
+    const role = Object.keys(roles).find(role => roles[role]._id == changes.role ? roles[role] : employee.role)
+    const newEmployee = { ...employee, ...changes, role: roles[role] };
 
-    if (formData == employee) return
+    console.log(newEmployee, changes)
+    setEmployee(newEmployee);
 
     try {
 
-      const res = await fetch('/api/employee/' + employee._id, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(employee)
-      })
-
-      const data = await res.json()
-
-      if (data.success === false) {
-
-        setError(data.message)
-        return
-      }
-
-      setEmployee({ ...data.employee, role: roles.find(role => role._id == data.employee.role) })
+      await updateEmployeeFetch({ ...changes, _id: employee._id })
       setError(null)
-      ToastSuccess('Empleado actualizado correctamente')
-
     } catch (error) {
-
+      setEmployee(prevEmployee); // Revertir si falla
       setError(error.message)
     }
   }
@@ -172,12 +169,13 @@ export default function RegistroEmpleadoNuevo({ employee, setEmployee }) {
             name="role"
             id="role"
             className="border p-2 rounded-lg text-sm"
+            value={formData.role || (isEditing ? employee.role._id : '')}
+            onChange={handleChange}
           >
             {roles &&
               Object.values(roles).length > 0 &&
               Object.values(roles).map((role) => (
                 <option
-                  selected={isEditing && role._id == employee.role._id ? "selected" : role.name == 'Vendedor' ? 'selected' : ''}
                   key={role._id}
                   value={role._id}
                 >
@@ -207,6 +205,8 @@ export default function RegistroEmpleadoNuevo({ employee, setEmployee }) {
             name="payDay"
             id="payDay"
             className="border p-2 rounded-lg text-sm"
+            value={formData.payDay || (isEditing ? employee?.payDay : day)}
+            onChange={handleChange}
           >
             {weekDays &&
               weekDays.length > 0 &&
@@ -214,7 +214,6 @@ export default function RegistroEmpleadoNuevo({ employee, setEmployee }) {
                 <option
                   key={index}
                   value={index}
-                  selected={isEditing && index == employee?.payDay ? 'selected' : index == day ? 'selected' : ''}
                 >
                   {element}
                 </option>
@@ -227,7 +226,6 @@ export default function RegistroEmpleadoNuevo({ employee, setEmployee }) {
           <input
             type="number"
             step={0.01}
-            defaultValue={0.0}
             name="balance"
             id="balance"
             className="border p-2 rounded-lg text-sm"
