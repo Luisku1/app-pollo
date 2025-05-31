@@ -1,8 +1,5 @@
 import { useState } from "react"
-import BranchReportCard from "../BranchReportCard"
 import EmployeeInfo from "../EmployeeInfo"
-import SupervisorReportCard from "../SupervisorReportCard"
-import Modal from "../Modals/Modal"
 import PayrollResume from "./PayrollResume"
 
 export default function EmployeePayroll({

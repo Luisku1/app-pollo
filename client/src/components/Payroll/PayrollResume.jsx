@@ -17,6 +17,7 @@ export default function PayrollResume({ employeePayroll, updateSupervisorReportG
   const { currentDate } = useDate()
   const [branchReportCard, setBranchReportCard] = useState(null)
   const [supervisorReportCard, setSupervisorReportCard] = useState(null)
+  const employeeId = employee?._id || null
 
   const supervisorBalance = supervisorReports.reduce((acc, report) => acc + (report.balance ?? 0), 0)
   const accountBalance = branchReports.reduce((acc, report) => acc + (report.balance ?? 0), 0)
@@ -32,6 +33,7 @@ export default function PayrollResume({ employeePayroll, updateSupervisorReportG
             reportData={branchReportCard}
             updateBranchReportGroup={updateBranchReportGroup}
             updateBranchReportSingle={updateBranchReportSingle}
+            employeeId={employeeId}
             selfChange={setBranchReportCard}
           />
         }
@@ -45,6 +47,7 @@ export default function PayrollResume({ employeePayroll, updateSupervisorReportG
             supervisorReport={supervisorReportCard}
             updateSupervisorReportGroup={updateSupervisorReportGroup}
             updateSupervisorReportSingle={updateSupervisorReportSingle}
+            employeeId={employeeId}
             selfChange={setSupervisorReportCard}
           />
         }

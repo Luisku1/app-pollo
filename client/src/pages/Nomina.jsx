@@ -4,17 +4,9 @@ import { useParams, useNavigate } from 'react-router-dom';
 import FechaDePagina from "../components/FechaDePagina";
 import { formatDate } from "../helpers/DatePickerFunctions";
 import { useEmployeesPayroll } from "../hooks/Employees/useEmployeesPayroll";
-import EmployeePaymentsList from "../components/EmployeePaymentsList";
-import { getEmployeeFullName, currency } from "../helpers/Functions";
+import { currency } from "../helpers/Functions";
 import { useRoles } from "../context/RolesContext";
-import ShowListModal from "../components/Modals/ShowListModal";
-import Amount from "../components/Incomes/Amount";
-import TarjetaCuenta from "../components/TarjetaCuenta";
-import SupervisorReportList from "../components/SupervisorReportList";
 import Modal from "../components/Modals/Modal";
-import BranchReportCard from "../components/BranchReportCard";
-import SupervisorReportCard from "../components/SupervisorReportCard";
-import EmployeeInfo from "../components/EmployeeInfo";
 import { useDate } from '../context/DateContext';
 import EmployeePayroll from "../components/Payroll/EmployeePayroll";
 
@@ -24,11 +16,11 @@ export default function Nomina() {
   let datePickerValue = (paramsDate ? new Date(paramsDate) : new Date())
   let stringDatePickerValue = formatDate(datePickerValue)
   const { company, currentUser } = useSelector((state) => state.user)
-  const { employeesPayroll, updateBranchReport, updateSupervisorReport } = useEmployeesPayroll({ companyId: company._id, date: stringDatePickerValue })
+  const [selectedEmployeePayroll, setSelectedEmployeePayroll] = useState(null)
+  const { employeesPayroll, updateBranchReport, updateSupervisorReport } = useEmployeesPayroll({ companyId: company._id, date: stringDatePickerValue, setSelectedEmployeePayroll })
   const { roles, isManager } = useRoles()
   const navigate = useNavigate()
   const { currentDate, setCurrentDate } = useDate()
-  const [selectedEmployeePayroll, setSelectedEmployeePayroll] = useState(null)
 
   const changeDatePickerValue = (e) => {
 
@@ -89,7 +81,7 @@ export default function Nomina() {
           const totalToPay = accountBalance + supervisorBalance + lateDiscount + missingWorkDiscount - employeePaymentsAmount + adjustments + salary
           return (
             <div key={employeePayroll._id} className='w-full border bg-white border-black rounded-lg shadow-sm'>
-              <button onClick={() => { setSelectedEmployeePayroll({employeePayroll, externalIndex: index}) }} id='list-element' className='w-full'>
+              <button onClick={() => { setSelectedEmployeePayroll({ employeePayroll, externalIndex: index }) }} id='list-element' className='w-full'>
                 <div className={`flex justify-between items-center  px-8`}>
                   <p
                     className="justify-self-start w-fit text-xl font-semibold my-4 shadow-sm text-employee-name rounded-lg text-left"

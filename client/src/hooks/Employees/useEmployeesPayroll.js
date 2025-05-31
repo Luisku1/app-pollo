@@ -3,7 +3,7 @@ import { getEmployeesPayrollFetch } from "../../services/employees/getEmployeesP
 
 export const EMPLOYEES_PAYROLL_QUERY_KEY = (companyId, date) => ['employeesPayroll', companyId, date]
 
-export const useEmployeesPayroll = ({ companyId, date }) => {
+export const useEmployeesPayroll = ({ companyId, date, setSelectedEmployeePayroll }) => {
   const queryClient = useQueryClient()
   const queryKey = EMPLOYEES_PAYROLL_QUERY_KEY(companyId, date)
 
@@ -23,10 +23,17 @@ export const useEmployeesPayroll = ({ companyId, date }) => {
       if (!old) return old
       return old.map((payroll) => {
         if (payroll.employee._id === employeeId) {
-          return {
+          const newPayroll = {
             ...payroll,
             branchReports: payroll.branchReports.map((r) => r._id === report._id ? report : r),
           }
+          if (setSelectedEmployeePayroll) {
+            setSelectedEmployeePayroll({
+              employeePayroll: newPayroll,
+              externalIndex: payroll._id,
+            })
+          }
+          return newPayroll
         }
         return payroll
       })
@@ -37,10 +44,17 @@ export const useEmployeesPayroll = ({ companyId, date }) => {
       if (!old) return old
       return old.map((payroll) => {
         if (payroll.employee._id === employeeId) {
-          return {
+          const newPayroll = {
             ...payroll,
             supervisorReports: payroll.supervisorReports.map((r) => r._id === report._id ? report : r),
           }
+          if (setSelectedEmployeePayroll) {
+            setSelectedEmployeePayroll({
+              employeePayroll: newPayroll,
+              externalIndex: payroll._id,
+            })
+          }
+          return newPayroll
         }
         return payroll
       })

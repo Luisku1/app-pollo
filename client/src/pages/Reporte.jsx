@@ -303,7 +303,7 @@ export default function Reporte({ untitled = false }) {
           content={
             <SupervisorReportCard
               supervisorReport={selectedSupervisorReport}
-              replaceReport={replaceSupervisorReport}
+              updateSupervisorReportSingle={replaceSupervisorReport}
               selfChange={setSelectedSupervisorReport}
               defaultDetailsShowed={null}
             />
