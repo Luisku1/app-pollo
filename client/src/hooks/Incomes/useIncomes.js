@@ -4,9 +4,9 @@ import { getIncomesFetch } from "../../services/Incomes/getIncomes";
 import { useAddIncome } from "./useAddIncome";
 import { useDeleteIncome } from "./useDeleteIncome";
 import { Types } from "mongoose";
-import { recalculateBranchReport } from '../../../../common/recalculateReports';
 import { optimisticUpdateReport, rollbackReport } from "../../helpers/optimisticReportUpdate";
 import { addToArrayAndSum, removeFromArrayAndSum } from '../../helpers/reportActions';
+import { getId } from "../../helpers/Functions";
 
 
 export const useIncomes = ({ companyId = null, date = null, initialIncomes = null }) => {
@@ -96,7 +96,7 @@ export const useIncomes = ({ companyId = null, date = null, initialIncomes = nul
         prevBranchReports = optimisticUpdateReport({
           queryClient,
           queryKey: ['branchReports', companyId, date],
-          matchFn: (report, item) => report.branch._id === item.branch,
+          matchFn: (report, item) => report.branch._id === item.branch._id,
           updateFn: (report, item) => addToArrayAndSum(report, 'incomesArray', 'incomes', item),
           item: tempIncome
         });
@@ -106,7 +106,7 @@ export const useIncomes = ({ companyId = null, date = null, initialIncomes = nul
         prevSupervisorsReports = optimisticUpdateReport({
           queryClient,
           queryKey: ['supervisorsReportInfo', companyId, date],
-          matchFn: (report, item) => report.supervisor && report.supervisor._id === item.employee,
+          matchFn: (report, item) => getId(report.supervisor) && getId(report.supervisor) === getId(item.employee),
           updateFn: (report, item) => {
             // Determinar el tipo de income
             let newReport = { ...report };
@@ -126,11 +126,12 @@ export const useIncomes = ({ companyId = null, date = null, initialIncomes = nul
           item: tempIncome
         });
       }
-      // --- FIN ACTUALIZACIÓN OPTIMISTA ---
+
 
       await addIncome(tempIncome, tempPrevOwnerIncome, group);
 
     } catch (error) {
+
       spliceIncome(incomes.findIndex((income) => income._id === tempId));
       if (prevOwnerIncome)
         spliceIncomeById([tempPrevOwnerIncome._id, tempIncome._id]);
@@ -171,7 +172,7 @@ export const useIncomes = ({ companyId = null, date = null, initialIncomes = nul
         prevBranchReports = optimisticUpdateReport({
           queryClient,
           queryKey: ['branchReports', companyId, date],
-          matchFn: (report, item) => report.branch._id === item.branch,
+          matchFn: (report, item) => report.branch._id === item.branch._id,
           updateFn: (report, item) => removeFromArrayAndSum(report, 'incomesArray', 'incomes', item),
           item: income
         });
@@ -181,7 +182,7 @@ export const useIncomes = ({ companyId = null, date = null, initialIncomes = nul
         prevSupervisorsReports = optimisticUpdateReport({
           queryClient,
           queryKey: ['supervisorsReportInfo', companyId, date],
-          matchFn: (report, item) => report.supervisor && report.supervisor._id === item.employee,
+          matchFn: (report, item) => getId(report.supervisor) && getId(report.supervisor) === getId(item.employee),
           updateFn: (report, item) => {
             let newReport = { ...report };
             const typeName = (item.type && item.type.name) ? item.type.name : null;

@@ -3,13 +3,12 @@ import { getInputs } from "../../services/Inputs/getInputs"
 import { useDeleteInput } from "./useDeleteInput"
 import { useAddInput } from "./useAddInput"
 import { Types } from "mongoose"
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { recalculateBranchReport } from '../../../../common/recalculateReports';
 import { optimisticUpdateReport, rollbackReport } from "../../helpers/optimisticReportUpdate"
 import { addToArrayAndSum, removeFromArrayAndSum } from '../../helpers/reportActions';
 
 export const useInputs = ({ companyId = null, date = null, initialInputs = null }) => {
-
   const [inputs, setInputs] = useState([])
   const [totalWeight, setTotalWeight] = useState(0.0)
   const [totalAmount, setTotalAmount] = useState(0.0)
@@ -107,6 +106,26 @@ export const useInputs = ({ companyId = null, date = null, initialInputs = null 
     setInputs(initialArray);
   };
 
+  // TanStack Query para fetchInputs
+  const {
+    data: queryInputs,
+    isLoading: queryLoading,
+    error: queryError
+  } = useQuery({
+    queryKey: ["inputs", companyId, date],
+    queryFn: () => getInputs({ companyId, date }).then(res => res.inputs),
+    enabled: !!companyId && !!date,
+    staleTime: 1000 * 60 * 3
+  });
+
+  // Sincroniza con el estado local si cambia el resultado de la query
+  useEffect(() => {
+    if (queryInputs) {
+      setInputs(queryInputs);
+      calculateTotal(queryInputs);
+    }
+  }, [queryInputs]);
+
   useEffect(() => {
     if (initialInputs) {
       initialize(initialInputs);
@@ -114,45 +133,16 @@ export const useInputs = ({ companyId = null, date = null, initialInputs = null 
     }
   }, [initialInputs])
 
-  useEffect(() => {
-
-    if (!companyId || !date) return;
-
-    const fetchInputs = async () => {
-      setLoading(true);
-      setInputs([]);
-      setTotalWeight(0.0);
-
-      try {
-        const response = await getInputs({ companyId, date });
-        setInputs(response.inputs);
-        calculateTotal(response.inputs);
-      } catch (error) {
-        if (error.response && error.response.status === 404) {
-          console.error("Inputs not found for the given date.");
-        } else {
-          setError(error);
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchInputs();
-
-  }, [companyId, date]);
-
   return {
-
     inputs,
     totalWeight,
     totalAmount,
     onAddInput,
     onDeleteInput,
-    loading,
+    loading: loading || queryLoading,
     pushInput,
     spliceInput,
-    error,
+    error: error || queryError,
     initialize
   }
 }

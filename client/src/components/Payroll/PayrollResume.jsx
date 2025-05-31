@@ -109,7 +109,7 @@ export default function PayrollResume({ employeePayroll, updateSupervisorReportG
         <div className="col-span-2 text-center">
           <p className="text-xs  text-center">Cuenta</p>
           <p className="text-xs truncate text-center">Supervisor</p>
-          <p className={(supervisorBalance < 0 ? 'text-red-500' : '') + ' text-xs my-auto'}>{currency({ amount: employeePayroll.supervisorBalance })}</p>
+          <p className={(supervisorBalance < 0 ? 'text-red-500' : '') + ' text-xs my-auto'}>{currency({ amount: supervisorBalance })}</p>
         </div>
         <div className="col-span-1">
           <p className="text-xs">R</p>

@@ -13,9 +13,6 @@ import { fetchRolesFromDB } from "./role.controller.js"
 import EmployeeWeeklyBalance from "../models/employees/employee.weekly.balance.model.js"
 import EmployeeRest from "../models/employees/employee.rest.model.js"
 import { branchLookup, unwindBranch, employeeLookup, unwindEmployee } from "./branch.report.controller.js"
-<<<<<<< HEAD
-import { branchAggregate } from "./branch.controller.js"
-=======
 import EmployeeBalanceAdjustment from "../models/employees/balance.adjustment.model.js"
 import { toCurrency } from "../../common/formatters.js"
 import CompanyPenalties from "../models/company.penalties.model.js"
@@ -39,7 +36,6 @@ export const employeePaymentIncomeAggregate = (localField, as = 'employeePayment
 		},
 	]
 }
->>>>>>> develop
 
 
 export const employeeAggregate = (localField, as = 'employee') => {
@@ -1470,28 +1466,6 @@ export const fetchEmployeesPayroll = async ({ companyId, date }) => {
 				}
 			},
 			{
-<<<<<<< HEAD
-				$addFields: {
-					accountBalance: { $sum: '$employeeDailyBalances.accountBalance' },
-					supervisorBalance: { $sum: '$supervisorReports.balance' },
-					employeePaymentsAmount: { $sum: '$employeePayments.amount' },
-					missingWorkDiscount: {
-						$multiply: [
-							{ $size: { $filter: { input: '$employeeDailyBalances', as: 'balance', cond: { $eq: ['$$balance.dayDiscount', true] } } } },
-							{ $divide: ['$employee.salary', -7] },
-						],
-					},
-					foodDiscount: {
-						$multiply: [
-							{ $size: { $filter: { input: '$employeeDailyBalances', as: 'balance', cond: { $eq: ['$$balance.foodDiscount', true] } } } },
-							-60,
-						],
-					},
-
-				}
-			},
-			...employeeAggregate('employee'),
-=======
 				$lookup: {
 					from: 'employees',
 					localField: 'employee',
@@ -1515,7 +1489,6 @@ export const fetchEmployeesPayroll = async ({ companyId, date }) => {
 			{
 				$unwind: { path: '$employee' }
 			},
->>>>>>> develop
 			{
 				$addFields: {
 					accountBalance: { $sum: '$employeeDailyBalances.accountBalance' },

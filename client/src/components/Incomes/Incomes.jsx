@@ -17,7 +17,6 @@ import { useDate } from '../../context/DateContext'
 import { useIncomes } from '../../hooks/Incomes/useIncomes'
 import { useBranches } from '../../hooks/Branches/useBranches'
 import { useCustomers } from '../../hooks/Customers/useCustomers'
-import { useProducts } from '../../hooks/Products/useProducts'
 import { useEmployees } from '../../hooks/Employees/useEmployees'
 
 export default function Incomes() {

@@ -12,13 +12,15 @@ import { ToastDanger } from "../../../helpers/toastify"
 import { useBranchCustomerProductPrice } from "../../../hooks/Prices/useBranchCustomerProductPrice"
 import { getArrayForSelects, getElementForSelect, priceShouldNotBeZero } from "../../../helpers/Functions"
 import ShowListModal from "../../Modals/ShowListModal"
-import { useBranches } from '../../../hooks/Branches/useBranches'
-import { useCustomers } from '../../../hooks/Customers/useCustomers'
-import { useProducts } from '../../../hooks/Products/useProducts'
+import { useDate } from "../../../context/DateContext"
+import { useCustomers } from "../../../hooks/Customers/useCustomers"
+import { useBranches } from "../../../hooks/Branches/useBranches"
+import { useProducts } from "../../../hooks/Products/useProducts"
 
 export default function Salidas({ selectedProduct, setSelectedProduct, setSelectedProductToNull }) {
 
   const { company, currentUser } = useSelector((state) => state.user)
+  const { currentDate: date } = useDate();
   const [outputFormData, setOutputFormData] = useState({})
   const {
     outputs,
@@ -194,18 +196,9 @@ export default function Salidas({ selectedProduct, setSelectedProduct, setSelect
     }
   }
 
-  // Estado interno para el producto seleccionado
-  const [internalSelectedProduct, setInternalSelectedProduct] = useState(selectedProduct);
-
-  // Sincroniza el estado interno cuando cambia el del padre
-  useEffect(() => {
-    setInternalSelectedProduct(selectedProduct);
-  }, [selectedProduct]);
-
-  // Cuando cambia el select, actualiza ambos estados
   const handleProductSelectChange = (product) => {
-    setInternalSelectedProduct(product);
-    setSelectedProduct(product);
+
+    setSelectedProduct(product)
   }
 
   const handleBranchCustomerSelectChange = (option) => {
@@ -237,7 +230,7 @@ export default function Salidas({ selectedProduct, setSelectedProduct, setSelect
             <Select
               styles={customSelectStyles}
               onChange={handleProductSelectChange}
-              value={getElementForSelect(internalSelectedProduct, (product) => product.name)}
+              value={getElementForSelect(selectedProduct, (product) => product.name)}
               options={getArrayForSelects(products, (product) => product.name)}
               placeholder={'Producto'}
               isSearchable={true}

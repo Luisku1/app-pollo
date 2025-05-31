@@ -7,6 +7,8 @@ export const currency = (amount) => {
   return value.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
 };
 
+export const getId = (ref) => (typeof ref === 'object' && ref !== null ? ref._id : ref);
+
 export const priceShouldNotBeZero = () => {
 
   ToastWarning('El precio de los productos no debería de ser $0.00.')

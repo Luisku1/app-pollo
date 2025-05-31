@@ -33,7 +33,7 @@ export default function Entradas({ selectedProduct, setSelectedProduct, setSelec
     branches
   } = useBranches({ companyId: company._id })
   const {
-     customers
+    customers
   } = useCustomers({ companyId: company._id })
   const {
     products
