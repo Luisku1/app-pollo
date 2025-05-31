@@ -7,7 +7,7 @@ import { getWeekRange } from '../../../../common/dateOps'
 import { useSupervisorReports } from '../Supervisors/useSupervisorReports'
 import { useBranchReports } from '../BranchReports.js/useBranchReports'
 
-export const EMPLOYEE_PAYROLL_QUERY_KEY = (employeeId) => ['employeePayroll', employeeId]
+export const EMPLOYEE_PAYROLL_QUERY_KEY = (employeeId, week) => ['employeePayroll', employeeId, week]
 
 // Helper to get ISO string for a date (yyyy-mm-dd)
 const toISODate = (date) => {
@@ -17,22 +17,20 @@ const toISODate = (date) => {
 }
 
 export function useEmployeePayroll({ employee }) {
-  const [date, setDate] = useState(null)
+  const [date, setDate] = useState('')
   const [week, setWeek] = useState(0) // Week offset from the initial date
   const queryClient = useQueryClient()
   const employeeId = employee?._id
 
   useEffect(() => {
-
     if (!employee) return
-
     const weekStart = toISODate(getWeekRange(new Date(), employee?.payDay, week).weekStart)
-
-    setDate(weekStart)
-
+    const weekEnd = toISODate(getWeekRange(new Date(), employee?.payDay, week).weekEnd)
+    setDate(`${weekStart} - ${weekEnd}`)
   }, [employee?.payDay, week])
 
-  const queryKey = EMPLOYEE_PAYROLL_QUERY_KEY(employeeId)
+  // Cambia el queryKey para incluir week (paginación)
+  const queryKey = EMPLOYEE_PAYROLL_QUERY_KEY(employeeId, week)
 
   const {
     data: payroll,
@@ -51,7 +49,9 @@ export function useEmployeePayroll({ employee }) {
       if (!data || data.employeePayroll === undefined) throw new Error('No se encontró la nómina')
       return data.employeePayroll
     },
-    enabled: !!employeeId
+    enabled: !!employeeId,
+    staleTime: 1000 * 60 * 10, // 10 minutos
+    cacheTime: 1000 * 60 * 60, // 1 hora
   })
 
   const { branchReports, totalBalance: branchBalance } = useBranchReports({ reports: payroll?.branchReports ?? [], profile: true })
@@ -80,8 +80,7 @@ export function useEmployeePayroll({ employee }) {
 
   // Pagination helpers
   const goToPreviousWeek = () => {
-    if (week <= -1 && !isSupervisor(employee?.role._id))
-      setWeek((prev) => prev - 1)
+    setWeek((prev) => prev - 1)
   }
   const goToNextWeek = () => {
     if (week >= 0) {
@@ -104,7 +103,6 @@ export function useEmployeePayroll({ employee }) {
     refetch,
     branchBalance,
     supervisorBalance,
-    branchReports,
-    supervisorReports,
+    week,
   }
 }

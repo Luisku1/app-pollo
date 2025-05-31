@@ -1,5 +1,4 @@
 import { useState } from "react"
-import { useDate } from "../../context/DateContext"
 import { formatDate } from "../../helpers/DatePickerFunctions"
 import { currency, getEmployeeFullName } from "../../helpers/Functions"
 import EmployeePaymentsList from "../EmployeePaymentsList"
@@ -13,8 +12,7 @@ import Modal from "../Modals/Modal"
 
 export default function PayrollResume({ employeePayroll, updateSupervisorReportGroup, updateSupervisorReportSingle, updateBranchReportGroup, updateBranchReportSingle, index = -1 }) {
 
-  const { previousWeekBalance, employeeDailyBalances, employee, branchReports, employeePayments, lateDiscount, supervisorReports, missingWorkDiscount, employeePaymentsAmount, balanceAdjustments = [], adjustments = 0 } = employeePayroll
-  const { currentDate } = useDate()
+  const { previousWeekBalance, employeeDailyBalances, employee, branchReports, employeePayments, lateDiscount, supervisorReports, missingWorkDiscount, employeePaymentsAmount, balanceAdjustments = [], adjustments = 0, weekEnd } = employeePayroll
   const [branchReportCard, setBranchReportCard] = useState(null)
   const [supervisorReportCard, setSupervisorReportCard] = useState(null)
   const employeeId = employee?._id || null
@@ -129,7 +127,7 @@ export default function PayrollResume({ employeePayroll, updateSupervisorReportG
 
       {Array.from({ length: 7 }).map((_, i) => {
 
-        const date = new Date(currentDate);
+        const date = new Date(weekEnd);
         date.setDate(date.getDate() - (i + 1));
         const dailyBalance = employeeDailyBalances.find((balance) => formatDate(balance.createdAt) === formatDate(date)) || null;
         const branchReport = branchReports.find((report) => formatDate(report.createdAt) === formatDate(date)) || null;

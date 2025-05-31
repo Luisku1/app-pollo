@@ -4,11 +4,9 @@ import { signOutFailiure, signOutStart, signOutSuccess } from '../redux/user/use
 import { useParams } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { weekDays } from '../helpers/Constants'
-import TarjetaCuenta from '../components/TarjetaCuenta'
 import { useLoading } from '../hooks/loading'
 import { useSignOut } from '../hooks/Auth/useSignOut'
 import { formatDate } from '../helpers/DatePickerFunctions'
-import { useSupervisorReports } from '../hooks/Supervisors/useSupervisorReports'
 import EmployeePaymentsList from '../components/EmployeePaymentsList'
 import { getEmployeeFullName, currency } from '../helpers/Functions'
 import { useRoles } from '../context/RolesContext'
@@ -16,10 +14,7 @@ import RegistroEmpleadoNuevo from "./RegistroEmpleado";
 import Modal from "../components/Modals/Modal";
 import ShowListModal from "../components/Modals/ShowListModal";
 import { useEmployeesPayments } from "../hooks/Employees/useEmployeesPayments";
-import { useBranchReports } from "../hooks/BranchReports.js/useBranchReports";
 import { useEmployeeDailyBalance } from '../hooks/Employees/useEmployeeDailyBalance'
-import SupervisorReportList from "../components/SupervisorReportList";
-import SupervisorReportCard from "../components/SupervisorReportCard";
 import PhoneLinks from "../components/PhoneLinks";
 import { useEmployeePayroll } from '../hooks/Employees/useEmployeePayroll'
 import PayrollResume from "../components/Payroll/PayrollResume";
@@ -30,11 +25,9 @@ export default function Perfil() {
   const { employeeId } = useParams()
   const [employee, setEmployee] = useState(null)
   const [editEmployee, setEditEmployee] = useState(false)
-  const [lastSupervisorReport, setLastSupervisorReport] = useState(null)
   const { employeeDailyBalance, handleDailyBalanceInputs, loading } = useEmployeeDailyBalance(employeeId)
-  const [lastBranchReport, setLastBranchReport] = useState(null)
   const { payments, total } = useEmployeesPayments({ employeeId, date: formatDate(new Date()) })
-  const { roles, isManager, isJustSeller } = useRoles()
+  const { roles, isManager } = useRoles()
   const { isLoading } = useLoading(loading)
   const { signOut } = useSignOut()
   const dispatch = useDispatch()
@@ -47,29 +40,9 @@ export default function Perfil() {
     date: payrollDate,
     updateBranchReport,
     updateSupervisorReport,
-    branchBalance,
-    supervisorBalance,
-    branchReports,
-    supervisorReports,
     goToPreviousWeek,
     goToNextWeek,
   } = useEmployeePayroll({ employee })
-
-  useEffect(() => {
-
-    if (!(branchReports && branchReports.length > 0)) return
-
-    setLastBranchReport(branchReports[0])
-
-  }, [branchReports])
-
-  useEffect(() => {
-
-    if (!(supervisorReports && supervisorReports.length > 0)) return
-
-    setLastSupervisorReport(supervisorReports[0])
-
-  }, [supervisorReports])
 
   const handleSignOut = async () => {
 
@@ -220,26 +193,14 @@ export default function Perfil() {
                 ) : employeePayroll ? (
                   <PayrollResume
                     employeePayroll={employeePayroll}
-                    updateBranchReportGroup={updateBranchReport}
-                    updateSupervisorReportGroup={updateSupervisorReport}
+                    updateBranchReportSingle={updateBranchReport}
+                    updateSupervisorReportSingle={updateSupervisorReport}
                     employeeId={employeeId}
                   />
                 ) : (
                   <p>No hay nómina para esta semana.</p>
                 )}
               </div>
-
-              {supervisorReports && supervisorReports.length > 0 && (currentUser._id == employeeId || isManager(currentUser.role)) && (
-
-                <ShowListModal
-                  title={`Reportes de ${employee.name}`}
-                  className={'w-full h-full'}
-                  ListComponent={SupervisorReportList}
-                  ListComponentProps={{ supervisorReports, updateSupervisorReportSingle: updateSupervisorReport }}
-                  clickableComponent={<p className='w-full text-lg font-semibold text-center p-1 border border-header rounded-md'>{`${supervisorReports.length == 0 || supervisorReports.length > 1 ? 'Reportes de Supervisión' : 'Reporte de Supervisión'} (${supervisorReports.length}) [${currency(supervisorBalance > 0 ? 0 : supervisorBalance)}]`}</p>}
-                />
-              )}
-
               {employeeId == currentUser._id &&
                 <div className='mt-8 grid grid-1'>
                   <button className='shadow-lg rounded-full p-2 flex-col-reverse justify-self-end border bg-red-700'>

@@ -8,12 +8,22 @@ export function optimisticUpdateReport({
   item
 }) {
   const prevReports = queryClient.getQueryData(queryKey);
+  let found = false;
   queryClient.setQueryData(queryKey, (oldReports) => {
     if (!oldReports) return oldReports;
-    return oldReports.map(report =>
-      matchFn(report, item) ? updateFn(report, item) : report
-    );
+    const updated = oldReports.map(report => {
+      if (matchFn(report, item)) {
+        found = true;
+        return updateFn(report, item);
+      }
+      return report;
+    });
+    return updated;
   });
+  if (!found) {
+    // Si no se encontró el reporte, forzar refetch
+    queryClient.invalidateQueries({ queryKey });
+  }
   return prevReports; // Para rollback
 }
 
