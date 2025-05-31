@@ -222,8 +222,10 @@ export const recalculateSupervisorReport = async (req, res, next) => {
 
     if (!updatedSupervisorReport) throw new Error("No se pudo actualizar el reporte de supervisor")
 
+    const supervisorReportAggregated = await fetchSupervisorReportAggregate(reportId)
+
     res.status(200).json({
-      data: {...supervisorReport, balance},
+      data: supervisorReportAggregated,
       message: "Se recalculó el reporte de supervisor",
       success: true
     })
@@ -231,6 +233,114 @@ export const recalculateSupervisorReport = async (req, res, next) => {
   } catch (error) {
 
     next(error)
+  }
+}
+
+export const fetchSupervisorReportAggregate = async (reportId) => {
+  try {
+    const supervisorReport = await SupervisorReport.aggregate([
+      { $match: { _id: new Types.ObjectId(reportId) } }, {
+        $lookup: {
+          from: 'employees',
+          localField: 'supervisor',
+          foreignField: '_id',
+          as: 'supervisor',
+          pipeline: [
+            {
+              $lookup: {
+                from: 'roles',
+                localField: 'role',
+                foreignField: '_id',
+                as: 'role'
+              }
+            },
+            { $unwind: { path: '$role', preserveNullAndEmptyArrays: true } },
+            {
+              $project: {
+                password: 0
+              }
+            }
+          ]
+        }
+      },
+      { $unwind: { path: '$supervisor', preserveNullAndEmptyArrays: false } },
+      {
+        $lookup: {
+          from: 'extraoutgoings',
+          localField: 'extraOutgoingsArray',
+          foreignField: '_id',
+          as: 'extraOutgoingsArray',
+          pipeline: [
+            { $sort: { "amount": -1 } },
+            {
+              $lookup: {
+                from: 'employeepayments',
+                localField: '_id',
+                foreignField: 'extraOutgoing',
+                as: 'employeePayment',
+                pipeline: [
+                  {
+                    $lookup: {
+                      from: 'employees',
+                      localField: 'employee',
+                      foreignField: '_id',
+                      as: 'employee'
+                    }
+                  },
+                  { $unwind: { path: '$employee', preserveNullAndEmptyArrays: true } }
+                ]
+              }
+            },
+            { $unwind: { path: '$employeePayment', preserveNullAndEmptyArrays: true } },
+            {
+              $lookup: {
+                from: 'employees',
+                localField: 'employee',
+                foreignField: '_id',
+                as: 'employee'
+              }
+            },
+            { $unwind: { path: '$employee', preserveNullAndEmptyArrays: true } }
+          ]
+        }
+      },
+      lookupSupervisorReportIncomes('Depósito', 'depositsArray'),
+      lookupSupervisorReportIncomes('Efectivo', 'cashArray'),
+      lookupSupervisorReportIncomes('Terminal', 'terminalIncomesArray'),
+      {
+        $addFields: {
+          extraOutgoings: { $sum: '$extraOutgoingsArray.amount' },
+          cash: { $sum: '$cashArray.amount' },
+          deposits: { $sum: '$depositsArray.amount' },
+          terminalIncomes: { $sum: '$terminalIncomesArray.amount' },
+          verifiedCash: '$verifiedCash',
+          verifiedDeposits: '$verifiedDeposits',
+        }
+      },
+      {
+        $project: {
+          _id: 1,
+          extraOutgoings: 1,
+          cash: 1,
+          deposits: 1,
+          supervisor: 1,
+          createdAt: 1,
+          cashArray: 1,
+          depositsArray: 1,
+          extraOutgoingsArray: 1,
+          terminalIncomes: 1,
+          terminalIncomesArray: 1,
+          missingIncomes: 1,
+          verifiedCash: 1,
+          balance: 1,
+          verifiedDeposits: 1,
+          supervisor: 1
+        }
+      }
+    ])
+    return supervisorReport[0] ? supervisorReport[0] : null
+  } catch (error) {
+    throw new Error(error)
   }
 }
 

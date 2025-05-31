@@ -2,6 +2,11 @@ import mongoose, { Schema } from 'mongoose'
 
 const branchReportSchema = mongoose.Schema({
 
+  balanceAdjustments: {
+    type: [{ type: Schema.Types.ObjectId, ref: 'EmployeeBalanceAdjustment' }],
+    default: []
+  },
+
   initialStock: {
     type: Number,
     default: 0

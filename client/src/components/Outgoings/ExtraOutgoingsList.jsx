@@ -54,7 +54,7 @@ export default function ExtraOutgoingsList({ extraOutgoings, totalExtraOutgoings
                 <div className='col-span-12'>
                   <div className="w-full text-red-800 mb-2">
                     <RowItem>
-                    <button onClick={() => setSelectedEmployee(employee)} className="text-red-800 font-bold text-md flex gap-1 items-center w-full"><span><CgProfile /></span>{employee.name}</button>
+                      <button onClick={() => setSelectedEmployee(employee)} className="text-red-800 font-bold text-md flex gap-1 items-center w-full"><span><CgProfile /></span>{employee.name}</button>
                       <div className="text-sm text-black flex justify-self-end">
                         {formatDateAndTime(outgoing.createdAt)}
                       </div>
@@ -89,8 +89,10 @@ export default function ExtraOutgoingsList({ extraOutgoings, totalExtraOutgoings
                   <CiSquareInfo className="w-full h-full text-blue-600" />
                 </button>
                 {deletable && !partOfAPayment && (
-                  <DeleteButton
-                    deleteFunction={() => onDelete(tempOutgoing)} />
+                  <div className="flex justify-center h-10 w-10">
+                    <DeleteButton
+                      deleteFunction={() => onDelete(tempOutgoing)} />
+                  </div>
                 )}
               </div>
             </div>

@@ -7,7 +7,6 @@ import { useSelector } from "react-redux"
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { setBalanceOnZero } from "../services/BranchReports/setBalanceOnZero"
-import { recalculateBranchReport } from "../services/BranchReports/updateBranchReport"
 import { ToastDanger, ToastSuccess } from "../helpers/toastify"
 import { TbReload } from "react-icons/tb"
 import { blockedButton } from "../helpers/Constants"
@@ -24,8 +23,15 @@ import EmployeeInfo from "./EmployeeInfo"
 import { CgProfile } from "react-icons/cg"
 import { toPng } from "html-to-image";
 import { AiOutlineDownload, AiOutlineCopy } from "react-icons/ai";
+import { recalculateBranchReport } from "../services/BranchReports/updateBranchReport"
 
-export default function BranchReportCard({ reportData = {}, replaceReport, externalIndex, selfChange }) {
+export default function BranchReportCard({
+  reportData = {},
+  updateBranchReportGroup, // (employeeId, report)
+  updateBranchReportSingle, // (report)
+  employeeId, // for group cache
+  selfChange
+}) {
 
   const { currentUser } = useSelector((state) => state.user)
   const { isController, isManager } = useRoles()
@@ -34,27 +40,29 @@ export default function BranchReportCard({ reportData = {}, replaceReport, exter
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
 
-  const handleSetReportOnZero = async (reportId) => {
+  // On set to zero, update both caches
+  const handleSetReportOnZero = async (report) => {
 
     try {
-
-      setLoading(true)
-      setToModifyReport(reportId)
-      await setBalanceOnZero(reportId)
-      replaceReport({ ...reportData, balance: 0 }, externalIndex)
-      if (selfChange) selfChange({ ...reportData, balance: 0 })
+      setToModifyReport(report._id)
+      const newReport = { ...report, balance: 0 }
+      if (selfChange) selfChange(newReport)
+      if (updateBranchReportGroup && employeeId) updateBranchReportGroup(employeeId, newReport)
+      if (updateBranchReportSingle) updateBranchReportSingle(newReport)
+      await setBalanceOnZero(report._id)
       setToModifyReport(null)
-      setLoading(false)
 
     } catch (error) {
 
       console.log(error)
+      selfChange && selfChange()
       setToModifyReport(null)
       setLoading(false)
       ToastDanger('Hubo un error al establecer el balance en cero')
     }
   }
 
+  // On reload, update both caches
   const handleReloadReport = async (report) => {
 
     try {
@@ -62,14 +70,18 @@ export default function BranchReportCard({ reportData = {}, replaceReport, exter
       setLoading(true)
       setToModifyReport(report._id)
       const updatedReport = await recalculateBranchReport(report)
-      replaceReport(updatedReport, externalIndex)
-      if (selfChange) selfChange({ ...reportData, balance: updatedReport.balance })
+      if (updateBranchReportGroup && employeeId) updateBranchReportGroup(employeeId, updatedReport)
+      if (updateBranchReportSingle) updateBranchReportSingle(updatedReport)
+      if (selfChange) selfChange({ ...report, balance: updatedReport.balance })
       setToModifyReport(null)
       setLoading(false)
 
     } catch (error) {
 
       console.error(error)
+      if (updateBranchReportGroup && employeeId) updateBranchReportGroup(employeeId, report)
+      if (updateBranchReportSingle) updateBranchReportSingle(report)
+      if (selfChange) selfChange(report)
       setToModifyReport(null)
       setLoading(false)
       ToastDanger('Hubo un error al recalcular el reporte')
@@ -117,8 +129,8 @@ export default function BranchReportCard({ reportData = {}, replaceReport, exter
           "image/png": blob,
           "text/plain": new Blob([text], { type: "text/plain" }),
         }),
-      ]);-
-      ToastSuccess("Imagen copiada al portapapeles");
+      ]); -
+        ToastSuccess("Imagen copiada al portapapeles");
     } catch (error) {
       console.error("Error copying image:", error);
       ToastDanger("Hubo un error al copiar la imagen");
@@ -128,7 +140,7 @@ export default function BranchReportCard({ reportData = {}, replaceReport, exter
   return (
     <div
       id={`report-container-${reportData._id}`}
-      className={`w-full p-1 mb-4 mt-4 rounded-3xl border border-black shadow-md transition-all duration-200 ${reportData.balance < 0 ? 'bg-pastel-pink' : reportData.onZero ? 'bg-yellow-100' : 'bg-white'}`}
+      className={`w-full p-1 border border-black rounded-lg shadow-md transition-all duration-200 ${reportData.balance < 0 ? 'bg-pastel-pink' : reportData.onZero ? 'bg-yellow-100' : 'bg-white'}`}
       key={reportData._id}>
       <div id={`report-card-${reportData._id}`} className={`${reportData.balance < 0 ? 'bg-pastel-pink' : reportData.onZero ? 'bg-yellow-100' : 'bg-white'}`}>
 
@@ -147,11 +159,17 @@ export default function BranchReportCard({ reportData = {}, replaceReport, exter
           <button onClick={() => { navToEditReport(reportData) }} className="border h-fit border-black rounded-lg">
             <MdEdit />
           </button>
-          <button className={`border h-fit border-black rounded-lg ${!isController(currentUser.role) ? blockedButton : ''}`} disabled={!isController(currentUser.role)} onClick={() => handleSetReportOnZero(reportData._id)}>
-            <PiNumberZeroBold />
-          </button>
+          {isController(currentUser.role) &&
+            <button className={`border h-fit border-black rounded-lg`} disabled={!isController(currentUser.role)} onClick={() => handleSetReportOnZero(reportData)}>
+              <PiNumberZeroBold />
+            </button>
+          }
           {isManager(currentUser.role) && (
-            <ChangeBranchPrices onUpdateBranchReport={replaceReport} branch={reportData.branch._id} date={reportData.createdAt} pricesDate={reportData.pricesDate}>
+            <ChangeBranchPrices
+              branch={reportData.branch._id}
+              date={reportData.createdAt}
+              pricesDate={reportData.pricesDate}
+            >
               <MdPriceChange />
             </ChangeBranchPrices>
           )}

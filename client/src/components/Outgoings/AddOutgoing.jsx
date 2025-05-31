@@ -6,8 +6,11 @@ import SectionHeader from '../SectionHeader'
 import ShowListModal from '../Modals/ShowListModal'
 import OutgoingsList from './OutgoingsList'
 import { ToastInfo, ToastSuccess } from '../../helpers/toastify'
+import { useDate } from '../../context/DateContext'
 
-export default function AddOutgoing({ outgoings, modifyBalance, isReport = false, listButton, outgoingsTotal, onAddOutgoing, onDeleteOutgoing, employee, branch, date, isEditing }) {
+export default function AddOutgoing({ outgoings, modifyBalance, isReport = false, listButton, outgoingsTotal, onAddOutgoing, onDeleteOutgoing, employee, branch }) {
+
+  const { currentDate: date } = useDate()
 
   const { company } = useSelector((state) => state.user)
   const [outgoingFormData, setOutgoingFormData] = useState({})
@@ -55,41 +58,46 @@ export default function AddOutgoing({ outgoings, modifyBalance, isReport = false
 
     e.preventDefault()
 
-    console.log(branch)
+    try {
 
-    if (!branch) {
-      ToastInfo('Selecciona una sucursal')
-      return
+
+
+      if (!branch) {
+        ToastInfo('Selecciona una sucursal')
+        return
+      }
+
+      const { amount, concept } = outgoingFormData
+
+      const outgoing = {
+        amount: parseFloat(amount),
+        concept,
+        company: company._id,
+        employee: employee,
+        branch: branch,
+        createdAt
+      }
+
+      conceptInput.value = ''
+      amountInput.value = ''
+      conceptInput.focus()
+      button.disabled = true
+
+      setLoading(true)
+
+      ToastSuccess(`Se agregó el gasto de "${outgoing.concept}"`)
+      if (isReport)
+        ToastInfo('Recuerda enviar tu formato al finalizar el llenado')
+      onAddOutgoing(outgoing, modifyBalance)
+
+      setLoading(false)
+
+      button.disabled = false
+
+    } catch (error) {
+
+      console.error('Error al agregar el gasto:', error)
     }
-
-    const { amount, concept } = outgoingFormData
-
-    const outgoing = {
-      amount: parseFloat(amount),
-      concept,
-      company: company._id,
-      employee: employee,
-      branch: branch,
-      createdAt
-    }
-
-    conceptInput.value = ''
-    amountInput.value = ''
-    conceptInput.focus()
-    button.disabled = true
-
-    setLoading(true)
-
-    console.log('llego hasta aquí ')
-
-    ToastSuccess(`Se agregó el gasto de "${outgoing.concept}"`)
-    if (isReport)
-      ToastInfo('Recuerda enviar tu formato al finalizar el llenado')
-    onAddOutgoing(outgoing, modifyBalance)
-
-    setLoading(false)
-
-    button.disabled = false
   }
 
   return (
@@ -97,23 +105,21 @@ export default function AddOutgoing({ outgoings, modifyBalance, isReport = false
       <div className='grid grid-cols-1'>
         <SectionHeader label={'Gastos'} />
       </div>
-      {isEditing && (
-        <form id='outgoingForm' onSubmit={addOutgoingSubmit} className="grid grid-cols-3 gap-2">
-          <div className='relative'>
-            <input type="text" name="concept" id="concept" placeholder='Concepto' className='w-full p-3 rounded-lg border border-black' required onInput={outgoingsButtonControl} onChange={handleOutgoingInputsChange} />
-            <label htmlFor="compact-input" className="-translate-y-full px-1 absolute top-1/4 left-2 transform rounded-sm bg-white text-black text-sm font-semibold">
-              Concepto <span>*</span>
-            </label>
-          </div>
-          <div className='relative'>
-            <input type="number" name="amount" id="amount" placeholder='$0.00' step={0.01} className='border border-black w-full p-3 rounded-lg' required onInput={outgoingsButtonControl} onChange={handleOutgoingInputsChange} />
-            <label htmlFor="compact-input" className="-translate-y-full px-1 absolute top-1/4 left-2 transform rounded-sm bg-white text-black text-sm font-semibold">
-              Monto ($) <span>*</span>
-            </label>
-          </div>
-          <button type='submit' id='outgoing-button' disabled className='bg-button text-white p-3 rounded-lg'>Agregar</button>
-        </form>
-      )}
+      <form id='outgoingForm' onSubmit={addOutgoingSubmit} className="grid grid-cols-3 gap-2">
+        <div className='relative'>
+          <input type="text" name="concept" id="concept" placeholder='Concepto' className='w-full p-3 rounded-lg border border-black' required onInput={outgoingsButtonControl} onChange={handleOutgoingInputsChange} />
+          <label htmlFor="compact-input" className="-translate-y-full px-1 absolute top-1/4 left-2 transform rounded-sm bg-white text-black text-sm font-semibold">
+            Concepto <span>*</span>
+          </label>
+        </div>
+        <div className='relative'>
+          <input type="number" name="amount" id="amount" placeholder='$0.00' step={0.01} className='border border-black w-full p-3 rounded-lg' required onInput={outgoingsButtonControl} onChange={handleOutgoingInputsChange} />
+          <label htmlFor="compact-input" className="-translate-y-full px-1 absolute top-1/4 left-2 transform rounded-sm bg-white text-black text-sm font-semibold">
+            Monto ($) <span>*</span>
+          </label>
+        </div>
+        <button type='submit' id='outgoing-button' disabled className='bg-button text-white p-3 rounded-lg'>Agregar</button>
+      </form>
       <div className='w-full mt-2'>
         <ShowListModal
           title={'Gastos'}

@@ -2,16 +2,21 @@
 import { useEffect, useState } from 'react'
 import EmployeesSelect from './Select/EmployeesSelect'
 import { useSelector } from 'react-redux'
-import SectionHeader from './SectionHeader'
 import RestsList from './RestsList'
 import { formatDate } from '../../../api/utils/formatDate'
 import ShowListModal from './Modals/ShowListModal'
+import { useEmployees } from '../hooks/Employees/useEmployees'
+import { usePendingEmployeesRests } from '../hooks/Employees/useEmployesRests'
+import SectionHeader from './SectionHeader'
 
-export default function CreateRest({ employees, pendingEmployeesRests, onAddEmployeeRest, onDeleteEmployeeRest }) {
+export default function CreateRest() {
 
+  const { company } = useSelector((state) => state.user)
+  const { activeEmployees: employees } = useEmployees({ companyId: company._id })
+
+  const { pendingRests, onAddEmployeeRest, onDeleteEmployeeRest } = usePendingEmployeesRests({ companyId: company._id })
   const [datePickerValue, setDatePickerValue] = useState('')
   const [replacements, setReplacements] = useState(employees)
-  const { company } = useSelector((state) => state.user)
   const [selectedEmployee, setSelectedEmployee] = useState(null)
   const [selectedReplacement, setSelectedReplacement] = useState(null)
 
@@ -82,7 +87,7 @@ export default function CreateRest({ employees, pendingEmployeesRests, onAddEmpl
           <ShowListModal
             title={'Descansos'}
             ListComponent={RestsList}
-            ListComponentProps={{ rests: pendingEmployeesRests, onDelete: onDeleteEmployeeRest }}
+            ListComponentProps={{ rests: pendingRests, onDelete: onDeleteEmployeeRest }}
             clickableComponent={
 
               <p className='font-bold text-lg text-center p-1 border border-header rounded-md'>{`${pendingEmployeesRests.length} ${pendingEmployeesRests.length == 0 || pendingEmployeesRests.length > 1 ? 'Pendientes' : 'Pendiente'}`}</p>

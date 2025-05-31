@@ -12,34 +12,34 @@ const customerReportSchema = Schema({
     default: 0
   },
 
-  returnsAmount: {
-    type: Number,
-    default: 0
-  },
-
-  salesAmount: {
-    type: Number,
-    default: 0
-  },
-
-  paymentsAmount: {
-    type: Number,
-    default: 0
-  },
-
-  branchProducts: {
+  branchSales: {
     type: [{ type: Schema.Types.ObjectId, ref: 'Input' }],
     default: []
   },
 
-  providerProducts: {
+  sales: {
+    type: Number,
+    default: 0
+  },
+
+  directSales: {
     type: [{ type: Schema.Types.ObjectId, ref: 'ProviderInput' }],
     default: []
+  },
+
+  returns: {
+    type: Number,
+    default: 0
   },
 
   returnsArray: {
     type: [{ type: Schema.Types.ObjectId, ref: 'Output' }],
     default: []
+  },
+
+  payments: {
+    type: Number,
+    default: 0
   },
 
   paymentsArray: {
@@ -59,7 +59,8 @@ const customerReportSchema = Schema({
 
 }, { timestamps: true })
 
-customerReportSchema.index({ createdAt: -1, customer: 1 }, { unique: true })
+customerReportSchema.index({ customer: 1, createdAt: -1 }, { unique: true })
+customerReportSchema.index({ company: 1, createdAt: -1 })
 
 const CustomerReport = mongoose.model('CustomerReport', customerReportSchema)
 

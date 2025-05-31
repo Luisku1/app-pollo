@@ -9,6 +9,38 @@ import { employeeAggregate, pushOrPullSupervisorReportRecord } from "./employee.
 import SupervisorReport from "../models/accounts/supervisor.report.model.js";
 import Employee from "../models/employees/employee.model.js";
 
+export const typeAggregate = (localField = 'type') => {
+  return [
+    {
+      $lookup: {
+        from: 'incometypes',
+        localField: localField,
+        foreignField: '_id',
+        as: localField
+      }
+    },
+    {
+      $unwind: { path: `$${localField}`, preserveNullAndEmptyArrays: true }
+    }
+  ]
+}
+
+export const incomeAggregate = (localField = 'income') => {
+  return [
+    {
+      $lookup: {
+        from: 'incomecollecteds',
+        localField: localField,
+        foreignField: '_id',
+        as: localField
+      }
+    },
+    {
+      $unwind: { path: `$${localField}`, preserveNullAndEmptyArrays: true }
+    }
+  ]
+}
+
 export const newBranchIncomeQuery = async (req, res, next) => {
 
   const { _id, amount, company, branch, employee, type, createdAt } = req.body
@@ -305,7 +337,7 @@ export const newCustomerIncomeFunction = async ({ amount, company, customer, emp
       affectsBalancePositively: true,
       operation: '$addToSet',
       arrayField: 'paymentsArray',
-      amountField: 'paymentsAmount'
+      amountField: 'payments'
     })
 
     await pushOrPullSupervisorReportRecord({
@@ -630,7 +662,7 @@ export const deleteIncome = async (incomeId) => {
         affectsBalancePositively: true,
         operation: '$pull',
         arrayField: 'paymentsArray',
-        amountField: 'paymentsAmount'
+        amountField: 'payments'
       })
     }
 

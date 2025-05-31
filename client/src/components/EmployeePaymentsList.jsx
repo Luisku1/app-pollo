@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import { useSelector } from 'react-redux'
 import DeleteButton from './Buttons/DeleteButton'
-import { formatDateAndTime, formatInformationDate, formatTime } from '../helpers/DatePickerFunctions'
+import { formatDateAndTime } from '../helpers/DatePickerFunctions'
 import { useRoles } from '../context/RolesContext'
 import { getEmployeeFullName, currency } from '../helpers/Functions'
 import { useState, useMemo } from 'react'
@@ -9,11 +9,10 @@ import ShowDetails from "./ShowDetails"
 import RowItem from "./RowItem"
 import { CgProfile } from "react-icons/cg"
 import ConfirmationButton from "./Buttons/ConfirmationButton"
-import MoneyBag from './Icons/MoneyBag'
 import Amount from './Incomes/Amount'
-import BranchName from './BranchName'
 import EmployeeInfo from './EmployeeInfo'
 import { CiSquareInfo } from 'react-icons/ci'
+import { BranchName, MoneyBag } from './Reutilizable/Labels'
 
 export default function EmployeePaymentsList({ payments, onDelete = null, spliceIncome, spliceExtraOutgoing }) {
 
@@ -73,7 +72,7 @@ export default function EmployeePaymentsList({ payments, onDelete = null, splice
                 <RowItem>
                   <div className="flex gap-1 items-center">
                     <p className="mr-2 text-md font-semibold">Pago a: </p>
-                    <button onClick={() => setSelectedEmployee(employee)} className="text-red-800 font-bold text-md flex gap-1 items-center w-full"><span><CgProfile /></span>{employee.name}</button>
+                    <button onClick={() => setSelectedEmployee(employee)} className="text-red-800 font-bold text-md flex gap-1 items-center w-full"><span><CgProfile /></span>{employee?.name ?? 'Ex empleado'}</button>
                   </div>
                   <p className={`text-md text-orange-500 font-bold flex gap-1 items-center`}><MoneyBag />{currency({ amount })}</p>
                 </RowItem>

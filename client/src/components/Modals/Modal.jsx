@@ -1,9 +1,10 @@
 /* eslint-disable react/prop-types */
-import { useEffect, useContext } from "react";
+import { useEffect, useContext, useState } from "react";
 import { MdCancel } from "react-icons/md";
 import { FaSpinner } from "react-icons/fa";
 import SectionHeader from "../SectionHeader";
 import { ModalContext } from "../../context/ModalContext";
+import { v4 as uuidv4 } from "uuid";
 
 export default function Modal({
   content,
@@ -16,18 +17,31 @@ export default function Modal({
   closeOnClickOutside = true,
   closeOnClickInside = false,
   width = "11/12",
+  fit = false,
   shape = "",
   loading = false,
+  adjustForKeyboard = false,
+  isShown = true,
+  modalId: propModalId, // Permite pasar un id opcional
 }) {
-  const { modals, removeLastModal, count, setCount } = useContext(ModalContext);
+  const { modals, addModal, removeLastModal, count, setCount } = useContext(ModalContext);
+  // Genera un id único si no se pasa uno
+  const [modalId] = useState(propModalId || uuidv4());
 
   useEffect(() => {
-    setCount((prevCount) => prevCount + 1);
 
+    if (!isShown) return;
+    addModal({ id: modalId });
+    setCount((prevCount) => prevCount + 1);
+    // Agrega la modal al stack al montar
     document.body.style.overflow = "hidden";
 
     const handleKeyDown = (event) => {
-      if ((event.key === "Escape" && ableToClose) || (closeOnEsc && event.key === "Escape")) {
+      // Solo la última modal debe cerrar con Escape
+      if (
+        ((event.key === "Escape" && ableToClose) || (closeOnEsc && event.key === "Escape")) &&
+        modals[modals.length - 1]?.id === modalId
+      ) {
         closeModal();
         removeLastModal();
       }
@@ -42,6 +56,20 @@ export default function Modal({
       }
     };
 
+    const handleResize = () => {
+      if (adjustForKeyboard) {
+        const viewportHeight = window.innerHeight;
+        const modalElement = ref?.current;
+        if (modalElement) {
+          modalElement.style.top = `${(5 / 6) * viewportHeight}px`;
+        }
+      }
+    };
+
+    if (adjustForKeyboard) {
+      window.addEventListener("resize", handleResize);
+    }
+
     // Agregar eventos y estado falso al montar
     document.addEventListener("keydown", handleKeyDown);
     window.addEventListener("popstate", handlePopState);
@@ -52,15 +80,24 @@ export default function Modal({
       document.body.style.overflow = "auto";
       document.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("popstate", handlePopState);
+      if (adjustForKeyboard) {
+        window.removeEventListener("resize", handleResize);
+      }
       setCount((prevCount) => prevCount - 1);
+      // Quita la modal del stack al desmontar
+      removeLastModal();
     };
-  }, [ableToClose, closeModal, removeLastModal, modals.length]);
+  }, [ableToClose, closeModal, removeLastModal, isShown, modals.length, adjustForKeyboard]);
 
+  if (!isShown) {
+    return null;
+  }
   const renderModal = () => {
     const zIndex = 1000 + count;
     return (
       <div
-        className={`fixed transition-all duration-200 inset-0 z-[10000] bg-black bg-opacity-30 overflow-y-auto backdrop-blur-sm flex items-center justify-center pt-16`}
+        className={`fixed transition-all 'backdrop-blur-xs' duration-200 inset-0 z-[10000] bg-opacity-10 bg-black overflow-y-auto  flex items-center justify-center pt-16`}
+        style={adjustForKeyboard ? { alignItems: "flex-start" } : {}}
         onClick={(e) => {
           if (
             (e.target === e.currentTarget && ableToClose) ||
@@ -73,8 +110,9 @@ export default function Modal({
       >
         <div
           ref={ref}
-          className={`bg-white p-5 shadow-lg h-auto max-h-[90vh] max-w-lg w-${width} overflow-y-auto relative overscroll-contain ${shape} '
+          className={`bg-white shadow-lg h-auto max-h-[90vh] max-w-lg w-${width} overflow-y-auto relative overscroll-contain ${shape} rounded-lg border-2 border-gray-300'
           `}
+          style={adjustForKeyboard ? { position: "absolute", top: "5/6" } : {}}
           onClick={(e) => {
             if (closeOnClickInside && ableToClose) {
               closeModal();
@@ -105,7 +143,7 @@ export default function Modal({
 
           {extraInformation && extraInformation()}
 
-          <div className="mt-4 mb-4">
+          <div className={`${fit ? '' : 'px-1 mt-4 mb-4'}`}>
             {title && <SectionHeader label={title} />}
             <div>{content}</div>
           </div>

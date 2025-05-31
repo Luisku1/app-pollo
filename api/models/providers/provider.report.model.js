@@ -12,17 +12,17 @@ const providerReportSchema = Schema({
     default: 0
   },
 
-  returnsAmount: {
+  returns: {
     type: Number,
     default: 0
   },
 
-  purchasesAmount: {
+  purchases: {
     type: Number,
     default: 0
   },
 
-  paymentsAmount: {
+  payments: {
     type: Number,
     default: 0
   },
@@ -54,7 +54,8 @@ const providerReportSchema = Schema({
 
 }, { timestamps: true })
 
-providerReportSchema.index({ createdAt: -1, provider: 1 }, { unique: true })
+providerReportSchema.index({ provider: 1, createdAt: -1 }, { unique: true }) //_id
+providerReportSchema.index({ company: 1, provider: 1, createdAt: -1 })
 
 const ProviderReport = mongoose.model('ProviderReport', providerReportSchema)
 

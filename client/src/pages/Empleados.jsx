@@ -11,12 +11,12 @@ import Modal from "../components/Modals/Modal";
 import RegistroEmpleadoNuevo from "./RegistroEmpleado";
 import { CgProfile } from "react-icons/cg";
 import EmployeeInfo from "../components/EmployeeInfo";
+import PhoneLinks from "../components/PhoneLinks";
 
 export default function Empleados() {
 
   const { company } = useSelector((state) => state.user)
-  const date = (new Date()).toISOString().split('T')[0]
-  const { employees, activeEmployees, inactiveEmployees, setFilterString, changeEmployeeActiveStatus, onUpdateEmployee, spliceEmployee, loading, error } = useEmployees({ companyId: company._id, date, onlyActiveEmployees: false })
+  const { employees, activeEmployees, inactiveEmployees, setFilterString, changeEmployeeActiveStatus, onUpdateEmployee, spliceEmployee, loading, refetch, error } = useEmployees({ companyId: company._id })
   const { deleteEmployee } = useDeleteEmployee()
   const [hoveredIndex, setHoveredIndex] = useState(null)
   const [isOpen, setIsOpen] = useState(false)
@@ -24,9 +24,15 @@ export default function Empleados() {
   const searchBarRef = useRef(null);
   const [showActiveEmployees, setShowActiveEmployees] = useState(true)
   const [searching, setSearching] = useState(false)
-  const [editEmployee, setEditEmployee] = useState(null)
   const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
   const [selectedEmployee, setSelectedEmployee] = useState(null)
+  const [employeeToEdit, setEmployeeToEdit] = useState(null)
+
+  const handleEmployeeUpdate = (employee) => {
+
+    onUpdateEmployee(employee)
+    setEmployeeToEdit(null)
+  }
 
   const handleChangeEmployeeStatus = (employee) => {
 
@@ -81,12 +87,8 @@ export default function Empleados() {
     document.title = 'Empleados'
   }, [])
 
-  const toggleEditEmployee = () => {
-
-    setEditEmployee((prev) => !prev)
-  }
-
   const renderEmployeesList = (employeesList = []) => {
+
 
     return employeesList.map((employee, index) => (
       <div key={employee._id}>
@@ -95,7 +97,7 @@ export default function Empleados() {
 
             <div className="col-span-9">
 
-              <button onClick={() => setSelectedEmployee(employee)} className="font-bold text-xl flex gap-1 items-center text-red-700"><span><CgProfile /></span>{getEmployeeFullName(employee)}</button>
+              <button onClick={() => setSelectedEmployee(employee)} className="font-bold text-xl flex gap-1 items-center text-employee-name">{getEmployeeFullName(employee)}</button>
 
               <div className="p-3">
                 <div className="flex gap-2">
@@ -109,7 +111,7 @@ export default function Empleados() {
                 {employee.payDay > -1 ?
                   <p className="text-lg">{'Día de cobro: ' + weekDays[employee.payDay]}</p>
                   : ''}
-                <p className="text-lg">Teléfono: {employee.phoneNumber ? employee.phoneNumber.replace(/(\d{2})(\d{4})(\d{4})/, '$1-$2-$3') : ''}</p>
+                <p className="text-lg mt-2">{employee.phoneNumber ? <PhoneLinks phoneNumber={employee.phoneNumber} name={getEmployeeFullName(employee)} /> : ''}</p>
               </div>
             </div>
 
@@ -137,17 +139,9 @@ export default function Empleados() {
                     </div>
                   }
                 </button>
-                <button className="border shadow-lg rounded-lg text-center h-10 w-10 m-3" onClick={toggleEditEmployee}>
+                <button className="border shadow-lg rounded-lg text-center h-10 w-10 m-3" onClick={() => setEmployeeToEdit(employee)}>
                   <FaEdit className="text-blue-500 m-auto h-fit w-fit" />
                 </button>
-
-                {editEmployee && (
-                  <Modal
-                    content={<RegistroEmpleadoNuevo setEmployee={onUpdateEmployee} employee={employee} />}
-                    closeModal={toggleEditEmployee}
-                    ableToClose={true}
-                  />
-                )}
                 <div>
                   <button id={employee._id} onClick={() => { setIsOpen(isOpen ? false : true), setButtonId(employee._id) }} disabled={loading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
                     <span>
@@ -186,7 +180,12 @@ export default function Empleados() {
   return (
 
     <main className="p-3 max-w-lg mx-auto">
-
+      <Modal
+        content={<RegistroEmpleadoNuevo setEmployee={handleEmployeeUpdate} employee={employeeToEdit} />}
+        closeModal={() => setEmployeeToEdit(null)}
+        ableToClose={true}
+        isShown={employeeToEdit}
+      />
       {error ? <p>{error}</p> : ''}
       <EmployeeInfo employee={selectedEmployee} toggleInfo={() => setSelectedEmployee(null)} />
 

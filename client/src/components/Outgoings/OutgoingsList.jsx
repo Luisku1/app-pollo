@@ -9,9 +9,9 @@ import { formatDateAndTime, formatTime } from "../../helpers/DatePickerFunctions
 import RowItem from "../RowItem"
 import { CgProfile } from "react-icons/cg"
 import ConfirmationButton from "../Buttons/ConfirmationButton"
-import MoneyBag from "../Icons/MoneyBag"
 import { CiSquareInfo } from "react-icons/ci"
 import EmployeeInfo from "../EmployeeInfo"
+import { MoneyBag } from "../Reutilizable/Labels"
 
 export default function OutgoingsList({ outgoings, onDelete, modifyBalance }) {
   const { currentUser } = useSelector((state) => state.user)
@@ -43,8 +43,8 @@ export default function OutgoingsList({ outgoings, onDelete, modifyBalance }) {
   const renderOutgoingItem = ({ outgoing, index }) => {
     const { _id, employee, concept, amount, createdAt } = outgoing
     const tempOutgoing = { ...outgoing, index }
-    const employeeName = `${employee.name || employee}`
-    const isAuthorized = currentUser._id == employee._id || isManager(currentUser.role)
+    const employeeName = `${employee ? employee?.name ?? '' : 'Ex empleado'}`
+    const isAuthorized = currentUser?._id == employee?._id || isManager(currentUser.role)
     const shouldRender = isAuthorized || isManager(currentUser.role)
 
     return (
@@ -80,7 +80,7 @@ export default function OutgoingsList({ outgoings, onDelete, modifyBalance }) {
                 <CiSquareInfo className="w-full h-full text-blue-600" />
               </button>
               {deletable && (
-                <div className="h-10 w-10">
+                <div className="mx-auto my-auto h-10 w-10">
                   <DeleteButton
                     id={outgoing._id}
                     deleteFunction={() => onDelete(tempOutgoing, modifyBalance)} />

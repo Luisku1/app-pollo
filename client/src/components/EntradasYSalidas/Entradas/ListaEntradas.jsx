@@ -11,10 +11,10 @@ import { GiChickenOven } from "react-icons/gi";
 import { FaInfoCircle } from "react-icons/fa";
 import { MdStorefront } from "react-icons/md";
 import ConfirmationButton from "../../Buttons/ConfirmationButton";
-import MoneyBag from "../../Icons/MoneyBag";
 import DeleteButton from "../../Buttons/DeleteButton";
 import { CiSquareInfo } from "react-icons/ci";
 import EmployeeInfo from "../../EmployeeInfo";
+import { MoneyBag } from "../../Reutilizable/Labels";
 
 export default function ListaEntradas({ inputs, onDelete = null }) {
   const { currentUser } = useSelector((state) => state.user);

@@ -20,6 +20,7 @@ import incomeRouter from './routes/income.route.js'
 import reportRouter from './routes/report.route.js'
 import customerRouter from './routes/customer.route.js'
 import providerRouter from './routes/provider.route.js'
+import refactorRouter from './routes/refactor.route.js'
 import path from 'path'
 
 const app = express()
@@ -38,7 +39,6 @@ mongoose.connect(process.env.MONGO).then(() => {
 
 const __dirname = path.resolve()
 
-
 app.use(express.json())
 app.use(cookieParser())
 
@@ -46,6 +46,7 @@ app.listen(PORT, () => {
 	console.log('Server is running on port ' + PORT + '!');
 })
 
+app.use('/api/refactor', refactorRouter)
 app.use('/api/employee', employeeRouter)
 app.use('/api/customer', customerRouter)
 app.use('/api/provider', providerRouter)

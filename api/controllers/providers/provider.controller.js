@@ -1,8 +1,8 @@
-import Provider from "../models/providers/provider.model.js"
-import ProviderPayment from "../models/providers/provider.payment.model.js"
-import ProviderPurchase from "../models/providers/provider.purchase.model.js"
-import ProviderReport from "../models/providers/provider.report.model.js"
-import ProviderReturns from "../models/providers/provider.returns.model.js"
+import Provider from "../../models/providers/provider.model.js"
+import ProviderPayment from "../../models/providers/provider.payment.model.js"
+import ProviderPurchase from "../../models/providers/provider.purchase.model.js"
+import ProviderReport from "../../models/providers/provider.report.model.js"
+import ProviderReturns from "../../models/providers/provider.returns.model.js"
 
 export const newProvider = async (req, res, next) => {
 
@@ -167,7 +167,7 @@ export const newPurchase = async (req, res, next) => {
       affectsBalancePositively: false,
       operation: '$addToSet',
       arrayField: 'purchasesArray',
-      amountField: 'purchasesAmount'
+      amountField: 'purchases'
     })
 
     res.status(201).json({
@@ -200,7 +200,7 @@ export const deletePurchase = async (req, res, next) => {
       affectsBalancePositively: false,
       operation: '$pull',
       arrayField: 'purchasesArray',
-      amountField: 'purchasesAmount'
+      amountField: 'purchases'
     })
 
     res.status(200).json({
@@ -244,7 +244,7 @@ export const newReturn = async (req, res, next) => {
       affectsBalancePositively: true,
       operation: '$addToSet',
       arrayField: 'returnsArray',
-      amountField: 'returnsAmount'
+      amountField: 'returns'
     })
 
     res.status(201).json({
@@ -277,7 +277,7 @@ export const deleteReturn = async (req, res, next) => {
       affectsBalancePositively: true,
       operation: '$pull',
       arrayField: 'returnsArray',
-      amountField: 'returnsAmount'
+      amountField: 'returns'
     })
 
     res.status(200).json({
@@ -309,7 +309,7 @@ export const newPayment = async (req, res, next) => {
       affectsBalancePositively: true,
       operation: '$addToSet',
       arrayField: 'paymentsArray',
-      amountField: 'paymentsAmount'
+      amountField: 'payments'
     })
 
     res.status(200).json({
@@ -346,7 +346,7 @@ export const deletePayment = async (req, res, next) => {
       affectsBalancePositively: true,
       operation: '$pull',
       arrayField: 'paymentsArray',
-      amountField: 'paymentsAmount'
+      amountField: 'payments'
     })
 
     res.status(200).json({

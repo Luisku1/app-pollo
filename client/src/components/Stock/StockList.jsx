@@ -13,8 +13,9 @@ import { TbMoneybag } from 'react-icons/tb'
 import ConfirmationButton from '../Buttons/ConfirmationButton'
 import { CiSquareInfo } from 'react-icons/ci'
 import EmployeeInfo from '../EmployeeInfo'
+import { BranchName } from '../Reutilizable/Labels'
 
-export default function StockList({ stock = [], onDelete = null, modifyBalance = null }) {
+export default function StockList({ stock = [], showBranch = false, onDelete = null, modifyBalance = null }) {
   const { currentUser } = useSelector((state) => state.user)
   const isEmpty = stock.length === 0
   const { roles, isManager } = useRoles()
@@ -59,6 +60,9 @@ export default function StockList({ stock = [], onDelete = null, modifyBalance =
             <div id='list-element' className='w-full'>
               <div className='text-red-800 mb-1'>
                 <RowItem>
+                  {showBranch &&
+                    BranchName({ branchName: stock?.branch?.branch })
+                  }
                   <p className="flex gap-1 items-center font-semibold"><GiChickenOven />{product.name}</p>
                   <div className="text-md text-black flex justify-self-end">
                     {formatDateAndTime(createdAt)}

@@ -12,7 +12,7 @@ const employeeDailyBalanceSchema = mongoose.Schema({
     default: 0.0
   },
 
-  foodDiscount: {
+  lateDiscount: {
     type: Boolean,
     default: false
   },

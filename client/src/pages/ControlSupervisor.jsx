@@ -33,7 +33,7 @@ export default function ControlSupervisor({ hideFechaDePagina = false }) {
   let datePickerValue = (paramsDate ? new Date(paramsDate) : new Date())
   let stringDatePickerValue = formatDate(datePickerValue)
   const { currentUser, company } = useSelector((state) => state.user)
-  const { employees, loading: empLoading } = useEmployees({ companyId: company._id })
+  const { activeEmployees: employees, loading: empLoading } = useEmployees({ companyId: company._id })
   const { branches, loading: branchLoading } = useBranches({ companyId: company._id })
   const { customers, loading: custLoading } = useCustomers({ companyId: company._id })
   const { products, loading: prodLoading } = useProducts({ companyId: company._id })
@@ -52,23 +52,6 @@ export default function ControlSupervisor({ hideFechaDePagina = false }) {
 
     setSelectedSection(section)
   }
-
-  useEffect(() => {
-    setBranchAndCustomerSelectOptions([
-      {
-        label: 'Sucursales',
-        options: getArrayForSelects(branches, (branch) => branch.branch)
-      },
-      {
-        label: 'Empleados',
-        options: getArrayForSelects(employees.filter(employee => isSupervisor(employee.role) && employee._id !== currentUser._id), (employee) => employee.name + ' ' + employee.lastName)
-      },
-      {
-        label: 'Clientes',
-        options: getArrayForSelects(customers, (customer) => customer.name + ' ' + (customer?.lastName ?? ''))
-      }
-    ])
-  }, [branches, customers, employees, isSupervisor, currentUser])
 
   const isLoading = useLoading(roleLoading, empLoading, branchLoading, custLoading, prodLoading)
 
@@ -142,14 +125,7 @@ export default function ControlSupervisor({ hideFechaDePagina = false }) {
                     button: (
                       <MdCurrencyExchange className='justify-self-center text-2xl' />
                     ),
-                    component: <IncomesAndOutgoings
-                      date={currentDate}
-                      companyId={company._id}
-                      currentUser={currentUser}
-                      roles={roles}
-                      branches={branches} branchAndCustomerSelectOptions={branchAndCustomerSelectOptions}
-                      employees={employees}
-                    />
+                    component: <IncomesAndOutgoings />
                   },
                   {
                     label: 'Empleados',

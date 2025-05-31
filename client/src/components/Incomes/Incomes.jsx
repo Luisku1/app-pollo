@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useIncomeTypes } from '../../hooks/Incomes/useIncomeTypes'
 import { isToday } from '../../helpers/DatePickerFunctions'
 import SectionHeader from '../SectionHeader'
@@ -12,15 +12,48 @@ import { FaListAlt } from 'react-icons/fa'
 import ShowListModal from '../Modals/ShowListModal'
 import IncomesList from './IncomesList'
 import { ToastDanger, ToastInfo, ToastSuccess } from '../../helpers/toastify'
+import { useSelector } from 'react-redux'
+import { useDate } from '../../context/DateContext'
+import { useIncomes } from '../../hooks/Incomes/useIncomes'
+import { useBranches } from '../../hooks/Branches/useBranches'
+import { useCustomers } from '../../hooks/Customers/useCustomers'
+import { useProducts } from '../../hooks/Products/useProducts'
+import { useEmployees } from '../../hooks/Employees/useEmployees'
 
-export default function Incomes({ incomes, incomesTotal, onAddIncome, onDeleteIncome, branchAndCustomerSelectOptions, date, companyId, currentUser }) {
+export default function Incomes() {
 
+  const { currentUser, company } = useSelector((state) => state.user)
   const [incomeFormData, setIncomeFormData] = useState({})
-  const { isManager } = useRoles()
+  const { isManager, isSupervisor } = useRoles()
   const { incomeTypes } = useIncomeTypes()
+  const companyId = company?._id ?? company
   const [selectedCustomerBranchIncomesOption, setSelectedCustomerBranchIncomesOption] = useState(null)
+  const [branchAndCustomerSelectOptions, setBranchAndCustomerSelectOptions] = useState([])
   const [selectedIncomeGroup, setSelectedIncomeGroup] = useState('')
   const [selectedIncomeType, setSelectedIncomeType] = useState(null)
+  const { currentDate } = useDate()
+  const { incomes, incomesTotal, onAddIncome, onDeleteIncome } = useIncomes({ companyId, date: currentDate })
+  const { branches } = useBranches({ companyId: company._id })
+  const { employees } = useEmployees({ companyId: company._id })
+  const { customers } = useCustomers({ companyId: company._id })
+
+  useEffect(() => {
+    setBranchAndCustomerSelectOptions([
+      {
+        label: 'Sucursales',
+        options: getArrayForSelects(branches, (branch) => branch.branch)
+      },
+      {
+        label: 'Empleados',
+        options: getArrayForSelects(employees.filter(employee => isSupervisor(employee.role) && employee._id !== currentUser._id), (employee) => employee.name + ' ' + employee.lastName)
+      },
+      {
+        label: 'Clientes',
+        options: getArrayForSelects(customers, (customer) => customer.name + ' ' + (customer?.lastName ?? ''))
+      }
+    ])
+  }, [branches, customers, employees, isSupervisor, currentUser])
+
 
   const resetInputs = () => {
     document.getElementById('income-amount').value = ''
@@ -39,9 +72,10 @@ export default function Incomes({ incomes, incomesTotal, onAddIncome, onDeleteIn
 
   const addIncomeSubmit = async (e) => {
 
-    const createdAt = isToday(date) ? new Date().toISOString() : new Date(date).toISOString()
-    let income = null
     e.preventDefault()
+
+    const createdAt = isToday(currentDate) ? new Date().toISOString() : new Date(currentDate).toISOString()
+    let income = null
 
     try {
 
@@ -77,7 +111,6 @@ export default function Incomes({ incomes, incomesTotal, onAddIncome, onDeleteIn
       ToastSuccess(`Se registró el efectivo de ${income.amount.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}`)
       resetInputs()
       await onAddIncome(income, prevOwnerIncome ? prevOwnerIncome : null, selectedIncomeGroup)
-
 
     } catch (error) {
 
@@ -129,7 +162,7 @@ export default function Incomes({ incomes, incomesTotal, onAddIncome, onDeleteIn
 
   return (
     <div>
-      <div className='border bg-white p-3 rounded-lg mt-4'>
+      <div className='border bg-white p-3 rounded-lg'>
         <div className='grid grid-cols-2'>
           <SectionHeader label={'Efectivos'} />
           <div className='flex items-center gap-4 justify-self-end mr-12'>
@@ -138,7 +171,7 @@ export default function Incomes({ incomes, incomesTotal, onAddIncome, onDeleteIn
               ListComponent={IncomesList}
               ListComponentProps={{ incomes, incomesTotal, onDeleteIncome }}
               clickableComponent={
-                isManager(currentUser.role) ?
+                isManager(currentUser?.role) ?
                   <p className='font-bold text-lg text-center'>{currency({ amount: incomesTotal ?? 0 })}</p>
                   :
                   <FaListAlt className="h-10 w-10 text-red-600" />
@@ -151,6 +184,7 @@ export default function Incomes({ incomes, incomesTotal, onAddIncome, onDeleteIn
           <BranchAndCustomerSelect defaultLabel={'Sucursal o Cliente'} options={branchAndCustomerSelectOptions} selectedOption={selectedCustomerBranchIncomesOption} handleSelectChange={handleCustomerBranchIncomesSelectChange}></BranchAndCustomerSelect>
           <Select
             styles={customSelectStyles}
+            menuPortalTarget={document.body}
             value={selectedIncomeType}
             onChange={handleTypesSelectChange}
             options={getArrayForSelects(incomeTypes, (type) => { return type.name })}
