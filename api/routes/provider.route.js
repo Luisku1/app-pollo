@@ -1,5 +1,5 @@
 import express from 'express'
-import { deletePurchase, newProvider, newPurchase } from '../controllers/provider.controller.js'
+import { deletePurchase, newProvider, newPurchase } from '../controllers/providers/provider.controller.js'
 const router = express.Router()
 
 router.post('/create', newProvider)

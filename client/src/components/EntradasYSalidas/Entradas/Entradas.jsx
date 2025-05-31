@@ -12,10 +12,15 @@ import { useBranchCustomerProductPrice } from '../../../hooks/Prices/useBranchCu
 import { getArrayForSelects, getElementForSelect, priceShouldNotBeZero } from '../../../helpers/Functions'
 import ShowListModal from '../../Modals/ShowListModal'
 import ListaEntradas from './ListaEntradas'
+import { useDate } from '../../../context/DateContext'
+import { useBranches } from '../../../hooks/Branches/useBranches'
+import { useCustomers } from '../../../hooks/Customers/useCustomers'
+import { useProducts } from '../../../hooks/Products/useProducts'
 
-export default function Entradas({ branchAndCustomerSelectOptions, products, date, selectedProduct, setSelectedProduct, setSelectedProductToNull }) {
+export default function Entradas({ selectedProduct, setSelectedProduct, setSelectedProductToNull }) {
 
   const { company, currentUser } = useSelector((state) => state.user)
+  const { currentDate: date } = useDate()
   const [inputFormData, setInputFormData] = useState({})
   const {
     inputs,
@@ -24,12 +29,41 @@ export default function Entradas({ branchAndCustomerSelectOptions, products, dat
     totalAmount,
     onAddInput,
   } = useInputs({ companyId: company._id, date })
+  const {
+    branches
+  } = useBranches({ companyId: company._id })
+  const {
+     customers
+  } = useCustomers({ companyId: company._id })
+  const {
+    products
+  } = useProducts({ companyId: company._id })
+
+  const branchAndCustomerSelectOptions = [
+    {
+      label: 'Sucursales',
+      options: getArrayForSelects(branches, (branch) => branch.branch)
+    },
+    {
+      label: 'Clientes',
+      options: getArrayForSelects(customers, (customer) => customer.name)
+    }
+  ]
+
   const [selectedCustomerBranchOption, setSelectedCustomerBranchOption] = useState(null)
   const [selectedGroup, setSelectedGroup] = useState('')
-  const { price, loading: priceIsLoading } = useBranchCustomerProductPrice({ branchCustomerId: selectedCustomerBranchOption ? selectedCustomerBranchOption.value : null, productId: selectedProduct ? selectedProduct.value : null, date, group: selectedGroup == '' ? null : selectedGroup })
+  const { price, loading: priceIsLoading } = useBranchCustomerProductPrice({ branchCustomerId: selectedCustomerBranchOption ? selectedCustomerBranchOption.value : null, productId: selectedProduct?._id || null, date, group: selectedGroup == '' ? null : selectedGroup })
   const [amount, setAmount] = useState('$0.00')
   const [loading, setLoading] = useState(false)
   const [isRegisteredInSurplus, setIsRegisteredInSurplus] = useState(false)
+
+  // Estado interno para el producto seleccionado
+  const [internalSelectedProduct, setInternalSelectedProduct] = useState(selectedProduct);
+
+  // Sincroniza el estado interno cuando cambia el del padre
+  useEffect(() => {
+    setInternalSelectedProduct(selectedProduct);
+  }, [selectedProduct]);
 
   const generarMonto = () => {
 
@@ -170,9 +204,10 @@ export default function Entradas({ branchAndCustomerSelectOptions, products, dat
     }
   }
 
+  // Cuando cambia el select, actualiza ambos estados
   const handleProductSelectChange = (product) => {
-
-    setSelectedProduct(product)
+    setInternalSelectedProduct(product);
+    setSelectedProduct(product);
   }
 
   const handleBranchCustomerSelectChange = (option) => {
@@ -184,7 +219,7 @@ export default function Entradas({ branchAndCustomerSelectOptions, products, dat
 
   return (
     <div>
-      <div className='border rounded-md bg-inputs p-3 mt-4'>
+      <div className='border rounded-md p-3'>
         <div className='grid grid-cols-2'>
           <SectionHeader label={'Entradas'} />
           <div className='flex items-center gap-4 justify-self-end mr-12'>
@@ -203,7 +238,7 @@ export default function Entradas({ branchAndCustomerSelectOptions, products, dat
           <div>
             <Select
               styles={customSelectStyles}
-              value={getElementForSelect(selectedProduct, (product) => product.name)}
+              value={getElementForSelect(internalSelectedProduct, (product) => product.name)}
               onChange={handleProductSelectChange}
               options={getArrayForSelects(products, (product) => product.name)}
               placeholder={'Producto'}

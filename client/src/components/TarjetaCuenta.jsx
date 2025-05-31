@@ -2,7 +2,7 @@
 import BranchReportCard from "./BranchReportCard";
 
 /* eslint-disable react/prop-types */
-export default function TarjetaCuenta({ reportArray, replaceReport, defaultDetailsShowed = null, payrollIndex = null }) {
+export default function TarjetaCuenta({ reportArray, updateBranchReportGroup, updateBranchReportSingle, defaultDetailsShowed = null }) {
 
   return (
     <div className="w-full relative">
@@ -11,9 +11,9 @@ export default function TarjetaCuenta({ reportArray, replaceReport, defaultDetai
           <BranchReportCard
             key={reportData._id}
             reportData={reportData}
-            replaceReport={replaceReport}
+            updateBranchReportGroup={updateBranchReportGroup}
+            updateBranchReportSingle={updateBranchReportSingle}
             defaultDetailsShowed={defaultDetailsShowed}
-            externalIndex={payrollIndex}
           />
         ))}
       </div>

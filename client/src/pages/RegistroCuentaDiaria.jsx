@@ -42,9 +42,9 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
   const [branchId, setBranchId] = useState((useParams()?.branchId ?? _branch?._id) ?? null)
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
-  const { employees } = useEmployees({ companyId: company._id })
+  const { activeEmployees: employees, activeEmployees } = useEmployees({ companyId: company._id })
   const { branches } = useBranches({ companyId: company._id })
-  const { roles, isManager, isSupervisor, isJustSeller } = useRoles()
+  const { roles, isManager, isJustSeller, isSupervisor } = useRoles()
   const { products } = useProducts({ companyId: company._id })
   const [selectedEmployee, setSelectedEmployee] = useState()
   const [selectedAssistant, setSelectedAssistant] = useState(null)
@@ -93,13 +93,12 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
 
   const isLoading = useLoading()
   const [showSelectBranchEmployees, setShowSelectBranchEmployees] = useState(false)
-  const [isEditing, setIsEditing] = useState(edit)
   const [employeeInfo, setEmployeeInfo] = useState(null)
   const isAuthorized = roles && isManager(currentUser.role)
   const [ableToEdit, setAbleToEdit] = useState(false)
 
   useEffect(() => {
-    const currentTime = new Date('2025-04-18T03:00:00.000Z');
+    const currentTime = new Date();
     const currentUTCHours = currentTime.getUTCHours();
     const currentUTCMinutes = currentTime.getUTCMinutes();
 
@@ -248,6 +247,7 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
 
       document.title = (selectedBranch?.branch ?? 'Formato') + ' ' + '(' + (new Date(currentDate).toLocaleDateString()) + ')'
     }
+
   }, [selectedBranch, currentDate, edit])
 
   const selectEmployees = () => {
@@ -258,12 +258,15 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
         </div>
         <div className="mt-1 ">
           <div className='w-full'>
-            <EmployeesSelect defaultLabel={'Sin Encargado'} isEditing={isEditing} employees={employees} selectedEmployee={selectedEmployee} handleEmployeeSelectChange={handleEmployeeSelectChange}></EmployeesSelect>
+            <p className='w-full'>Encargado</p>
+            <div className='p-3'>
+              <EmployeesSelect defaultLabel={'Sin Encargado'} isEditing={isSupervisor(currentUser.role)} employees={employees} selectedEmployee={selectedEmployee} handleEmployeeSelectChange={handleEmployeeSelectChange}></EmployeesSelect>
+            </div>
           </div>
         </div>
-        <div className="mt-1 ">
+        <div className="mt-1 p-3">
           <div className='w-full border border-red-700 rounded-lg'>
-            <EmployeesSelect isEditing={isEditing} defaultLabel={'Sin Auxiliar'} employees={employees} selectedEmployee={selectedAssistant} handleEmployeeSelectChange={handleAssistantSelectChange}></EmployeesSelect>
+            <EmployeesSelect defaultLabel={'Sin Auxiliar'} employees={employees} selectedEmployee={selectedAssistant} handleAssistantSelectChange={handleAssistantSelectChange}></EmployeesSelect>
           </div>
         </div>
         {selectedEmployee && selectedAssistant &&
@@ -294,6 +297,31 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
     }
   }
 
+  useEffect(() => {
+    const handleResize = () => {
+      const h2Element = document.querySelector('h2');
+      if (h2Element) {
+        const windowWidth = window.innerWidth;
+        if (windowWidth > 768) { // Adjust this value as needed for your layout
+          h2Element.style.position = 'fixed';
+          h2Element.style.top = '25%'; // A quarter of the screen height
+          h2Element.style.left = '10px'; // Adjust left position as needed
+        } else {
+          h2Element.style.position = 'static';
+          h2Element.style.top = 'auto';
+          h2Element.style.left = 'auto';
+        }
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    handleResize(); // Call it initially to set the correct position
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
   if (!ableToEdit) {
     return (
       <div className='flex flex-col gap-4 mt-4 sticky bottom-4'>
@@ -318,20 +346,18 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
           {isLoading ?
             <Loading></Loading>
             : ''}
-          {isEditing && (
-            <div className={' sticky  z-30' + (isEditing ? ' top-16' : ' -top-4')}>
-              {isManager(currentUser.role) ?
-                <div>
-                  <FechaDePagina changeDay={changeDay} stringDatePickerValue={currentDate} changeDatePickerValue={changeDatePickerValue} ></FechaDePagina>
-                </div>
-                : ''}
-              {branchReport && (
-                <div className='sticky top-20'>
-                  <ShowBalance balance={branchReport.balance}></ShowBalance>
-                </div>
-              )}
-            </div>
-          )}
+          <div className={'sticky  z-30 top-16'}>
+            {isManager(currentUser.role) ?
+              <div>
+                <FechaDePagina changeDay={changeDay} stringDatePickerValue={currentDate} changeDatePickerValue={changeDatePickerValue} ></FechaDePagina>
+              </div>
+              : ''}
+            {branchReport && (
+              <div className='sticky top-20'>
+                <ShowBalance balance={branchReport.balance}></ShowBalance>
+              </div>
+            )}
+          </div>
           <EmployeeInfo employee={employeeInfo} toggleInfo={() => { setEmployeeInfo(false) }} />
           <SectionHeader label={'Reporte'} />
           <div className="grid grid-cols-12 items-center mt-1 mb-2">
@@ -372,7 +398,7 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
           </div>
           {branchReport && branchId !== null && (
             <div>
-              {!isEditing ?
+              {false ?
                 <div>
                   <button className='font-bold border border-black p-3 rounded-lg text-black flex justify-self-end' onClick={() => setShowPrices(true)}>$ Precios</button>
                   {showPrices &&
@@ -384,7 +410,7 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
                           prices={prices}
                           pricesDate={branchReport.pricesDate}
                           branch={branchId || selectedBranch?._id || null}
-                          onChange={isEditing ? onChangePrices : false}
+                          onChange={onChangePrices}
                           date={currentDate}
                         />
                       }
@@ -398,7 +424,7 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
                     prices={prices}
                     pricesDate={branchReport.pricesDate}
                     branch={branchId || selectedBranch?._id || null}
-                    onChange={isEditing ? onChangePrices : false}
+                    onChange={onChangePrices}
                     date={currentDate}
                   />
                 </div>
@@ -418,7 +444,7 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
                       />
                     </div>
                   </div>
-                  {!isEditing ?
+                  {false ?
                     <div className='w-full mt-2'>
                       <ShowListModal
                         title={'Gastos'}
@@ -437,15 +463,13 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
                       outgoingsTotal={outgoingsTotal}
                       employee={selectedEmployee}
                       onAddOutgoing={onAddOutgoing}
-                      onDeleteOutgoing={isEditing ? onDeleteOutgoing : null}
+                      onDeleteOutgoing={onDeleteOutgoing}
                       isReport={true}
                       branch={selectedBranch}
-                      date={currentDate}
-                      isEditing={isEditing}
                       listButton={<p className='font-bold text-lg text-center bg-green-100 rounded-lg p-1 border border-header'>{currency({ amount: outgoingsTotal ?? 0 })}</p>}
                     />
                   }
-                  {isEditing ?
+                  {true ?
                     <AddStock
                       title={'Sobrante'}
                       stock={stock}
@@ -454,13 +478,12 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
                       weight={stockWeight}
                       products={products}
                       onAddStock={onAddStock}
-                      onDeleteStock={isEditing ? onDeleteStock : null}
+                      onDeleteStock={onDeleteStock}
                       branchPrices={prices}
                       branch={selectedBranch}
                       employee={selectedEmployee}
                       isReport={true}
                       date={currentDate}
-                      isEditing={isEditing}
                       listButton={<p className='font-bold text-lg text-center bg-green-100 rounded-lg border p-1 border-header'>{currency({ amount: stockAmount ?? 0 })}</p>}
                     />
                     :
@@ -475,7 +498,7 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
                       />
                     </div>
                   }
-                  {isEditing ?
+                  {true ?
                     <AddStock
                       title={'Sobrante de Medio Día'}
                       stock={midDayStock}
@@ -484,12 +507,11 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
                       weight={midDayStockWeight}
                       products={products}
                       onAddStock={onAddMidStock}
-                      onDeleteStock={isEditing ? onDeleteMidStock : null}
+                      onDeleteStock={onDeleteMidStock}
                       branchPrices={prices}
                       branch={selectedBranch}
                       employee={selectedEmployee}
                       date={currentDate}
-                      isEditing={isEditing}
                       listButton={<p className='font-bold text-lg text-center bg-yellow-200 rounded-lg border p-1 border-header'>{currency({ amount: midDayStockAmount ?? 0 })}</p>}
                     />
                     :
@@ -561,7 +583,7 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
           )}
           {branchId &&
             <div className='flex flex-col gap-4 mt-4 sticky bottom-4'>
-              {isEditing && (!branchReport?.dateSent || isAuthorized) &&
+              {(!branchReport?.dateSent || isAuthorized) &&
                 <button disabled={loading} className='bg-red-800 text-white border border-black p-3 rounded-lg w-full' onClick={() => setShowSelectBranchEmployees(true)}>Terminar llenado</button>
               }
             </div>

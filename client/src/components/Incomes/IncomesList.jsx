@@ -10,12 +10,14 @@ import ShowDetails from '../ShowDetails';
 import RowItem from '../RowItem';
 import ConfirmationButton from '../Buttons/ConfirmationButton';
 import { CgProfile } from 'react-icons/cg';
-import MoneyBag from '../Icons/MoneyBag';
 import { MdPendingActions, MdStorefront } from 'react-icons/md';
 import DeleteButton from '../Buttons/DeleteButton';
 import Amount from './Amount';
 import { CiSquareInfo } from 'react-icons/ci';
 import EmployeeInfo from '../EmployeeInfo';
+import { MoneyBag } from '../Reutilizable/Labels';
+import EmployeeName from '../Names/EmployeeName';
+
 
 export default function IncomesList({ incomes = [], onDeleteIncome }) {
   const { currentUser } = useSelector((state) => state.user);
@@ -95,7 +97,7 @@ export default function IncomesList({ incomes = [], onDeleteIncome }) {
                 <div className='w-full text-red-800 mb-1'>
                   <RowItem>
                     <p className="text-md font-bold flex gap-1 items-center"><MdStorefront />{branchInfo || customerInfo}</p>
-                    <button onClick={() => setSelectedEmployee(employee)} className="font-bold text-md flex gap-1 truncate items-center w-full"><span><CgProfile /></span>{employeeName}</button>
+                    <EmployeeName employee={employee} />
                   </RowItem>
                 </div>
                 <div>

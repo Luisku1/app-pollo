@@ -60,7 +60,7 @@ const employeeSchema = new mongoose.Schema({
 
 }, { timestamps: { createdAt: true, updatedAt: true } })
 
-employeeSchema.index({ phoneNumber: 1 }, { unique: true })
+employeeSchema.index({ phoneNumber: 1, company: 1 }, { unique: true })
 
 const Employee = mongoose.model('Employee', employeeSchema)
 

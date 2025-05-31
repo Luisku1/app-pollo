@@ -20,6 +20,7 @@ export default {
         'providers': '#FAF3F3',
         'delete-button': '#E53E3E',
         'update-button': '#2B6CB0',
+        'employee-name': '#2B6CB0',
       },
     },
   },

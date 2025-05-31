@@ -11,7 +11,6 @@ import { useProviderInputs } from "../hooks/ProviderInputs/useProviderInputs";
 import { getArrayForSelects, getElementForSelect, currency } from "../helpers/Functions";
 import Modal from "../components/Modals/Modal";
 import ShowListModal from "../components/Modals/ShowListModal";
-import ProviderInputsList from "../components/Proveedores/ProviderInputsList";
 import { ProductsListsMenu } from "../components/EntradasDeProveedor/ProductsListsMenu";
 import { useRoles } from "../context/RolesContext";
 

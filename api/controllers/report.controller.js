@@ -23,7 +23,7 @@ export const getBranchReports = async (req, res, next) => {
 
   try {
 
-    const branchReports = await BranchReport.aggregate([
+    const branchReportsAggregate = await BranchReport.aggregate([
       {
         $match: {
           'createdAt': { $gte: new Date(bottomDate), $lt: new Date(topDate) },
@@ -325,6 +325,21 @@ export const getBranchReports = async (req, res, next) => {
         }
       },
       {
+        $match: {
+          $or: [
+            { initialStock: { $ne: 0 } },
+            { midDayStock: { $ne: 0 } },
+            { finalStock: { $ne: 0 } },
+            { inputs: { $ne: 0 } },
+            { providerInputs: { $ne: 0 } },
+            { outputs: { $ne: 0 } },
+            { outgoings: { $ne: 0 } },
+            { incomes: { $ne: 0 } },
+            { balance: { $ne: 0 } }
+          ]
+        }
+      },
+      {
         $sort: { 'branch.position': 1 }
       },
       {
@@ -336,7 +351,7 @@ export const getBranchReports = async (req, res, next) => {
                 createdAt: 1,
                 initialStock: 1,
                 initialStockArray: 1,
-                mimeDayStock: 1,
+                midDayStock: 1,
                 midDayStockArray: 1,
                 finalStock: 1,
                 finalStockArray: 1,
@@ -383,9 +398,12 @@ export const getBranchReports = async (req, res, next) => {
       }
     ]);
 
-    if (branchReports.length > 0) {
+    if (branchReportsAggregate.length > 0) {
 
-      res.status(200).json({ branchReports: branchReports[0].branchReports, totalIncomes: branchReports[0].globalTotals[0].totalIncomes, totalStock: branchReports[0].globalTotals[0].totalFinalStock, totalOutgoings: branchReports[0].globalTotals[0].totalOutgoings, totalBalance: branchReports[0].globalTotals[0].totalBalance })
+      const branchReports = branchReportsAggregate[0].branchReports ?? []
+      const { totalIncomes = 0, totalFinalStock = 0, totalOutgoings = 0, totalBalance = 0 } = branchReportsAggregate?.[0]?.globalTotals?.[0]
+
+      res.status(200).json({ branchReports: branchReports, totalIncomes: totalIncomes, totalStock: totalFinalStock, totalOutgoings: totalOutgoings, totalBalance: totalBalance })
 
     } else {
 
@@ -409,10 +427,10 @@ export const getSupervisorsInfo = async (req, res, next) => {
 
     const supervisorReports = await supervisorsInfoQuery(companyId, topDate, bottomDate)
 
-    if (supervisorReports) {
+    if (supervisorReports !== null && supervisorReports !== undefined) {
 
       const reports = supervisorReports.reports
-      const { extraOutgoings, extraOutgoingsArray, deposits, cash, cashArray, depositsArray, verifiedCash, verifiedDeposits, terminalIncomesArray, terminalIncomes, balance } = supervisorReports.globalTotals[0]
+      const { extraOutgoings = 0, extraOutgoingsArray = 0, deposits = 0, cash = 0, cashArray = 0, depositsArray = 0, verifiedCash = 0, verifiedDeposits = 0, terminalIncomesArray = 0, terminalIncomes = 0, balance = 0 } = supervisorReports?.globalTotals?.[0]
 
       const netIncomes = cash + deposits + terminalIncomes - extraOutgoings
       const verifiedIncomes = verifiedCash + verifiedDeposits

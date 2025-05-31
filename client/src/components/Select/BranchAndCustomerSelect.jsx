@@ -7,6 +7,7 @@ export default function BranchAndCustomerSelect({ options, defaultLabel, selecte
     <div>
       <Select
         styles={customSelectStyles}
+        menuPortalTarget={document.body}
         value={selectedOption}
         onChange={handleSelectChange}
         options={options}

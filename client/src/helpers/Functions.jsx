@@ -42,3 +42,7 @@ export const getArrayForSelects = (array, getLabel) => {
   })
 }
 
+export const isNumeric = (value) => {
+  return typeof value === 'number' && !isNaN(value);
+};
+

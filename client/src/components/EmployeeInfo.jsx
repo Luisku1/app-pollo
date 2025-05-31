@@ -9,14 +9,16 @@ import PhoneLinks from "./PhoneLinks";
 import EmployeePayments from "./EmployeePayments";
 import { useRoles } from "../context/RolesContext";
 import { useSelector } from "react-redux";
+import { weekDays } from "../helpers/Constants";
+import { FaEdit } from "react-icons/fa";
 
-export default function EmployeeInfo({ employee, toggleInfo }) {
+export default function EmployeeInfo({ employee, toggleInfo, isShown }) {
 
   const { currentUser } = useSelector((state) => state.user);
   const [showEmployeeBranchReports, setShowEmployeeBranchReports] = useState(false);
   const [showEmployeeSupervisorReports, setShowEmployeeSupervisorReports] = useState(false);
   const [showPayments, setShowPayments] = useState(false);
-  const { isSupervisor } = useRoles();
+  const { isSupervisor, isManager } = useRoles();
 
   if (!employee) return null;
 
@@ -32,12 +34,17 @@ export default function EmployeeInfo({ employee, toggleInfo }) {
 
   const handleViewPayments = () => {
     setShowPayments(true);
+  };
+
+  const toggleEditEmployee = () => {
+
+    setEditEmployee((prev) => !prev)
   }
 
   const employeeCard = () => {
     return (
-      <div>
-        <h2 className="text-xl font-bold mb-4">
+      <div className={"p-2"}>
+        <h2 className="text-xl font-bold mb-4 flex justify-evenly gap-2 items-center">
           {isSupervisor(currentUser.role) ? (
             <NavLink to={`/perfil/${employee._id}`} className="text-[#2B6CB0] hover:underline">
               {`${employee.name} ${employee.lastName}`}
@@ -45,8 +52,14 @@ export default function EmployeeInfo({ employee, toggleInfo }) {
           ) : (
             <span className="text-gray-700">{`${employee.name} ${employee.lastName}`}</span>
           )}
+          {isManager(currentUser.role) && (
+            <button className="" onClick={toggleEditEmployee}>
+              <FaEdit className="text-blue-500" />
+            </button>
+          )}
         </h2>
-        <p className="text-lg mb-2 text-gray-700">{`Rol: ${employee?.role?.name ?? 'No disponible'}`}</p>
+        <p className="text-lg">{`Día de cobro: `} <span className={`font-semibold ${(new Date()).getDay() == (new Date()).getDay() ? 'text-red-600 font-bold' : ''}`}>{weekDays[employee.payDay]}</span></p>
+        <p className="text-lg mb-2 text-gray-700">{`Rol: `}<span className="font-semibold">{employee?.role?.name ?? 'No disponible'}</span></p>
         <div className="flex flex-wrap items-center gap-2 mb-4">
           <p className="text-lg">
             Teléfono:
@@ -81,16 +94,15 @@ export default function EmployeeInfo({ employee, toggleInfo }) {
 
   return (
     <div className="text-base">
-      {employee && (
-        <Modal
-          closeModal={() => toggleInfo()}
-          closeOnClickOutside={true}
-          closeOnClickInside={false}
-          width="4/6"
-          shape="rounded-3xl"
-          content={employeeCard()}
-        />
-      )}
+      <Modal
+        closeModal={() => toggleInfo()}
+        closeOnClickOutside={true}
+        closeOnClickInside={false}
+        width="4/6"
+        shape="rounded-3xl"
+        isShown={isShown}
+        content={employeeCard()}
+      />
       {showEmployeeBranchReports && (
         <EmployeeBranchReports employeeId={employee._id} employee={employee} toggleComponent={() => setShowEmployeeBranchReports(prev => !prev)} />
       )}

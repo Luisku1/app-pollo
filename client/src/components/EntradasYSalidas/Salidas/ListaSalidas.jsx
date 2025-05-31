@@ -12,11 +12,11 @@ import { FaInfoCircle } from 'react-icons/fa'
 import { MdStorefront } from 'react-icons/md'
 import ConfirmationButton from '../../Buttons/ConfirmationButton'
 import DeleteButton from '../../Buttons/DeleteButton'
-import MoneyBag from '../../Icons/MoneyBag'
 import { CiSquareInfo } from "react-icons/ci";
 import EmployeeInfo from '../../EmployeeInfo'
+import { EmployeeName, MoneyBag } from '../../Reutilizable/Labels'
 
-export default function ListaSalidas({ outputs, onDelete = null }) {
+export default function ListaSalidas({ outputs = [], onDelete = null }) {
   const { currentUser } = useSelector((state) => state.user)
   const { isManager } = useRoles()
   const [selectedOutput, setSelectedOutput] = useState(null)
@@ -66,7 +66,7 @@ export default function ListaSalidas({ outputs, onDelete = null }) {
                     <div className="w-full text-red-800 mb-1">
                       <RowItem>
                         <p className="text-md font-bold flex gap-1 items-center"><MdStorefront />{branch.branch}</p>
-                        <button onClick={() => setSelectedEmployee(employee)} className="font-bold text-md flex gap-1 truncate items-center"><span><CgProfile /></span>{employee.name}</button>
+                        <EmployeeName employeeName={employee.name} onClick={() => setSelectedEmployee(employee)} />
                       </RowItem>
                     </div>
                     <div className="w-full text-sm font-semibold">

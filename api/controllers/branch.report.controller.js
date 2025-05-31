@@ -363,7 +363,7 @@ export const recalculateBranchReport = async ({ branchReport: paramsBranchReport
         : 0
       paramsBranchReport.finalStock = finalStock
 
-      const newBalance = ((outgoings + finalStock + outputs + incomes) - (initialStock + inputs + providerInputs))
+      const newBalance = (outgoings + finalStock + outputs + incomes) - (initialStock + inputs + providerInputs)
 
 
       updatedBranchReport = await BranchReport.findByIdAndUpdate(paramsBranchReport._id, { balance: newBalance, initialStock: initialStock, finalStock, providerInputs, outputs, inputs, outgoings, incomes, onZero: false }, { new: true })

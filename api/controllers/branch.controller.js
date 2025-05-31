@@ -4,18 +4,18 @@ import Branch from '../models/branch.model.js'
 import { errorHandler } from '../utils/error.js'
 import BranchReport from '../models/accounts/branch.report.model.js';
 
-export const branchAggregate = (localField) => {
+export const branchAggregate = (localField = 'branch') => {
 	return [
 		{
 			$lookup: {
 				from: 'branches',
 				localField: localField,
 				foreignField: '_id',
-				as: 'branch'
+				as: localField
 			}
 		},
 		{
-			$unwind: { path: '$branch', preserveNullAndEmptyArrays: true }
+			$unwind: { path: `$${localField}`, preserveNullAndEmptyArrays: true }
 		}
 	]
 }
