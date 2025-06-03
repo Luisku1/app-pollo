@@ -77,7 +77,7 @@ export default function EntradaInicial() {
 
   return (
     <main className="max-w-lg mx-auto">
-      <div className='border bg-providers rounded-md p-3 mt-4'>
+      <div className='rounded-md p-3'>
         <SectionHeader label={'Entradas de Proveedor'} />
         <div className="grid grid-rows-2">
           <div className="flex gap-3 justify-self-end items-center">

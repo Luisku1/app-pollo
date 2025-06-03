@@ -1147,12 +1147,28 @@ export const updateEmployee = async (req, res, next) => {
 
 	const { employeeId } = req.params
 	let updateData = req.body
+	let updatedEmployee = null
+	let prevEmployee = null
+	let employeeWeeklyBalance = null
 
 	try {
 
-		if (updateData.password) {
+		prevEmployee = await Employee.findById(employeeId)
 
-			const employee = await Employee.findById(employeeId)
+		if (!prevEmployee) return res.status(404).json({ message: "No se encontró al empleado" })
+
+		if (updateData.payDay) {
+			const { weekStart } = getWeekRange(new Date(), prevEmployee.payDay)
+
+			employeeWeeklyBalance = createEmployeeWeeklyBalance({
+				employeeId: prevEmployee._id,
+				employeePayDay: updateData.payDay,
+				companyId: prevEmployee.company,
+				date: weekStart
+			})
+		}
+
+		if (updateData.password) {
 
 			const samePass = bcryptjs.compareSync(updateData.password, employee.password)
 
@@ -1166,17 +1182,21 @@ export const updateEmployee = async (req, res, next) => {
 			}
 		}
 
-		const updatedEmployee = await Employee.findByIdAndUpdate(employeeId, updateData, { new: true })
+		updatedEmployee = await Employee.findByIdAndUpdate(employeeId, updateData, { new: true })
 
 		updatedEmployee.password = undefined // Remove password from response
 
 		if (!updatedEmployee)
-			return res.status(404).json({ message: "No se encontró al empleado" })
+			return res.status(404).json({ message: "No se actualizó al empleado" })
 
 		res.status(200).json({ employee: updatedEmployee })
 
 	} catch (error) {
 
+		if (updatedEmployee) {
+
+			await Employee.findByIdAndUpdate(employeeId, prevEmployee, { new: true })
+		}
 		next(error)
 	}
 }
@@ -1291,15 +1311,64 @@ export const createEmployeeWeeklyBalance = async ({ employeeId, employeePayDay, 
 	const { weekStart: currentStart, weekEnd: currentEnd } = getWeekRange(date, employeePayDay)
 	const { weekStart } = getWeekRange(date, employeePayDay, -1)
 
-	const lastEmployeeWeeklyBalance = await EmployeeWeeklyBalance.findOne({
+	const hasFutureBalance = await EmployeeWeeklyBalance.exists({
 		employee: employeeId,
-		weekStart: weekStart
+		weekStart: { $gt: weekStart }
 	})
 
+	let lastEmployeeWeeklyBalance = null
+
+	// 2. Si NO hay balances futuros, busca el más cercano menor o igual a weekStart
+	if (!hasFutureBalance) {
+		lastEmployeeWeeklyBalance = await EmployeeWeeklyBalance.findOne({
+			employee: employeeId,
+			weekStart: { $lt: weekStart }
+		}).sort({ weekStart: -1 })
+	}
+
 	const lastWeekBalance = lastEmployeeWeeklyBalance?.balance || 0
-	const employeeWeeklyData = { lastWeekBalance, employee: employeeId, company: companyId, weekStart: currentStart, currentPayDay: employeePayDay, weekEnd: currentEnd }
+	const employeeWeeklyData = {
+		lastWeekBalance,
+		employee: employeeId,
+		company: companyId,
+		weekStart: currentStart,
+		currentPayDay: employeePayDay,
+		weekEnd: currentEnd
+	}
 
 	return await EmployeeWeeklyBalance.create(employeeWeeklyData)
+}
+
+export const deleteEmployeeWeeklyBalance = async (employeeId, weekStart) => {
+
+	let deletedEmployeeWeeklyBalance = null
+
+	try {
+
+		deletedEmployeeWeeklyBalance = await EmployeeWeeklyBalance.findOneAndDelete({
+			weekStart: weekStart,
+			employee: employeeId,
+		})
+
+		if (!deletedEmployeeWeeklyBalance) {
+			throw new Error('No se encontró el balance semanal del empleado')
+		}
+
+		return deletedEmployeeWeeklyBalance
+
+	} catch (error) {
+
+		throw error
+	}
+}
+
+export const deleteEmployeeWeeklyBalanceById = async (employeeWeeklyBalanceId) => {
+
+	try {
+
+	} catch (error) {
+
+	}
 }
 
 export const fetchEmployeeWeeklyBalance = async ({ employeeId, date, payDay }) => {
@@ -2729,9 +2798,9 @@ export const fetchDailyBalance = async ({ companyId, employeeId, date }) => {
 			createdAt: { $lt: topDate, $gte: bottomDate }
 		})
 
-			if (!employeeBalance) throw new Error("No se encontró el balance del empleado");
+		if (!employeeBalance) throw new Error("No se encontró el balance del empleado");
 
-			if (!employeeBalance.weeklyBalance) {
+		if (!employeeBalance.weeklyBalance) {
 
 			await addDailyBalanceInWeeklyBalance({ dailyBalance: employeeBalance })
 		}

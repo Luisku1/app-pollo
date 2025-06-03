@@ -3,25 +3,22 @@ import { FaListAlt } from 'react-icons/fa'
 import SectionHeader from '../SectionHeader'
 import EmployeesSelect from '../Select/EmployeesSelect'
 import Select from 'react-select'
-import { getArrayForSelects, getElementForSelect, currency } from '../../helpers/Functions'
+import { currency } from '../../helpers/Functions'
 import { isToday } from '../../helpers/DatePickerFunctions'
-import { useEffect, useState } from 'react'
-import { useEmployeesPayments } from '../../hooks/Employees/useEmployeesPayments'
+import { useState } from 'react'
 import { useDayExtraOutgoings } from '../../hooks/ExtraOutgoings/useDayExtraOutgoings'
-import { customSelectStyles } from '../../helpers/Constants'
 import { useRoles } from '../../context/RolesContext'
 import ShowListModal from '../Modals/ShowListModal'
-import EmployeePaymentsList from '../EmployeePaymentsList'
 import { useSelector } from 'react-redux'
 import ExtraOutgoingsList from './ExtraOutgoingsList'
 import Payments from './Payments'
 
-export default function ExtraOutgoings({ date, pushIncome, spliceIncomeById }) {
+export default function ExtraOutgoings() {
 
   const { currentUser, company } = useSelector((state) => state.user)
   const { isManager } = useRoles()
   const [extraOutgoingFormData, setExtraOutgoingFormData] = useState({})
-  const { extraOutgoings, spliceExtraOutgoingById, totalExtraOutgoings, onAddExtraOutgoing, onDeleteExtraOutgoing, pushExtraOutgoing } = useDayExtraOutgoings({ companyId: company._id, date })
+  const { extraOutgoings, spliceExtraOutgoingById, totalExtraOutgoings, onAddExtraOutgoing, onDeleteExtraOutgoing } = useDayExtraOutgoings({ companyId: company._id, date })
 
   const addExtraOutgoingSubmit = async (e) => {
 

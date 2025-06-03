@@ -42,6 +42,8 @@ const ShowListModal = ({
             ListComponent ? <ListComponent {...ListComponentProps} /> : <div>No se proporcionó un componente de lista.</div>
           }
           closeModal={changeListIsOpen}
+          closeOnEsc={true}
+          closeOnClickOutside={true}
         />
       )}
     </div>

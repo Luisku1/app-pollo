@@ -7,6 +7,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { recalculateBranchReport } from '../../../../common/recalculateReports';
 import { optimisticUpdateReport, rollbackReport } from "../../helpers/optimisticReportUpdate"
 import { addToArrayAndSum, removeFromArrayAndSum } from '../../helpers/reportActions';
+import { formatDate } from "../../helpers/DatePickerFunctions"
 
 export const useInputs = ({ companyId = null, date = null, initialInputs = null }) => {
   const [inputs, setInputs] = useState([])
@@ -112,7 +113,7 @@ export const useInputs = ({ companyId = null, date = null, initialInputs = null 
     isLoading: queryLoading,
     error: queryError
   } = useQuery({
-    queryKey: ["inputs", companyId, date],
+    queryKey: ["inputs", companyId, formatDate(date)],
     queryFn: () => getInputs({ companyId, date }).then(res => res.inputs),
     enabled: !!companyId && !!date,
     staleTime: 1000 * 60 * 3

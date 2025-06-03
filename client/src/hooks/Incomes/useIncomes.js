@@ -7,6 +7,7 @@ import { Types } from "mongoose";
 import { optimisticUpdateReport, rollbackReport } from "../../helpers/optimisticReportUpdate";
 import { addToArrayAndSum, removeFromArrayAndSum } from '../../helpers/reportActions';
 import { getId } from "../../helpers/Functions";
+import { formatDate } from "../../../../common/dateOps";
 
 
 export const useIncomes = ({ companyId = null, date = null, initialIncomes = null }) => {
@@ -21,7 +22,7 @@ export const useIncomes = ({ companyId = null, date = null, initialIncomes = nul
     isLoading: loading,
     refetch: refetchIncomes
   } = useQuery({
-    queryKey: ["incomes", companyId, date],
+    queryKey: ["incomes", companyId, formatDate(date)],
     queryFn: () => getIncomesFetch(companyId, date).then(res => res.incomes),
     enabled: !!companyId && !!date,
     staleTime: 1000 * 60 * 3

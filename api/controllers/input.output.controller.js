@@ -87,14 +87,15 @@ export const newBranchInputAndUpdateBranchReport = async ({ _id, weight, comment
 
   let input = null
   let stock = null
+  let updatedBranchReport = null
 
   try {
 
-    input = await Input.create({ _id, weight, comment, pieces, company, addInStock, product, employee, branch, amount, price, createdAt, specialPrice })
+    input = await Input.create({ _id, weight, comment, pieces, company, product, employee, branch, amount, price, createdAt, specialPrice })
 
     if (!input) throw new Error("No se logró crear la entrada a sucursal");
 
-    await pushOrPullBranchReportRecord({
+    updatedBranchReport = await pushOrPullBranchReportRecord({
       branchId: branch,
       date: createdAt,
       record: input,
@@ -104,8 +105,14 @@ export const newBranchInputAndUpdateBranchReport = async ({ _id, weight, comment
       operation: '$addToSet'
     })
 
-    if (input.addInStock) {
-      stock = await createStockAndUpdateBranchReport(input)
+    if (!updatedBranchReport) throw new Error("No se logró actualizar el reporte de sucursal");
+
+    if (addInStock) {
+      stock = await createStockAndUpdateBranchReport(input, 'input')
+
+      if (!stock) throw new Error("No se logró crear el stock asociado a la entrada");
+
+      Input.findByIdAndUpdate(input._id, { stock: stock._id }, { new: true })
     }
 
     return input
@@ -114,7 +121,20 @@ export const newBranchInputAndUpdateBranchReport = async ({ _id, weight, comment
 
     if (stock) {
 
-      await deleteStockAndUpdateBranchReport({ stock_id: stock._id, alsoDeleteInitial: true })
+      await deleteStockAndUpdateBranchReport({ stockId: stock._id, alsoDeleteInitial: true })
+    }
+
+    if (updatedBranchReport) {
+
+      await pushOrPullBranchReportRecord({
+        branchId: branch,
+        date: createdAt,
+        record: input,
+        affectsBalancePositively: false,
+        operation: '$pull',
+        arrayField: 'inputsArray',
+        amountField: 'inputs'
+      })
     }
 
     if (input) {
@@ -568,9 +588,9 @@ export const deleteInputById = async (inputId) => {
         amountField: 'inputs'
       })
 
-      if (deletedInput.addInStock && deletedInput.stock_id) {
+      if (deletedInput.stock) {
 
-        await deleteStockAndUpdateBranchReport({ stock_id: deletedInput.stock_id, alsoDeleteInitial: true })
+        await deleteStockAndUpdateBranchReport({ stock_id: deletedInput.stock, alsoDeleteInitial: true })
       }
 
     } else {
@@ -599,11 +619,11 @@ export const deleteInputById = async (inputId) => {
 
 export const newBranchOutput = async (req, res, next) => {
 
-  const { _id, weight, comment, amount, price, pieces, company, product, employee, branch: branch, specialPrice, createdAt } = req.body
+  const { _id, weight, comment, amount, price, pieces, company, product, employee, branch: branch, specialPrice, fromStock = null, createdAt } = req.body
 
   try {
 
-    const newOutput = await newBranchOutputAndUpdateBranchReport({ _id, weight, comment, pieces, company, product, employee, branch, amount, price, createdAt, specialPrice })
+    const newOutput = await newBranchOutputAndUpdateBranchReport({ _id, weight, comment, pieces, company, product, employee, branch, fromStock, amount, price, createdAt, specialPrice })
     res.status(200).json({ message: 'New output created', output: newOutput })
 
   } catch (error) {
@@ -612,9 +632,11 @@ export const newBranchOutput = async (req, res, next) => {
   }
 }
 
-export const newBranchOutputAndUpdateBranchReport = async ({ _id, weight, comment, pieces, company, product, employee, branch, amount, price, createdAt, specialPrice }) => {
+export const newBranchOutputAndUpdateBranchReport = async ({ _id, weight, comment, pieces, company, product, employee, branch, amount, price, createdAt, fromStock, specialPrice }) => {
 
   let output = null
+  let updatedBranchReport = null
+  let stock = null
 
   try {
 
@@ -622,7 +644,7 @@ export const newBranchOutputAndUpdateBranchReport = async ({ _id, weight, commen
 
     if (!output) throw new Error("No se logró crear el registro")
 
-    await pushOrPullBranchReportRecord({
+    updatedBranchReport = await pushOrPullBranchReportRecord({
       branchId: branch,
       date: createdAt,
       record: output,
@@ -632,9 +654,38 @@ export const newBranchOutputAndUpdateBranchReport = async ({ _id, weight, commen
       amountField: 'outputs'
     })
 
+    if (!updatedBranchReport) throw new Error("No se logró actualizar el reporte de sucursal");
+
+    if (fromStock) {
+
+      stock = await createStockAndUpdateBranchReport(output, 'output')
+
+      if (!stock) throw new Error("No se logró crear el stock asociado a la salida");
+
+      Output.findByIdAndUpdate(output._id, { stock: stock._id }, { new: true })
+    }
+
     return output
 
   } catch (error) {
+
+    if (updatedBranchReport) {
+
+      await pushOrPullBranchReportRecord({
+        branchId: branch,
+        date: createdAt,
+        record: output,
+        affectsBalancePositively: true,
+        operation: '$pull',
+        arrayField: 'outputsArray',
+        amountField: 'outputs'
+      })
+    }
+
+    if (stock) {
+
+      await deleteStockAndUpdateBranchReport({ stockId: stock._id, alsoDeleteInitial: true })
+    }
 
     if (output) {
 
@@ -1161,6 +1212,11 @@ export const deleteOutput = async (req, res, next) => {
         arrayField: 'outputsArray',
         amountField: 'outputs'
       })
+      if (deleteOutput.stock) {
+
+        await deleteStockAndUpdateBranchReport({ stock_id: deleteOutput.stock, alsoDeleteInitial: true })
+      }
+
     } else {
       await pushOrPullCustomerReportRecord({
         customerId: deletedOutput.customer,

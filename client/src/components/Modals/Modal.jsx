@@ -40,7 +40,7 @@ export default function Modal({
       // Solo la última modal debe cerrar con Escape
       if (
         ((event.key === "Escape" && ableToClose) || (closeOnEsc && event.key === "Escape")) &&
-        modals[modals.length - 1]?.id === modalId
+        (modals[modals.length - 1]?.id === modalId || modals.length === 1)
       ) {
         closeModal();
         removeLastModal();

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from '@tanstack/react-query';
+import { formatDate } from "../../../../common/dateOps";
 // Ajusta la ruta según tu estructura real de servicios
 
 export const useProvidersReports = ({ companyId = null, date = null, reports = [], profile = false, onlyNegativeBalances = false }) => {
@@ -10,7 +11,7 @@ export const useProvidersReports = ({ companyId = null, date = null, reports = [
     isLoading: loading,
     refetch: refetchProvidersReports,
   } = useQuery({
-    queryKey: ["providersReports", companyId, date],
+    queryKey: ["providersReports", companyId, formatDate(date)],
     queryFn: () => getProvidersReportsFetch({ companyId, date }).then(res => res.providersReports),
     enabled: !!companyId && !!date,
     staleTime: 1000 * 60 * 3

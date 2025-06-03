@@ -11,12 +11,14 @@ import CreateRest from "./CreateRest";
 import Penalties from "./Penalties";
 import EmployeePayments from "./EmployeePayments";
 import { useSelector } from "react-redux";
+import CreateProviderPurchase from "./Providers/CreateProviderPurchase";
 
 const menu = [
   { title: "Dinero", onSelec: () => { return <Incomes /> } },
   { title: "Entradas", onSelec: () => { return <Entradas /> } },
   { title: "Salidas", onSelec: () => { return <Salidas /> } },
   { title: "Entrada de Proveedor", onSelec: () => { return <EntradaInicial /> } },
+  { title: "Pago a Proveedor", onSelec: () => { return <CreateProviderPurchase /> } },
   { title: "Gastos", onSelec: () => { return <ExtraOutgoings /> } },
   { title: "Pago a empleados", onSelec: () => { <EmployeePayments /> } },
   { title: "Formato", onSelec: () => { return <RegistroCuentaDiaria /> } },
@@ -29,7 +31,6 @@ export const RegistersMenu = () => {
   const { currentUser } = useSelector((state) => state.user)
   const [showing, setShowing] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
-
 
   const toggleMenu = () => {
     setIsOpen((prev) => !prev);

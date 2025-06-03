@@ -9,16 +9,22 @@ import TarjetaCuenta from "../TarjetaCuenta"
 import BranchReportCard from "../BranchReportCard"
 import SupervisorReportCard from "../SupervisorReportCard"
 import Modal from "../Modals/Modal"
+import { useSelector } from "react-redux"
+import { useRoles } from "../../context/RolesContext"
 
 export default function PayrollResume({ employeePayroll, updateSupervisorReportGroup, updateSupervisorReportSingle, updateBranchReportGroup, updateBranchReportSingle, index = -1 }) {
+
+  const { isManager } = useRoles();
+  const { currentUser } = useSelector((state) => state.user)
+  const showPositives = isManager(currentUser.role)
 
   const { previousWeekBalance, employeeDailyBalances, employee, branchReports, employeePayments, lateDiscount, supervisorReports, missingWorkDiscount, employeePaymentsAmount, balanceAdjustments = [], adjustments = 0, weekEnd } = employeePayroll
   const [branchReportCard, setBranchReportCard] = useState(null)
   const [supervisorReportCard, setSupervisorReportCard] = useState(null)
   const employeeId = employee?._id || null
 
-  const supervisorBalance = supervisorReports.reduce((acc, report) => acc + (report.balance ?? 0), 0)
-  const accountBalance = branchReports.reduce((acc, report) => acc + (report.balance ?? 0), 0)
+  const supervisorBalance = supervisorReports.reduce((acc, report) => acc + ((report.balance ?? 0) > 0 ? showPositives ? report.balance : 0 : report.balance), 0)
+  const accountBalance = branchReports.reduce((acc, report) => acc + ((report.balance ?? 0) > 0 ? showPositives ? report.balance : 0 : report.balance), 0)
   const salary = employee?.salary ?? 0
   const totalToPay = accountBalance + supervisorBalance + lateDiscount + missingWorkDiscount - employeePaymentsAmount + adjustments + salary
 
@@ -133,8 +139,11 @@ export default function PayrollResume({ employeePayroll, updateSupervisorReportG
         const branchReport = branchReports.find((report) => formatDate(report.createdAt) === formatDate(date)) || null;
         const supervisorReport = supervisorReports.find((report) => formatDate(report.createdAt) === formatDate(date)) || null;
         const { lateDiscount = false, restDay = false, dayDiscount = true } = dailyBalance || {};
-        const { balance: branchBalance = 0 } = branchReport || {};
-        const { balance: supervisorBalance = 0 } = supervisorReport || {};
+        let branchBalance = branchReport?.balance || 0;
+        let supervisorBalance = supervisorReport?.balance || 0;
+
+        branchBalance = branchBalance > 0 ? showPositives ? branchBalance : 0 : branchBalance;
+        supervisorBalance = supervisorBalance > 0 ? showPositives ? supervisorBalance : 0 : supervisorBalance;
 
         return (
           <div

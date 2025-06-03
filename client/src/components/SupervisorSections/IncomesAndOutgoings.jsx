@@ -1,5 +1,4 @@
 /* eslint-disable react/prop-types */
-import { useSelector } from "react-redux";
 import Incomes from "../Incomes/Incomes";
 import ExtraOutgoings from "../Outgoings/ExtraOutgoings";
 
@@ -9,7 +8,6 @@ export default function IncomesAndOutgoings() {
     <div>
       <Incomes />
       <ExtraOutgoings />
-
     </div>
   )
 }

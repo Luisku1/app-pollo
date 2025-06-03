@@ -2,6 +2,7 @@ import { useMemo, useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { getEmployeesDailyBalancesFetch } from "../../services/employees/getEmployeesDailyBalances"
 import { getDayRange } from "../../helpers/DatePickerFunctions"
+import { formatDate } from "../../../../common/dateOps"
 
 export const useEmployeesDailyBalances = ({ companyId, date }) => {
   const [filterText, setFilterText] = useState("")
@@ -13,7 +14,7 @@ export const useEmployeesDailyBalances = ({ companyId, date }) => {
     isLoading: loading,
     error
   } = useQuery({
-    queryKey: ["employeesDailyBalances", companyId, date],
+    queryKey: ["employeesDailyBalances", companyId, formatDate(date)],
     queryFn: () => getEmployeesDailyBalancesFetch({ companyId, date }).then(res => res.employeesDailyBalances),
     enabled,
     staleTime: 1000 * 60 * 3

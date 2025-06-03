@@ -3,6 +3,8 @@ import { ToastWarning } from "./toastify"
 export const currency = (amount) => {
 
   const value = typeof amount === 'object' && amount !== null ? amount.amount : amount;
+  if (typeof value !== 'number' || isNaN(value))
+    return '$0.00';
 
   return value.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
 };
