@@ -27,7 +27,7 @@ export const createStock = async (req, res, next) => {
   }
 }
 
-export const createStockAndUpdateBranchReport = async (params) => {
+export const createStockAndUpdateBranchReport = async (params, movement = null) => {
   const {
     _id = null,
     isInitial = false,
@@ -50,6 +50,24 @@ export const createStockAndUpdateBranchReport = async (params) => {
   let stock = null
   let initialStock = null
 
+  if (movement) {
+
+    switch (movement) {
+      case 'output':
+        stockData[movement] = params._id;
+        stockData.amount = -amount;
+        stockData.weight = -weight;
+        stockData.pieces = -pieces;
+        break;
+      case 'input':
+        stockData[movement] = params._id;
+        break;
+      default:
+        throw new Error("Movimiento no reconocido");
+    }
+
+    stockData._id = undefined;
+  }
 
   try {
 

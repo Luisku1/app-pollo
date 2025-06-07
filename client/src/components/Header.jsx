@@ -7,18 +7,26 @@ import { useRoles } from '../context/RolesContext';
 import { useDate } from '../context/DateContext'; // Import DateContext
 import { formatDate, formatInformationDate } from '../helpers/DatePickerFunctions';
 import { normalizeText } from '../helpers/Functions';
-import { RegistersMenu } from './RegitsersMenu';
+import { RegistersMenu } from './RegistersMenu';
 import { SearchMenu } from './Search';
+import { useBranches } from '../hooks/Branches/useBranches';
+import { useEmployees } from '../hooks/Employees/useEmployees';
+import { useCustomers } from '../hooks/Customers/useCustomers';
 
 export default function Header() {
 
-  const { currentUser } = useSelector((state) => state.user);
+  const { currentUser, company } = useSelector((state) => state.user);
   const { roles, isSupervisor, isManager } = useRoles();
   const { currentDate } = useDate() || {}; // Add fallback to prevent destructuring error
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredOptions, setFilteredOptions] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1); // Added state for highlighted index
+
+
+  const { branches } = useBranches({ companyId: company._id })
+  const { employees } = useEmployees({ companyId: company._id })
+  const { customers } = useCustomers({ companyId: company._id })
   const navigate = useNavigate();
   const homeLink = !currentUser ?
     '/inicio-sesion'
@@ -39,8 +47,8 @@ export default function Header() {
     { text: 'Supervisión', link: '/supervision-diaria', role: 'supervisor', date: true },
     { text: 'Registro Empleado', link: '/registro-empleado', role: 'supervisor', dateRole: true },
     { text: 'Registro Cliente', link: '/registro-cliente', role: 'supervisor' },
-    { text: 'Registro Proveedor', link: '/registro-proveedor', role: 'supervisor' },
     { text: 'Sucursales', link: '/sucursales', role: 'supervisor' },
+    { text: 'Proveedores', link: '/proveedores', role: 'manager', date: true },
     { text: 'Reporte', link: '/reporte', role: 'supervisor', date: true },
     { text: 'Nomina', link: '/nomina', role: 'manager', date: true, dateRole: true },
     { text: 'Cuentas', link: '/listado-de-cuentas', role: 'manager' },

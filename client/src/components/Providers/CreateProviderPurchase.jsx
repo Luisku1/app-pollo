@@ -28,7 +28,6 @@ export default function CreateProviderPurchase() {
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [selectedProvider, setSelectedProvider] = useState(null)
   const [amount, setAmount] = useState('$0.00')
-  const [showList, setShowList] = useState(false)
 
   const handleInputChange = (e) => {
     setPurchaseFormData({
@@ -75,14 +74,13 @@ export default function CreateProviderPurchase() {
 
   return (
     <div>
-      <div className='border rounded-md p-3 mt-4'>
+      <div className='border rounded-md p-3'>
         <div className='grid grid-cols-2'>
           <SectionHeader label={'Compras a Proveedor'} />
           <div className='flex items-center gap-4 justify-self-end mr-12'>
             <ShowListModal
               title={'Compras a Proveedor'}
               ListComponent={PurchasesList}
-              toggleComponent={() => setShowList(prev => !prev)}
               ListComponentProps={{ purchases, totalAmount, onDelete: onDeletePurchase }}
               clickableComponent={<p className='font-bold text-lg text-center border border-header rounded-lg p-1'>{currency(totalAmount)}</p>}
             />
@@ -96,6 +94,7 @@ export default function CreateProviderPurchase() {
               value={getElementForSelect(selectedProduct, (product) => product.name)}
               options={getArrayForSelects(products, (product) => product.name)}
               placeholder={'Producto'}
+              menuPortalTarget={document.body}
               isSearchable={true}
             />
             <Select
@@ -104,6 +103,7 @@ export default function CreateProviderPurchase() {
               value={getElementForSelect(selectedProvider, (provider) => provider.name)}
               options={getArrayForSelects(providers, (provider) => provider.name)}
               placeholder={'Proveedor'}
+              menuPortalTarget={document.body}
               isSearchable={true}
             />
           </div>

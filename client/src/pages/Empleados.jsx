@@ -2,7 +2,6 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { useSelector } from "react-redux"
 import { weekDays } from "../helpers/Constants"
 import { FaEdit, FaTrash } from "react-icons/fa";
-import { Link } from "react-router-dom"
 import { useEmployees } from "../hooks/Employees/useEmployees";
 import { useDeleteEmployee } from "../hooks/Employees/useDeleteEmployee";
 import SearchBar from "../components/SearchBar";

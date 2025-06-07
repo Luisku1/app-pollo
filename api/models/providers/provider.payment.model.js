@@ -12,6 +12,16 @@ const providerPaymentSchema = mongoose.Schema({
     required: true
   },
 
+  comment: {
+    type: String,
+    default: ''
+  },
+
+  employee: {
+    type: Schema.Types.ObjectId, ref: 'Employee',
+    required: true
+  },
+
   company: {
     type: Schema.Types.ObjectId, ref: 'Company',
     required: true

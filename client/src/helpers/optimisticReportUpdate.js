@@ -13,6 +13,8 @@ export function optimisticUpdateReport({
     if (!oldReports) return oldReports;
     const updated = oldReports.map(report => {
       if (matchFn(report, item)) {
+
+        console.log('Optimistic update for report:', report, 'with item:', item);
         found = true;
         return updateFn(report, item);
       }

@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useQuery } from '@tanstack/react-query';
 import { getCustomersReports } from '../../services/customers/getCustomersReports';
+import { formatDate } from "../../../../common/dateOps";
 
 export const useCustomersReports = ({ companyId = null, date = null, reports = [], onlyNegativeBalances = false }) => {
   // Si se pasan reports por parámetro, se usan directamente; si no, usa React Query
@@ -9,7 +10,7 @@ export const useCustomersReports = ({ companyId = null, date = null, reports = [
     isLoading,
     refetch: refetchCustomerReports,
   } = useQuery({
-    queryKey: ['customerReports', companyId, date],
+    queryKey: ['customerReports', companyId, formatDate(date)],
     queryFn: () => getCustomersReports({ companyId, date }),
     enabled: !!companyId && !!date && reports.length === 0,
     select: (data) => data?.customersReports || [],

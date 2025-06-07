@@ -1,5 +1,5 @@
 import { IoIosAddCircle } from "react-icons/io";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Incomes from "./Incomes/Incomes";
 import Modal from "./Modals/Modal";
 import EntradaInicial from "../pages/EntradaInicial";
@@ -11,41 +11,43 @@ import CreateRest from "./CreateRest";
 import Penalties from "./Penalties";
 import EmployeePayments from "./EmployeePayments";
 import { useSelector } from "react-redux";
-import { useBranches } from "../hooks/Branches/useBranches";
-import { useEmployees } from "../hooks/Employees/useEmployees";
-import { useCustomers } from "../hooks/Customers/useCustomers";
+import CreateProviderPurchase from "./Providers/CreateProviderPurchase";
+
+const menu = [
+  { title: "Dinero", onSelec: () => { return <Incomes /> } },
+  { title: "Entradas", onSelec: () => { return <Entradas /> } },
+  { title: "Salidas", onSelec: () => { return <Salidas /> } },
+  { title: "Entrada de Proveedor", onSelec: () => { return <EntradaInicial /> } },
+  { title: "Pago a Proveedor", onSelec: () => { return <CreateProviderPurchase /> } },
+  { title: "Gastos", onSelec: () => { return <ExtraOutgoings /> } },
+  { title: "Pago a empleados", onSelec: () => { <EmployeePayments /> } },
+  { title: "Formato", onSelec: () => { return <RegistroCuentaDiaria /> } },
+  { title: "Descansos", onSelec: () => { return <CreateRest /> } },
+  { title: "Retardos y faltas", onSelec: () => { <Penalties /> } },
+]
 
 export const RegistersMenu = () => {
-  const { currentUser, company } = useSelector((state) => state.user)
+
+  const { currentUser } = useSelector((state) => state.user)
   const [showing, setShowing] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
 
-  const { branches } = useBranches({ companyId: company._id })
-  const { employees } = useEmployees({ companyId: company._id })
-  const { customers } = useCustomers({ companyId: company._id })
-
-  // Estado compartido para Entradas y Salidas
-  const [selectedProduct, setSelectedProduct] = useState(null);
-  const setSelectedProductToNull = () => setSelectedProduct(null);
-
   const toggleMenu = () => {
-    setIsOpen(!isOpen);
+    setIsOpen((prev) => !prev);
   };
 
-  if (!currentUser) return null
+  // Shortcut para abrir/cerrar el menú con la tecla +
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "+") {
+        toggleMenu();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
-  // Menú actualizado para pasar el estado compartido
-  const menu = [
-    { title: "Dinero", onSelec: () => <Incomes /> },
-    { title: "Salidas", onSelec: () => <Salidas selectedProduct={selectedProduct} setSelectedProduct={setSelectedProduct} setSelectedProductToNull={setSelectedProductToNull} /> },
-    { title: "Entradas", onSelec: () => <Entradas selectedProduct={selectedProduct} setSelectedProduct={setSelectedProduct} setSelectedProductToNull={setSelectedProductToNull} /> },
-    { title: "Gastos", onSelec: () => <ExtraOutgoings /> },
-    { title: "Pago a empleados", onSelec: () => <EmployeePayments /> },
-    { title: "Entrada de Proveedor", onSelec: () => <EntradaInicial /> },
-    { title: "Formato", onSelec: () => <RegistroCuentaDiaria /> },
-    { title: "Descansos", onSelec: () => <CreateRest /> },
-    { title: "Retardos y faltas", onSelec: () => <Penalties /> },
-  ];
+  if (!currentUser) return null
 
   return (
     <div>
@@ -73,7 +75,7 @@ export const RegistersMenu = () => {
               <li key={index} className="flex items-center justify-between">
                 <button
                   onClick={() => {
-                    setShowing(item.onSelec());
+                    setShowing(item.onSelec);
                     toggleMenu();
                   }}
                   className="text-black hover:underline text-left w-full"
@@ -93,7 +95,6 @@ export const RegistersMenu = () => {
           fit={true}
           shape="rounded-lg border-2 border-gray-300"
           closeOnClickOutside={true}
-          closeOnEscape={true}
           closeModal={() => setShowing(null)}
         />
       }

@@ -1,15 +1,16 @@
 import { useMemo, useState, useEffect } from "react"
 import { useQuery } from '@tanstack/react-query';
 import { getSupervisorsInfoReportFetch } from "../../services/Supervisors/getSupervisorsReportInfo"
+import { formatDate } from "../../../../common/dateOps";
 
 export const useSupervisorsReportInfo = ({ companyId, date, onlyNegativeBalances = false }) => {
-  // React Query para supervisorsInfo
+
   const {
     data: supervisorsInfoData,
     isLoading: loading,
     refetch: refetchSupervisorsInfo,
   } = useQuery({
-    queryKey: ["supervisorsReportInfo", companyId, date],
+    queryKey: ["supervisorsReportInfo", companyId, formatDate(date)],
     queryFn: () => getSupervisorsInfoReportFetch({ companyId, date }).then(res => res.reports),
     enabled: !!companyId && !!date,
     staleTime: 1000 * 60 * 3

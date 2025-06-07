@@ -4,6 +4,8 @@ import { RolesProvider } from './context/RolesContext';
 import ModalProvider from './context/ModalProvider';
 import PrivateRoute from './components/PrivateRoute';
 import Header from './components/Header';
+
+
 import './index.css';
 import { useSelector } from 'react-redux';
 import { DateProvider } from './context/DateContext';
@@ -33,7 +35,6 @@ const Graficos = React.lazy(() => import('./pages/Graficos'));
 const PreciosSucursal = React.lazy(() => import('./pages/PreciosSucursal'));
 const RegistroCliente = React.lazy(() => import('./pages/RegistroCliente'));
 const RegistroProveedor = React.lazy(() => import('./pages/RegistroProveedor'));
-const ControlProveedor = React.lazy(() => import('./pages/ControlProveedor'));
 
 export default function App() {
   const currentUser = useSelector((state) => state.user);
@@ -95,8 +96,6 @@ export default function App() {
                   <Route path="/sobrante/:date" element={<Sobrante />} />
                   <Route path="/graficos/" element={<Graficos />} />
                   <Route path="/graficos/:date" element={<Graficos />} />
-                  <Route path="/proveedores/:date" element={<ControlProveedor />} />
-                  <Route path="/proveedores" element={<ControlProveedor />} />
                 </Route>
               </Routes>
             </Suspense>

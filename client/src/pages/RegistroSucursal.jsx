@@ -91,6 +91,7 @@ export default function RegistroSucursal() {
         },
         body: JSON.stringify({
           ...formData,
+          position: branchPosition,
           company: company._id
         })
       })

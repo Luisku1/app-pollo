@@ -68,12 +68,14 @@ export default function InputsAndOutputs({ companyId, date, currentUser, product
           date={date}
           roles={roles}
         />
-        <EntradaInicial
-          date={date}
-          branchAndCustomerSelectOptions={branchAndCustomerSelectOptions}
-          products={products || []}
-          roles={roles}
-        />
+        <div className='bg-providers border border-black rounded-lg mt-4'>
+          <EntradaInicial
+            date={date}
+            branchAndCustomerSelectOptions={branchAndCustomerSelectOptions}
+            products={products || []}
+            roles={roles}
+          />
+        </div>
       </div>
       <div className='border bg-white shadow-lg p-3 mt-4'>
         <div className='flex gap-4 display-flex justify-between' onClick={() => setDifferencesIsOpen(!differencesIsOpen)} >
@@ -84,7 +86,7 @@ export default function InputsAndOutputs({ companyId, date, currentUser, product
           <div className={differencesIsOpen ? '' : 'hidden'} >
             {Object.values(netDifference) && Object.values(netDifference).length > 0 && Object.values(netDifference).map((employeeDifferences) => (
               <div key={employeeDifferences.employee._id}>
-                {roles && roles.manager && (isManager(currentUser.role)|| currentUser._id == employeeDifferences.employee._id) ?
+                {roles && roles.manager && (isManager(currentUser.role) || currentUser._id == employeeDifferences.employee._id) ?
                   < div className='border border-black mt-5'>
                     <div>
                       <p className='font-bold text-xl p-3'>{employeeDifferences.employee.name + ' ' + employeeDifferences.employee.lastName}</p>

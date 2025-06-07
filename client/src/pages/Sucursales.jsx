@@ -4,12 +4,12 @@ import { useNavigate } from "react-router-dom"
 import { MdClear, MdEdit } from "react-icons/md";
 import { FaTrash } from "react-icons/fa";
 import { CiSearch } from "react-icons/ci";
-import BranchSaleAvg from "../components/BranchSaleAvg";
+import { useRoles } from "../context/RolesContext";
 import { useExtraOutgoingsAvg } from "../hooks/ExtraOutgoings/useExtraOutgoingsAvg";
+import BranchSaleAvg from "../components/BranchSaleAvg";
 import BranchProviderInputsAvg from "../components/Sucursales/BranchProviderInputsAvg";
 import BranchOutputsAvg from "../components/Sucursales/BranchOutputsAvg";
 import BranchInputsAvg from "../components/Sucursales/BranchInputsAvg";
-import { useRoles } from "../context/RolesContext";
 
 export default function Sucursales() {
 

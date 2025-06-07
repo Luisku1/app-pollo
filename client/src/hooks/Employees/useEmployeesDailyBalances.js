@@ -1,44 +1,40 @@
-import { useEffect, useMemo, useState } from "react"
+import { useMemo, useState } from "react"
+import { useQuery } from "@tanstack/react-query"
 import { getEmployeesDailyBalancesFetch } from "../../services/employees/getEmployeesDailyBalances"
 import { getDayRange } from "../../helpers/DatePickerFunctions"
+import { formatDate } from "../../../../common/dateOps"
 
 export const useEmployeesDailyBalances = ({ companyId, date }) => {
+  const [filterText, setFilterText] = useState("")
 
-  const [employeesDailyBalances, setEmployeesDailyBalances] = useState([])
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(false)
+  const enabled = Boolean(companyId && date) && getDayRange(new Date(date)).bottomDate <= getDayRange(new Date()).bottomDate
 
-  useEffect(() => {
+  const {
+    data: employeesDailyBalances = [],
+    isLoading: loading,
+    error
+  } = useQuery({
+    queryKey: ["employeesDailyBalances", companyId, formatDate(date)],
+    queryFn: () => getEmployeesDailyBalancesFetch({ companyId, date }).then(res => res.employeesDailyBalances),
+    enabled,
+    staleTime: 1000 * 60 * 3
+  })
 
-    if (!(companyId && date)) return
-    if (getDayRange(new Date(date)).bottomDate > getDayRange(new Date()).bottomDate) return
-
-    setLoading(true)
-
-
-    getEmployeesDailyBalancesFetch({ companyId, date }).then((response) => {
-
-      setEmployeesDailyBalances(response.employeesDailyBalances)
-
-    }).catch((error) => {
-
-      setError(error)
-      console.log(error)
-    })
-
-    setLoading(false)
-
-  }, [companyId, date])
-
-  const sortedEmployeesDailyBalances = useMemo(() => {
-
-    return employeesDailyBalances.sort((a, b) => a.employee.name.localeCompare(b.employee.name))
-
-  }, [employeesDailyBalances])
+  const filteredAndSorted = useMemo(() => {
+    return employeesDailyBalances
+      .filter(db => {
+        if (!filterText) return true
+        const name = db.employee ? `${db.employee.name} ${db.employee.lastName}`.toLowerCase() : ""
+        return name.includes(filterText.toLowerCase())
+      })
+      .sort((a, b) => a.employee.name.localeCompare(b.employee.name))
+  }, [employeesDailyBalances, filterText])
 
   return {
-    employeesDailyBalances: sortedEmployeesDailyBalances,
+    employeesDailyBalances: filteredAndSorted,
     loading,
-    error
+    error,
+    filterText,
+    setFilterText
   }
 }

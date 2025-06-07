@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from '@tanstack/react-query';
 import { getBranchReportsFetch } from "../../services/BranchReports/getBranchReports";
+import { formatDate } from "../../../../common/dateOps";
 
 export const useBranchReports = ({ companyId = null, date = null, reports = [], profile = false, onlyNegativeBalances = false }) => {
 
@@ -11,7 +12,7 @@ export const useBranchReports = ({ companyId = null, date = null, reports = [], 
     isLoading: loading,
     refetch: refetchBranchReports,
   } = useQuery({
-    queryKey: ["branchReports", companyId, date],
+    queryKey: ["branchReports", companyId, formatDate(date)],
     queryFn: () => getBranchReportsFetch({ companyId, date }).then(res => res.branchReports),
     enabled: !!companyId && !!date && !profile,
     staleTime: 1000 * 60 * 3

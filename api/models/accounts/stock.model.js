@@ -56,6 +56,10 @@ const stockSchema = mongoose.Schema({
 		required: true
 	},
 
+	output: {
+		type: Schema.Types.ObjectId, ref: 'Output'
+	},
+
 	input: {
 		type: Schema.Types.ObjectId, ref: 'Input'
 	},

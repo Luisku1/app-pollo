@@ -25,11 +25,16 @@ export const newBranch = async (req, res, next) => {
 	const { branch, phoneNumber, location, p, rentAmount, zone, rentDay, company, position } = req.body
 	const date = new Date().toISOString()
 
-	const newBranch = new Branch({ branch, phoneNumber, location, p, rentAmount, zone, rentDay, company, position, createdAt: date })
-
 	try {
 
-		await newBranch.save()
+		const newBranch = await Branch.create({ branch, phoneNumber, location, p, rentAmount, zone, rentDay, company, position, createdAt: date })
+
+		// const pricesDate = await setInitialBranchPrices(newBranch._id, company)
+
+		// newBranch
+
+		if (!newBranch) throw new Error('No se pudo crear la sucursal')
+
 		res.status(201).json({ branch: newBranch })
 
 	} catch (error) {

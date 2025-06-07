@@ -25,10 +25,13 @@ export default function EntradasYSalidas({ products, branchAndCustomerSelectOpti
   }
 
   return (
-    <div>
-      <Salidas selectedProduct={outputSelectedProduct} setSelectedProduct={selectProduct} setSelectedProductToNull={setOutputSelectedProductToNull} products={products} branchAndCustomerSelectOptions={branchAndCustomerSelectOptions} date={date}></Salidas>
-
-      <Entradas selectedProduct={inputSelectedProduct} setSelectedProduct={selectProduct} setSelectedProductToNull={setInputSelectedProductToNull} products={products} branchAndCustomerSelectOptions={branchAndCustomerSelectOptions} date={date}></Entradas>
+    <div className="flex flex-col gap-4">
+      <div className="bg-outputs border rounded-lg border-black">
+        <Salidas selectedProduct={outputSelectedProduct} setSelectedProduct={selectProduct} setSelectedProductToNull={setOutputSelectedProductToNull} products={products} branchAndCustomerSelectOptions={branchAndCustomerSelectOptions} date={date}></Salidas>
+      </div>
+      <div className="bg-inputs border rounded-lg border-black">
+        <Entradas selectedProduct={inputSelectedProduct} setSelectedProduct={selectProduct} setSelectedProductToNull={setInputSelectedProductToNull} products={products} branchAndCustomerSelectOptions={branchAndCustomerSelectOptions} date={date}></Entradas>
+      </div>
     </div>
   )
 }

@@ -257,17 +257,17 @@ export const pushOrPullBranchReportRecord = async ({
   })
 }
 
-export const fetchOrCreateBranchReport = async ({ branchId, companyId = null, date }) => {
+export const fetchOrCreateBranchReport = async ({ branchId, companyId = null, date, pricesDate = null }) => {
 
   let branchReport = null
 
   try {
 
-    branchReport = await fetchBranchReport({ branchId, date })
+    branchReport = await fetchBranchReport({ branchId, date, pricesDate })
 
     if (!branchReport) {
 
-      branchReport = await createDefaultBranchReport({ branchId, date, companyId: companyId || await getBranchCompany(branchId) })
+      branchReport = await createDefaultBranchReport({ branchId, date, companyId: companyId || await getBranchCompany(branchId), pricesDate })
     }
 
     if (!branchReport) throw new Error("No se encontró ni se pudo crear el reporte");
@@ -285,11 +285,11 @@ export const getBranchCompany = async (branchId) => {
   return (await Branch.findById(branchId)).company
 }
 
-export const createDefaultBranchReport = async ({ branchId, date, companyId }) => {
+export const createDefaultBranchReport = async ({ branchId, date, companyId, pricesDate = null }) => {
 
   const { bottomDate } = getDayRange(date)
 
-  const newBranchReport = await BranchReport.create({ branch: branchId, createdAt: bottomDate, company: companyId, pricesDate: bottomDate })
+  const newBranchReport = await BranchReport.create({ branch: branchId, createdAt: bottomDate, company: companyId, pricesDate: bottomDate, pricesDate: pricesDate || bottomDate })
 
   return newBranchReport
 }
@@ -962,7 +962,7 @@ const fetchBranchReportInfo = async ({ branchId = null, date = null, reportId = 
   }
 };
 
-export const fetchBranchReport = async ({ branchId, date, populate = false }) => {
+export const fetchBranchReport = async ({ branchId, date, populate = false, pricesDate = null }) => {
 
   const { bottomDate, topDate } = getDayRange(new Date(date))
 
@@ -979,6 +979,11 @@ export const fetchBranchReport = async ({ branchId, date, populate = false }) =>
         createdAt: { $lt: topDate, $gte: bottomDate },
         branch: new Types.ObjectId(branchId)
       })
+    }
+
+    if (branchReport && pricesDate) {
+      branchReport = { ...branchReport, pricesDate }
+      await BranchReport.findByIdAndUpdate(branchReport._id, { pricesDate })
     }
 
     return branchReport || null

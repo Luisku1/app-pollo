@@ -98,6 +98,7 @@ export default function EmployeeInfo({ employee, toggleInfo, isShown }) {
         closeModal={() => toggleInfo()}
         closeOnClickOutside={true}
         closeOnClickInside={false}
+        closeOnEsc={true}
         width="4/6"
         shape="rounded-3xl"
         isShown={isShown}

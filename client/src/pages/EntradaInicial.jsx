@@ -13,15 +13,41 @@ import Modal from "../components/Modals/Modal";
 import ShowListModal from "../components/Modals/ShowListModal";
 import { ProductsListsMenu } from "../components/EntradasDeProveedor/ProductsListsMenu";
 import { useRoles } from "../context/RolesContext";
+import { useProducts } from "../hooks/Products/useProducts";
+import { useCustomers } from "../hooks/Customers/useCustomers";
+import { useBranches } from "../hooks/Branches/useBranches";
+import { useDate } from "../context/DateContext";
 
-export default function EntradaInicial({ date, branchAndCustomerSelectOptions, products }) {
+export default function EntradaInicial() {
 
   const { company, currentUser } = useSelector((state) => state.user)
+  const { currentDate: date } = useDate();
   const { isManager } = useRoles()
   const [selectedProduct, setSelectedProduct] = useState(null)
-  const { providerInputs, providerInputsWeight, providerInputsPieces, providerInputsAmount, onAddProviderInput, onDeleteProviderInput } = useProviderInputs({ companyId: company._id, productId: selectedProduct == null ? products.length > 0 ? products[0]._id : null : selectedProduct._id, date })
+  const {
+    products
+  } = useProducts({ companyId: company._id })
+  const { providerInputs, providerInputsWeight, providerInputsPieces, providerInputsAmount, onAddProviderInput, onDeleteProviderInput } = useProviderInputs({ companyId: company._id, productId: selectedProduct == null ? products?.length > 0 ? products[0]._id : null : selectedProduct._id, date })
   const [showProviderInputs, setShowProviderInputs] = useState(false)
   const [showProviderInputsStats, setShowProviderInputsStats] = useState(false)
+
+  const {
+    branches
+  } = useBranches({ companyId: company._id })
+  const {
+    customers
+  } = useCustomers({ companyId: company._id })
+
+  const branchAndCustomerSelectOptions = [
+    {
+      label: 'Sucursales',
+      options: getArrayForSelects(branches, (branch) => branch.branch)
+    },
+    {
+      label: 'Clientes',
+      options: getArrayForSelects(customers, (customer) => customer.name)
+    }
+  ]
 
   useEffect(() => {
 
@@ -51,7 +77,7 @@ export default function EntradaInicial({ date, branchAndCustomerSelectOptions, p
 
   return (
     <main className="max-w-lg mx-auto">
-      <div className='border bg-providers rounded-md p-3 mt-4'>
+      <div className='rounded-md p-3'>
         <SectionHeader label={'Entradas de Proveedor'} />
         <div className="grid grid-rows-2">
           <div className="flex gap-3 justify-self-end items-center">
