@@ -1,6 +1,6 @@
 
-import ProviderPayment from "../../models/providers/provider.payment.model.js";
-import { employeeAggregate } from "../employee.controller";
+import ProviderPayment from "../../models/providers/payment.model.js";
+import { employeeAggregate } from "../employee.controller.js";
 
 export const getPayments = async (req, res, next) => {
 

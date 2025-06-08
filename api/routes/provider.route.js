@@ -1,7 +1,7 @@
 import express from 'express'
 
 import { deleteProvider, newProvider, newMovement, deleteMovement, getMovements, getProviders, getProviderAverage, updateProvider, getPurchases, newPayment, deletePayment } from '../controllers/providers/provider.controller.js'
-import { getPayments } from '../controllers/providers/payment.controller.js'
+import { getPayments, getProviderPayments } from '../controllers/providers/payment.controller.js'
 const router = express.Router()
 
 router.post('/create', newProvider)

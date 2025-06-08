@@ -1,5 +1,5 @@
 import Provider from "../../models/providers/provider.model.js";
-import ProviderPayment from "../../models/providers/provider.payment.model.js";
+import ProviderPayment from "../../models/providers/payment.model.js";
 import ProviderReport from "../../models/providers/provider.report.model.js";
 import ProviderReturns from "../../models/providers/provider.returns.model.js";
 import ProviderMovements from "../../models/providers/provider.movement.model.js";

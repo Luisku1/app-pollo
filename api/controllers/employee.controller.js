@@ -2788,24 +2788,30 @@ const createAdjustmentBalance = async ({ amount, date, concept, employee }) => {
 
 export const fetchDailyBalance = async ({ companyId, employeeId, date }) => {
 
+	let dailyBalance = null
+
 	try {
 
 		const { bottomDate, topDate } = getDayRange(date)
 
-		const employeeBalance = await EmployeeDailyBalance.findOne({
+		dailyBalance = await EmployeeDailyBalance.findOne({
 			company: companyId,
 			employee: employeeId,
 			createdAt: { $lt: topDate, $gte: bottomDate }
 		})
 
-		if (!employeeBalance) throw new Error("No se encontró el balance del empleado");
-
-		if (!employeeBalance.weeklyBalance) {
-
-			await addDailyBalanceInWeeklyBalance({ dailyBalance: employeeBalance })
+		if (!dailyBalance) {
+			dailyBalance = await createDailyBalance({ companyId, employeeId, date })
 		}
 
-		return employeeBalance
+		if (!dailyBalance) throw new Error("No se pudo crear el balance del empleado");
+
+		if (!dailyBalance.weeklyBalance) {
+
+			await addDailyBalanceInWeeklyBalance({ dailyBalance: dailyBalance })
+		}
+
+		return dailyBalance
 
 	} catch (error) {
 
@@ -2884,7 +2890,7 @@ export const changeEmployeeActiveStatus = async (req, res, next) => {
 
 		if (updatedEmployee.active === true) {
 
-			const dailyBalance = fetchDailyBalance({ companyId: updatedEmployee.company, employeeId, date: new Date() })
+			const dailyBalance = await fetchDailyBalance({ companyId: updatedEmployee.company, employeeId, date: new Date() })
 
 			if (!dailyBalance) {
 

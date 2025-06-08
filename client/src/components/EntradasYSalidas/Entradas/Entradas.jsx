@@ -56,6 +56,7 @@ export default function Entradas({ selectedProduct, setSelectedProduct, setSelec
   const [amount, setAmount] = useState('$0.00')
   const [loading, setLoading] = useState(false)
   const [isRegisteredInSurplus, setIsRegisteredInSurplus] = useState(false)
+  const [changePrice, setChangePrice] = useState(false)
 
   // Estado interno para el producto seleccionado
   const [internalSelectedProduct, setInternalSelectedProduct] = useState(selectedProduct);
@@ -245,35 +246,64 @@ export default function Entradas({ selectedProduct, setSelectedProduct, setSelec
               isSearchable={true}
             />
           </div>
+          {/* Nuevo bloque para precio y cambiar precio */}
+          <div className="flex items-center gap-4 mb-2">
+            <div className="relative w-1/2">
+              <span className="absolute text-red-700 font-semibold left-3 top-3">$</span>
+              <input
+                className='pl-6 w-full rounded-lg p-3 text-red-700 font-semibold border border-red-600'
+                name='price'
+                id='input-price'
+                step={0.01}
+                placeholder={price.toFixed(2)}
+                type="number"
+                onChange={(e) => { handleInputInputsChange(e), generarMonto() }}
+                value={inputFormData.price || ''}
+                disabled={!changePrice}
+              />
+              <label htmlFor="input-price" className="-translate-y-full px-1 absolute top-1/4 left-2 transform rounded-sm bg-white text-black text-sm font-semibold">
+                Precio
+              </label>
+            </div>
+            <div className={`flex items-center gap-2 w-1/2 rounded-lg p-2 transition-colors duration-200 ${!changePrice ? 'bg-gray-100' : 'bg-white'}`}>
+              <input
+                type="checkbox"
+                id="changePriceInput"
+                name="changePriceInput"
+                className="w-5 h-5 accent-blue-600"
+                checked={changePrice}
+                onChange={(e) => setChangePrice(e.target.checked)}
+              />
+              <label htmlFor="changePriceInput" className="text-md font-semibold">
+                Cambiar precio
+              </label>
+            </div>
+          </div>
+          {/* Fin bloque precio */}
           <div className="grid grid-cols-3 gap-2">
             <div className='relative'>
               <input type="number" name="pieces" id="input-pieces" placeholder='0.00' step={0.01} className='w-full border border-black p-3 rounded-lg' required onInput={inputButtonControl} onChange={handleInputInputsChange} />
-              <label htmlFor="compact-input" className="-translate-y-full px-1 absolute top-1/4 left-2 transform rounded-sm bg-white text-black text-sm font-semibold">
+              <label htmlFor="input-pieces" className="-translate-y-full px-1 absolute top-1/4 left-2 transform rounded-sm bg-white text-black text-sm font-semibold">
                 Piezas <span>*</span>
               </label>
             </div>
             <div className='relative'>
               <input type="number" name="weight" id="input-weight" placeholder='0.000 kg' step={0.001} className='w-full border border-black p-3 rounded-lg' required onInput={inputButtonControl} onChange={handleInputInputsChange} />
-              <label htmlFor="compact-input" className="-translate-y-full px-1 absolute top-1/4 left-2 transform rounded-sm bg-white text-black text-sm font-semibold">
+              <label htmlFor="input-weight" className="-translate-y-full px-1 absolute top-1/4 left-2 transform rounded-sm bg-white text-black text-sm font-semibold">
                 Kilos <span>*</span>
               </label>
             </div>
+            {/* Campo de amount ahora aquí */}
             <div className='relative items-center'>
-              <span className="absolute text-red-700 font-semibold left-3 top-3">$</span>
-              <input className='pl-6 w-full rounded-lg p-3 text-red-700 font-semibold border border-red-600' name='price' id='input-price' step={0.01} placeholder={price.toFixed(2)} type="number" onChange={(e) => { handleInputInputsChange(e), generarMonto() }} />
-              <label htmlFor="compact-input" className="-translate-y-full px-1 absolute top-1/4 left-2 transform rounded-sm bg-white text-black text-sm font-semibold">
-                Precio <span>*</span>
-              </label>
-            </div>
-          </div>
-          <div className='grid grid-cols-4 gap-1'>
-            <input className='col-span-3 text-sm border border-black rounded-lg p-3' name="comment" id="input-comment" placeholder='Comentario del producto (Opcional)' onChange={handleInputInputsChange}></input>
-            <div className='relative'>
               <p type="text" name="amount" id="input-amount" className='text-green-700 bg-gray-100 w-full border border-black rounded-md p-3' >{amount}</p>
-              <label htmlFor="compact-input" className=" -translate-y-full px-1 absolute top-1/4 left-2 rounded-sm bg-white text-green-700 text-sm font-bold">
+              <label htmlFor="input-amount" className=" -translate-y-full px-1 absolute top-1/4 left-2 rounded-sm bg-white text-green-700 text-sm font-bold">
                 Total
               </label>
             </div>
+          </div>
+          {/* Comentario ocupa todo el espacio */}
+          <div className='w-full'>
+            <input className='w-full text-sm border border-black rounded-lg p-3' name="comment" id="input-comment" placeholder='Comentario del producto (Opcional)' onChange={handleInputInputsChange}></input>
           </div>
           {selectedGroup === 'Sucursales' && (
             <div className="flex items-center gap-4 mt-4 w-full">

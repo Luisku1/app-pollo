@@ -35,6 +35,7 @@ export default function Salidas({ selectedProduct, setSelectedProduct, setSelect
   const [amount, setAmount] = useState('$0.00')
   const [loading, setLoading] = useState(false)
   const [isRegisteredInSurplus, setIsRegisteredInSurplus] = useState(false);
+  const [changePrice, setChangePrice] = useState(false);
 
   const {
     branches
@@ -223,48 +224,79 @@ export default function Salidas({ selectedProduct, setSelectedProduct, setSelect
           </div>
         </div>
         <form onSubmit={addOutputSubmitButton} className="flex flex-col space-y-2">
-          <div>
-            <BranchAndCustomerSelect options={branchAndCustomerSelectOptions} defaultLabel={'Sucursal o Cliente'} selectedOption={selectedCustomerBranchOption} handleSelectChange={handleBranchCustomerSelectChange}></BranchAndCustomerSelect>
+          <div className='mb-4'>
+            <div className="mb-2">
+              <BranchAndCustomerSelect options={branchAndCustomerSelectOptions} defaultLabel={'Sucursal o Cliente'} selectedOption={selectedCustomerBranchOption} handleSelectChange={handleBranchCustomerSelectChange}></BranchAndCustomerSelect>
+            </div>
+            <div className=" border-black rounded-lg">
+              <Select
+                styles={customSelectStyles}
+                onChange={handleProductSelectChange}
+                value={getElementForSelect(selectedProduct, (product) => product.name)}
+                options={getArrayForSelects(products, (product) => product.name)}
+                placeholder={'Producto'}
+                isSearchable={true}
+              />
+            </div>
           </div>
-          <div className=" border-black rounded-lg">
-            <Select
-              styles={customSelectStyles}
-              onChange={handleProductSelectChange}
-              value={getElementForSelect(selectedProduct, (product) => product.name)}
-              options={getArrayForSelects(products, (product) => product.name)}
-              placeholder={'Producto'}
-              isSearchable={true}
-            />
+          {/* Nuevo bloque para precio y cambiar precio */}
+          <div className="flex items-center gap-4 mb-2">
+            <div className="relative w-1/2">
+              <span className={`absolute text-red-700 font-semibold left-3 top-3`}>$</span>
+              <input
+                className={`pl-6 w-full ${!changePrice ? 'bg-gray-100' : 'bg-white'} rounded-lg p-3 text-red-700 font-semibold border border-red-600`}
+                name='price'
+                placeholder={price.toFixed(2)}
+                id='output-price'
+                step={0.01}
+                type="number"
+                onChange={(e) => { handleOutputInputsChange(e), generarMonto() }}
+                value={outputFormData.price || ''}
+                disabled={!changePrice}
+              />
+              <label htmlFor="output-price" className="-translate-y-full px-1 absolute top-1/4 left-2 transform rounded-sm bg-white text-black text-sm font-semibold">
+                Precio
+              </label>
+            </div>
+            <div className={`flex items-center gap-2 w-1/2 rounded-lg p-2 transition-colors duration-200 `}>
+              <input
+                type="checkbox"
+                id="changePrice"
+                name="changePrice"
+                className="w-5 h-5 accent-blue-600"
+                checked={changePrice}
+                onChange={(e) => setChangePrice(e.target.checked)}
+              />
+              <label htmlFor="changePrice" className="text-md font-semibold">
+                Cambiar precio
+              </label>
+            </div>
           </div>
+          {/* Fin bloque precio */}
           <div className="grid grid-cols-3 gap-2">
             <div className="relative">
               <input type="number" name="pieces" id="output-pieces" placeholder='0.00' step={0.01} className='border border-black p-3 rounded-lg w-full' required onInput={outputButtonControl} onChange={handleOutputInputsChange} />
-              <label htmlFor="compact-input" className="-translate-y-full px-1 absolute top-1/4 left-2 transform rounded-sm bg-white text-black text-sm font-semibold">
+              <label htmlFor="output-pieces" className="-translate-y-full px-1 absolute top-1/4 left-2 transform rounded-sm bg-white text-black text-sm font-semibold">
                 Piezas <span>*</span>
               </label>
             </div>
             <div className="relative">
               <input type="number" name="weight" id="output-weight" placeholder='0.000 kg' step={0.001} className='border border-black p-3 rounded-lg w-full' required onInput={outputButtonControl} onChange={handleOutputInputsChange} />
-              <label htmlFor="compact-input" className="-translate-y-full px-1 absolute top-1/4 left-2 transform rounded-sm bg-white text-black text-sm font-semibold">
+              <label htmlFor="output-weight" className="-translate-y-full px-1 absolute top-1/4 left-2 transform rounded-sm bg-white text-black text-sm font-semibold">
                 Kilos <span>*</span>
               </label>
             </div>
-            <div className="relative">
-              <span className="absolute text-red-700 font-semibold left-3 top-3">$</span>
-              <input className='pl-6 w-full rounded-lg p-3 text-red-700 font-semibold border border-red-600' name='price' placeholder={price.toFixed(2)} id='output-price' step={0.01} type="number" onChange={(e) => { handleOutputInputsChange(e), generarMonto() }} />
-              <label htmlFor="compact-input" className="-translate-y-full px-1 absolute top-1/4 left-2 transform rounded-sm bg-white text-black text-sm font-semibold">
-                Precio
-              </label>
-            </div>
-          </div>
-          <div className='grid grid-cols-4 gap-1'>
-            <input className='col-span-3 text-sm border border-black rounded-lg p-3 ' name="comment" id="output-comment" placeholder='Comentario del producto (Opcional)' onChange={handleOutputInputsChange}></input>
+            {/* Campo de amount ahora aquí */}
             <div className='relative'>
               <p type="text" name="amount" id="output-amount" className='text-green-700 bg-gray-100 w-full border border-black rounded-md p-3' >{amount}</p>
-              <label htmlFor="compact-input" className=" -translate-y-full px-1 absolute top-1/4 left-2 rounded-sm bg-white text-green-700 text-sm font-bold">
+              <label htmlFor="output-amount" className=" -translate-y-full px-1 absolute top-1/4 left-2 rounded-sm bg-white text-green-700 text-sm font-bold">
                 Total
               </label>
             </div>
+          </div>
+          {/* Comentario ocupa todo el espacio */}
+          <div className='w-full'>
+            <input className='w-full text-sm border border-black rounded-lg p-3' name="comment" id="output-comment" placeholder='Comentario del producto (Opcional)' onChange={handleOutputInputsChange}></input>
           </div>
           {selectedGroup === 'Sucursales' && (
             <div className="flex items-center gap-4 mt-4">
