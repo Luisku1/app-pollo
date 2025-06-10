@@ -16,6 +16,7 @@ import { useDate } from '../../../context/DateContext'
 import { useBranches } from '../../../hooks/Branches/useBranches'
 import { useCustomers } from '../../../hooks/Customers/useCustomers'
 import { useProducts } from '../../../hooks/Products/useProducts'
+import { useCurrencyInput } from '../../../hooks/InputHooks/useCurrency';
 
 export default function Entradas({ selectedProduct, setSelectedProduct, setSelectedProductToNull }) {
 
@@ -66,15 +67,13 @@ export default function Entradas({ selectedProduct, setSelectedProduct, setSelec
     setInternalSelectedProduct(selectedProduct);
   }, [selectedProduct]);
 
+  const priceCurrency = useCurrencyInput(price ? price : '');
+
   const generarMonto = () => {
-
-    const priceInput = document.getElementById('input-price')
     const weightInput = document.getElementById('input-weight')
-
-    const price = parseFloat(priceInput.value == '' ? priceInput.placeholder : priceInput.value)
+    const priceValue = priceCurrency.raw ?? price;
     const weight = parseFloat(weightInput.value != '' ? weightInput.value : '0.0')
-
-    setAmount((price * weight).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' }))
+    setAmount((priceValue * weight).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' }))
   }
 
   const inputButtonControl = () => {
@@ -109,18 +108,30 @@ export default function Entradas({ selectedProduct, setSelectedProduct, setSelec
   }
 
   const handleInputInputsChange = (e) => {
-
     generarMonto()
-
     setInputFormData({
-
       ...inputFormData,
       [e.target.name]: e.target.value,
-
     })
   }
 
   useEffect(() => {
+
+    if (!selectedProduct) return
+    if (!selectedCustomerBranchOption) return
+    if (priceIsLoading) return
+    if (price === null || price === undefined) {
+      setInputFormData({
+        ...inputFormData,
+        price: ''
+      })
+      return
+    }
+
+    setInputFormData({
+      ...inputFormData,
+      price: price,
+    })
 
     generarMonto()
 
@@ -144,7 +155,13 @@ export default function Entradas({ selectedProduct, setSelectedProduct, setSelec
 
     e.preventDefault()
 
-    const finalPrice = priceInput.value != '' ? priceInput.value : price
+    let finalPrice = 0
+
+    if (priceInput.value != '' && changePrice) {
+    finalPrice = priceInput.value
+    } else {
+      finalPrice = price
+    }
 
     setLoading(true)
 
@@ -218,6 +235,28 @@ export default function Entradas({ selectedProduct, setSelectedProduct, setSelec
     setSelectedCustomerBranchOption(option)
   }
 
+  const onChangeCheck = (e) => {
+
+    const priceInput = document.getElementById('input-price');
+    setChangePrice(e.target.checked)
+
+    if (e.target.checked) {
+      priceInput.classList.remove('bg-gray-200');
+      priceInput.classList.add('bg-white');
+      priceInput.disabled = false;
+      priceInput.focus();
+    } else {
+      priceInput.classList.add('bg-gray-200');
+      priceInput.classList.remove('bg-white');
+      priceInput.disabled = true;
+      setInputFormData({
+        ...inputFormData,
+        price: ''
+      });
+    }
+    generarMonto();
+  }
+
   return (
     <div>
       <div className='border rounded-md p-3'>
@@ -251,14 +290,14 @@ export default function Entradas({ selectedProduct, setSelectedProduct, setSelec
             <div className="relative w-1/2">
               <span className="absolute text-red-700 font-semibold left-3 top-3">$</span>
               <input
+                {...priceCurrency.bind}
                 className='pl-6 w-full rounded-lg p-3 text-red-700 font-semibold border border-red-600'
                 name='price'
                 id='input-price'
                 step={0.01}
                 placeholder={price.toFixed(2)}
-                type="number"
-                onChange={(e) => { handleInputInputsChange(e), generarMonto() }}
-                value={inputFormData.price || ''}
+                type="text"
+                onBlur={generarMonto}
                 disabled={!changePrice}
               />
               <label htmlFor="input-price" className="-translate-y-full px-1 absolute top-1/4 left-2 transform rounded-sm bg-white text-black text-sm font-semibold">

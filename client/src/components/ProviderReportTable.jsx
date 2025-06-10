@@ -22,7 +22,7 @@ const allColumns = [
     column: (value) => currency({ amount: value }),
   },
   {
-    field: 'purchases',
+    field: 'movements',
     header: 'Compras',
     screen: 1024,
     column: (value) => currency({ amount: value }),

@@ -15,7 +15,6 @@ import BranchSelect from '../components/RegistrarFormato/BranchSelect';
 import AddStock from '../components/Stock/AddStock';
 import AddOutgoing from '../components/Outgoings/AddOutgoing';
 import { useProducts } from '../hooks/Products/useProducts';
-import ProviderInputsList from '../components/Proveedores/ProviderInputsList';
 import BranchPrices from '../components/Prices/BranchPrices';
 import ShowListModal from '../components/Modals/ShowListModal';
 import IncomesList from '../components/Incomes/IncomesList';
@@ -24,7 +23,6 @@ import ListaEntradas from '../components/EntradasYSalidas/Entradas/ListaEntradas
 import ListaSalidas from '../components/EntradasYSalidas/Salidas/ListaSalidas';
 import ShowBalance from '../components/ShowBalance';
 import StockList from '../components/Stock/StockList';
-import Switch from '../components/Switch';
 import OutgoingsList from '../components/Outgoings/OutgoingsList';
 import Modal from '../components/Modals/Modal';
 import ConfirmationButton from '../components/Buttons/ConfirmationButton';
@@ -32,6 +30,7 @@ import EmployeeInfo from '../components/EmployeeInfo';
 import { CgProfile } from 'react-icons/cg';
 import { useDate } from '../context/DateContext';
 import { ToastInfo } from '../helpers/toastify';
+import ProvidersInputsList from '../components/Providers/ProvidersInputsList';
 
 export default function RegistroCuentaDiaria({ edit = true, _branchReport = null, _branch = null }) {
 
@@ -530,7 +529,7 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
                 : ''}
               <ShowListModal
                 title={'Entradas de Proveedores'}
-                ListComponent={ProviderInputsList}
+                ListComponent={ProvidersInputsList}
                 ListComponentProps={{ inputs: providerInputs, totalAmount: providerInputsTotal, totalWeight: providerInputsWeight }}
                 className={'w-full'}
                 clickableComponent={

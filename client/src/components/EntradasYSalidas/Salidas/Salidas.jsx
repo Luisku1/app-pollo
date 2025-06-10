@@ -16,6 +16,7 @@ import { useDate } from "../../../context/DateContext"
 import { useCustomers } from "../../../hooks/Customers/useCustomers"
 import { useBranches } from "../../../hooks/Branches/useBranches"
 import { useProducts } from "../../../hooks/Products/useProducts"
+import { useCurrencyInput } from '../../../hooks/InputHooks/useCurrency';
 
 export default function Salidas({ selectedProduct, setSelectedProduct, setSelectedProductToNull }) {
 
@@ -47,6 +48,8 @@ export default function Salidas({ selectedProduct, setSelectedProduct, setSelect
     products
   } = useProducts({ companyId: company._id })
 
+  const priceCurrency = useCurrencyInput(price ? price : '');
+
   const branchAndCustomerSelectOptions = [
     {
       label: 'Sucursales',
@@ -59,14 +62,10 @@ export default function Salidas({ selectedProduct, setSelectedProduct, setSelect
   ]
 
   const generarMonto = () => {
-
-    const priceInput = document.getElementById('output-price')
     const weightInput = document.getElementById('output-weight')
-
-    const price = parseFloat(priceInput.value == '' ? priceInput.placeholder : priceInput.value)
+    const priceValue = priceCurrency.raw ?? price;
     const weight = parseFloat(weightInput.value != '' ? weightInput.value : '0.0')
-
-    setAmount((price * weight).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' }))
+    setAmount((priceValue * weight).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' }))
   }
 
   const outputButtonControl = () => {
@@ -100,14 +99,10 @@ export default function Salidas({ selectedProduct, setSelectedProduct, setSelect
   }
 
   const handleOutputInputsChange = (e) => {
-
     generarMonto()
-
     setOutputFormData({
-
       ...outputFormData,
       [e.target.name]: e.target.value,
-
     })
   }
 
@@ -244,14 +239,14 @@ export default function Salidas({ selectedProduct, setSelectedProduct, setSelect
             <div className="relative w-1/2">
               <span className={`absolute text-red-700 font-semibold left-3 top-3`}>$</span>
               <input
+                {...priceCurrency.bind}
                 className={`pl-6 w-full ${!changePrice ? 'bg-gray-100' : 'bg-white'} rounded-lg p-3 text-red-700 font-semibold border border-red-600`}
                 name='price'
                 placeholder={price.toFixed(2)}
                 id='output-price'
                 step={0.01}
-                type="number"
-                onChange={(e) => { handleOutputInputsChange(e), generarMonto() }}
-                value={outputFormData.price || ''}
+                type="text"
+                onBlur={generarMonto}
                 disabled={!changePrice}
               />
               <label htmlFor="output-price" className="-translate-y-full px-1 absolute top-1/4 left-2 transform rounded-sm bg-white text-black text-sm font-semibold">

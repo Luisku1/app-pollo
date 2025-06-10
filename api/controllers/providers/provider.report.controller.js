@@ -53,7 +53,7 @@ export const providersReportsAggregate = async ({ companyId, date }) => {
         $match: {
           $or: [
             { payments: { $gt: 0 } },
-            { purchases: { $gt: 0 } },
+            { movements: { $gt: 0 } },
             { returns: { $gt: 0 } },
             { previousBalance: { $gt: 0 } },
             { balance: { $gt: 0 } },
@@ -66,7 +66,7 @@ export const providersReportsAggregate = async ({ companyId, date }) => {
           balance: 1,
           previousBalance: 1,
           returns: 1,
-          purchases: 1,
+          movements: 1,
           payments: 1,
           provider: 1,
           createdAt: 1

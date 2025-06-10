@@ -11,14 +11,16 @@ import CreateRest from "./CreateRest";
 import Penalties from "./Penalties";
 import EmployeePayments from "./EmployeePayments";
 import { useSelector } from "react-redux";
-import CreateProviderPurchase from "./Providers/CreateProviderPurchase";
+import CreateProviderMovement from "./Providers/CreateProviderMovement";
+import CreateProviderPayment from "./Providers/CreateProviderPayment";
 
 const menu = [
   { title: "Dinero", onSelec: () => { return <Incomes /> } },
   { title: "Entradas", onSelec: () => { return <Entradas /> } },
   { title: "Salidas", onSelec: () => { return <Salidas /> } },
   { title: "Entrada de Proveedor", onSelec: () => { return <EntradaInicial /> } },
-  { title: "Pago a Proveedor", onSelec: () => { return <CreateProviderPurchase /> } },
+  { title: "Pago a Proveedor", onSelec: () => { return <CreateProviderPayment /> } },
+  { title: "Compra y devolución a proveedor", onSelec: () => { return <CreateProviderMovement /> } },
   { title: "Gastos", onSelec: () => { return <ExtraOutgoings /> } },
   { title: "Pago a empleados", onSelec: () => { <EmployeePayments /> } },
   { title: "Formato", onSelec: () => { return <RegistroCuentaDiaria /> } },
@@ -50,7 +52,7 @@ export const RegistersMenu = () => {
   if (!currentUser) return null
 
   return (
-    <div>
+    <div className="w-fit">
       <button
         onClick={toggleMenu}
         className="fixed bottom-4 right-4 bg-header text-white p-3 rounded-full shadow-lg hover:bg-black transition duration-300 ease-in-out z-50"

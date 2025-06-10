@@ -6,10 +6,10 @@
 import { useState } from "react"
 import Amount from "../Incomes/Amount"
 import Modal from "../Modals/Modal"
-import ProviderInputsList from "../Proveedores/ProviderInputsList"
 import RowItem from "../RowItem"
 import { useRoles } from "../../context/RolesContext"
 import { useSelector } from "react-redux"
+import ProvidersInputsList from "../Providers/ProvidersInputsList"
 
 //el componente muestra una lista de productos, que al darle clic muestre los inputs correspondientes a dicho producto
 
@@ -82,7 +82,7 @@ export const ProductsListsMenu = ({ inputs, onDelete = null }) => {
           closeModal={() => setSelectedProduct(null)}
           title={`Entradas de ${selectedProduct.name}`}
           content={
-            <ProviderInputsList
+            <ProvidersInputsList
               inputs={inputs[selectedProduct.index].inputs ?? []}
               totalAmount={inputs[selectedProduct.index].amount}
               totalWeight={inputs[selectedProduct.index].weight}

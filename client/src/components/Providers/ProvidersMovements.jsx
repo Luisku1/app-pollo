@@ -5,8 +5,8 @@ import RowItem from '../RowItem';
 import { currency } from '../../helpers/Functions';
 import ShowDetails from '../ShowDetails';
 
-export default function PurchasesList({ purchases = [] }) {
-  const [selectedPurchase, setSelectedPurchase] = useState(null);
+export default function MovementsList({ movements = [] }) {
+  const [selectedMovement, setSelectedMovement] = useState(null);
 
   const fields = [
     { key: 'product.name', label: 'Producto', format: (data) => data.product?.name || '' },
@@ -18,7 +18,7 @@ export default function PurchasesList({ purchases = [] }) {
     { key: 'comment', label: 'Comentario', format: (data) => data.comment || 'Sin observaciones.' },
   ];
 
-  const renderPurchaseItem = (purchase) => {
+  const renderMovementItem = (purchase) => {
     const { product, provider, pieces, weight, amount, createdAt } = purchase;
     return (
       <div className="grid grid-cols-12 border border-black border-opacity-30 rounded-2xl shadow-sm mb-2 py-1" key={purchase._id}>
@@ -48,7 +48,7 @@ export default function PurchasesList({ purchases = [] }) {
         </div>
         <div className="col-span-2 my-auto items-center">
           <button
-            onClick={() => setSelectedPurchase(purchase)}
+            onClick={() => setSelectedMovement(purchase)}
             className="border rounded-lg shadow-md w-10 h-10 flex justify-center items-center"
           >
             Detalles
@@ -58,8 +58,8 @@ export default function PurchasesList({ purchases = [] }) {
     );
   };
 
-  const renderPurchasesList = () => {
-    if (!purchases || purchases.length === 0) {
+  const renderMovementsList = () => {
+    if (!movements || movements.length === 0) {
       const today = new Date();
       const day = String(today.getDate()).padStart(2, '0');
       const month = String(today.getMonth() + 1).padStart(2, '0');
@@ -72,24 +72,24 @@ export default function PurchasesList({ purchases = [] }) {
     }
     return (
       <div>
-        {purchases.map((purchase) => renderPurchaseItem(purchase))}
+        {movements.map((purchase) => renderMovementItem(purchase))}
       </div>
     );
   };
 
   return (
     <div>
-      {renderPurchasesList()}
-      {selectedPurchase && (
+      {renderMovementsList()}
+      {selectedMovement && (
         <ShowDetails
-          data={selectedPurchase}
+          data={selectedMovement}
           fields={fields}
           title={
-            selectedPurchase.product?.name
-              ? `Detalles de la compra de ${selectedPurchase.product.name}`
+            selectedMovement.product?.name
+              ? `Detalles de la compra de ${selectedMovement.product.name}`
               : 'Detalles de la compra'
           }
-          closeModal={() => setSelectedPurchase(null)}
+          closeModal={() => setSelectedMovement(null)}
         />
       )}
     </div>

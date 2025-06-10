@@ -1,4 +1,4 @@
-export const addProviderPurchaseFetch = async (purchaseData) => {
+export const addProviderMovementFetch = async (purchaseData) => {
   const config = {
     method: 'POST',
     headers: {

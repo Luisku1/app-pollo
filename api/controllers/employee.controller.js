@@ -1149,7 +1149,6 @@ export const updateEmployee = async (req, res, next) => {
 	let updateData = req.body
 	let updatedEmployee = null
 	let prevEmployee = null
-	let employeeWeeklyBalance = null
 
 	try {
 
@@ -1157,20 +1156,13 @@ export const updateEmployee = async (req, res, next) => {
 
 		if (!prevEmployee) return res.status(404).json({ message: "No se encontró al empleado" })
 
-		if (updateData.payDay) {
-			const { weekStart } = getWeekRange(new Date(), prevEmployee.payDay)
-
-			employeeWeeklyBalance = createEmployeeWeeklyBalance({
-				employeeId: prevEmployee._id,
-				employeePayDay: updateData.payDay,
-				companyId: prevEmployee.company,
-				date: weekStart
-			})
+		if (updateData.payDay != prevEmployee.payDay) {
+			await changeWeeklyBalance(employeeId, prevEmployee.payDay, updateData.payDay)
 		}
 
 		if (updateData.password) {
 
-			const samePass = bcryptjs.compareSync(updateData.password, employee.password)
+			const samePass = bcryptjs.compareSync(updateData.password, prevEmployee.password)
 
 			if (samePass) {
 
@@ -1182,7 +1174,7 @@ export const updateEmployee = async (req, res, next) => {
 			}
 		}
 
-		updatedEmployee = await Employee.findByIdAndUpdate(employeeId, updateData, { new: true })
+		updatedEmployee = await Employee.findByIdAndUpdate(prevEmployee, updateData, { new: true })
 
 		updatedEmployee.password = undefined // Remove password from response
 
@@ -1200,6 +1192,83 @@ export const updateEmployee = async (req, res, next) => {
 		next(error)
 	}
 }
+
+export const changeWeeklyBalance = async (employee, payDay, newPayDay) => {
+	let employeeWeeklyBalance = null;
+	let newEmployeeWeeklyBalance = null;
+	let originalEmployeeWeeklyBalance = null;
+
+	try {
+		// 1. Obtener los balances semanales y diarios
+		const { weekStart: prevWeekStart } = getWeekRange(new Date(), payDay);
+		const { weekStart, weekEnd } = getWeekRange(new Date(), newPayDay);
+
+		employeeWeeklyBalance = await EmployeeWeeklyBalance.findOne({
+			employee: employee._id,
+			weekStart: prevWeekStart,
+			currentPayDay: payDay
+		}).populate('employeeDailyBalances');
+
+		if (!employeeWeeklyBalance) throw new Error("No se encontró el balance semanal original");
+
+		// Guardar snapshot para rollback
+		originalEmployeeWeeklyBalance = employeeWeeklyBalance.toObject();
+
+		// 2. Crear o buscar el nuevo balance semanal
+		newEmployeeWeeklyBalance = await EmployeeWeeklyBalance.findOne({
+			employee: employee._id,
+			weekStart: weekStart,
+			currentPayDay: newPayDay
+		});
+
+		if (!newEmployeeWeeklyBalance) {
+			newEmployeeWeeklyBalance = await createEmployeeWeeklyBalance({
+				employeeId: employee._id,
+				employeePayDay: newPayDay,
+				companyId: employee.company,
+				date: weekStart
+			});
+		}
+
+		// 3. Filtrar dailyBalances que deben moverse
+		const toMove = employeeWeeklyBalance.employeeDailyBalances.filter(db =>
+			db.createdAt >= weekStart && db.createdAt < weekEnd
+		);
+
+		// 4. Mover dailyBalances al nuevo weeklyBalance
+		await EmployeeWeeklyBalance.findByIdAndUpdate(newEmployeeWeeklyBalance._id, {
+			$addToSet: { employeeDailyBalances: { $each: toMove.map(db => db._id) } },
+			$set: { previousWeekBalance: employeeWeeklyBalance.previousWeekBalance }
+		});
+
+		await EmployeeWeeklyBalance.findByIdAndUpdate(employeeWeeklyBalance._id, {
+			$pull: { employeeDailyBalances: { $in: toMove.map(db => db._id) } }
+		});
+
+		// 5. Eliminar el weeklyBalance original si ya no tiene dailyBalances
+		const updatedOriginal = await EmployeeWeeklyBalance.findById(employeeWeeklyBalance._id);
+		if (updatedOriginal.employeeDailyBalances.length === 0) {
+			await EmployeeWeeklyBalance.findByIdAndDelete(employeeWeeklyBalance._id);
+		}
+
+		// 6. Actualizar los dailyBalances para que apunten al nuevo weeklyBalance
+		await EmployeeDailyBalance.updateMany(
+			{ _id: { $in: toMove.map(db => db._id) } },
+			{ $set: { weeklyBalance: newEmployeeWeeklyBalance._id } }
+		);
+
+		return true;
+	} catch (error) {
+		// Rollback: restaurar el estado original si algo falla
+		if (originalEmployeeWeeklyBalance) {
+			await EmployeeWeeklyBalance.findByIdAndUpdate(
+				originalEmployeeWeeklyBalance._id,
+				originalEmployeeWeeklyBalance
+			);
+		}
+		throw error;
+	}
+};
 
 export const refactorEmployeesWeeklyBalances = async ({ companyId }) => {
 
@@ -1326,9 +1395,9 @@ export const createEmployeeWeeklyBalance = async ({ employeeId, employeePayDay, 
 		}).sort({ weekStart: -1 })
 	}
 
-	const lastWeekBalance = lastEmployeeWeeklyBalance?.balance || 0
+	const previousWeekBalance = lastEmployeeWeeklyBalance?.balance || 0
 	const employeeWeeklyData = {
-		lastWeekBalance,
+		previousWeekBalance,
 		employee: employeeId,
 		company: companyId,
 		weekStart: currentStart,

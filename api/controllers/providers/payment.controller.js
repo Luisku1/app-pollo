@@ -1,5 +1,6 @@
 
 import ProviderPayment from "../../models/providers/payment.model.js";
+import ProviderMovements from "../../models/providers/provider.movement.model.js";
 import { employeeAggregate } from "../employee.controller.js";
 
 export const getPayments = async (req, res, next) => {
@@ -15,6 +16,46 @@ export const getPayments = async (req, res, next) => {
     console.error('Error fetching payments:', error);
     next(error);
   }
+}
+
+export const getProviderProductLastPrice = async (req, res, next) => {
+
+  const { providerId, productId } = req.params;
+
+  try {
+
+    const lastMovementPrice = await ProviderMovements.aggregate([
+      {
+        $match: {
+          provider: providerId,
+          product: productId,
+          isReturn: false
+        }
+      },
+      {
+        $sort: { createdAt: -1 } // Sort by date descending
+      },
+      {
+        $limit: 1 // Get the most recent purchase
+      },
+      {
+        $project: { price: 1, createdAt: 1 } // Return only the amount and date
+      }
+    ]);
+    if (lastMovementPrice.length > 0) {
+      res.status(200).json({
+        lastPrice: lastMovementPrice[0].price,
+        date: lastMovementPrice[0].createdAt
+      });
+    } else {
+      res.status(404).json({ message: 'No movements found for this provider and product.' });
+    }
+
+  } catch (error) {
+    console.error('Error fetching last price:', error);
+    next(error);
+  }
+
 }
 
 export const getProviderPayments = async (req, res, next) => {

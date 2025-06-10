@@ -1,126 +1,76 @@
-import { useEffect, useState, useMemo } from "react";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { v4 as uuidv4 } from 'uuid';
+import { getProvidersMovements } from '../../services/Providers/getProvidersMovements';
+import useAddProviderMovement from './useAddProviderMovement';
+import { useDeleteProviderMovement } from './useDeleteProviderMovement';
 
-export const useProvidersMovements = ({
-  companyId = null,
-  date = null,
-  typeMovement = null,
-}) => {
-  const [movements, setMovements] = useState([]);
-  const [selectedMovement, setSelectedMovement] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+const useProvidersMovements = ({ companyId, date = null }) => {
+  const queryClient = useQueryClient();
+  const { addMovement, loading: addLoading } = useAddProviderMovement();
+  const { deleteProviderMovement, loading: deleteLoading } = useDeleteProviderMovement();
 
-  //Solicitud de Todos los Movimientos hechos a los Proveedores
-  useEffect(() => {
+  // Query para obtener movimientos
+  const {
+    data,
+    isLoading: queryLoading,
+    error,
+    refetch
+  } = useQuery({
+    queryKey: ['providersMovements', companyId, date],
+    queryFn: () => getProvidersMovements({ companyId, date }),
+    enabled: !!companyId && !!date,
+    select: (data) => ({
+      movements: data?.movements || [],
+      totalAmount: data?.totalAmount || 0
+    })
+  });
 
-    if (!companyId) return;
-    const fetchMovements = async () => {
-      try {
-        const res = await fetch(
-          "/api/provider/get-providers-movements/" + companyId + "/" + date,
-        );
-        const data = await res.json();
+  // Mutación para agregar compra
+  const addMutation = useMutation({
+    mutationFn: async (purchase) => {
+      await addMovement(purchase);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['providersMovements', companyId, date] });
+    }
+  });
 
-        if (data.success === false) {
-          setError(data.message);
-          return;
-        }
-        setMovements(data);
-        setError(null);
-      } catch (error) {
-        setError(error.message);
-      }
-    };
-    setMovements([])
-    fetchMovements();
-  }, [companyId, date]);
+  // Mutación para eliminar compra
+  const deleteMutation = useMutation({
+    mutationFn: async (purchase) => {
+      await deleteProviderMovement(purchase);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['providersMovements', companyId, date] });
+    }
+  });
 
-  useEffect(() => {
-    setSelectedMovement(
-      movements.filter((movement) => movement.isReturn == typeMovement)
-    );
-  }, [typeMovement, movements]);
-
-  const newMovement = async (movementData) => {
-
+  const onAddMovement = async (purchase) => {
+    const tempId = uuidv4();
     try {
-      const res = await fetch("/api/provider/create-providers-movement", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          ...movementData,
-          employee: movementData?.employee?._id,
-          provider: movementData?.provider?._id,
-          company: movementData?.company?._id,
-        })
-      });
-
-      const data = await res.json();
-
-      if (data.success === false) {
-        setError(data.message);
-        setLoading(true);
-        return;
-      }
-
-      setMovements((prevMovements) => [movementData, ...prevMovements]);
-      setError(null)
-      setLoading(false);
+      await addMutation.mutateAsync({ ...purchase, _id: tempId });
     } catch (error) {
-      setError(error)
-      setLoading(false)
-      setError(error.message);
+      // Error handling ya gestionado en el hook de addMovement
     }
   };
 
-  const onDeleteMovement = async (movementId) => {
+  const onDeleteMovement = async (purchase) => {
     try {
-      const res = await fetch(
-        "/api/provider/delete-provider-movement/" + movementId,
-        {
-          method: "DELETE",
-        }
-      );
-      const data = await res.json();
-
-      if (data.success === false) {
-        setError(data.message);
-        setLoading(false);
-        return;
-      }
-      setMovements((prevMovements) =>
-        prevMovements.filter((movement) => movement._id !== movementId)
-      );
-
-      setError(null);
-      setLoading(false);
+      await deleteMutation.mutateAsync(purchase);
     } catch (error) {
-      setError(error.message);
+      // Error handling ya gestionado en el hook de deleteProviderMovement
     }
   };
-
-  const { totalWeight, totalAmount } = useMemo(() => {
-    const totalWeight = selectedMovement.reduce(
-      (acc, selectedMovement) => acc + selectedMovement.weight,
-      0
-    );
-    const totalAmount = selectedMovement.reduce(
-      (acc, selectedMovement) => acc + selectedMovement.amount,
-      0
-    );
-
-    return { totalWeight, totalAmount };
-  }, [selectedMovement]);
 
   return {
-    selectedMovement,
-    totalWeight,
-    totalAmount,
-    loading,
-    error,
-    newMovement,
+    movements: data?.movements || [],
+    totalAmount: data?.totalAmount || 0,
+    onAddMovement,
     onDeleteMovement,
+    loading: queryLoading || addLoading || deleteLoading,
+    error,
+    refetch
   };
 };
+
+export default useProvidersMovements;

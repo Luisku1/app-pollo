@@ -1,4 +1,4 @@
-export const deleteProviderPurchaseFetch = async ({ purchaseId }) => {
+export const deleteProviderMovementFetch = async ({ purchaseId }) => {
   const res = await fetch(`/api/provider/${purchaseId}/delete`, {
     method: 'DELETE'
   })

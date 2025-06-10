@@ -17,7 +17,7 @@ const providerReportSchema = Schema({
     default: 0
   },
 
-  purchases: {
+  movements: {
     type: Number,
     default: 0
   },
@@ -27,8 +27,8 @@ const providerReportSchema = Schema({
     default: 0
   },
 
-  purchasesArray: {
-    type: [{ type: Schema.Types.ObjectId, ref: 'ProviderPurchase' }],
+  movementsArray: {
+    type: [{ type: Schema.Types.ObjectId, ref: 'ProviderMovement' }],
     default: []
   },
 

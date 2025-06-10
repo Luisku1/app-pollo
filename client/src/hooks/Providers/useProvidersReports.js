@@ -48,13 +48,13 @@ export const useProvidersReports = ({ companyId = null, date = null, reports = [
   }, [sortedReports, onlyNegativeBalances]);
 
   // Totales deben calcularse sobre el array filtrado
-  const totalPurchases = useMemo(() => filteredProvidersReports.reduce((total, report) => total + (report.purchases || 0), 0), [filteredProvidersReports]);
+  const totalMovements = useMemo(() => filteredProvidersReports.reduce((total, report) => total + (report.movements || 0), 0), [filteredProvidersReports]);
   const totalReturns = useMemo(() => filteredProvidersReports.reduce((total, report) => total + (report.returns || 0), 0), [filteredProvidersReports]);
   const totalPayments = useMemo(() => filteredProvidersReports.reduce((total, report) => total + (report.payments || 0), 0), [filteredProvidersReports]);
   const totalBalance = useMemo(() => filteredProvidersReports.reduce((total, report) => total + (report.balance || 0), 0), [filteredProvidersReports]);
   const totalPreviousBalance = useMemo(() => filteredProvidersReports.reduce((total, report) => total + (report.previousBalance || 0), 0), [filteredProvidersReports]);
 
-  const purchasesArray = useMemo(() => providersReports.flatMap((report) => report.purchasesArray || []), [providersReports]);
+  const movementsArray = useMemo(() => providersReports.flatMap((report) => report.movementsArray || []), [providersReports]);
   const returnsArray = useMemo(() => providersReports.flatMap((report) => report.returnsArray || []), [providersReports]);
   const paymentsArray = useMemo(() => providersReports.flatMap((report) => report.paymentsArray || []), [providersReports]);
 
@@ -63,10 +63,10 @@ export const useProvidersReports = ({ companyId = null, date = null, reports = [
     replaceReport,
     setReports: setProvidersReports,
     refetchProvidersReports,
-    purchasesArray,
+    movementsArray,
     returnsArray,
     paymentsArray,
-    totalPurchases,
+    totalMovements,
     totalReturns,
     totalPayments,
     totalBalance,

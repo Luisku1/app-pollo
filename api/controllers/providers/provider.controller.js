@@ -358,33 +358,6 @@ export const getMovements = async (req, res, next) => {
   }
 };
 
-export const getPurchases = async (req, res, next) => {
-  const companyId = req.params.companyId;
-
-  try {
-    const purchases = await ProviderMovements.aggregate([
-      {
-        $match: {
-          company: new Types.ObjectId(companyId),
-          isReturn: false,
-        },
-      },
-      ...providerAggregate("provider"),
-      ...productAggregate("product"),
-      ...employeeAggregate("employee"),
-    ]);
-    if (purchases.length === 0) {
-      return res
-        .status(404)
-        .json({ message: "No hay compras registradas en este proveedor" });
-    }
-
-    res.status(200).json({ purchases: purchases });
-  } catch (error) {
-    next(error);
-  }
-};
-
 export const newReturn = async (req, res, next) => {
   const {
     weight,

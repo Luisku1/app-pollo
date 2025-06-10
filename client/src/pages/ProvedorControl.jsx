@@ -1,14 +1,14 @@
 /*import { useParams } from "react-router-dom";
 import MenuProveedor from "../components/Proveedores/MenuProveedor";
 import { formatDate } from "../helpers/DatePickerFunctions";
-import useProvidersPurchases from "../hooks/Providers/useProvidersPurchases";
+import useProvidersMovements from "../hooks/Providers/useProvidersMovements";
 
 export default function ControlProveedor() {
 
   let paramsDate = useParams().date
   let datePickerValue = (paramsDate ? new Date(paramsDate) : new Date())
   let stringDatePickerValue = formatDate(datePickerValue)
-  const {purchases} = useProvidersPurchases({date: stringDatePickerValue})
+  const {movements} = useProvidersMovements({date: stringDatePickerValue})
 
   return (
     <div>
@@ -25,7 +25,7 @@ export default function ControlProveedor() {
 import { useState } from "react";
 import SectionHeader from "../SectionHeader";
 
-const MenuProveedor = ({ date, onAddPurchase }) => {
+const MenuProveedor = ({ date, onAddMovement }) => {
   const [formData, setFormData] = useState({
     weight: "",
     price: "",
@@ -50,7 +50,7 @@ const MenuProveedor = ({ date, onAddPurchase }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onAddPurchase(formData);
+    onAddMovement(formData);
     console.log(formData);
   };
 

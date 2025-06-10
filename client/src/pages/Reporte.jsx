@@ -26,9 +26,15 @@ import ListaSalidas from "../components/EntradasYSalidas/Salidas/ListaSalidas.js
 import IncomesList from "../components/Incomes/IncomesList.jsx";
 import OutgoingsList from "../components/Outgoings/OutgoingsList.jsx";
 import ListaEntradas from "../components/EntradasYSalidas/Entradas/ListaEntradas.jsx";
-import ProviderInputsList from "../components/Proveedores/ProviderInputsList.jsx";
 import ProviderReportTable from '../components/ProviderReportTable';
 import { useProvidersReports } from "../hooks/Providers/useProvidersReports.js";
+import ProvidersInputsList from "../components/Providers/ProvidersInputsList.jsx";
+import PriceWeightingCard from '../components/statistics/PriceWeightingCard';
+import PurchasesCard from '../components/statistics/PurchasesCard';
+import ProfitCard from '../components/statistics/ProfitCard';
+import SalesVsReturnsCard from '../components/statistics/SalesVsReturnsCard';
+import OutgoingsCard from '../components/statistics/OutgoingsCard';
+import BranchBalanceCard from '../components/statistics/BranchBalanceCard';
 
 export default function Reporte({ untitled = false }) {
 
@@ -93,7 +99,7 @@ export default function Reporte({ untitled = false }) {
     totalBalance: totalCustomerBalance,
   } = useCustomersReports({ companyId: company._id, date: currentDate, onlyNegativeBalances })
 
-  const { providerReports, loading: loadingProviders, refetchProvidersReports, paymentsArray, providersReports, purchasesArray, replaceReport: replaceProviderReport, returnsArray, setReports, totalBalance: totalProvidersBalance, totalPayments: totalProviderPayments, totalPreviousBalance, totalPurchases, totalReturns: totalProviderReturns } = useProvidersReports({
+  const { providerReports, loading: loadingProviders, refetchProvidersReports, paymentsArray, providersReports, movementsArray, replaceReport: replaceProviderReport, returnsArray, setReports, totalBalance: totalProvidersBalance, totalPayments: totalProviderPayments, totalPreviousBalance, totalMovements, totalReturns: totalProviderReturns } = useProvidersReports({
     companyId: company._id,
     date: currentDate,
     onlyNegativeBalances
@@ -114,6 +120,7 @@ export default function Reporte({ untitled = false }) {
   const supervisorTableRef = useRef(null);
   const [showTableBar, setShowTableBar] = useState(false);
   const tableBarRef = useRef(null);
+  const [showPieChartModal, setShowPieChartModal] = useState(false);
 
   const refetchReports = () => {
     refetchCustomerReports();
@@ -126,13 +133,6 @@ export default function Reporte({ untitled = false }) {
     if (supervisorsInfo?.length === 0) return
 
     setPieChartInfo([
-      {
-        label: 'Ingresos sobrantes',
-        value: verifiedIncomes > netIncomes ? verifiedIncomes - netIncomes : 0,
-        bgColor: '#FFF',
-        borderColor: '#000',
-        hoverBgColor: '#fff'
-      },
       {
         label: 'Efectivos netos verificados',
         value: verifiedCash,
@@ -180,6 +180,13 @@ export default function Reporte({ untitled = false }) {
           }, 150);
           setShowTable(true);
         }
+      },
+      {
+        label: 'Ingresos sobrantes',
+        value: verifiedIncomes > netIncomes ? verifiedIncomes - netIncomes : 0,
+        bgColor: '#FFF',
+        borderColor: '#000',
+        hoverBgColor: '#fff'
       }
     ])
   }, [supervisorsInfo, deposits, extraOutgoings, missingIncomes, netIncomes, verifiedCash, terminalIncomes, totalIncomes, verifiedDeposits, verifiedIncomes, cashArray, terminalIncomesArray, depositsArray, extraOutgoingsArray, setCurrentView, setShowTable, setOnlyNegativeBalances])
@@ -340,7 +347,7 @@ export default function Reporte({ untitled = false }) {
       />
       {showProviderInputs && (
         <Modal
-          content={<ProviderInputsList inputs={providerInputsArray} onDelete={null} />}
+          content={<ProvidersInputsList inputs={providerInputsArray} onDelete={null} />}
           closeModal={() => setShowProviderInputs(false)}
           title={'Entradas de Proveedor'}
           ableToClose={true}
@@ -615,9 +622,98 @@ export default function Reporte({ untitled = false }) {
                         </p>
                       </div>
                     </div>
-                    <div className="mt-8">
-                      <PieChart chartInfo={pieChartInfo} netIncomes={netIncomes} verifiedIncomes={verifiedIncomes} />
+                    {/* Modern verified money percentage indicator */}
+                    <div className="flex flex-wrap gap-6 justify-center mt-8">
+                      <div>
+                        <div className="relative w-64 h-64 bg-white rounded-2xl shadow-xl flex flex-col items-center justify-center border border-gray-200 cursor-pointer group"
+                          onClick={() => setShowPieChartModal(true)}
+                          title="Ver detalles del gráfico de ingresos"
+                        >
+                          {/* Animated circular progress */}
+                          {(() => {
+                            const percent = netIncomes > 0 ? Math.min(100, Math.round((verifiedIncomes / netIncomes) * 100)) : 0;
+                            const radius = 90;
+                            const stroke = 12;
+                            const normalizedRadius = radius - stroke / 2;
+                            const circumference = 2 * Math.PI * normalizedRadius;
+                            const progress = circumference * (1 - percent / 100);
+                            let color = '#4CAF50';
+                            if (percent < 60) color = '#e53e3e';
+                            else if (percent < 90) color = '#f6ad55';
+                            return (
+                              <>
+                                <svg width={radius * 2} height={radius * 2} className="block mx-auto" style={{ transform: 'rotate(-90deg)' }}>
+                                  <circle
+                                    cx={radius}
+                                    cy={radius}
+                                    r={normalizedRadius}
+                                    fill="none"
+                                    stroke="#e5e7eb"
+                                    strokeWidth={stroke}
+                                  />
+                                  <circle
+                                    cx={radius}
+                                    cy={radius}
+                                    r={normalizedRadius}
+                                    fill="none"
+                                    stroke={color}
+                                    strokeWidth={stroke}
+                                    strokeDasharray={circumference}
+                                    strokeDashoffset={progress}
+                                    strokeLinecap="round"
+                                    style={{ transition: 'stroke-dashoffset 1s cubic-bezier(.4,2,.6,1)' }}
+                                  />
+                                </svg>
+                                {/* Percentage badge */}
+                                <div className="absolute top-1/2 left-1/2 flex flex-col items-center justify-center" style={{ transform: 'translate(-50%, -50%)' }}>
+                                  <span className={`text-5xl font-extrabold ${percent >= 90 ? 'text-green-600' : percent >= 60 ? 'text-yellow-500' : 'text-red-600'}`}>{percent}%</span>
+                                  <span className="text-base font-semibold text-gray-500 mt-1">Dinero verificado</span>
+                                </div>
+                                {/* Overlay for hover effect */}
+                                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition rounded-2xl" />
+                              </>
+                            );
+                          })()}
+                        </div>
+                      </div>
+                      <PriceWeightingCard providerReports={providerReports} />
+                      <PurchasesCard providerReports={providerReports} />
+                      <ProfitCard branchReports={branchReports} customerReports={customerReports} />
+                      <SalesVsReturnsCard customerReports={customerReports} />
+                      <OutgoingsCard branchReports={branchReports} />
+                      <BranchBalanceCard branchReports={branchReports} />
                     </div>
+                    {/* Modal for PieChart details */}
+                    {showPieChartModal && (
+                      <Modal
+                        content={
+                          <div className="flex flex-col items-center justify-center gap-4 p-2 md:p-6 min-w-[320px] max-w-[98vw]">
+                            {/* PieChart grande arriba */}
+                            <div className="flex-shrink-0 flex items-center justify-center w-full max-w-[420px] h-[320px] md:h-[420px] bg-white rounded-2xl shadow-lg border border-gray-200 mx-auto">
+                              <PieChart chartInfo={pieChartInfo} netIncomes={netIncomes} verifiedIncomes={verifiedIncomes} large hideLegend />
+                            </div>
+                            {/* Lista de datos debajo */}
+                            <div className="flex flex-col gap-3 overflow-y-auto max-h-[320px] w-full max-w-[420px] mx-auto">
+                              <h3 className="text-xl font-bold mb-2 text-gray-700 text-center">Detalle de ingresos</h3>
+                              {pieChartInfo.map((item, idx) => (
+                                <div key={item.label} className="flex items-center gap-3 bg-gray-50 rounded-lg shadow-sm border border-gray-200 px-4 py-3">
+                                  <span className="inline-block w-4 h-4 rounded-full" style={{ background: item.bgColor, border: `2px solid ${item.borderColor}` }} />
+                                  <span className="font-semibold text-gray-700 flex-1">{item.label}</span>
+                                  <span className="font-mono text-lg font-bold text-gray-900">{currency(item.value)}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        }
+                        closeModal={() => setShowPieChartModal(false)}
+                        ableToClose={true}
+                        closeOnEsc={true}
+                        closeOnClickOutside={true}
+                        width="auto"
+                        fit={true}
+                        shape="rounded-2xl"
+                      />
+                    )}
                   </div>
                 )}
               </div>
