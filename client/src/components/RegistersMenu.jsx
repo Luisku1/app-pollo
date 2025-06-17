@@ -13,6 +13,7 @@ import EmployeePayments from "./EmployeePayments";
 import { useSelector } from "react-redux";
 import CreateProviderMovement from "./Providers/CreateProviderMovement";
 import CreateProviderPayment from "./Providers/CreateProviderPayment";
+import useModal from "../hooks/useModal";
 
 const menu = [
   { title: "Dinero", onSelec: () => { return <Incomes /> } },
@@ -30,6 +31,7 @@ const menu = [
 
 export const RegistersMenu = () => {
   const { currentUser } = useSelector((state) => state.user)
+  const { activeModalsCount } = useModal();
   const [showing, setShowing] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(0);
@@ -40,13 +42,12 @@ export const RegistersMenu = () => {
     setIsOpen((prev) => !prev);
   };
 
-  // Shortcut para abrir/cerrar el menú con la tecla +
+  // Shortcut para abrir/cerrar el menú con la tecla + SOLO si no hay modales activos
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.key === "+") {
+      if (e.key === "+" && activeModalsCount === 0) {
         toggleMenu();
-      }
-      if (isOpen) {
+      } else if (isOpen) {
         if (e.key === 'ArrowDown') {
           setHighlightedIndex((prev) => (prev + 1) % menu.length);
         } else if (e.key === 'ArrowUp') {
@@ -62,7 +63,7 @@ export const RegistersMenu = () => {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, highlightedIndex]);
+  }, [isOpen, highlightedIndex, activeModalsCount]);
 
   useEffect(() => {
     if (isOpen && optionRefs.current[highlightedIndex]) {

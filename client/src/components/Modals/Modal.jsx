@@ -5,6 +5,7 @@ import { FaSpinner } from "react-icons/fa";
 import SectionHeader from "../SectionHeader";
 import { ModalContext } from "../../context/ModalContext";
 import { v4 as uuidv4 } from "uuid";
+import useModal from "../../hooks/useModal";
 
 export default function Modal({
   content,
@@ -24,14 +25,14 @@ export default function Modal({
   isShown = true,
   modalId: propModalId, // Permite pasar un id opcional
 }) {
-  const { modals, addModal, removeLastModal, count, setCount } = useContext(ModalContext);
+  const { modals, addModal, removeLastModal, count, setCount } = useModal();
   // Genera un id único si no se pasa uno
   const [modalId] = useState(propModalId || uuidv4());
 
   useEffect(() => {
 
     if (!isShown) return;
-    addModal({ id: modalId });
+    addModal({ id: modalId, isShown });
     setCount((prevCount) => prevCount + 1);
     // Agrega la modal al stack al montar
     document.body.style.overflow = "hidden";
