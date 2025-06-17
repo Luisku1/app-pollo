@@ -134,6 +134,15 @@ export default function ExtraOutgoingsList({ extraOutgoings, totalExtraOutgoings
     return selectedOutgoing !== null && selectedOutgoing !== undefined && extraOutgoings.length > 0 && extraOutgoings.find((outgoing) => outgoing._id === selectedOutgoing._id) !== undefined
   }, [selectedOutgoing, extraOutgoings])
 
+
+  if (!extraOutgoings || extraOutgoings.length === 0) {
+    return (
+      <div className="w-full flex flex-col items-center justify-center">
+        <p className="text-gray-500 text-lg">No hay gastos fuera de cuentas registrados.</p>
+      </div>
+    )
+  }
+
   return (
     <div>
       {renderOutgoingsList()}

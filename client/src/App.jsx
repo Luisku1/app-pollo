@@ -68,7 +68,7 @@ export default function App() {
                   />
                   <Route path="/perfil/:employeeId" element={<Perfil />} />
                   <Route path="/formato" element={<RegistroCuentaDiaria />} />
-                  <Route path="/formato/:date/:branchId" element={<RegistroCuentaDiaria />} />
+                  <Route path="/formato/:branchId/:date" element={<RegistroCuentaDiaria />} />
                   <Route path="/formato/:date" element={<RegistroCuentaDiaria />} />
                   <Route path="/listado-de-cuentas" element={<ListadoDeCuentas />} />
                   <Route path="/empleados" element={<Empleados />} />
@@ -84,8 +84,6 @@ export default function App() {
                   <Route path="/registro-cliente" element={<RegistroCliente />} />
                   <Route path="/supervision-diaria" element={<ControlSupervisor />} />
                   <Route path="/supervision-diaria/:date" element={<ControlSupervisor />} />
-                  <Route path="/entrada-inicial/:productId/:productName" element={<EntradaInicial />} />
-                  <Route path="/entrada-inicial/:date/:productId/:productName" element={<EntradaInicial />} />
                   <Route path="/nomina/" element={<Nomina />} />
                   <Route path="/nomina/:date" element={<Nomina />} />
                   <Route path="/reporte" element={<Reporte />} />

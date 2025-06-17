@@ -19,7 +19,7 @@ import { MoneyBag } from '../Reutilizable/Labels';
 import EmployeeName from '../Names/EmployeeName';
 
 
-export default function IncomesList({ incomes = [], onDeleteIncome }) {
+export default function IncomesList({ incomes = [], onDeleteIncome, statistics = null }) {
   const { currentUser } = useSelector((state) => state.user);
   const { isManager } = useRoles();
   const isEmpty = !incomes || incomes.length === 0;
@@ -282,8 +282,17 @@ export default function IncomesList({ incomes = [], onDeleteIncome }) {
       :
       'Detalles del Ingreso'
 
+  if (!incomes || incomes.length === 0) {
+    return (
+      <div className='flex flex-col items-center justify-center h-full'>
+        <p className='text-gray-500 text-lg'>No hay ingresos registrados</p>
+      </div>
+    );
+  }
+
   return (
     <div>
+      {statistics && statistics()}
       {renderTotal()}
       {renderIncomesList()}
       <EmployeeInfo employee={selectedEmployee} toggleInfo={() => setSelectedEmployee(null)} />

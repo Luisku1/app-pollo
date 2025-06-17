@@ -35,6 +35,13 @@ export const useProvidersReports = ({ companyId = null, date = null, reports = [
     }
   }, [reports]);
 
+  // Refetch cuando cambia la fecha o companyId
+  useEffect(() => {
+    if (companyId && date) {
+      refetchProvidersReports();
+    }
+  }, [companyId, date]);
+
   const sortedReports = useMemo(() => {
     if (profile)
       return providersReports.sort((a, b) => b.createdAt - a.createdAt)
@@ -55,6 +62,9 @@ export const useProvidersReports = ({ companyId = null, date = null, reports = [
   const totalPreviousBalance = useMemo(() => filteredProvidersReports.reduce((total, report) => total + (report.previousBalance || 0), 0), [filteredProvidersReports]);
 
   const movementsArray = useMemo(() => providersReports.flatMap((report) => report.movementsArray || []), [providersReports]);
+  const purchasesArray = useMemo(() => providersReports.flatMap((report) => {
+    return report.movementsArray.filter(movement => movement.isReturn) || [];
+  }), [providersReports]);
   const returnsArray = useMemo(() => providersReports.flatMap((report) => report.returnsArray || []), [providersReports]);
   const paymentsArray = useMemo(() => providersReports.flatMap((report) => report.paymentsArray || []), [providersReports]);
 
@@ -66,6 +76,7 @@ export const useProvidersReports = ({ companyId = null, date = null, reports = [
     movementsArray,
     returnsArray,
     paymentsArray,
+    purchasesArray,
     totalMovements,
     totalReturns,
     totalPayments,

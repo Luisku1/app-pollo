@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 import { useQuery } from '@tanstack/react-query';
 import { getCustomersReports } from '../../services/customers/getCustomersReports';
 import { formatDate } from "../../../../common/dateOps";
@@ -54,6 +54,13 @@ export const useCustomersReports = ({ companyId = null, date = null, reports = [
   const totalBalance = useMemo(() => {
     return filteredReports.reduce((total, report) => total + report.balance, 0);
   }, [filteredReports]);
+
+  // Refetch cuando cambia la fecha o companyId
+  useEffect(() => {
+    if (companyId && date && reports.length === 0) {
+      refetchCustomerReports();
+    }
+  }, [companyId, date]);
 
   return {
     customerReports: filteredReports,

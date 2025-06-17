@@ -24,6 +24,13 @@ export const useSupervisorsReportInfo = ({ companyId, date, onlyNegativeBalances
     if (supervisorsInfoData) setSupervisorsInfo(supervisorsInfoData);
   }, [supervisorsInfoData]);
 
+  // Refetch cuando cambia la fecha o companyId
+  useEffect(() => {
+    if (companyId && date) {
+      refetchSupervisorsInfo();
+    }
+  }, [companyId, date]);
+
   const deposits = useMemo(() => supervisorsInfo.reduce((acc, report) => acc + report.deposits, 0), [supervisorsInfo]);
   const terminalIncomes = useMemo(() => supervisorsInfo.reduce((acc, report) => acc + report.terminalIncomes, 0), [supervisorsInfo]);
   const grossCash = useMemo(() => supervisorsInfo.reduce((acc, report) => acc + report.cash, 0), [supervisorsInfo]);

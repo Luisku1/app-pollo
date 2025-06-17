@@ -291,7 +291,7 @@ export default function Entradas({ selectedProduct, setSelectedProduct, setSelec
               <span className="absolute text-red-700 font-semibold left-3 top-3">$</span>
               <input
                 {...priceCurrency.bind}
-                className='pl-6 w-full rounded-lg p-3 text-red-700 font-semibold border border-red-600'
+                className={`pl-6 w-full ${!changePrice ? 'bg-gray-100' : 'bg-white'} rounded-lg p-3 text-red-700 font-semibold border border-red-600`}
                 name='price'
                 id='input-price'
                 step={0.01}
@@ -304,7 +304,7 @@ export default function Entradas({ selectedProduct, setSelectedProduct, setSelec
                 Precio
               </label>
             </div>
-            <div className={`flex items-center gap-2 w-1/2 rounded-lg p-2 transition-colors duration-200 ${!changePrice ? 'bg-gray-100' : 'bg-white'}`}>
+            <div className={`flex items-center gap-2 w-1/2 rounded-lg p-2 transition-colors duration-200`}>
               <input
                 type="checkbox"
                 id="changePriceInput"

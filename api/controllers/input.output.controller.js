@@ -172,122 +172,166 @@ export const newCustomerInput = async (req, res, next) => {
 }
 
 export const getNetDifference = async (req, res, next) => {
-
   const date = new Date(req.params.date)
   const companyId = req.params.companyId
-
   const { bottomDate, topDate } = getDayRange(date)
 
   try {
-
-    const outputs = await Output.find({
-      $and: [
-        {
-          createdAt: {
-
-            $gte: bottomDate
-          }
-        },
-        {
-          createdAt: {
-
-            $lt: topDate
-          }
-
-        },
-        {
-          company: companyId
-        }]
-    }).populate({ path: 'branch', select: 'p' }).populate({ path: 'product', select: 'name' }).populate({ path: 'employee', select: 'name lastName' })
-
-    const inputs = await Input.find({
-      $and: [{
-
-        createdAt: {
-
-          $gte: bottomDate
+    // Use $unionWith to combine Input and Output collections in a single pipeline
+    // Tag each document as 'input' or 'output' and normalize the sign
+    const pipeline = [
+      {
+        $match: {
+          createdAt: { $gte: new Date(bottomDate), $lt: new Date(topDate) },
+          company: new Types.ObjectId(companyId)
         }
       },
       {
-
-        createdAt: {
-
-          $lt: topDate
+        $project: {
+          employee: 1,
+          product: 1,
+          weight: 1,
+          branch: 1,
+          type: { $literal: 'input' }
         }
-
       },
       {
-        company: companyId
-      }]
-    }).populate({ path: 'branch', select: 'p' }).populate({ path: 'product', select: 'name' }).populate({ path: 'employee', select: 'name lastName' })
-
-    const employeesInputs = groupAndSumFunction(inputs)
-
-    const employeesOutputs = groupAndSumFunction(outputs)
-
-    const employeeNetDifference = {}
-
-    Object.keys(employeesOutputs).forEach(employeeOutputs => {
-
-      if (!employeeNetDifference[employeeOutputs]) {
-
-        employeeNetDifference[employeeOutputs] = {
-
-          employee: employeesOutputs[employeeOutputs].employee,
-          totalDifference: 0.00,
-          netDifference: {}
+        $unionWith: {
+          coll: 'outputs',
+          pipeline: [
+            {
+              $match: {
+                createdAt: { $gte: new Date(bottomDate), $lt: new Date(topDate) },
+                company: new Types.ObjectId(companyId)
+              }
+            },
+            {
+              $project: {
+                employee: 1,
+                product: 1,
+                weight: 1,
+                branch: 1,
+                type: { $literal: 'output' }
+              }
+            }
+          ]
         }
-      }
-
-      Object.keys(employeesOutputs[employeeOutputs].productsMovement).forEach((product => {
-
-        const difference = (employeesInputs[employeeOutputs] ? employeesInputs[employeeOutputs].productsMovement[product] ? employeesInputs[employeeOutputs].productsMovement[product].weight : 0 : 0) - (employeesOutputs[employeeOutputs].productsMovement[product].weight)
-
-        employeeNetDifference[employeeOutputs].totalDifference += difference
-
-        employeeNetDifference[employeeOutputs].netDifference[product] = {
-
-          name: employeesOutputs[employeeOutputs].productsMovement[product].name,
-          difference: difference
+      },
+      // Lookup employee and product details
+      {
+        $lookup: {
+          from: 'employees',
+          localField: 'employee',
+          foreignField: '_id',
+          as: 'employee'
         }
-      }))
-    })
-
-
-    Object.keys(employeesInputs).forEach(employeeInputs => {
-
-      if (!employeeNetDifference[employeeInputs]) {
-
-        employeeNetDifference[employeeInputs] = {
-
-          employee: employeesInputs[employeeInputs].employee,
-          totalDifference: 0.00,
-          netDifference: {}
+      },
+      { $unwind: { path: '$employee', preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: 'products',
+          localField: 'product',
+          foreignField: '_id',
+          as: 'product'
         }
-      }
-
-      Object.keys(employeesInputs[employeeInputs].productsMovement).forEach((product => {
-
-        if (!employeeNetDifference[employeeInputs].netDifference[product]) {
-
-          const difference = (employeesInputs[employeeInputs].productsMovement[product].weight) - (employeesOutputs[employeeInputs] ? employeesOutputs[employeeInputs].productsMovement[product] ? employeesOutputs[employeeInputs].productsMovement[product].weight : 0 : 0)
-
-          employeeNetDifference[employeeInputs].totalDifference += difference
-
-          employeeNetDifference[employeeInputs].netDifference[product] = {
-
-            name: employeesInputs[employeeInputs].productsMovement[product].name,
-            difference: difference
+      },
+      { $unwind: { path: '$product', preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: 'branches',
+          localField: 'branch',
+          foreignField: '_id',
+          as: 'branch'
+        }
+      },
+      { $unwind: { path: '$branch', preserveNullAndEmptyArrays: true } },
+      // Normalize weight by branch.p (if present)
+      {
+        $addFields: {
+          normWeight: {
+            $cond: [
+              { $ifNull: ['$branch.p', false] },
+              { $divide: ['$weight', '$branch.p'] },
+              '$weight'
+            ]
           }
         }
-      }))
-    })
+      },
+      // Assign sign: + for input, - for output
+      {
+        $addFields: {
+          signedWeight: {
+            $cond: [
+              { $eq: ['$type', 'input'] },
+              '$normWeight',
+              { $multiply: ['$normWeight', -1] }
+            ]
+          }
+        }
+      },
+      // Group by employee and product
+      {
+        $group: {
+          _id: {
+            employee: '$employee._id',
+            product: '$product._id'
+          },
+          employee: { $first: '$employee' },
+          product: { $first: '$product' },
+          totalDifference: { $sum: '$signedWeight' }
+        }
+      },
+      // Only keep nonzero differences
+      {
+        $match: { totalDifference: { $ne: 0 } }
+      }
+    ];
 
-    res.status(200).json({ netDifference: employeeNetDifference })
+    const results = await Input.aggregate(pipeline);
 
+    // Build byEmployee and byProduct structures
+    const byEmployee = {};
+    const byProduct = {};
+    for (const row of results) {
+      const empId = row.employee?._id?.toString();
+      const prodId = row.product?._id?.toString();
+      const employee = row.employee;
+      const product = row.product;
+      const productName = product?.name;
+      const diff = row.totalDifference;
+      // By employee
+      if (empId) {
+        if (!byEmployee[empId]) {
+          byEmployee[empId] = {
+            employee,
+            totalDifference: 0,
+            netDifference: {}
+          };
+        }
+        byEmployee[empId].totalDifference += diff;
+        if (!byEmployee[empId].netDifference[prodId]) {
+          byEmployee[empId].netDifference[prodId] = { name: productName, difference: 0 };
+        }
+        byEmployee[empId].netDifference[prodId].difference += diff;
+      }
+      // By product
+      if (prodId) {
+        if (!byProduct[prodId]) {
+          byProduct[prodId] = { name: productName, employees: {} };
+        }
+        if (!byProduct[prodId].employees[empId]) {
+          byProduct[prodId].employees[empId] = { employee, difference: 0 };
+        }
+        byProduct[prodId].employees[empId].difference += diff;
+      }
+    }
+
+    res.status(200).json({
+      byEmployee,
+      byProduct
+    });
   } catch (error) {
-
-    next(error)
+    next(error);
   }
 }
 
@@ -470,7 +514,7 @@ export const getInputs = async (req, res, next) => {
       const branchInputs = []
       const customerInputs = []
 
-      inputs.forEach(input => {
+      inputs.forEach((input) => {
 
         if (input.branch === undefined) {
 
@@ -806,7 +850,7 @@ export const getOutputs = async (req, res, next) => {
       const branchOutputs = []
       const customerOutputs = []
 
-      outputs.forEach(output => {
+      outputs.forEach((output) => {
 
         if (output.branch === undefined) {
 

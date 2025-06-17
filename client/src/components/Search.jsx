@@ -1,21 +1,203 @@
+import { useEffect, useState, useRef } from "react";
 import { MdSearch } from "react-icons/md";
 import { useSelector } from "react-redux";
+import Modal from "./Modals/Modal";
+import { useNavigate } from "react-router-dom";
+import { formatDate, formatInformationDate } from '../helpers/DatePickerFunctions';
+import { useRoles } from '../context/RolesContext';
+import { useDate } from '../context/DateContext';
 
 
-export const SearchMenu = ({ onActivateSearch }) => {
+export const SearchMenu = ({ modalMode }) => {
+  const { currentUser } = useSelector((state) => state.user);
+  const [showModal, setShowModal] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [highlightedIndex, setHighlightedIndex] = useState(0);
+  const navigate = useNavigate();
+  const { roles, isSupervisor, isManager } = useRoles();
+  const { currentDate } = useDate();
+  const optionRefs = useRef([]);
 
-  const { currentUser } = useSelector((state) => state.user)
+  if (!currentUser) return null;
 
-  if (!currentUser) return null
+  useEffect(() => {
+    if (showModal) {
+      document.body.classList.add('no-scroll'); // Add class to prevent body scroll
+    } else {
+      document.body.classList.remove('no-scroll'); // Remove class to allow body scroll
+    }
+
+    return () => {
+      document.body.classList.remove('no-scroll'); // Cleanup on unmount
+    };
+  }, [showModal]);
+
+  // --- menuOptions igual que en Header ---
+  const menuOptions = [
+    { text: 'Perfil', link: currentUser ? `/perfil/${currentUser._id}` : '/inicio-sesion' },
+    { text: 'Crear formato', link: '/formato', date: true, dateRole: true },
+    { text: 'Supervisión', link: '/supervision-diaria', role: 'supervisor', date: true },
+    { text: 'Registro Empleado', link: '/registro-empleado', role: 'supervisor', dateRole: true },
+    { text: 'Registro Cliente', link: '/registro-cliente', role: 'supervisor' },
+    { text: 'Sucursales', link: '/sucursales', role: 'supervisor' },
+    { text: 'Proveedores', link: '/proveedores', role: 'manager', date: true },
+    { text: 'Reporte', link: '/reporte', role: 'supervisor', date: true },
+    { text: 'Nomina', link: '/nomina', role: 'manager', date: true, dateRole: true },
+    { text: 'Cuentas', link: '/listado-de-cuentas', role: 'manager' },
+    { text: 'Empleados', link: '/empleados', role: 'supervisor' },
+    { text: 'Productos', link: '/productos', role: 'manager' },
+    { text: 'Precios', link: '/precios', role: 'manager' },
+    { text: 'Empresa', link: '/empresas', role: 'manager' },
+  ];
+
+  const isToday = formatDate(currentDate) === formatDate(new Date());
+
+  // --- Filtrado igual que en Header ---
+  const filteredOptions = menuOptions.flatMap(option => {
+    const normalize = (str) => str.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
+    const matchesSearch = normalize(option.text).includes(normalize(searchTerm));
+    const matchesRole = !option.role ||
+      (option.role === 'supervisor' && isSupervisor(currentUser?.role)) ||
+      (option.role === 'manager' && isManager(currentUser?.role));
+    if (matchesSearch && matchesRole) {
+      if (!isToday && option.date) {
+        if (option.dateRole && !isManager(currentUser?.role)) {
+          return option;
+        }
+        return [
+          option,
+          { ...option, text: `${option.text} (${formatInformationDate(currentDate)})`, link: `${option.link}/${currentDate}` }
+        ];
+      } else {
+        if (isToday && option.date) {
+          let yesterdayDate = new Date(currentDate);
+          yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+          yesterdayDate = formatDate(yesterdayDate);
+          if (option.dateRole && !isManager(currentUser?.role)) {
+            return option;
+          }
+          return [
+            option,
+            { ...option, text: `${option.text} (${formatInformationDate(yesterdayDate)})`, link: `${option.link}/${yesterdayDate}` }
+          ];
+        }
+      }
+      return option;
+    }
+    return [];
+  });
+
+  useEffect(() => {
+
+    if (!currentUser) return
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setShowModal(false);
+      }
+      if (e.ctrlKey && (e.key === 'm' || e.key === 'M')) { // Added shortcut for Ctrl + T
+        e.preventDefault();
+        document.getElementById('search-bar')?.focus();
+        setShowModal(true);
+      }
+      if (showModal) {
+        if (e.key === 'ArrowDown') {
+          setHighlightedIndex((prev) => (prev + 1) % filteredOptions.length); // Navigate options
+
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          setHighlightedIndex((prev) => (prev - 1 + filteredOptions.length) % filteredOptions.length);
+        } else if (e.key === 'Enter' && highlightedIndex >= 0) {
+          e.preventDefault();
+          const selectedOption = filteredOptions[highlightedIndex];
+          if (selectedOption) {
+            if (e.ctrlKey) {
+              const newTab = window.open(selectedOption.link, '_blank');
+              newTab?.focus();
+              setShowModal(false);
+              setSearchTerm('');
+            } else {
+              setShowModal(false);
+              setSearchTerm('');
+              navigate(selectedOption.link); // SPA navigation
+            }
+          }
+        }
+      }
+    };
+
+    const handlePopState = () => {
+      setShowModal(false);
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [showModal, filteredOptions, highlightedIndex, currentUser]); // Added dependencies
+
+  useEffect(() => {
+    if (showModal && optionRefs.current[highlightedIndex]) {
+      optionRefs.current[highlightedIndex].scrollIntoView({
+        block: 'nearest',
+      });
+    }
+  }, [highlightedIndex, showModal, filteredOptions]);
 
   return (
-    <div>
+    <>
       <button
-        onClick={onActivateSearch}
+        onClick={() => setShowModal(true)}
         className="fixed bottom-4 left-4 bg-header text-white p-3 rounded-full shadow-lg hover:bg-black transition duration-300 ease-in-out z-50"
+        title="Buscar página"
       >
         <MdSearch className="text-3xl" />
       </button>
-    </div>
+      {modalMode && showModal && (
+        <Modal
+          closeModal={() => setShowModal(false)}
+          ableToClose={true}
+          closeOnEsc={true}
+          closeOnClickOutside={true}
+          width="auto"
+          fit={true}
+          content={
+            <div className="p-4 w-full max-w-md flex flex-col items-center gap-4">
+              <input
+                autoFocus
+                type="text"
+                placeholder="Buscar página..."
+                className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-400 text-lg"
+                value={searchTerm}
+                onChange={e => { setSearchTerm(e.target.value); setHighlightedIndex(0); }}
+              />
+              <ul className="w-full mt-2" style={{ maxHeight: 300, overflowY: 'auto' }}>
+                {filteredOptions.length === 0 && (
+                  <li className="text-gray-400 text-center py-2">No hay resultados</li>
+                )}
+                {filteredOptions.map((option, idx) => (
+                  <li
+                    key={option.text + option.link}
+                    ref={el => optionRefs.current[idx] = el}
+                    className={`px-4 py-2 rounded cursor-pointer ${idx === highlightedIndex ? 'bg-orange-100 text-orange-700' : 'hover:bg-gray-100'}`}
+                    onMouseEnter={() => setHighlightedIndex(idx)}
+                    onClick={() => {
+                      navigate(option.link);
+                      setShowModal(false);
+                      setSearchTerm("");
+                    }}
+                  >
+                    {option.text}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          }
+        />
+      )}
+    </>
   );
 };

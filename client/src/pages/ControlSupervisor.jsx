@@ -91,11 +91,6 @@ export default function ControlSupervisor({ hideFechaDePagina = false }) {
     return (
       <main id='supervisor-main' className={"p-3 max-w-lg mx-auto"} >
         <div>
-          <div className={`w-fit mx-auto sticky ${hideFechaDePagina ? '-top-[4rem]' : 'top-16'} bg-opacity-60 bg-menu z-10 mb-2`}>
-            {isManager(currentUser.role) && !hideFechaDePagina ?
-              <FechaDePagina changeDay={changeDay} stringDatePickerValue={currentDate} changeDatePickerValue={changeDatePickerValue} higherZ={true}></FechaDePagina>
-              : ''}
-          </div>
           {getDayRange(new Date(currentDate)).bottomDate <= getDayRange(new Date()).bottomDate ?
             <SectionsMenu
               handleShowSections={handleShowSections}

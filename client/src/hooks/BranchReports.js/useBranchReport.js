@@ -11,11 +11,10 @@ import { useBranchPrices } from "../Prices/useBranchPrices"
 import { useMidDayStock } from "../Stock/useMidDayStock"
 import { Types } from "mongoose"
 
-export const useBranchReport = ({ branchId = null, date = null, _branchReport = null }) => {
+export const useBranchReport = ({ branchId = null, date = null }) => {
   // State
   const [branchReport, setBranchReport] = useState()
   const [loading, setLoading] = useState(false)
-  const [shouldFetchBranchReport, setShouldFetchBranchReport] = useState(false)
 
   // Hooks for each report section
   const {
@@ -82,18 +81,9 @@ export const useBranchReport = ({ branchId = null, date = null, _branchReport = 
 
   // Prices
   const { prices, onChangePrices } = useBranchPrices({
-    branchId: (branchId || _branchReport?.branch._id) || null,
-    date: (date || _branchReport?.createdAt) || null
+    branchId: (branchId) || null,
+    date: (date) || null
   })
-
-  // Update trigger
-  const onUpdateBranchReport = async () => {
-    try {
-      setShouldFetchBranchReport(true)
-    } catch (error) {
-      console.log(error)
-    }
-  }
 
   // Balance modifier
   const modifyBalance = (amount, operation) => {
@@ -152,50 +142,35 @@ export const useBranchReport = ({ branchId = null, date = null, _branchReport = 
     }
   }
 
-  // Set branch report from prop
+  // Fetch branch report from API SOLO cuando branchId y date cambian y NO hay _branchReport
   useEffect(() => {
-    if (_branchReport) {
-      setBranchReport(_branchReport)
+    if (!branchId || !date) return;
+    setLoading(true);
+    getBranchReport({ branchId, date })
+      .then(setBranchReport)
+      .catch(console.log)
+      .finally(() => setLoading(false));
+  }, [branchId, date]);
+
+  // Si necesitas forzar un refetch, puedes exponer una función refreshBranchReport:
+  const refreshBranchReport = async () => {
+    if (!branchId || !date) return;
+    setLoading(true);
+    try {
+      const response = await getBranchReport({ branchId, date });
+      setBranchReport(response);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
     }
-  }, [_branchReport])
-
-  // Fetch branch report from API
-  useEffect(() => {
-    if (!branchId || _branchReport) return
-    if ((!branchId || !date || _branchReport) && !shouldFetchBranchReport) return
-
-    setBranchReport({
-      initialStockArray: [],
-      finalStockArray: [],
-      outgoingsArray: [],
-      incomesArray: [],
-      outputsArray: [],
-      inputsArray: [],
-      providerInputsArray: [],
-    })
-
-    setShouldFetchBranchReport(false)
-
-    const fetchBranchReport = async () => {
-      setLoading(true)
-      try {
-        const response = await getBranchReport({ branchId, date })
-        setBranchReport(response)
-      } catch (error) {
-        console.log(error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchBranchReport()
-  }, [branchId, date, _branchReport, shouldFetchBranchReport])
+  };
 
   // Return API
   return {
     branchReport,
     setBranchReport,
-    onUpdateBranchReport,
+    onUpdateBranchReport: refreshBranchReport,
     outgoings,
     outgoingsTotal,
     onAddOutgoing,

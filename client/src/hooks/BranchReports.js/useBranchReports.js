@@ -18,6 +18,8 @@ export const useBranchReports = ({ companyId = null, date = null, reports = [], 
     staleTime: 1000 * 60 * 3
   });
 
+  console.log(date);
+
   // Mantén el estado local solo si necesitas replaceReport
   useEffect(() => {
     if (branchReportsData) setBranchReports(branchReportsData);
@@ -36,6 +38,13 @@ export const useBranchReports = ({ companyId = null, date = null, reports = [], 
       setBranchReports(reports);
     }
   }, [reports]);
+
+  // Refetch cuando cambia la fecha o companyId
+  useEffect(() => {
+    if (companyId && date && reports.length === 0 && !profile) {
+      refetchBranchReports();
+    }
+  }, [companyId, date]);
 
   const sortedReports = useMemo(() => {
     if (profile)

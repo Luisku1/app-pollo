@@ -33,7 +33,6 @@ export default function Nomina() {
   const changeDay = (date) => {
     setCurrentDate(date)
     navigate('/nomina/' + date)
-
   }
 
   useEffect(() => {
@@ -68,10 +67,6 @@ export default function Nomina() {
           isShown={!!selectedEmployeePayroll}
         />
       </div>
-      {roles && isManager(currentUser.role) &&
-        <FechaDePagina changeDay={changeDay} stringDatePickerValue={currentDate} changeDatePickerValue={changeDatePickerValue} ></FechaDePagina>
-      }
-
       <div className='border max-w-3xl mx-auto px-10 mt-4'>
         {roles && isManager(currentUser.role) && employeesPayroll && employeesPayroll.length > 0 && employeesPayroll.map((employeePayroll, index) => {
           const { employee, branchReports, lateDiscount, supervisorReports, missingWorkDiscount, employeePaymentsAmount, adjustments = 0 } = employeePayroll

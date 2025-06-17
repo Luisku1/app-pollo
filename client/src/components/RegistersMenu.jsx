@@ -1,5 +1,5 @@
 import { IoIosAddCircle } from "react-icons/io";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Incomes from "./Incomes/Incomes";
 import Modal from "./Modals/Modal";
 import EntradaInicial from "../pages/EntradaInicial";
@@ -29,10 +29,12 @@ const menu = [
 ]
 
 export const RegistersMenu = () => {
-
   const { currentUser } = useSelector((state) => state.user)
   const [showing, setShowing] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
+  const [highlightedIndex, setHighlightedIndex] = useState(0);
+  const optionRefs = useRef([]);
+  const isDesktop = window.innerWidth >= 1280; // Ajusta el ancho según tus necesidades
 
   const toggleMenu = () => {
     setIsOpen((prev) => !prev);
@@ -44,10 +46,32 @@ export const RegistersMenu = () => {
       if (e.key === "+") {
         toggleMenu();
       }
+      if (isOpen) {
+        if (e.key === 'ArrowDown') {
+          setHighlightedIndex((prev) => (prev + 1) % menu.length);
+        } else if (e.key === 'ArrowUp') {
+          setHighlightedIndex((prev) => (prev - 1 + menu.length) % menu.length);
+        } else if (e.key === 'Enter' && highlightedIndex >= 0) {
+          e.preventDefault();
+          setShowing(menu[highlightedIndex].onSelec);
+          setIsOpen(false);
+        } else if (e.key === 'Escape') {
+          setIsOpen(false);
+        }
+      }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [isOpen, highlightedIndex]);
+
+  useEffect(() => {
+    if (isOpen && optionRefs.current[highlightedIndex]) {
+      optionRefs.current[highlightedIndex].scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+      });
+    }
+  }, [highlightedIndex, isOpen]);
 
   if (!currentUser) return null
 
@@ -55,39 +79,46 @@ export const RegistersMenu = () => {
     <div className="w-fit">
       <button
         onClick={toggleMenu}
-        className="fixed bottom-4 right-4 bg-header text-white p-3 rounded-full shadow-lg hover:bg-black transition duration-300 ease-in-out z-50"
+        className="fixed bottom-4 right-4 bg-header text-white p-3 rounded-full shadow-lg hover:bg-black transition duration-300 ease-in-out z-50 opacity-60"
       >
         <IoIosAddCircle className="text-3xl" />
       </button>
 
       {isOpen && (
-        <div
-          className='fixed inset-0 bg-transparent'
-          onClick={() => setIsOpen(false)}
-        ></div>
-      )}
+        <Modal
+          closeModal={() => setIsOpen(false)}
+          ableToClose={true}
+          closeOnEsc={true}
+          closeOnClickOutside={true}
+          width="auto"
+          fit={true}
+          content={
+            <div className="w-full max-w-md flex flex-col items-center gap-4">
+              <h2 className="text-lg text-center font-bold mb-2">Agregar registro</h2>
+              <ul className="w-full mt-2 px-2" style={{ maxHeight: 320, overflowY: 'auto', overflowX: 'hidden' }}>
+                {menu.map((item, idx) => (
+                  <li
+                    key={item.title}
+                    ref={el => optionRefs.current[idx] = el}
+                    className={`w-full px-4 py-3 rounded-lg cursor-pointer mb-2 shadow transition-all text-lg font-medium border border-gray-200 whitespace-normal break-words
+                      ${idx === highlightedIndex ? 'bg-orange-100 text-orange-700 border-orange-300 scale-105' : 'bg-white hover:bg-gray-100'}`}
+                    onMouseEnter={() => setHighlightedIndex(idx)}
+                    onClick={() => {
+                      setShowing(item.onSelec);
+                      setIsOpen(false);
+                    }}
+                  >
+                    <span className="block w-full text-left">{item.title}</span>
+                  </li>
+                ))}
+              </ul>
+              {isDesktop && (
+                <p className="text-xs text-gray-400 mt-2">Navega con ↑ ↓ y selecciona con Enter</p>
 
-      {isOpen && (
-        <div
-          className="fixed bottom-16 right-4 bg-white shadow-lg rounded-lg p-4 z-50 max-h-80 overflow-y-auto h-auto border border-gray-300 mb-2"
-        >
-          <h2 className="text-lg text-center font-bold mb-2">Menu</h2>
-          <ul className="space-y-2">
-            {menu.map((item, index) => (
-              <li key={index} className="flex items-center justify-between">
-                <button
-                  onClick={() => {
-                    setShowing(item.onSelec);
-                    toggleMenu();
-                  }}
-                  className="text-black hover:underline text-left w-full"
-                >
-                  <p className="text-left ">{item.title}</p>
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
+              )}
+            </div>
+          }
+        />
       )}
 
       {showing &&
@@ -97,7 +128,7 @@ export const RegistersMenu = () => {
           fit={true}
           shape="rounded-lg border-2 border-gray-300"
           closeOnClickOutside={true}
-          closeModal={() => setShowing(null)}
+          closeModal={() => {setShowing(null); setIsOpen(true)}}
         />
       }
     </div>

@@ -28,17 +28,16 @@ import Modal from '../components/Modals/Modal';
 import ConfirmationButton from '../components/Buttons/ConfirmationButton';
 import EmployeeInfo from '../components/EmployeeInfo';
 import { CgProfile } from 'react-icons/cg';
-import { useDate } from '../context/DateContext';
+import { useDateNavigation } from '../hooks/useDateNavigation';
 import { ToastInfo } from '../helpers/toastify';
 import ProvidersInputsList from '../components/Providers/ProvidersInputsList';
 
-export default function RegistroCuentaDiaria({ edit = true, _branchReport = null, _branch = null }) {
+export default function RegistroCuentaDiaria({ edit = true, _branch = null }) {
 
   const { currentUser, company } = useSelector((state) => state.user)
-  const paramsDate = useParams().date
-  let datePickerValue = (paramsDate ? new Date(paramsDate) : new Date())
-  let stringDatePickerValue = formatDate(datePickerValue)
-  const [branchId, setBranchId] = useState((useParams()?.branchId ?? _branch?._id) ?? null)
+  const navigate = useNavigate()
+  const [branchId, setBranchId] = useState(null)
+  const { currentDate, setDate, isDateAware } = useDateNavigation({ branchId });
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
   const { activeEmployees: employees, activeEmployees } = useEmployees({ companyId: company._id })
@@ -49,9 +48,13 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
   const [selectedAssistant, setSelectedAssistant] = useState(null)
   const [selectedBranch, setSelectedBranch] = useState(_branch)
   const [selectBranch, setSelectBranch] = useState(false)
-  const navigate = useNavigate()
-  const { currentDate, setCurrentDate } = useDate()
-  const reportDate = (paramsDate ? new Date(paramsDate) : new Date()).toLocaleDateString('es-mx', { weekday: 'long', year: 'numeric', month: '2-digit', day: '2-digit' })
+  const [showPrices, setShowPrices] = useState(false)
+  const [showSelectBranchEmployees, setShowSelectBranchEmployees] = useState(false)
+  const [employeeInfo, setEmployeeInfo] = useState(null)
+  const isAuthorized = roles && isManager(currentUser.role)
+  const [ableToEdit, setAbleToEdit] = useState(false)
+
+  const reportDate = (currentDate ? new Date(currentDate) : new Date()).toLocaleDateString('es-mx', { weekday: 'long', year: 'numeric', month: '2-digit', day: '2-digit' })
   const {
     branchReport,
     onUpdateBranchReport,
@@ -87,14 +90,7 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
     outgoingsTotal,
     onAddOutgoing,
     onDeleteOutgoing
-  } = useBranchReport({ branchId, date: stringDatePickerValue, _branchReport })
-  const [showPrices, setShowPrices] = useState(false)
-
-  const isLoading = useLoading()
-  const [showSelectBranchEmployees, setShowSelectBranchEmployees] = useState(false)
-  const [employeeInfo, setEmployeeInfo] = useState(null)
-  const isAuthorized = roles && isManager(currentUser.role)
-  const [ableToEdit, setAbleToEdit] = useState(false)
+  } = useBranchReport({ branchId, date: currentDate })
 
   useEffect(() => {
     const currentTime = new Date();
@@ -103,21 +99,21 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
 
     setAbleToEdit(true)
 
-    if (isJustSeller(currentUser.role) && !isToday(stringDatePickerValue)) {
+    if (isJustSeller(currentUser.role) && !isToday(reportDate)) {
       ToastInfo('No puedes editar el formato de otro día')
       setAbleToEdit(false)
       return
     }
 
-    if (isJustSeller(currentUser.role) && isToday(stringDatePickerValue)) {
-      if ((isToday(stringDatePickerValue) && currentUTCHours > 2 && currentUTCHours < 6) || (isToday(stringDatePickerValue) && currentUTCHours > 2 && currentUTCMinutes > 30 && currentUTCHours < 6)) {
+    if (isJustSeller(currentUser.role) && isToday(reportDate)) {
+      if ((isToday(reportDate) && currentUTCHours > 2 && currentUTCHours < 6) || (isToday(reportDate) && currentUTCHours > 2 && currentUTCMinutes > 30 && currentUTCHours < 6)) {
         ToastInfo('No puedes editar el formato después de las 8 pm')
         setAbleToEdit(false)
         return
       }
     }
 
-  }, [currentUser, currentDate, stringDatePickerValue]);
+  }, [currentUser, currentDate, reportDate]);
 
   useEffect(() => {
     if ((!branchId && !selectedBranch)) {
@@ -140,32 +136,11 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
 
     setSelectedBranch(branch)
     setBranchId(branch.value)
-    navigate('/formato/' + stringDatePickerValue + '/' + branch._id)
+    navigate('/formato/' + currentDate)
   }
-
-  const changeDatePickerValue = (e) => {
-
-    const newDate = e.target.value + 'T06:00:00.000Z';
-    setCurrentDate(newDate);
-    navigate('/formato/' + newDate + '/' + branchId)
-  }
-
-  const changeDay = (date) => {
-    setCurrentDate(date)
-    navigate('/formato/' + date + '/' + branchId)
-
-  }
-
-  useEffect(() => {
-    if (stringDatePickerValue) {
-      setCurrentDate(stringDatePickerValue)
-    }
-  }, [stringDatePickerValue])
 
   const SectionHeader = (props) => {
-
     return (
-
       <h2 className='flex text-2xl text-center font-semibold mb-4 text-red-800' onClick={props.onClick}>{props.label}</h2>
     )
   }
@@ -325,32 +300,20 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
     return (
       <div className='flex flex-col gap-4 mt-4 sticky bottom-4'>
         <p className='bg-red-800 text-white border border-black p-3 rounded-lg w-full'>
-          {isToday(stringDatePickerValue) ? 'No puedes editar el formato después de las 8 pm' : 'No puedes editar el formato de otro día'}
+          {isToday(reportDate) ? 'No puedes editar el formato después de las 8 pm' : 'No puedes editar el formato de otro día'}
         </p>
       </div>
     )
   }
 
   return (
-    <main className="p-3 max-w-lg mx-auto">
-      {showSelectBranchEmployees && (
-        <Modal
-          content={selectEmployees()}
-          closeModal={() => setShowSelectBranchEmployees(false)}
-          ableToClose={true}
-        />
-      )}
+    <main id="registro-cuenta-diaria-main" className="p-3 max-w-lg mx-auto">
       {roles && (
         <div>
-          {isLoading ?
+          {loading ?
             <Loading></Loading>
             : ''}
           <div className={'sticky  z-30 top-16'}>
-            {isManager(currentUser.role) ?
-              <div>
-                <FechaDePagina changeDay={changeDay} stringDatePickerValue={currentDate} changeDatePickerValue={changeDatePickerValue} ></FechaDePagina>
-              </div>
-              : ''}
             {branchReport && (
               <div className='sticky top-20'>
                 <ShowBalance balance={branchReport.balance}></ShowBalance>

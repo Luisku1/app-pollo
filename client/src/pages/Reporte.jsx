@@ -2,10 +2,8 @@
 import { IoReload } from "react-icons/io5";
 import { useRef, useEffect, useState } from "react";
 import { useSelector } from "react-redux"
-import { useParams, useNavigate, Link } from "react-router-dom"
+import { useNavigate, } from "react-router-dom"
 import { FaMinus } from "react-icons/fa";
-import FechaDePagina from "../components/FechaDePagina"
-import { formatDate } from "../helpers/DatePickerFunctions"
 import Sobrante from "../pages/Sobrante"
 import { useBranchReports } from "../hooks/BranchReports.js/useBranchReports";
 import { currency } from "../helpers/Functions";
@@ -17,34 +15,32 @@ import Modal from "../components/Modals/Modal";
 import { useLoading } from "../hooks/loading.js";
 import BranchReportCard from "../components/BranchReportCard.jsx";
 import SupervisorReportCard from "../components/SupervisorReportCard.jsx";
-import { useDate } from '../context/DateContext';
 import BranchReportTable from '../components/BranchReportTable';
 import { useCustomersReports } from "../hooks/CustomerReports/useCustomerReports.js";
 import SupervisorReportTable from '../components/SupervisorReportTable';
 import CustomerReportTable from "../components/CustomerReportTable.jsx";
 import ListaSalidas from "../components/EntradasYSalidas/Salidas/ListaSalidas.jsx";
 import IncomesList from "../components/Incomes/IncomesList.jsx";
-import OutgoingsList from "../components/Outgoings/OutgoingsList.jsx";
 import ListaEntradas from "../components/EntradasYSalidas/Entradas/ListaEntradas.jsx";
 import ProviderReportTable from '../components/ProviderReportTable';
 import { useProvidersReports } from "../hooks/Providers/useProvidersReports.js";
 import ProvidersInputsList from "../components/Providers/ProvidersInputsList.jsx";
-import PriceWeightingCard from '../components/statistics/PriceWeightingCard';
-import PurchasesCard from '../components/statistics/PurchasesCard';
 import ProfitCard from '../components/statistics/ProfitCard';
 import SalesVsReturnsCard from '../components/statistics/SalesVsReturnsCard';
 import OutgoingsCard from '../components/statistics/OutgoingsCard';
 import BranchBalanceCard from '../components/statistics/BranchBalanceCard';
+import NetDifferenceCard from "../components/statistics/NetDifferenceCard.jsx";
+import ExtraOutgoingsList from "../components/Outgoings/ExtraOutgoingsList.jsx";
+import { useDateNavigation } from "../hooks/useDateNavigation.js";
+import ProductPriceComparisonCard from "../components/statistics/ProductPriceComparisonCard.jsx";
+import ProviderMovementsCard from "../components/statistics/ProviderMovementsCard.jsx";
 
 export default function Reporte({ untitled = false }) {
 
   const { company, currentUser } = useSelector((state) => state.user)
-  let paramsDate = useParams().date
-  let datePickerValue = (paramsDate ? new Date(paramsDate) : new Date())
-  let stringDatePickerValue = formatDate(datePickerValue)
-  const { roles, loading: loadingRoles, isManager } = useRoles()
+  const { currentDate } = useDateNavigation({ fallbackToToday: true })
+  const { roles } = useRoles()
   const [showTable, setShowTable] = useState(true)
-  const { currentDate, setCurrentDate } = useDate()
   const [onlyNegativeBalances, setOnlyNegativeBalances] = useState(false);
   const {
     branchReports,
@@ -89,7 +85,7 @@ export default function Reporte({ untitled = false }) {
 
   const {
     customerReports,
-    loading,
+    loading: loadingCustomers,
     replaceReport: replaceCustomerReport,
     setReports: setCustomerReports,
     totalSales,
@@ -99,13 +95,19 @@ export default function Reporte({ untitled = false }) {
     totalBalance: totalCustomerBalance,
   } = useCustomersReports({ companyId: company._id, date: currentDate, onlyNegativeBalances })
 
-  const { providerReports, loading: loadingProviders, refetchProvidersReports, paymentsArray, providersReports, movementsArray, replaceReport: replaceProviderReport, returnsArray, setReports, totalBalance: totalProvidersBalance, totalPayments: totalProviderPayments, totalPreviousBalance, totalMovements, totalReturns: totalProviderReturns } = useProvidersReports({
+  const { providerReports, loading: loadingProviders, refetchProvidersReports, paymentsArray, providersReports, replaceReport: replaceProviderReport, returnsArray, setReports, totalBalance: totalProvidersBalance, totalPayments: totalProviderPayments, totalPreviousBalance, totalMovements, totalReturns: totalProviderReturns, purchasesArray } = useProvidersReports({
     companyId: company._id,
     date: currentDate,
     onlyNegativeBalances
   })
 
-  const { isLoading } = useLoading([loadingBranchReports, loadingSupervisors])
+  // Un solo estado de loading global
+  const isAnyLoading = useLoading([
+    loadingBranchReports,
+    loadingSupervisors,
+    loadingCustomers,
+    loadingProviders
+  ])
   const navigate = useNavigate()
   const [pieChartInfo, setPieChartInfo] = useState([])
   const [selectedBranchReport, setSelectedBranchReport] = useState(null);
@@ -114,6 +116,7 @@ export default function Reporte({ untitled = false }) {
   const [showProviderInputs, setShowProviderInputs] = useState(false);
   const [showInputs, setShowInputs] = useState(false);
   const [showOutgoings, setShowOutgoings] = useState(false);
+  const [showExtraOutgoings, setShowExtraOutgoings] = useState(false);
   const [showIncomes, setShowIncomes] = useState(false);
   const [showStock, setShowStock] = useState(false);
   const [showInitialStock, setShowInitialStock] = useState(false);
@@ -179,6 +182,7 @@ export default function Reporte({ untitled = false }) {
             supervisorTableRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
           }, 150);
           setShowTable(true);
+          setShowPieChartModal(false);
         }
       },
       {
@@ -194,22 +198,11 @@ export default function Reporte({ untitled = false }) {
   const [selectedSupervisorReport, setSelectedSupervisorReport] = useState(null);
   const [tablesOnTop, setTablesOnTop] = useState(false);
 
-  const changeDatePickerValue = (e) => {
-    const newDate = e.target.value + 'T06:00:00.000Z';
-    setCurrentDate(newDate);
-    navigate('/reporte/' + newDate)
-  }
-
-  const changeDay = (date) => {
-    navigate('/reporte/' + date)
-  }
-
   useEffect(() => {
     const handleResize = () => {
       const size = window.innerWidth
       if (size > 1024) {
         setTablesOnTop(true)
-        setShowTableBar(true)
       } else {
         setTablesOnTop(false)
       }
@@ -253,12 +246,6 @@ export default function Reporte({ untitled = false }) {
   }, [])
 
   useEffect(() => {
-    if (stringDatePickerValue) {
-      setCurrentDate(stringDatePickerValue)
-    }
-  }, [stringDatePickerValue, setCurrentDate])
-
-  useEffect(() => {
     if (untitled) return
     document.title = 'Reporte (' + new Date(currentDate).toLocaleDateString() + ')'
   }, [currentDate, untitled])
@@ -286,8 +273,46 @@ export default function Reporte({ untitled = false }) {
     </div>
   );
 
+  const renderStatistics = () => {
+    return (
+      <div className='w-full'>
+        {(verifiedIncomes || verifiedIncomes === 0) && (netIncomes || netIncomes === 0) && (
+          <div>
+            <p className='text-lg'>Ingresos totales confirmados</p>
+            <div className='flex gap-2'>
+              <p className='text-lg'>
+                <span className={`${verifiedIncomes < netIncomes ? 'text-red-600' : 'text-green-600'}`}>
+                  {currency({ amount: verifiedIncomes })}
+                </span>
+                /
+                <span className='text-green-600'>{currency({ amount: netIncomes })}</span>
+              </p>
+              {verifiedIncomes < netIncomes && (
+                <p className='text-red-500'>{`(${currency({ amount: verifiedIncomes - netIncomes })})`}</p>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  if (isAnyLoading) {
+    return (
+      <div className="fixed left-0 right-0 top-16 bottom-0 z-30 flex flex-col items-center justify-center bg-white bg-opacity-80 backdrop-blur-sm transition-all animate-fade-in">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-20 h-20 border-8 border-gray-200 border-t-gray-500 rounded-full animate-spin shadow-lg"></div>
+          <span className="text-xl font-bold text-gray-700 animate-pulse">Cargando...</span>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <main className="p-3 mx-auto mb-40">
+    <main className="p-3 mx-auto mb-40 relative">
+      {/* Loading overlay (fixed, does not cover header, only one spinner, z-30) */}
+
+      {/* Shortcuts help always above overlay */}
       {showShortcutsHelp && shortcutsHelp}
       {selectedBranchReport && (
         <Modal
@@ -367,10 +392,10 @@ export default function Reporte({ untitled = false }) {
           width="11/12"
         />
       )}
-      {showOutgoings && (
+      {showExtraOutgoings && (
         <Modal
-          content={<OutgoingsList outgoings={outgoingsArray} onDelete={null} />}
-          closeModal={() => setShowOutgoings(false)}
+          content={<ExtraOutgoingsList extraOutgoings={extraOutgoingsArray} totalExtraOutgoings={extraOutgoings} />}
+          closeModal={() => setShowExtraOutgoings(false)}
           title={'Gastos'}
           ableToClose={true}
           closeOnEsc={true}
@@ -380,7 +405,33 @@ export default function Reporte({ untitled = false }) {
       )}
       {showIncomes && (
         <Modal
-          content={<IncomesList incomes={incomesArray} onDeleteIncome={null} />}
+          content={
+            <IncomesList
+              incomes={incomesArray}
+              incomesTotal={incomesArray.reduce((acc, curr) => acc + curr.amount, 0)}
+              statistics={() => (
+                <div className="w-full">
+                  {(verifiedIncomes || verifiedIncomes === 0) && (netIncomes || netIncomes === 0) && (
+                    <div>
+                      <p className='text-lg'>Ingresos totales confirmados</p>
+                      <div className='flex gap-2'>
+                        <p className='text-lg'>
+                          <span className={`${verifiedIncomes < netIncomes ? 'text-red-600' : 'text-green-600'}`}>
+                            {currency({ amount: verifiedIncomes })}
+                          </span>
+                          /
+                          <span className='text-green-600'>{currency({ amount: netIncomes })}</span>
+                        </p>
+                        {verifiedIncomes < netIncomes && (
+                          <p className='text-red-500'>{`(${currency({ amount: verifiedIncomes - netIncomes })})`}</p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            />
+          }
           closeModal={() => setShowIncomes(false)}
           title={'Ingresos'}
           ableToClose={true}
@@ -389,9 +440,6 @@ export default function Reporte({ untitled = false }) {
           width="11/12"
         />
       )}
-      {!untitled &&
-        <FechaDePagina changeDay={changeDay} stringDatePickerValue={currentDate} changeDatePickerValue={changeDatePickerValue} ></FechaDePagina>
-      }
       {(branchReports || supervisorsInfo) && roles && roles.manager ?
         <div className="mt-3">
           <div className="">
@@ -605,24 +653,51 @@ export default function Reporte({ untitled = false }) {
                   )}
                 </div>
                 {incomesArray.length > 0 && (
-                  <div>
+                  <>
                     <div className="flex justify-center mt-5 px-8 items-center">
-                      <div className="w-fit mt-2 rounded-lg p-2 border bg-white"> {/* Alineado a la derecha */}
-                        <p>
-                          <span className="font-bold">Ingresos brutos: </span>
-                          <span className="text-green-600">{currency(totalIncomes)}</span>
-                        </p>
-                        <p>
-                          <span className="font-bold">Gastos fuera de cuentas: </span>
-                          <span className="text-red-600">{currency(extraOutgoings)}</span>
-                        </p>
-                        <p>
-                          <span className="font-bold">Ingresos netos: </span>
-                          <span className="text-green-600">{currency(netIncomes)}</span>
-                        </p>
+                      <div className="flex flex-col md:flex-row gap-2 md:gap-6 bg-white rounded-2xl shadow-lg border border-gray-200 p-4 md:p-6 w-fit">
+                        {/* Ingresos brutos */}
+                        <button
+                          type="button"
+                          className="flex items-center gap-2 px-3 py-2 rounded-xl bg-green-50 border border-green-200 shadow-sm min-w-[160px] focus:outline-none focus:ring-2 focus:ring-green-300 transition hover:bg-green-100"
+                          onClick={() => setShowIncomes(true)}
+                          title="Ver lista de ingresos brutos"
+                        >
+                          <span className="text-2xl">💰</span>
+                          <div className="flex flex-col items-start">
+                            <span className="text-xs text-gray-500 font-semibold">Ingresos brutos</span>
+                            <span className="text-lg font-bold text-green-600">{currency(totalIncomes)}</span>
+                          </div>
+                        </button>
+                        {/* Gastos fuera de cuentas */}
+                        <button
+                          type="button"
+                          className="flex items-center gap-2 px-3 py-2 rounded-xl bg-red-50 border border-red-200 shadow-sm min-w-[160px] focus:outline-none focus:ring-2 focus:ring-red-300 transition hover:bg-red-100"
+                          onClick={() => setShowExtraOutgoings(true)}
+                          title="Ver lista de gastos fuera de cuentas"
+                        >
+                          <span className="text-2xl">💸</span>
+                          <div className="flex flex-col items-start">
+                            <span className="text-xs text-gray-500 font-semibold">Gastos fuera de cuentas</span>
+                            <span className="text-lg font-bold text-red-600">{currency(extraOutgoings)}</span>
+                          </div>
+                        </button>
+                        {/* Ingresos netos (a verificar) */}
+                        <button
+                          type="button"
+                          className="flex items-center gap-2 px-3 py-2 rounded-xl bg-blue-50 border border-blue-200 shadow-sm min-w-[160px] focus:outline-none focus:ring-2 focus:ring-blue-300 transition hover:bg-blue-100"
+                          onClick={() => setShowIncomes(true)}
+                          title="Ver lista de ingresos a verificar"
+                        >
+                          <span className="text-2xl">📈</span>
+                          <div className="flex flex-col items-start">
+                            <span className="text-xs text-gray-500 font-semibold">Ingresos a verificar</span>
+                            <span className="text-lg font-bold text-blue-600">{currency(netIncomes)}</span>
+                          </div>
+                        </button>
                       </div>
                     </div>
-                    {/* Modern verified money percentage indicator */}
+                    {/* Modern verified money percentage indicator y statistics */}
                     <div className="flex flex-wrap gap-6 justify-center mt-8">
                       <div>
                         <div className="relative w-64 h-64 bg-white rounded-2xl shadow-xl flex flex-col items-center justify-center border border-gray-200 cursor-pointer group"
@@ -676,14 +751,14 @@ export default function Reporte({ untitled = false }) {
                           })()}
                         </div>
                       </div>
-                      <PriceWeightingCard providerReports={providerReports} />
-                      <PurchasesCard providerReports={providerReports} />
+                      <ProductPriceComparisonCard purchasesArray={purchasesArray} providerInputsArray={providerInputsArray} />
+                      <ProviderMovementsCard purchasesArray={purchasesArray} returnsArray={returnsArray} />
                       <ProfitCard branchReports={branchReports} customerReports={customerReports} />
                       <SalesVsReturnsCard customerReports={customerReports} />
                       <OutgoingsCard branchReports={branchReports} />
                       <BranchBalanceCard branchReports={branchReports} />
+                      <NetDifferenceCard />
                     </div>
-                    {/* Modal for PieChart details */}
                     {showPieChartModal && (
                       <Modal
                         content={
@@ -714,7 +789,7 @@ export default function Reporte({ untitled = false }) {
                         shape="rounded-2xl"
                       />
                     )}
-                  </div>
+                  </>
                 )}
               </div>
             }

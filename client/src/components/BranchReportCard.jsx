@@ -90,7 +90,7 @@ export default function BranchReportCard({
 
   const navToEditReport = (reportData) => {
 
-    navigate(`/formato/${reportData.createdAt}/${reportData.branch._id}`)
+    navigate(`/formato/${reportData.branch._id}/${reportData.createdAt}`)
   }
 
   const handleDownloadImage = async () => {
