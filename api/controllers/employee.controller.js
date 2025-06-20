@@ -1881,14 +1881,9 @@ export const getEmployeesDailyBalances = async (req, res, next) => {
 
 	const { bottomDate, topDate } = getDayRange(date)
 	const employees = await Employee.find({
-		$and: [
-			{
-				company: companyId
-			},
-			{
-				active: true
-			}
-		]
+		company: companyId,
+		active: true
+
 	}).select({ path: '_id' })
 
 	try {

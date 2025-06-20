@@ -37,6 +37,11 @@ const branchSchema = mongoose.Schema({
     required: true
   },
 
+  residualPrices: {
+    type: Boolean,
+    default: false
+  },
+
   position: {
     type: Number,
     required: true

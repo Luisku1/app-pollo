@@ -14,11 +14,8 @@ const ModalProvider = ({ children }) => {
     setModals((prevModals) => prevModals.slice(0, -1));
   }, []);
 
-  // Calcula cuántos modales están realmente visibles
-  const activeModalsCount = modals.filter(m => m.isShown).length;
-
   return (
-    <ModalContext.Provider value={{ modals, addModal, removeLastModal, count, setCount, activeModalsCount }}>
+    <ModalContext.Provider value={{ modals, addModal, removeLastModal, count, setCount }}>
       {children}
     </ModalContext.Provider>
   );

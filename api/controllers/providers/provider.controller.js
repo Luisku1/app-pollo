@@ -28,10 +28,10 @@ export const providerAggregate = (localField, as) => {
 };
 
 export const newProvider = async (req, res, next) => {
-  const { name, phoneNumber, location, company } = req.body;
+  const { name, phoneNumber, lastName, location, company } = req.body;
 
   try {
-    const newProvider = Provider({ name, phoneNumber, location, company });
+    const newProvider = Provider({ name, lastName, phoneNumber, location, company });
     await newProvider.save();
 
     res.status(200).json("New provider created successfully");

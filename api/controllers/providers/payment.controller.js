@@ -44,7 +44,7 @@ export const getProviderProductLastPrice = async (req, res, next) => {
     ]);
     if (lastMovementPrice.length > 0) {
       res.status(200).json({
-        lastPrice: lastMovementPrice[0].price,
+        lastPrice: lastMovementPrice[0].price || 0,
         date: lastMovementPrice[0].createdAt
       });
     } else {

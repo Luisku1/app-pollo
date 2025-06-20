@@ -4,20 +4,19 @@ import Product from '../models/product.model.js'
 import Branch from '../models/branch.model.js'
 import { Types } from "mongoose";
 import { getDayRange, today } from "../utils/formatDate.js";
-import { changePricesDate, createDefaultBranchReport, fetchBranchReport, fetchOrCreateBranchReport } from "./branch.report.controller.js";
+import { changePricesDate, fetchBranchReport, fetchOrCreateBranchReport } from "./branch.report.controller.js";
 import ProviderInput from "../models/providers/provider.input.model.js";
 import Input from "../models/accounts/input.model.js";
 import Output from "../models/accounts/output.model.js";
-import BranchReport from "../models/accounts/branch.report.model.js";
 
 export const newPrice = async (req, res, next) => {
 
-  const { price, product, branch } = req.body
+  const { price, product, branch, residual = false } = req.body
   const createdAt = new Date().toISOString()
 
   try {
 
-    const newPrice = new Price({ price, product, branch, createdAt })
+    const newPrice = new Price({ price, product, branch, createdAt, residual })
 
     await newPrice.save()
     res.status(200).json('New price created')
@@ -31,7 +30,7 @@ export const newPrice = async (req, res, next) => {
 export const changeBranchPrices = async (req, res, next) => {
 
   const branchId = req.params.branchId
-  const { date, pricesDate } = req.body
+  const { date, pricesDate, residuals = false } = req.body
 
   if (!date || !branchId || !pricesDate) {
 
@@ -40,7 +39,7 @@ export const changeBranchPrices = async (req, res, next) => {
 
   try {
 
-    const updatedBranchReport = await changePricesDate(branchId, date, pricesDate)
+    const updatedBranchReport = await changePricesDate(branchId, date, pricesDate, residuals)
 
     if (!updatedBranchReport) next(errorHandler(404, 'No se pudo realizar el cambio de precios'))
 
@@ -75,6 +74,7 @@ export const newPrices = async (req, res, next) => {
           price: data[key].price,
           product: data[key].product,
           branch: data[key].branch,
+          residual: data[key].residual || false,
           company: companyId,
           createdAt: createdAt
         }
@@ -191,6 +191,11 @@ export const getAllBranchPrices = async (req, res, next) => {
     const productsPrice = await Branch.aggregate([
 
       {
+        $match: {
+          "company": new Types.ObjectId(companyId)
+        }
+      },
+      {
         $lookup: {
           from: "prices",
           localField: "_id",
@@ -205,11 +210,6 @@ export const getAllBranchPrices = async (req, res, next) => {
         }
       },
       {
-        $match: {
-          "company": new Types.ObjectId(companyId)
-        }
-      },
-      {
         $sort: { "prices.createdAt": -1 } // Ordenamos por fecha de creación de forma descendente para obtener el precio más reciente primero
       },
       {
@@ -218,10 +218,18 @@ export const getAllBranchPrices = async (req, res, next) => {
             branch: "$_id",
             branchName: '$branch',
             branchPosition: '$position',
+            residualPrices: '$residualPrices',
             product: "$prices.product",
             company: '$company'
           },
           latestPrice: { $first: "$prices.price" }, // Obtenemos el primer precio, que será el más reciente
+          latestResidualPrice: {
+            $first: {
+              $cond: [
+                { $eq: ["$prices.residual", true] }, "$prices.price", null
+              ]
+            }
+          },
           date: { $first: "$prices.createdAt" } // También obtenemos la fecha del precio más reciente
         }
       },
@@ -233,14 +241,8 @@ export const getAllBranchPrices = async (req, res, next) => {
           as: "product"
         }
       },
-      {
-        $unwind: "$product"
-      },
-
-      {
-        $sort: { "product.createdAt": 1 }
-      },
-
+      { $unwind: "$product" },
+      { $sort: { "product.createdAt": 1 } },
       {
         $group: {
           _id: {
@@ -248,21 +250,20 @@ export const getAllBranchPrices = async (req, res, next) => {
             branchName: '$_id.branchName',
             branchPosition: '$_id.branchPosition'
           },
+          residualPrices: { $first: "$_id.residualPrices" },
           company: { $first: '$_id.company' },
           prices: {
             $push: {
               productId: '$product._id',
               product: "$product.name",
               latestPrice: "$latestPrice",
+              latestResidualPrice: "$latestResidualPrice",
               date: "$date"
             }
           }
         }
       },
-
-      {
-        $sort: { '_id.branchPosition': 1 }
-      }
+      { $sort: { '_id.branchPosition': 1 } }
     ])
 
     if (productsPrice) {
@@ -402,22 +403,25 @@ export const getCustomerProductPrice = async (req, res, next) => {
   }
 }
 
-export const getProductPrice = async (productId, branchId, topDate = new Date()) => {
+export const getProductPrice = async (productId, branchId, topDate = new Date(), residualPrice = false) => {
 
   try {
 
     const price = await Price.find({
       $and: [
         {
-          createdAt: {
-            $lte: topDate
-          }
+          product: productId
         },
         {
           branch: branchId,
         },
         {
-          product: productId
+          residual: residualPrice
+        },
+        {
+          createdAt: {
+            $lte: topDate
+          }
         }
       ]
     }, 'price').sort({ createdAt: -1 }).limit(1)

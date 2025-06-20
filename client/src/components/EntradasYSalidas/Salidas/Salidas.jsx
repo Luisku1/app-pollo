@@ -219,7 +219,7 @@ export default function Salidas({ selectedProduct, setSelectedProduct, setSelect
           </div>
         </div>
         <form onSubmit={addOutputSubmitButton} className="flex flex-col space-y-2">
-          <div className='mb-4'>
+          <div className=''>
             <div className="mb-2">
               <BranchAndCustomerSelect options={branchAndCustomerSelectOptions} defaultLabel={'Sucursal o Cliente'} selectedOption={selectedCustomerBranchOption} handleSelectChange={handleBranchCustomerSelectChange}></BranchAndCustomerSelect>
             </div>

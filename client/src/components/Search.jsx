@@ -95,10 +95,10 @@ export const SearchMenu = ({ modalMode }) => {
       if (e.key === 'Escape') {
         setShowModal(false);
       }
-      if (e.ctrlKey && (e.key === 'm' || e.key === 'M')) { // Added shortcut for Ctrl + T
+      if (e.ctrlKey && (e.key === 'b' || e.key === 'B')) { // Added shortcut for Ctrl + T
         e.preventDefault();
         document.getElementById('search-bar')?.focus();
-        setShowModal(true);
+        setShowModal(prev => !prev);
       }
       if (showModal) {
         if (e.key === 'ArrowDown') {

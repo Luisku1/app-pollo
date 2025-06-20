@@ -53,14 +53,14 @@ export default function Entradas({ selectedProduct, setSelectedProduct, setSelec
 
   const [selectedCustomerBranchOption, setSelectedCustomerBranchOption] = useState(null)
   const [selectedGroup, setSelectedGroup] = useState('')
-  const { price, loading: priceIsLoading } = useBranchCustomerProductPrice({ branchCustomerId: selectedCustomerBranchOption ? selectedCustomerBranchOption.value : null, productId: selectedProduct?._id || null, date, group: selectedGroup == '' ? null : selectedGroup })
+  const [internalSelectedProduct, setInternalSelectedProduct] = useState(selectedProduct);
+  const { price, loading: priceIsLoading } = useBranchCustomerProductPrice({ branchCustomerId: selectedCustomerBranchOption ? selectedCustomerBranchOption._id : null, productId: internalSelectedProduct?._id || null, date, group: selectedGroup == '' ? null : selectedGroup })
   const [amount, setAmount] = useState('$0.00')
   const [loading, setLoading] = useState(false)
   const [isRegisteredInSurplus, setIsRegisteredInSurplus] = useState(false)
   const [changePrice, setChangePrice] = useState(false)
 
   // Estado interno para el producto seleccionado
-  const [internalSelectedProduct, setInternalSelectedProduct] = useState(selectedProduct);
 
   // Sincroniza el estado interno cuando cambia el del padre
   useEffect(() => {
@@ -158,7 +158,7 @@ export default function Entradas({ selectedProduct, setSelectedProduct, setSelec
     let finalPrice = 0
 
     if (priceInput.value != '' && changePrice) {
-    finalPrice = priceInput.value
+      finalPrice = priceInput.value
     } else {
       finalPrice = price
     }

@@ -17,11 +17,12 @@ import { useProducts } from "../hooks/Products/useProducts";
 import { useCustomers } from "../hooks/Customers/useCustomers";
 import { useBranches } from "../hooks/Branches/useBranches";
 import { useDate } from "../context/DateContext";
+import { useDateNavigation } from "../hooks/useDateNavigation";
 
 export default function EntradaInicial() {
 
   const { company, currentUser } = useSelector((state) => state.user)
-  const { currentDate: date } = useDate();
+  const { currentDate: date } = useDateNavigation()
   const { isManager } = useRoles()
   const [selectedProduct, setSelectedProduct] = useState(null)
   const {

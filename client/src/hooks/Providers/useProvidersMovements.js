@@ -3,8 +3,10 @@ import { v4 as uuidv4 } from 'uuid';
 import { getProvidersMovements } from '../../services/Providers/getProvidersMovements';
 import useAddProviderMovement from './useAddProviderMovement';
 import { useDeleteProviderMovement } from './useDeleteProviderMovement';
+import { getProductLastPrice } from '../../services/Providers/getProductLastPrice';
+import { useEffect, useState } from 'react';
 
-const useProvidersMovements = ({ companyId, date = null }) => {
+const useProvidersMovements = ({ companyId, date = null, productId, providerId }) => {
   const queryClient = useQueryClient();
   const { addMovement, loading: addLoading } = useAddProviderMovement();
   const { deleteProviderMovement, loading: deleteLoading } = useDeleteProviderMovement();
@@ -24,6 +26,29 @@ const useProvidersMovements = ({ companyId, date = null }) => {
       totalAmount: data?.totalAmount || 0
     })
   });
+
+  const {
+    lastPrice,
+    loading: lastPriceLoading,
+    error: lastPriceError,
+  } = useQuery({
+    queryKey: ['lastPrice', providerId, productId],
+    queryFn: () => getProductLastPrice(providerId, productId).then(data => data?.lastPrice),
+    enabled: !!providerId && !!productId
+  });
+
+  const [price, setPrice] = useState(lastPrice || 0);
+  useEffect(() => {
+    if (lastPrice !== undefined) {
+      setPrice(lastPrice);
+    }
+  }, [lastPrice]);
+
+  useEffect(() => {
+    if (!productId || !providerId) {
+      setPrice(0);
+    }
+  }, [productId, providerId]);
 
   // Mutación para agregar compra
   const addMutation = useMutation({
@@ -69,7 +94,8 @@ const useProvidersMovements = ({ companyId, date = null }) => {
     onDeleteMovement,
     loading: queryLoading || addLoading || deleteLoading,
     error,
-    refetch
+    refetch,
+    lastPrice,
   };
 };
 

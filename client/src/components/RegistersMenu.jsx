@@ -13,7 +13,7 @@ import EmployeePayments from "./EmployeePayments";
 import { useSelector } from "react-redux";
 import CreateProviderMovement from "./Providers/CreateProviderMovement";
 import CreateProviderPayment from "./Providers/CreateProviderPayment";
-import useModal from "../hooks/useModal";
+import RegistroProveedor from "../pages/RegistroProveedor";
 
 const menu = [
   { title: "Dinero", onSelec: () => { return <Incomes /> } },
@@ -27,34 +27,42 @@ const menu = [
   { title: "Formato", onSelec: () => { return <RegistroCuentaDiaria /> } },
   { title: "Descansos", onSelec: () => { return <CreateRest /> } },
   { title: "Retardos y faltas", onSelec: () => { <Penalties /> } },
+  { title: "Registro de proveedor", onSelec: () => { return <RegistroProveedor /> } },
 ]
 
 export const RegistersMenu = () => {
   const { currentUser } = useSelector((state) => state.user)
-  const { activeModalsCount } = useModal();
   const [showing, setShowing] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(0);
+  const [searchTerm, setSearchTerm] = useState("");
   const optionRefs = useRef([]);
+  const searchInputRef = useRef(null);
   const isDesktop = window.innerWidth >= 1280; // Ajusta el ancho según tus necesidades
 
   const toggleMenu = () => {
     setIsOpen((prev) => !prev);
   };
 
-  // Shortcut para abrir/cerrar el menú con la tecla + SOLO si no hay modales activos
+  // Filtrado seguro para evitar problemas de renders infinitos
+  const filteredMenu = menu.filter(item =>
+    typeof item.title === 'string' && item.title.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+  // Shortcut para abrir/cerrar el menú con la tecla +
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.key === "+" && activeModalsCount === 0) {
+      if (e.ctrlKey && e.key === "+") {
+        e.preventDefault();
         toggleMenu();
-      } else if (isOpen) {
+      }
+      if (isOpen) {
         if (e.key === 'ArrowDown') {
-          setHighlightedIndex((prev) => (prev + 1) % menu.length);
+          setHighlightedIndex((prev) => (prev + 1) % filteredMenu.length);
         } else if (e.key === 'ArrowUp') {
-          setHighlightedIndex((prev) => (prev - 1 + menu.length) % menu.length);
+          setHighlightedIndex((prev) => (prev - 1 + filteredMenu.length) % filteredMenu.length);
         } else if (e.key === 'Enter' && highlightedIndex >= 0) {
           e.preventDefault();
-          setShowing(menu[highlightedIndex].onSelec);
+          setShowing(filteredMenu[highlightedIndex].onSelec);
           setIsOpen(false);
         } else if (e.key === 'Escape') {
           setIsOpen(false);
@@ -63,7 +71,7 @@ export const RegistersMenu = () => {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, highlightedIndex, activeModalsCount]);
+  }, [isOpen, highlightedIndex, filteredMenu]);
 
   useEffect(() => {
     if (isOpen && optionRefs.current[highlightedIndex]) {
@@ -73,6 +81,23 @@ export const RegistersMenu = () => {
       });
     }
   }, [highlightedIndex, isOpen]);
+
+  // Focus automático al abrir el modal por primera vez
+  useEffect(() => {
+    if (isOpen && searchInputRef.current) {
+      searchInputRef.current.focus();
+      setSearchTerm("");
+    }
+  }, [isOpen]);
+
+
+  // Cuando se selecciona un registro, resetea el searchTerm y el highlightedIndex
+  const handleSelect = (onSelec) => {
+    setShowing(onSelec);
+    setIsOpen(false);
+    setSearchTerm("");
+    setHighlightedIndex(0);
+  };
 
   if (!currentUser) return null
 
@@ -96,22 +121,31 @@ export const RegistersMenu = () => {
           content={
             <div className="w-full max-w-md flex flex-col items-center gap-4">
               <h2 className="text-lg text-center font-bold mb-2">Agregar registro</h2>
-              <ul className="w-full mt-2 px-2" style={{ maxHeight: 320, overflowY: 'auto', overflowX: 'hidden' }}>
-                {menu.map((item, idx) => (
-                  <li
-                    key={item.title}
-                    ref={el => optionRefs.current[idx] = el}
-                    className={`w-full px-4 py-3 rounded-lg cursor-pointer mb-2 shadow transition-all text-lg font-medium border border-gray-200 whitespace-normal break-words
-                      ${idx === highlightedIndex ? 'bg-orange-100 text-orange-700 border-orange-300 scale-105' : 'bg-white hover:bg-gray-100'}`}
-                    onMouseEnter={() => setHighlightedIndex(idx)}
-                    onClick={() => {
-                      setShowing(item.onSelec);
-                      setIsOpen(false);
-                    }}
-                  >
-                    <span className="block w-full text-left">{item.title}</span>
-                  </li>
-                ))}
+              <input
+                ref={searchInputRef}
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Buscar..."
+                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-400 transition duration-300 ease-in-out"
+              />
+              <ul className="w-full mt-2 px-2" style={{ maxHeight: 320, minHeight: 220, overflowY: 'auto', overflowX: 'hidden' }}>
+                {filteredMenu.length === 0 ? (
+                  <li className="text-gray-400 text-center py-2">No hay resultados</li>
+                ) : (
+                  filteredMenu.map((item, idx) => (
+                    <li
+                      key={item.title}
+                      ref={el => optionRefs.current[idx] = el}
+                      className={`w-full px-4 py-3 rounded-lg cursor-pointer mb-2 shadow transition-all text-lg font-medium border border-gray-200 whitespace-normal break-words
+                        ${idx === highlightedIndex ? 'bg-orange-100 text-orange-700 border-orange-300 scale-105' : 'bg-white hover:bg-gray-100'}`}
+                      onMouseEnter={() => setHighlightedIndex(idx)}
+                      onClick={() => handleSelect(item.onSelec)}
+                    >
+                      <span className="block w-full text-left">{item.title}</span>
+                    </li>
+                  ))
+                )}
               </ul>
               {isDesktop && (
                 <p className="text-xs text-gray-400 mt-2">Navega con ↑ ↓ y selecciona con Enter</p>
@@ -129,7 +163,7 @@ export const RegistersMenu = () => {
           fit={true}
           shape="rounded-lg border-2 border-gray-300"
           closeOnClickOutside={true}
-          closeModal={() => {setShowing(null); setIsOpen(true)}}
+          closeModal={() => { setShowing(null); setIsOpen(true); setSearchTerm(""); setHighlightedIndex(0); }}
         />
       }
     </div>

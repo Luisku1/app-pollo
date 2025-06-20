@@ -9,7 +9,7 @@ import axios from 'axios';
 export const getProductLastPrice = async (providerId, productId) => {
   if (!providerId || !productId) return null;
   try {
-    const { data } = await axios.get(`/api/providers/get-provider-last-price/${providerId}/${productId}`);
+    const { data } = await axios.get(`/api/provider/get-provider-last-price/${providerId}/${productId}`);
     return data?.lastPrice ?? null;
   } catch (error) {
     // Manejo de error: puedes loguear o lanzar según la necesidad

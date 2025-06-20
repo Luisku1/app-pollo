@@ -4,8 +4,11 @@ const providerSchema = mongoose.Schema({
 
   name: {
     type: String,
-    required: true,
-    uniquie: true
+    required: true
+  },
+
+  lastName: {
+    type: String
   },
 
   phoneNumber: {

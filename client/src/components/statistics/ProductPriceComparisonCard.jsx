@@ -67,8 +67,8 @@ export default function ProductPriceComparisonCard({ purchasesArray = [], provid
           {comparisonData.slice(0, 4).map(prod => (
             <div key={prod.productName} className="flex items-center justify-between w-full gap-2">
               <span className="font-semibold text-gray-700 truncate max-w-[100px]">{prod.productName}</span>
-              <span className="font-mono text-xs text-blue-700">{prod.totalPurchaseAmount}u</span>
-              <span className="font-mono text-xs text-green-700">{prod.totalInputAmount}u</span>
+              <span className="font-mono text-xs text-blue-700">{currency(prod.totalPurchaseAmount)}</span>
+              <span className="font-mono text-xs text-green-700">{currency(prod.totalInputAmount)}</span>
             </div>
           ))}
           {comparisonData.length > 4 && <span className="text-xs text-gray-400">y {comparisonData.length - 4} más...</span>}

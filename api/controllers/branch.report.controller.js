@@ -511,7 +511,7 @@ export const getBranchReport = async (req, res, next) => {
   }
 }
 
-export const changePricesDate = async (branchId, reportDate, pricesDate) => {
+export const changePricesDate = async (branchId, reportDate, pricesDate, residuals) => {
 
   let branchReport = null
   let updatedBranchReport = null
@@ -522,16 +522,26 @@ export const changePricesDate = async (branchId, reportDate, pricesDate) => {
     if (!branchReport) throw new Error("No se encontró el reporte, asegúrate de registrar algo antes");
 
     const newPricesBranchReport = await updateBranchReportPrices(branchReport, pricesDate)
-
-    updatedBranchReport = await BranchReport.findByIdAndUpdate(newPricesBranchReport._id, {
+    const updateFields = {
       initialStock: newPricesBranchReport.initialStock,
       finalStock: newPricesBranchReport.finalStock,
       inputs: newPricesBranchReport.inputs,
       outputs: newPricesBranchReport.outputs,
       providerInputs: newPricesBranchReport.providerInputs,
       balance: newPricesBranchReport.balance,
-      pricesDate: pricesDate
-    }, { new: true })
+    };
+
+    if (residuals) {
+      updateFields.residualPricesDate = pricesDate;
+    } else {
+      updateFields.pricesDate = pricesDate;
+    }
+
+    updatedBranchReport = await BranchReport.findByIdAndUpdate(
+      newPricesBranchReport._id,
+      updateFields,
+      { new: true }
+    );
 
     if (!updatedBranchReport) throw new Error("No se pudo actualizar el reporte con las nuevas fechas de precios");
 

@@ -17,6 +17,11 @@ const priceSchema = mongoose.Schema({
     required: true
   },
 
+  residual: {
+    type: Boolean,
+    default: false
+  },
+
   company: {
 
     type: Schema.Types.ObjectId, ref: 'Company',
@@ -28,6 +33,8 @@ const priceSchema = mongoose.Schema({
     required: true
   }
 })
+
+priceSchema.index({ product: 1, branch: 1, residual: 1, createdAt: -1 }, { unique: true })
 
 const Price = mongoose.model('Price', priceSchema)
 

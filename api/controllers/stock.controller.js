@@ -2,9 +2,11 @@ import Stock from "../models/accounts/stock.model.js";
 import { errorHandler } from "../utils/error.js";
 import { getDayRange } from "../utils/formatDate.js";
 import { fetchOrCreateBranchReport } from "./branch.report.controller.js";
-import { getProductPrice, pricesAggregate } from "./price.controller.js";
+import { getProductPrice } from "./price.controller.js";
 import { pushOrPullBranchReportRecord } from './branch.report.controller.js'
 import { Types } from "mongoose";
+import { getBranch } from "./branch.controller.js";
+import Branch from "../models/branch.model.js";
 
 export const createStock = async (req, res, next) => {
 
@@ -111,10 +113,11 @@ const createInitialStock = async (stock, stockData, price, branch, product, crea
   nextBranchReportDate.setDate(nextBranchReportDate.getDate() + 1);
   const { bottomDate } = getDayRange(nextBranchReportDate);
   const branchReport = await fetchOrCreateBranchReport({ branchId: branch, date: nextBranchReportDate });
+  const isResidual = Branch.findById(branch).residualPrices;
 
   if (!branchReport) throw new Error("No se logró obtener el reporte de la sucursal");
 
-  const nextReportPrice = await getProductPrice(product, branch, branchReport.pricesDate || bottomDate);
+  const nextReportPrice = await getProductPrice(product, branch, branchReport.pricesDate || bottomDate, isResidual);
   const initialStockId = new Types.ObjectId().toHexString();
   const initialStock = { ...stock._doc, _id: initialStockId, isInitial: true, associatedStock: stock._id, createdAt: bottomDate };
 

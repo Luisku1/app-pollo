@@ -17,13 +17,6 @@ export default function CreateProviderMovement() {
   const { currentDate: date } = useDate()
   const { products } = useProducts({ companyId: company._id })
   const { providers } = useProviders(company._id)
-  const {
-    movements,
-    totalAmount,
-    onAddMovement,
-    onDeleteMovement,
-    loading
-  } = useProvidersMovements({ companyId: company._id, date })
 
   const [movementFormData, setMovementFormData] = useState({})
   const [selectedProduct, setSelectedProduct] = useState(null)
@@ -31,6 +24,14 @@ export default function CreateProviderMovement() {
   const [amount, setAmount] = useState('$0.00')
   const [changePrice, setChangePrice] = useState(false);
   const priceCurrency = useCurrencyInput('');
+  const {
+    movements,
+    totalAmount,
+    onAddMovement,
+    onDeleteMovement,
+    lastPrice,
+    loading
+  } = useProvidersMovements({ companyId: company._id, date, productId: selectedProduct?._id, providerId: selectedProvider?._id })
 
   // Generar monto automáticamente
   const generarMonto = () => {

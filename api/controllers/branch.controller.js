@@ -20,6 +20,22 @@ export const branchAggregate = (localField = 'branch') => {
 	]
 }
 
+export const changeBranchrResidualPricesUse = async (req, res, next) => {
+	const branchId = req.body.branchId
+	try {
+		const branch = await Branch.findById(branchId)
+		if (!branch) {
+			return next(errorHandler(404, 'Branch not found'))
+		}
+		branch.residualPrices = !branch.residualPrices
+		await branch.save()
+		res.status(200).json({ success: true, message: 'Branch prices use updated successfully', data: branch.residualPrices })
+	} catch (error) {
+		console.error('Error updating branch prices use:', error)
+		next(error)
+	}
+}
+
 export const newBranch = async (req, res, next) => {
 
 	const { branch, phoneNumber, location, p, rentAmount, zone, rentDay, company, position } = req.body
