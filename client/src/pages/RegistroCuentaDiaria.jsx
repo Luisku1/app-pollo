@@ -1,14 +1,12 @@
 /* eslint-disable react/prop-types */
 import { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
-import { useParams, useNavigate } from 'react-router-dom';
-import FechaDePagina from '../components/FechaDePagina';
-import { formatDate, isToday } from '../helpers/DatePickerFunctions';
+import { useNavigate } from 'react-router-dom';
+import { isToday } from '../helpers/DatePickerFunctions';
 import { useEmployees } from '../hooks/Employees/useEmployees';
 import EmployeesSelect from '../components/Select/EmployeesSelect';
 import { useBranches } from '../hooks/Branches/useBranches';
 import { useBranchReport } from '../hooks/BranchReports.js/useBranchReport';
-import { useLoading } from '../hooks/loading';
 import Loading from '../helpers/Loading';
 import { useRoles } from '../context/RolesContext'
 import BranchSelect from '../components/RegistrarFormato/BranchSelect';
@@ -37,7 +35,7 @@ export default function RegistroCuentaDiaria({ edit = true, _branch = null }) {
   const { currentUser, company } = useSelector((state) => state.user)
   const navigate = useNavigate()
   const [branchId, setBranchId] = useState(null)
-  const { currentDate, setDate, isDateAware } = useDateNavigation({ branchId });
+  const { currentDate } = useDateNavigation({ branchId });
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
   const { activeEmployees: employees, activeEmployees } = useEmployees({ companyId: company._id })

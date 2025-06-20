@@ -11,11 +11,12 @@ import RegistroEmpleadoNuevo from "./RegistroEmpleado";
 import { CgProfile } from "react-icons/cg";
 import EmployeeInfo from "../components/EmployeeInfo";
 import PhoneLinks from "../components/PhoneLinks";
+import { getDateDay } from "../helpers/DatePickerFunctions";
 
 export default function Empleados() {
 
   const { company } = useSelector((state) => state.user)
-  const { employees, activeEmployees, inactiveEmployees, setFilterString, changeEmployeeActiveStatus, onUpdateEmployee, spliceEmployee, loading, refetch, error } = useEmployees({ companyId: company._id })
+  const { employees, activeEmployees, inactiveEmployees, setFilterString, changeEmployeeActiveStatus, onUpdateEmployee, spliceEmployee, loading, error } = useEmployees({ companyId: company._id })
   const { deleteEmployee } = useDeleteEmployee()
   const [hoveredIndex, setHoveredIndex] = useState(null)
   const [isOpen, setIsOpen] = useState(false)
@@ -30,6 +31,10 @@ export default function Empleados() {
   const handleEmployeeUpdate = (employee) => {
 
     onUpdateEmployee(employee)
+    if (selectedEmployee && selectedEmployee._id === employee._id) {
+
+      setSelectedEmployee(employee)
+    }
     setEmployeeToEdit(null)
   }
 
@@ -86,99 +91,9 @@ export default function Empleados() {
     document.title = 'Empleados'
   }, [])
 
-  const renderEmployeesList = (employeesList = []) => {
-
-
-    return employeesList.map((employee, index) => (
-      <div key={employee._id}>
-        {employee.active == showActiveEmployees || searching ?
-          <div className="my-4 bg-white p-4 grid grid-cols-12 rounded-lg">
-
-            <div className="col-span-9">
-
-              <button onClick={() => setSelectedEmployee(employee)} className="font-bold text-xl flex gap-1 items-center text-employee-name">{getEmployeeFullName(employee)}</button>
-
-              <div className="p-3">
-                <div className="flex gap-2">
-                  <p className="text-lg">Balance: </p>
-                  <p className={employee.balance < 0 ? 'text-red-700 font-bold' : '' + 'text-lg font-bold'}>{parseFloat(employee.balance).toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
-                </div>
-                <p className="text-lg">{'Rol: ' + employee.role.name}</p>
-                {employee.salary ?
-                  <p className="text-lg">{'Sueldo: ' + parseFloat(employee.salary).toLocaleString("es-Mx", { style: 'currency', currency: 'MXN' })}</p>
-                  : ''}
-                {employee.payDay > -1 ?
-                  <p className="text-lg">{'Día de cobro: ' + weekDays[employee.payDay]}</p>
-                  : ''}
-                <p className="text-lg mt-2">{employee.phoneNumber ? <PhoneLinks phoneNumber={employee.phoneNumber} name={getEmployeeFullName(employee)} /> : ''}</p>
-              </div>
-            </div>
-
-            {employee._id != company.owner._id ?
-
-              <div className="col-span-3 my-auto justify-self-center">
-
-                <button id={employee._id} className={`transition-colors duration-300 w-full mx-auto border p-3 rounded-lg text-center font-bold ${hoveredIndex != employee._id ? (employee.active ? 'bg-green-600 text-white' : 'bg-red-600 text-white') : (employee.active ? 'bg-red-600 text-white' : 'bg-green-600 text-white')}`} onMouseEnter={() => { handleMouseEnter(employee._id) }} onMouseLeave={handleMouseLeave} onClick={() => { handleChangeEmployeeStatus(employee) }}>
-                  {employee.active ?
-                    <div>
-                      {hoveredIndex != employee._id ?
-                        <p>Activo</p>
-                        :
-                        <p>Cambiar</p>
-                      }
-                    </div>
-                    :
-                    <div>
-
-                      {hoveredIndex != employee._id ?
-                        <p>Inactivo</p>
-                        :
-                        <p>Cambiar</p>
-                      }
-                    </div>
-                  }
-                </button>
-                <button className="border shadow-lg rounded-lg text-center h-10 w-10 m-3" onClick={() => setEmployeeToEdit(employee)}>
-                  <FaEdit className="text-blue-500 m-auto h-fit w-fit" />
-                </button>
-                <div>
-                  <button id={employee._id} onClick={() => { setIsOpen(isOpen ? false : true), setButtonId(employee._id) }} disabled={loading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
-                    <span>
-                      <FaTrash className='text-red-700 m-auto' />
-                    </span>
-                  </button>
-
-                  {isOpen && employee._id == buttonId ?
-                    <div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center items-center'>
-                      <div className='bg-white p-5 rounded-lg flex flex-col justify-center items-center gap-5 text-base mx-auto max-w-lg'>
-                        <div>
-                          <p className='text-3xl font-semibold'>¿Estás seguro de borrar este registro?</p>
-                        </div>
-                        <div className='flex gap-10'>
-                          <div>
-                            <button className='rounded-lg border shadow-lg w-20 h-10' onClick={() => { setIsOpen(isOpen ? false : true) }}>No</button>
-                          </div>
-                          <div>
-                            <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteEmployee({ employeeId: employee._id, index, spliceEmployee }), setIsOpen(isOpen ? false : true) }}>Si</button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    : ''}
-
-                </div>
-              </div>
-              : ''}
-          </div>
-          : ''}
-      </div>
-    ))
-  }
-
-
+  // Modern table/grid for employees
   return (
-
-    <main className="p-3 max-w-lg mx-auto">
+    <main className="p-3 max-w-5xl mx-auto">
       <Modal
         content={<RegistroEmpleadoNuevo setEmployee={handleEmployeeUpdate} employee={employeeToEdit} />}
         closeModal={() => setEmployeeToEdit(null)}
@@ -186,31 +101,89 @@ export default function Empleados() {
         isShown={employeeToEdit}
       />
       {error ? <p>{error}</p> : ''}
-      <EmployeeInfo employee={selectedEmployee} toggleInfo={() => setSelectedEmployee(null)} />
-
-      <div className="bg-white rounded-lg">
+      <EmployeeInfo employee={selectedEmployee} handleEmployeeUpdate={handleEmployeeUpdate} toggleInfo={() => setSelectedEmployee(null)} />
+      <div className="bg-white rounded-lg mb-4">
         <div className="grid grid-cols-2 border w-full mt-4 mb-4 rounded-lg">
           <button className={"h-full rounded-lg rounded-r-none hover:shadow-xl p-3 border border-black text-white font-bold border-r-0 " + (showActiveEmployees && !searching ? ' bg-green-600  opacity-85' : 'bg-green-600 text-white font-bold opacity-40')} onClick={() => { setShowActiveEmployees(true), stopSearching() }}>Empleados Activos</button>
           <button className={"h-full rounded-lg rounded-l-none hover:shadow-xl p-3 border border-black border-l-0 " + (!showActiveEmployees && !searching ? 'bg-red-700 text-white font-bold opacity-85' : 'bg-red-700 font-bold border-opacity-85 opacity-40 text-white')} onClick={() => { setShowActiveEmployees(false), stopSearching() }}>Empleados Inactivos</button>
         </div>
       </div>
-      <div className="w-full bg-white  p-3 border rounded-lg sticky top-16 z-10">
+      <div className="w-full bg-white p-3 border rounded-lg sticky top-16 z-10 mb-4">
         <div className="border rounded-lg flex items-center w-full">
           <SearchBar ref={searchBarRef} handleFilterTextChange={handleSearchBarChange} placeholder={'Busca a tus empleados (CTRL + b)'}></SearchBar>
         </div>
       </div>
-      <div>
-        {searching ?
-          renderEmployeesList(employees)
-          :
-          <div>
-            {showActiveEmployees ?
-              renderEmployeesList(activeEmployees)
-              :
-              renderEmployeesList(inactiveEmployees)
-            }
+      <div className="overflow-x-auto rounded-2xl shadow-md bg-white">
+        <table className="min-w-full text-sm">
+          <thead>
+            <tr className="bg-gray-100 uppercase text-xs text-gray-700">
+              <th className="px-3 py-2 text-left">Nombre</th>
+              <th className="px-3 py-2 text-left hidden md:table-cell">Rol</th>
+              <th className="px-3 py-2 text-center hidden md:table-cell">Balance</th>
+              <th className="px-3 py-2 text-center hidden lg:table-cell">Sueldo</th>
+              <th className="px-3 py-2 text-center hidden lg:table-cell">Día de cobro</th>
+              <th className="px-3 py-2 text-center">Teléfono</th>
+              <th className="px-3 py-2 text-center">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {(searching ? employees : (showActiveEmployees ? activeEmployees : inactiveEmployees)).map((employee, index) => (
+              <tr
+                key={employee._id}
+                onClick={(e) => {
+                  if (!e.target.closest('.actions-column')) {
+                    setSelectedEmployee(employee);
+                  }
+                }}
+                className={`transition hover:bg-blue-50 cursor-pointer ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
+              >
+                <td className="px-3 py-2 text-left font-bold text-blue-900">
+                  <div className="flex items-center gap-2">
+                    <CgProfile className="inline-block text-2xl text-blue-400" />
+                    {getEmployeeFullName(employee)}
+                  </div>
+                </td>
+                <td className="px-3 py-2 text-left hidden md:table-cell">{employee.role?.name}</td>
+                <td className={`px-3 py-2 text-center hidden md:table-cell font-semibold ${employee.balance < 0 ? 'text-red-600' : 'text-green-700'}`}>{parseFloat(employee.balance).toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</td>
+                <td className="px-3 py-2 text-center hidden lg:table-cell">{employee.salary ? parseFloat(employee.salary).toLocaleString("es-MX", { style: 'currency', currency: 'MXN' }) : '-'}</td>
+                <td className={`px-3 py-2 text-center ${employee.payDay === getDateDay(new Date()) ? 'text-red-600 font-bold' : ''} hidden lg:table-cell`}>{employee.payDay > -1 ? weekDays[employee.payDay] : '-'}</td>
+                <td className="px-3 py-2 text-center cursor-auto" onClick={(e) => { e.stopPropagation() }}>{employee.phoneNumber ? <PhoneLinks phoneNumber={employee.phoneNumber} name={getEmployeeFullName(employee)} /> : '-'}</td>
+                <td className="px-3 py-2 text-center flex flex-wrap gap-2 justify-center cursor-auto actions-column" onClick={(e) => e.stopPropagation()}>
+                  {employee._id !== company.owner._id && (
+                    <>
+                      <button
+                        className={`transition-colors duration-300 border p-2 rounded-lg text-center font-bold text-xs ${employee.active ? 'bg-green-600 text-white' : 'bg-red-600 text-white'} hover:opacity-80`}
+                        onClick={(e) => { e.stopPropagation(); handleChangeEmployeeStatus(employee); }}
+                        title={employee.active ? 'Desactivar' : 'Activar'}
+                      >
+                        {employee.active ? 'Activo' : 'Inactivo'}
+                      </button>
+                      <button className="border shadow-lg rounded-lg text-center h-8 w-8" onClick={(e) => { e.stopPropagation(); setEmployeeToEdit(employee); }} title="Editar">
+                        <FaEdit className="text-blue-500 m-auto h-fit w-fit" />
+                      </button>
+                      <button className="border shadow-lg rounded-lg text-center h-8 w-8" onClick={(e) => { e.stopPropagation(); setIsOpen(isOpen ? false : true); setButtonId(employee._id); }} disabled={loading} title="Eliminar">
+                        <FaTrash className='text-red-700 m-auto' />
+                      </button>
+                    </>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {isOpen && (
+          <div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center items-center z-50'>
+            <div className='bg-white p-5 rounded-lg flex flex-col justify-center items-center gap-5 text-base mx-auto max-w-lg'>
+              <div>
+                <p className='text-3xl font-semibold'>¿Estás seguro de borrar este registro?</p>
+              </div>
+              <div className='flex gap-10'>
+                <button className='rounded-lg border shadow-lg w-20 h-10' onClick={() => setIsOpen(false)}>No</button>
+                <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteEmployee({ employeeId: buttonId, spliceEmployee }); setIsOpen(false); }}>Si</button>
+              </div>
+            </div>
           </div>
-        }
+        )}
       </div>
     </main>
   )

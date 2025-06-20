@@ -11,18 +11,27 @@ import { useRoles } from "../context/RolesContext";
 import { useSelector } from "react-redux";
 import { weekDays } from "../helpers/Constants";
 import { FaEdit } from "react-icons/fa";
+import RegistroEmpleadoNuevo from "../pages/RegistroEmpleado";
+import PortatilEmployeePayroll from "./Payroll/PortatilEmployeePayroll";
 
-export default function EmployeeInfo({ employee, toggleInfo, isShown }) {
+export default function EmployeeInfo({ employee, setEmployee, toggleInfo, isShown, handleEmployeeUpdate }) {
 
   const { currentUser } = useSelector((state) => state.user);
   const [showEmployeeBranchReports, setShowEmployeeBranchReports] = useState(false);
   const [showEmployeeSupervisorReports, setShowEmployeeSupervisorReports] = useState(false);
   const [showPayments, setShowPayments] = useState(false);
+  const [showPayroll, setShowPayroll] = useState(false);
   const { isSupervisor, isManager } = useRoles();
+  const [employeeToEdit, setEmployeeToEdit] = useState(null);
 
   if (!employee) return null;
 
   const employeeRole = employee.role?._id ?? employee.role;
+
+  const onUpdate = (updatedEmployee) => {
+    setEmployeeToEdit(null);
+    handleEmployeeUpdate(updatedEmployee);
+  }
 
   const handleViewBranchAccounts = () => {
     setShowEmployeeBranchReports(true);
@@ -38,8 +47,12 @@ export default function EmployeeInfo({ employee, toggleInfo, isShown }) {
 
   const toggleEditEmployee = () => {
 
-    setEditEmployee((prev) => !prev)
+    setEmployeeToEdit(employee)
   }
+
+  const togglePayroll = () => {
+    setShowPayroll((prev) => !prev);
+  };
 
   const employeeCard = () => {
     return (
@@ -67,6 +80,14 @@ export default function EmployeeInfo({ employee, toggleInfo, isShown }) {
           <PhoneLinks phoneNumber={employee.phoneNumber} name={employee.name} />
         </div>
         <div className="flex flex-col gap-2">
+          {isManager(currentUser.role) && (
+            <button
+              className="bg-[#805AD5] text-white py-3 px-4 rounded"
+              onClick={togglePayroll}
+            >
+              Nómina
+            </button>
+          )}
           <button
             className="bg-[#3182CE] text-white py-3 px-4 rounded"
             onClick={handleViewPayments}
@@ -104,14 +125,33 @@ export default function EmployeeInfo({ employee, toggleInfo, isShown }) {
         isShown={isShown}
         content={employeeCard()}
       />
+
+      <Modal
+        content={<RegistroEmpleadoNuevo setEmployee={onUpdate} employee={employeeToEdit} />}
+        closeModal={() => setEmployeeToEdit(null)}
+        ableToClose={true}
+        isShown={employeeToEdit}
+      />
       {showEmployeeBranchReports && (
         <EmployeeBranchReports employeeId={employee._id} employee={employee} toggleComponent={() => setShowEmployeeBranchReports(prev => !prev)} />
       )}
-      {showEmployeeSupervisorReports && is && (
+      {showEmployeeSupervisorReports && isSupervisor(currentUser.role) && (
         <EmployeeSupervisorReports employeeId={employee._id} employee={employee} toggleComponent={() => setShowEmployeeSupervisorReports(prev => !prev)} />
       )}
       {showPayments && (
         <EmployeePayments employeeId={employee._id} employee={employee} toggleComponent={() => setShowPayments(prev => !prev)} />
+      )}
+      {showPayroll && (
+        <Modal
+          closeModal={() => setShowPayroll(false)}
+          closeOnClickOutside={true}
+          closeOnClickInside={false}
+          closeOnEsc={true}
+          width="4/6"
+          shape="rounded-3xl"
+          isShown={showPayroll}
+          content={<PortatilEmployeePayroll employee={employee} />}
+        />
       )}
     </div>
   );

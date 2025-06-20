@@ -63,3 +63,8 @@ export const getDayRange = (date, shiftDays = 0) => {
 
   return { bottomDate: principalDate.toISOString(), topDate: datePlusOne.toISOString() }
 }
+
+export const getDateDay = (date) => {
+  const pivotDate = new Date(date);
+  return pivotDate.getDay();
+}

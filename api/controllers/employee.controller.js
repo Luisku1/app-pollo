@@ -1156,7 +1156,7 @@ export const updateEmployee = async (req, res, next) => {
 
 		if (!prevEmployee) return res.status(404).json({ message: "No se encontró al empleado" })
 
-		if (updateData.payDay != prevEmployee.payDay) {
+		if (updateData.payday && updateData.payDay != prevEmployee.payDay) {
 			await changeWeeklyBalance(employeeId, prevEmployee.payDay, updateData.payDay)
 		}
 
