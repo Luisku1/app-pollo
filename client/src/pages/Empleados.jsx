@@ -23,6 +23,7 @@ export default function Empleados() {
   const [buttonId, setButtonId] = useState(null)
   const searchBarRef = useRef(null);
   const [showActiveEmployees, setShowActiveEmployees] = useState(true)
+  const [showPayDayEmployees, setShowPayDayEmployees] = useState(false);
   const [searching, setSearching] = useState(false)
   const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
   const [selectedEmployee, setSelectedEmployee] = useState(null)
@@ -91,6 +92,14 @@ export default function Empleados() {
     document.title = 'Empleados'
   }, [])
 
+  const filteredEmployees = searching
+    ? employees
+    : showPayDayEmployees
+      ? activeEmployees.filter(employee => employee.payDay === getDateDay(new Date()))
+      : showActiveEmployees
+        ? activeEmployees
+        : inactiveEmployees;
+
   // Modern table/grid for employees
   return (
     <main className="p-3 max-w-5xl mx-auto">
@@ -103,9 +112,37 @@ export default function Empleados() {
       {error ? <p>{error}</p> : ''}
       <EmployeeInfo employee={selectedEmployee} handleEmployeeUpdate={handleEmployeeUpdate} toggleInfo={() => setSelectedEmployee(null)} />
       <div className="bg-white rounded-lg mb-4">
-        <div className="grid grid-cols-2 border w-full mt-4 mb-4 rounded-lg">
-          <button className={"h-full rounded-lg rounded-r-none hover:shadow-xl p-3 border border-black text-white font-bold border-r-0 " + (showActiveEmployees && !searching ? ' bg-green-600  opacity-85' : 'bg-green-600 text-white font-bold opacity-40')} onClick={() => { setShowActiveEmployees(true), stopSearching() }}>Empleados Activos</button>
-          <button className={"h-full rounded-lg rounded-l-none hover:shadow-xl p-3 border border-black border-l-0 " + (!showActiveEmployees && !searching ? 'bg-red-700 text-white font-bold opacity-85' : 'bg-red-700 font-bold border-opacity-85 opacity-40 text-white')} onClick={() => { setShowActiveEmployees(false), stopSearching() }}>Empleados Inactivos</button>
+        <div className="grid grid-cols-3 border w-full mt-4 mb-4 rounded-lg">
+          <button
+            className={"h-full rounded-lg hover:shadow-xl p-3 border border-black text-white font-bold " + (showActiveEmployees && !searching && !showPayDayEmployees ? 'bg-green-600 opacity-85' : 'bg-green-600 opacity-40')}
+            onClick={() => {
+              setShowActiveEmployees(true);
+              setShowPayDayEmployees(false);
+              stopSearching();
+            }}
+          >
+            Empleados Activos
+          </button>
+          <button
+            className={"h-full rounded-lg hover:shadow-xl p-3 border border-black text-white font-bold " + (showPayDayEmployees && !searching ? 'bg-blue-600 opacity-85' : 'bg-blue-600 opacity-40')}
+            onClick={() => {
+              setShowPayDayEmployees(true);
+              setShowActiveEmployees(false);
+              stopSearching();
+            }}
+          >
+            Día de Cobro
+          </button>
+          <button
+            className={"h-full rounded-lg hover:shadow-xl p-3 border border-black text-white font-bold " + (!showActiveEmployees && !searching && !showPayDayEmployees ? 'bg-red-700 opacity-85' : 'bg-red-700 opacity-40')}
+            onClick={() => {
+              setShowActiveEmployees(false);
+              setShowPayDayEmployees(false);
+              stopSearching();
+            }}
+          >
+            Empleados Inactivos
+          </button>
         </div>
       </div>
       <div className="w-full bg-white p-3 border rounded-lg sticky top-16 z-10 mb-4">
@@ -127,7 +164,7 @@ export default function Empleados() {
             </tr>
           </thead>
           <tbody>
-            {(searching ? employees : (showActiveEmployees ? activeEmployees : inactiveEmployees)).map((employee, index) => (
+            {filteredEmployees.map((employee, index) => (
               <tr
                 key={employee._id}
                 onClick={(e) => {

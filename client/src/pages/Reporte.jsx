@@ -60,6 +60,7 @@ export default function Reporte({ untitled = false }) {
     totalProviderInputs,
     totalOutgoings,
     totalBalance,
+    totalProviderInputsWeight
   } = useBranchReports({ companyId: company._id, date: currentDate, onlyNegativeBalances })
 
   const {
@@ -372,7 +373,7 @@ export default function Reporte({ untitled = false }) {
       />
       {showProviderInputs && (
         <Modal
-          content={<ProvidersInputsList inputs={providerInputsArray} onDelete={null} />}
+          content={<ProvidersInputsList inputs={providerInputsArray} totalAmount={totalProviderInputs} totalWeight={totalProviderInputsWeight} onDelete={null} />}
           closeModal={() => setShowProviderInputs(false)}
           title={'Entradas de Proveedor'}
           ableToClose={true}
