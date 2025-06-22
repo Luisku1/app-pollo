@@ -16,7 +16,6 @@ import { useDate } from '../../../context/DateContext'
 import { useBranches } from '../../../hooks/Branches/useBranches'
 import { useCustomers } from '../../../hooks/Customers/useCustomers'
 import { useProducts } from '../../../hooks/Products/useProducts'
-import { useCurrencyInput } from '../../../hooks/InputHooks/useCurrency';
 
 export default function Entradas({ selectedProduct, setSelectedProduct, setSelectedProductToNull }) {
 
@@ -54,7 +53,7 @@ export default function Entradas({ selectedProduct, setSelectedProduct, setSelec
   const [selectedCustomerBranchOption, setSelectedCustomerBranchOption] = useState(null)
   const [selectedGroup, setSelectedGroup] = useState('')
   const [internalSelectedProduct, setInternalSelectedProduct] = useState(selectedProduct);
-  const { price, loading: priceIsLoading } = useBranchCustomerProductPrice({ branchCustomerId: selectedCustomerBranchOption ? selectedCustomerBranchOption._id : null, productId: internalSelectedProduct?._id || null, date, group: selectedGroup == '' ? null : selectedGroup })
+  const { price: lastPrice, loading: priceIsLoading } = useBranchCustomerProductPrice({ branchCustomerId: selectedCustomerBranchOption ? selectedCustomerBranchOption._id : null, productId: internalSelectedProduct?._id || null, date, group: selectedGroup == '' ? null : selectedGroup })
   const [amount, setAmount] = useState('$0.00')
   const [loading, setLoading] = useState(false)
   const [isRegisteredInSurplus, setIsRegisteredInSurplus] = useState(false)
@@ -67,11 +66,10 @@ export default function Entradas({ selectedProduct, setSelectedProduct, setSelec
     setInternalSelectedProduct(selectedProduct);
   }, [selectedProduct]);
 
-  const priceCurrency = useCurrencyInput(price ? price : '');
-
   const generarMonto = () => {
     const weightInput = document.getElementById('input-weight')
-    const priceValue = priceCurrency.raw ?? price;
+    const price = inputFormData.price != '' ? parseFloat(inputFormData.price) : lastPrice;
+    const priceValue =  price;
     const weight = parseFloat(weightInput.value != '' ? weightInput.value : '0.0')
     setAmount((priceValue * weight).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' }))
   }
@@ -108,11 +106,14 @@ export default function Entradas({ selectedProduct, setSelectedProduct, setSelec
   }
 
   const handleInputInputsChange = (e) => {
-    generarMonto()
     setInputFormData({
       ...inputFormData,
       [e.target.name]: e.target.value,
     })
+
+    if (e.target.name === 'weight' || e.target.name === 'price') {
+      generarMonto();
+    }
   }
 
   useEffect(() => {
@@ -120,7 +121,7 @@ export default function Entradas({ selectedProduct, setSelectedProduct, setSelec
     if (!selectedProduct) return
     if (!selectedCustomerBranchOption) return
     if (priceIsLoading) return
-    if (price === null || price === undefined) {
+    if (lastPrice === null || lastPrice === undefined) {
       setInputFormData({
         ...inputFormData,
         price: ''
@@ -135,7 +136,7 @@ export default function Entradas({ selectedProduct, setSelectedProduct, setSelec
 
     generarMonto()
 
-  }, [price])
+  }, [lastPrice])
 
   useEffect(inputButtonControl, [selectedProduct, selectedCustomerBranchOption, loading, priceIsLoading])
 
@@ -147,7 +148,7 @@ export default function Entradas({ selectedProduct, setSelectedProduct, setSelec
     const priceInput = document.getElementById('input-price')
     const createdAt = isToday(date) ? new Date().toISOString() : new Date(date).toISOString()
 
-    if (priceInput.value != '' ? priceInput.value == 0 : price == 0) {
+    if (priceInput.value != '' ? priceInput.value == 0 : lastPrice == 0) {
 
       priceShouldNotBeZero()
       return
@@ -160,7 +161,7 @@ export default function Entradas({ selectedProduct, setSelectedProduct, setSelec
     if (priceInput.value != '' && changePrice) {
       finalPrice = priceInput.value
     } else {
-      finalPrice = price
+      finalPrice = lastPrice
     }
 
     setLoading(true)
@@ -290,15 +291,16 @@ export default function Entradas({ selectedProduct, setSelectedProduct, setSelec
             <div className="relative w-1/2">
               <span className="absolute text-red-700 font-semibold left-3 top-3">$</span>
               <input
-                {...priceCurrency.bind}
                 className={`pl-6 w-full ${!changePrice ? 'bg-gray-100' : 'bg-white'} rounded-lg p-3 text-red-700 font-semibold border border-red-600`}
                 name='price'
                 id='input-price'
                 step={0.01}
-                placeholder={price.toFixed(2)}
-                type="text"
-                onBlur={generarMonto}
+                placeholder={lastPrice.toFixed(2)}
+                type="number"
+                value={inputFormData.price || ''}
+                onChange={handleInputInputsChange}
                 disabled={!changePrice}
+                onInput={generarMonto}
               />
               <label htmlFor="input-price" className="-translate-y-full px-1 absolute top-1/4 left-2 transform rounded-sm bg-white text-black text-sm font-semibold">
                 Precio

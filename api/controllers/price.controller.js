@@ -287,6 +287,10 @@ export const getBranchProductPrice = async (req, res, next) => {
   const { branchId, productId, date } = req.params
   let finalDate
 
+  if (!branchId || !productId || !date) {
+    return next(errorHandler(400, 'Faltan datos necesarios'))
+  }
+
   try {
 
     const branchReport = await fetchBranchReport({ branchId, date })
@@ -405,28 +409,25 @@ export const getCustomerProductPrice = async (req, res, next) => {
 
 export const getProductPrice = async (productId, branchId, topDate = new Date(), residualPrice = false) => {
 
+  console.log('Fetching price for product:', productId, 'branch:', branchId, 'date:', topDate, 'residual:', residualPrice)
+
   try {
 
-    const price = await Price.find({
-      $and: [
-        {
-          product: productId
-        },
-        {
-          branch: branchId,
-        },
-        {
-          residual: residualPrice
-        },
-        {
-          createdAt: {
-            $lte: topDate
-          }
-        }
-      ]
-    }, 'price').sort({ createdAt: -1 }).limit(1)
+    const matchCondition = {
+      product: productId,
+      branch: branchId,
+      createdAt: {
+        $lte: topDate
+      }
+    }
 
-    return price[0].price ?? null
+    if (residualPrice) {
+      matchCondition.residual = true
+    }
+
+    const price = await Price.find(matchCondition, 'price').sort({ createdAt: -1 }).limit(1)
+
+    return price[0]?.price ?? null
 
   } catch (error) {
 

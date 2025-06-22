@@ -1,8 +1,6 @@
 /* eslint-disable react/prop-types */
 import { FaListAlt } from 'react-icons/fa'
 import SectionHeader from '../SectionHeader'
-import EmployeesSelect from '../Select/EmployeesSelect'
-import Select from 'react-select'
 import { currency } from '../../helpers/Functions'
 import { isToday } from '../../helpers/DatePickerFunctions'
 import { useState } from 'react'
@@ -12,11 +10,13 @@ import ShowListModal from '../Modals/ShowListModal'
 import { useSelector } from 'react-redux'
 import ExtraOutgoingsList from './ExtraOutgoingsList'
 import Payments from './Payments'
+import { useDateNavigation } from '../../hooks/useDateNavigation'
 
 export default function ExtraOutgoings() {
 
   const { currentUser, company } = useSelector((state) => state.user)
   const { isManager } = useRoles()
+  const { currentDate: date } = useDateNavigation();
   const [extraOutgoingFormData, setExtraOutgoingFormData] = useState({})
   const { extraOutgoings, spliceExtraOutgoingById, totalExtraOutgoings, onAddExtraOutgoing, onDeleteExtraOutgoing } = useDayExtraOutgoings({ companyId: company._id, date })
 

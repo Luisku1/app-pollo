@@ -101,7 +101,6 @@ export default function Perfil() {
 
   return (
     <main className="p-3 max-w-lg mx-auto">
-
       {!isLoading && (
         <div>
           {employee && roles ?

@@ -1,40 +1,46 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-export function useCurrencyInput(initial = "") {
-  const [display, setDisplay] = useState(initial);
-  const [raw, setRaw] = useState(null);
+const currencyFormatter = new Intl.NumberFormat("es-MX", {
+  style: "currency",
+  currency: "MXN",
+  minimumFractionDigits: 2,
+});
 
-  const formatCurrency = (num) =>
-    new Intl.NumberFormat("es-MX", {
-      style: "currency",
-      currency: "MXN",
-      minimumFractionDigits: 2,
-    }).format(num);
+export default function CurrencyInput({ name, value, placeholder, onChange }) {
+  const [rawValue, setRawValue] = useState(value ?? "");
+
+  useEffect(() => {
+    setRawValue(value ?? "");
+  }, [value]);
 
   const handleChange = (e) => {
-    const input = e.target.value.replace(/[^0-9.]/g, "");
+    const input = e.target.value;
 
-    // No permitir más de un punto decimal
-    const parts = input.split(".");
-    if (parts.length > 2) return;
+    const numeric = input.replace(/[^\d.]/g, "");
+    const cleaned = numeric.split(".").length > 2
+      ? numeric.replace(/\.+$/, "")
+      : numeric;
 
-    const parsed = parseFloat(input);
-    if (!isNaN(parsed)) {
-      setRaw(parsed);
-      setDisplay(formatCurrency(parsed));
-    } else {
-      setRaw(null);
-      setDisplay("");
+    setRawValue(cleaned);
+
+    if (onChange) {
+      onChange(name, cleaned); // nombre del campo + valor numérico
     }
   };
 
-  return {
-    display,
-    raw,
-    bind: {
-      value: display,
-      onChange: handleChange,
-      inputMode: "decimal",
-    },
-  };
+  const formattedValue = rawValue
+    ? currencyFormatter.format(Number(rawValue))
+    : "";
+
+  return (
+    <input
+      type="text"
+      inputMode="decimal"
+      name={name}
+      value={formattedValue}
+      onChange={handleChange}
+      placeholder={placeholder ?? "0.00"}
+      className="px-2 py-1 rounded border border-gray-300 w-full"
+    />
+  );
 }

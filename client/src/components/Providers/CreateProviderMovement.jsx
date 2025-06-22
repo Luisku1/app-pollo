@@ -10,7 +10,6 @@ import { currency, getArrayForSelects, getElementForSelect } from "../../helpers
 import { useProviders } from "../../hooks/Providers/useProviders"
 import useProvidersMovements from "../../hooks/Providers/useProvidersMovements"
 import ProviderMovementsList from "./ProviderMovementsList"
-import { useCurrencyInput } from '../../hooks/InputHooks/useCurrency';
 
 export default function CreateProviderMovement() {
   const { company } = useSelector((state) => state.user)
@@ -23,13 +22,12 @@ export default function CreateProviderMovement() {
   const [selectedProvider, setSelectedProvider] = useState(null)
   const [amount, setAmount] = useState('$0.00')
   const [changePrice, setChangePrice] = useState(false);
-  const priceCurrency = useCurrencyInput('');
   const {
     movements,
     totalAmount,
     onAddMovement,
     onDeleteMovement,
-    lastPrice,
+    price: lastPrice,
     loading
   } = useProvidersMovements({ companyId: company._id, date, productId: selectedProduct?._id, providerId: selectedProvider?._id })
 
@@ -97,8 +95,9 @@ export default function CreateProviderMovement() {
       priceInput.disabled = true;
       setMovementFormData({
         ...movementFormData,
-        price: ''
+        price: priceInput.value || 0
       });
+      priceInput.select();
     }
     generarMonto();
   }
@@ -147,35 +146,38 @@ export default function CreateProviderMovement() {
             </div>
           </div>
           {/* Precio y cambiar precio */}
-          <div className="flex flex-row w-fit items-end gap-4 mb-2">
-            <div className="relative flex-1">
-              <label htmlFor="input-price" className="block text-sm font-semibold mb-1">Precio</label>
-              <div className="flex items-center gap-2">
-                <input
-                  {...priceCurrency.bind}
-                  className={`flex-1 rounded-lg p-3 ${changePrice ? '' : 'bg-gray-200'} text-red-700 font-semibold border border-red-600`}
-                  name='price'
-                  id='input-price'
-                  step={0.01}
-                  placeholder='$0.00'
-                  type="text"
-                  onChange={handleInputChange}
-                  value={priceCurrency.display}
-                  disabled={!changePrice}
-                  required
-                />
-                <input
-                  type="checkbox"
-                  id="changePriceInput"
-                  name="changePriceInput"
-                  className="w-5 h-5 accent-blue-600 ml-4"
-                  checked={changePrice}
-                  onChange={onChangeCheck}
-                />
-                <label htmlFor="changePriceInput" className="text-md font-semibold ml-1 w-fit flex select-none cursor-pointer">
-                  Cambiar precio
-                </label>
-              </div>
+          <label htmlFor="input-price" className="block text-sm font-semibold mb-1">Precio</label>
+          <div className="flex items-center gap-4 mb-2">
+            <div className="relative w-1/2">
+              <span className="absolute text-red-700 font-semibold left-3 top-3">$</span>
+              <input
+                className={`pl-6 w-full ${!changePrice ? 'bg-gray-100' : 'bg-white'} rounded-lg p-3 text-red-700 font-semibold border border-red-600`}
+                name='price'
+                id='input-price'
+                step={0.01}
+                placeholder={lastPrice.toFixed(2)}
+                type="number"
+                value={movementFormData.price || ''}
+                onChange={handleInputChange}
+                disabled={!changePrice}
+                onInput={generarMonto}
+              />
+              <label htmlFor="input-price" className="-translate-y-full px-1 absolute top-1/4 left-2 transform rounded-sm bg-white text-black text-sm font-semibold">
+                Precio
+              </label>
+            </div>
+            <div className={`flex items-center gap-2 w-1/2 rounded-lg p-2 transition-colors duration-200`}>
+              <input
+                type="checkbox"
+                id="changePriceInput"
+                name="changePriceInput"
+                className="w-5 h-5 accent-blue-600"
+                checked={changePrice}
+                onChange={(e) => setChangePrice(e.target.checked)}
+              />
+              <label htmlFor="changePriceInput" className="text-md font-semibold">
+                Cambiar precio
+              </label>
             </div>
           </div>
           {/* Piezas, Peso, Total */}

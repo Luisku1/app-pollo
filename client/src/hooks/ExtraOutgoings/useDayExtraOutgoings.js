@@ -11,6 +11,18 @@ export const useDayExtraOutgoings = ({ companyId = null, date = null, initialExt
   const [error, setError] = useState(null)
   const queryClient = useQueryClient();
 
+  const sanitizeExtraOutgoings = (outgoings) => {
+    return outgoings.map((outgoing) => {
+      const sanitizedOutgoing = { ...outgoing };
+      Object.keys(sanitizedOutgoing).forEach((key) => {
+        if (typeof sanitizedOutgoing[key] === "object" && sanitizedOutgoing[key] !== null) {
+          sanitizedOutgoing[key] = JSON.parse(JSON.stringify(sanitizedOutgoing[key]));
+        }
+      });
+      return sanitizedOutgoing;
+    });
+  };
+
   // React Query para obtener extraOutgoings
   const {
     data: extraOutgoingsData,
@@ -18,7 +30,13 @@ export const useDayExtraOutgoings = ({ companyId = null, date = null, initialExt
     refetch: refetchExtraOutgoings
   } = useQuery({
     queryKey: ["extraOutgoings", companyId, date],
-    queryFn: () => getDayExtraOutgoingsFetch({ companyId, date }).then(res => res.extraOutgoings),
+    queryFn: async () => {
+      const response = await getDayExtraOutgoingsFetch({ companyId, date });
+      const { extraOutgoings } = response;
+
+      // Sanitizar los datos para evitar estructuras circulares
+      return sanitizeExtraOutgoings(extraOutgoings);
+    },
     enabled: !!companyId && !!date,
     staleTime: 1000 * 60 * 3
   });

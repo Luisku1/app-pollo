@@ -32,7 +32,7 @@ const useProvidersMovements = ({ companyId, date = null, productId, providerId }
     loading: lastPriceLoading,
     error: lastPriceError,
   } = useQuery({
-    queryKey: ['lastPrice', providerId, productId],
+    queryKey: ['providerLastPrice', providerId, productId],
     queryFn: () => getProductLastPrice(providerId, productId).then(data => data?.lastPrice),
     enabled: !!providerId && !!productId
   });
@@ -95,7 +95,7 @@ const useProvidersMovements = ({ companyId, date = null, productId, providerId }
     loading: queryLoading || addLoading || deleteLoading,
     error,
     refetch,
-    lastPrice,
+    price
   };
 };
 

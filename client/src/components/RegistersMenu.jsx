@@ -15,20 +15,6 @@ import CreateProviderMovement from "./Providers/CreateProviderMovement";
 import CreateProviderPayment from "./Providers/CreateProviderPayment";
 import RegistroProveedor from "../pages/RegistroProveedor";
 
-const menu = [
-  { title: "Dinero", onSelec: () => { return <Incomes /> } },
-  { title: "Entradas", onSelec: () => { return <Entradas /> } },
-  { title: "Salidas", onSelec: () => { return <Salidas /> } },
-  { title: "Entrada de Proveedor", onSelec: () => { return <EntradaInicial /> } },
-  { title: "Pago a Proveedor", onSelec: () => { return <CreateProviderPayment /> } },
-  { title: "Compra y devolución a proveedor", onSelec: () => { return <CreateProviderMovement /> } },
-  { title: "Gastos", onSelec: () => { return <ExtraOutgoings /> } },
-  { title: "Pago a empleados", onSelec: () => { <EmployeePayments /> } },
-  { title: "Formato", onSelec: () => { return <RegistroCuentaDiaria /> } },
-  { title: "Descansos", onSelec: () => { return <CreateRest /> } },
-  { title: "Retardos y faltas", onSelec: () => { <Penalties /> } },
-  { title: "Registro de proveedor", onSelec: () => { return <RegistroProveedor /> } },
-]
 
 export const RegistersMenu = () => {
   const { currentUser } = useSelector((state) => state.user)
@@ -39,6 +25,23 @@ export const RegistersMenu = () => {
   const optionRefs = useRef([]);
   const searchInputRef = useRef(null);
   const isDesktop = window.innerWidth >= 1280; // Ajusta el ancho según tus necesidades
+
+  const [selectedProduct, setSelectedProduct] = useState(null);
+
+  const menu = [
+    { title: "Dinero", onSelec: () => { return <Incomes /> } },
+    { title: "Entradas", onSelec: () => { return <Entradas selectedProduct={selectedProduct} setSelectedProduct={setSelectedProduct} /> } },
+    { title: "Salidas", onSelec: () => { return <Salidas selectedProduct={selectedProduct} setSelectedProduct={setSelectedProduct} /> } },
+    { title: "Entrada de Proveedor", onSelec: () => { return <EntradaInicial /> } },
+    { title: "Pago a Proveedor", onSelec: () => { return <CreateProviderPayment /> } },
+    { title: "Compra y devolución a proveedor", onSelec: () => { return <CreateProviderMovement /> } },
+    { title: "Gastos", onSelec: () => { return <ExtraOutgoings /> } },
+    { title: "Pago a empleados", onSelec: () => { <EmployeePayments /> } },
+    { title: "Formato", onSelec: () => { return <RegistroCuentaDiaria /> } },
+    { title: "Descansos", onSelec: () => { return <CreateRest /> } },
+    { title: "Retardos y faltas", onSelec: () => { <Penalties /> } },
+    { title: "Registro de proveedor", onSelec: () => { return <RegistroProveedor /> } },
+  ]
 
   const toggleMenu = () => {
     setIsOpen((prev) => !prev);

@@ -18,6 +18,7 @@ import { useIncomes } from '../../hooks/Incomes/useIncomes'
 import { useBranches } from '../../hooks/Branches/useBranches'
 import { useCustomers } from '../../hooks/Customers/useCustomers'
 import { useEmployees } from '../../hooks/Employees/useEmployees'
+import { useDateNavigation } from '../../hooks/useDateNavigation'
 
 export default function Incomes() {
 
@@ -30,11 +31,13 @@ export default function Incomes() {
   const [branchAndCustomerSelectOptions, setBranchAndCustomerSelectOptions] = useState([])
   const [selectedIncomeGroup, setSelectedIncomeGroup] = useState('')
   const [selectedIncomeType, setSelectedIncomeType] = useState(null)
-  const { currentDate } = useDate()
+  const { currentDate } = useDateNavigation()
   const { incomes, incomesTotal, onAddIncome, onDeleteIncome } = useIncomes({ companyId, date: currentDate })
   const { branches } = useBranches({ companyId: company._id })
   const { employees } = useEmployees({ companyId: company._id })
   const { customers } = useCustomers({ companyId: company._id })
+
+  console.log(currentDate)
 
   useEffect(() => {
     setBranchAndCustomerSelectOptions([

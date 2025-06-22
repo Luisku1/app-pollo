@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { isToday } from '../helpers/DatePickerFunctions';
 import { useEmployees } from '../hooks/Employees/useEmployees';
 import EmployeesSelect from '../components/Select/EmployeesSelect';
@@ -30,11 +30,13 @@ import { useDateNavigation } from '../hooks/useDateNavigation';
 import { ToastInfo } from '../helpers/toastify';
 import ProvidersInputsList from '../components/Providers/ProvidersInputsList';
 
+
 export default function RegistroCuentaDiaria({ edit = true, _branch = null }) {
 
   const { currentUser, company } = useSelector((state) => state.user)
   const navigate = useNavigate()
-  const [branchId, setBranchId] = useState(null)
+  const params = useParams()
+  const [branchId, setBranchId] = useState(params.branchId || _branch?._id || null)
   const { currentDate } = useDateNavigation({ branchId });
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)

@@ -10,6 +10,7 @@ export const getProductLastPrice = async (providerId, productId) => {
   if (!providerId || !productId) return null;
   try {
     const { data } = await axios.get(`/api/provider/get-provider-last-price/${providerId}/${productId}`);
+    console.log(data);
     return data?.lastPrice ?? null;
   } catch (error) {
     // Manejo de error: puedes loguear o lanzar según la necesidad

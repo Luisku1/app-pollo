@@ -445,19 +445,18 @@ export default function Reporte({ untitled = false }) {
         <div className="mt-3">
           <div className="">
             <div className="flex justify-evenly">
+              {/* Reemplazo de los párrafos por un select con las opciones correspondientes */}
               <div className="justify-self-start font-bold text-lg">
-                {showTable && currentView.view === 'branches' && (
-                  <p className="">{'Sucursales: ' + branchReports.length}</p>
-                )}
-                {showTable && currentView.view === 'supervisors' && (
-                  <p className="">{'Supervisores'}</p>
-                )}
-                {showTable && currentView.view === 'customers' && (
-                  <p className="">{'Clientes'}</p>
-                )}
-                {showTable && currentView.view === 'providers' && (
-                  <p className="">{'Proveedores'}</p>
-                )}
+                <select
+                  className="px-4 py-2 rounded-lg border font-semibold shadow-sm bg-white text-black border-gray-300 hover:bg-gray-100"
+                  value={currentView.view}
+                  onChange={(e) => setCurrentView({ view: e.target.value, props: {} })}
+                >
+                  <option value="branches">{'Sucursales: ' + branchReports.length}</option>
+                  <option value="supervisors">{'Supervisores'}</option>
+                  <option value="customers">{'Clientes'}</option>
+                  <option value="providers">{'Proveedores'}</option>
+                </select>
               </div>
               <div className="flex justify-center items-center gap-2">
                 {/* Botón para filtrar solo balances negativos */}
@@ -482,60 +481,6 @@ export default function Reporte({ untitled = false }) {
             {showTable &&
               <div>
                 <div className="">
-                  <div className="justify-center items-center">
-                    {/* Menú horizontal retráctil de tablas */}
-                    <div className={`fixed left-4 z-50 w-fit ${tablesOnTop ? 'top-20' : 'bottom-20'}`} ref={tableBarRef}>
-                      {!showTableBar ? (
-                        <button
-                          className="bg-black text-white shadow-lg rounded-full border-2 border-black flex items-center justify-center p-2 font-bold text-lg transition"
-                          onClick={() => setShowTableBar(true)}
-                        >
-                          Tablas
-                        </button>
-                      ) : (
-                        <div className={`${tablesOnTop ? 'grid grid-cols-1 w-fit' : 'flex flex-wrap gap-1'} bg-white border-2 border-black rounded-3xl shadow-lg p-2 items-center min-w-[${tablesOnTop ? '' : '220px'}] max-w-[90vw]`}>
-                          <button
-                            className={`bg-black text-white rounded-full ${tablesOnTop ? 'mb-2' : ''} px-4 py-2 font-bold text-lg transition`}
-                            onClick={() => setShowTableBar(false)}
-                          >
-                            Tablas
-                          </button>
-                          <button
-                            className={`px-4 py-2 rounded-xl border border-black text-sm font-medium transition ${currentView.view === 'branches' ? 'bg-blue-600 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'}`}
-                            onClick={() => {
-                              setCurrentView({ view: 'branches', props: {} });
-                            }}
-                          >
-                            Sucursales
-                          </button>
-                          <button
-                            className={`px-4 py-2 rounded-xl border border-black text-sm font-medium transition ${currentView.view === 'supervisors' ? 'bg-blue-600 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'}`}
-                            onClick={() => {
-                              setCurrentView({ view: 'supervisors', props: {} });
-                            }}
-                          >
-                            Supervisores
-                          </button>
-                          <button
-                            className={`px-4 py-2 rounded-xl border border-black text-sm font-medium transition ${currentView.view === 'customers' ? 'bg-blue-600 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'}`}
-                            onClick={() => {
-                              setCurrentView({ view: 'customers', props: {} });
-                            }}
-                          >
-                            Clientes
-                          </button>
-                          <button
-                            className={`px-4 py-2 rounded-xl border border-black text-sm font-medium transition ${currentView.view === 'providers' ? 'bg-blue-600 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'}`}
-                            onClick={() => {
-                              setCurrentView({ view: 'providers', props: {} });
-                            }}
-                          >
-                            Proveedores
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
                   {currentView.view === 'branches' && (
                     <BranchReportTable
                       branchReports={branchReports}

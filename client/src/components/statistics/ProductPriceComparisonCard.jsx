@@ -53,8 +53,6 @@ export default function ProductPriceComparisonCard({ purchasesArray = [], provid
     }).sort((a, b) => (b.totalInputAmount + b.totalPurchaseAmount) - (a.totalInputAmount + a.totalPurchaseAmount));
   }, [allProductNames, purchasesArray, providerInputsArray]);
 
-  console.log(selectedProduct);
-
   return (
     <div className="relative w-80 min-h-64 bg-white rounded-2xl shadow-xl flex flex-col items-center justify-center border border-gray-200 cursor-pointer group"
       onClick={() => setShowModal(true)}
