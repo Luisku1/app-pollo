@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState, useMemo } from "react"
 import { useSelector } from "react-redux"
 import { useNavigate } from "react-router-dom"
 import { currency } from "../helpers/Functions"
@@ -18,6 +18,7 @@ export default function Precios() {
   const [showResidual, setShowResidual] = useState({})
   const { onUpdateResidualUse } = useBranch()
   const [buttonDisabled, setButtonDisabled] = useState({})
+  const [searchTerm, setSearchTerm] = useState("")
 
 
   // Maneja cambios para precios normales y residuales
@@ -152,6 +153,14 @@ export default function Precios() {
     setShowResidual(prev => ({ ...prev, [branchId]: !prev[branchId] }))
   }
 
+  const filteredPrices = useMemo(() => {
+    if (!searchTerm) return prices;
+    return prices.filter((data) =>
+      `${data._id.branchName ?? ''}`.toLowerCase().includes(searchTerm.toLowerCase()
+      )
+    );
+  }, [searchTerm, prices]);
+
   return (
     <main className="p-2 md:p-6 max-w-5xl mx-auto mb-32">
 
@@ -163,8 +172,18 @@ export default function Precios() {
 
       {error && <div className="bg-red-100 text-red-700 rounded-lg p-3 mb-4 text-center">{error}</div>}
 
+      <div className="mb-6">
+        <input
+          type="text"
+          placeholder="Buscar sucursal..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+        />
+      </div>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 super-xl:grid-cols-3 gap-6">
-        {prices && prices.length > 0 && prices.map((data) => {
+        {filteredPrices && filteredPrices.length > 0 && filteredPrices.map((data) => {
           const isResidual = showResidual[data._id.branchId]
           // Agrupar productos en pares para doble columna
           const productPairs = []
@@ -179,11 +198,11 @@ export default function Precios() {
           return (
             <div key={data._id.branchId} className="rounded-2xl shadow-md bg-white border border-gray-200 flex flex-col p-4 transition hover:shadow-lg">
               <div className="flex items-center justify-between mb-2 gap-2">
-                <h2 className="text-xl font-semibold text-blue-700">{data._id.branchName}</h2>
+                <h2 className="text-xl text-blue-700 font-bold">{data._id.branchName}</h2>
                 <div className="flex gap-2 items-center">
                   <button
                     className={`px-3 py-1 rounded-full text-xs font-bold border transition flex items-center gap-2
-                      ${data.residualPrices ? 'bg-blue-600 text-white border-blue-600' : 'bg-gray-200 text-gray-700 border-gray-300'}`}
+                      ${data.residualPrices ? 'bg-blue-800 font-bold text-white border-blue-600' : 'bg-gray-200 text-gray-700 border-gray-300'}`}
                     onClick={() => handleUpdateResidualsUse(data._id.branchId)}
                     title="Alternar uso de precios fríos en esta sucursal"
                     type="button"
@@ -193,7 +212,7 @@ export default function Precios() {
                     Uso de precios fríos
                   </button>
                   <button
-                    className={`px-3 py-1 rounded-full text-xs font-bold border transition ${isResidual ? 'bg-blue-600 text-white border-blue-600' : 'bg-gray-200 text-gray-700 border-gray-300'}`}
+                    className={`px-3 py-1 rounded-full text-xs font-bold border transition ${isResidual ? 'bg-blue-800 text-white border-blue-600' : 'bg-gray-200 text-gray-700 border-gray-300'}`}
                     disabled={!data.residualPrices}
                     onClick={() => handleToggleResidual(data._id.branchId)}
                     type="button"
@@ -268,7 +287,7 @@ export default function Precios() {
                 </table>
               </div>
               <button
-                className={`mt-4 w-full bg-blue-600 text-white p-3 rounded-xl font-bold uppercase tracking-wide shadow transition hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed`}
+                className={`mt-4 w-full bg-[#3B82F6] opacity-90 text-white p-3 rounded-xl font-bold uppercase tracking-wide shadow transition hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed`}
                 onClick={() => submitBranchPrices(data._id.branchId)}
                 disabled={buttonDisabled[data._id.branchId] || loading[data._id.branchId]}
               >

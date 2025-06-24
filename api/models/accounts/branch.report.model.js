@@ -108,11 +108,12 @@ const branchReportSchema = mongoose.Schema({
   },
 
   employee: {
-    type: Schema.Types.ObjectId, ref: 'Employee',
+    type: Schema.Types.ObjectId, ref: 'Employee'
   },
 
   assistant: {
-    type: Schema.Types.ObjectId, ref: 'Employee'
+    type: [{ type: Schema.Types.ObjectId, ref: 'Employee' }],
+    default: []
   },
 
   sender: {

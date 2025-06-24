@@ -13,12 +13,10 @@ import { useBranches } from '../hooks/Branches/useBranches';
 import { useEmployees } from '../hooks/Employees/useEmployees';
 import { useCustomers } from '../hooks/Customers/useCustomers';
 import FechaDePagina from './FechaDePagina';
-import { useDateNavigation } from '../hooks/useDateNavigation';
 
 export default function Header() {
 
   const { company } = useSelector((state) => state.user);
-  const { currentDate, setDate, isDateAware } = useDateNavigation({ fallbackToToday: true }); // Use the custom hook to get the current date
 
   const { branches } = useBranches({ companyId: company._id })
   const { employees } = useEmployees({ companyId: company._id })
@@ -26,11 +24,9 @@ export default function Header() {
 
   return (
     <header className='bg-header shadow-md sticky top-0 z-[9999] flex flex-col items-center justify-center p-2'>
-      {isDateAware &&
-        <div className='w-full flex justify-center items-center'>
-          <FechaDePagina changeDatePickerValue={setDate} changeDay={setDate} higherZ={true} currentDate={currentDate} />
-        </div>
-      }
+      <div className='w-full flex justify-center items-center'>
+        <FechaDePagina />
+      </div>
       <SearchMenu modalMode={true} />
       <RegistersMenu />
     </header>

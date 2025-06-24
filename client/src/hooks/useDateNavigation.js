@@ -25,10 +25,11 @@ export function useDateNavigation({ fallbackToToday = true, branchId } = {}) {
   const params = useParams();
   const navigate = useNavigate();
   const location = useLocation();
+  console.log('useDateNavigation', location.pathname, params);
 
   const isDateAware = matchDateAwareRoute(location.pathname);
   const paramDate = params.date;
-  const [currentDate, setCurrentDate] = useState(paramDate ? paramDate : (fallbackToToday ? formatDate(new Date()) : undefined));
+  const [currentDate, setCurrentDate] = useState(new Date());
 
   // Sincroniza currentDate con paramDate (URL)
   useEffect(() => {
@@ -75,6 +76,8 @@ export function useDateNavigation({ fallbackToToday = true, branchId } = {}) {
       return location.pathname;
     }
   };
+
+
 
   return {
     isDateAware,

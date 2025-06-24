@@ -74,7 +74,6 @@ export default function ControlProveedores() {
                 changeDay={changeDay}
                 stringDatePickerValue={currentDate}
                 changeDatePickerValue={changeDatePickerValue}
-                higherZ={true}
               ></FechaDePagina>
             ) : (
               ""

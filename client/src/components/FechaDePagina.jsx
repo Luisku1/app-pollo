@@ -1,23 +1,31 @@
 /* eslint-disable react/prop-types */
-import { MdChevronLeft, MdChevronRight, MdCalendarToday } from "react-icons/md";
+import { MdChevronLeft, MdChevronRight } from "react-icons/md";
 import { formatDate } from "../helpers/DatePickerFunctions";
+import { useDateNavigation } from "../hooks/useDateNavigation";
 
-export default function FechaDePagina({ changeDatePickerValue, changeDay, higherZ = false, currentDate }) {
+
+
+export default function FechaDePagina() {
+  const { currentDate, setDate, isDateAware } = useDateNavigation();
 
   const prevDay = () => {
     const datePickerDate = new Date(currentDate);
     datePickerDate.setDate(datePickerDate.getDate() - 1);
-    changeDay(datePickerDate.toISOString());
+    setDate(datePickerDate);
   };
 
   const nextDay = () => {
     const datePickerDate = new Date(currentDate);
     datePickerDate.setDate(datePickerDate.getDate() + 1);
-    changeDay(datePickerDate.toISOString());
+    setDate(datePickerDate);
   };
 
+  console.log(currentDate)
+
+  if (!isDateAware) return null;
+
   return (
-    <div className={`w-fit mx-auto ${higherZ ? 'z-30' : 'z-20'}`}>
+    <div className={`w-fit mx-auto`}>
       <div className="flex items-center gap-2 bg-white bg-opacity-80 rounded-xl shadow-sm px-2">
         <button className="w-7 h-7 flex items-center justify-center text-gray-600 hover:text-black transition" onClick={prevDay} title="Día anterior">
           <MdChevronLeft className="w-6 h-6" />
@@ -29,8 +37,7 @@ export default function FechaDePagina({ changeDatePickerValue, changeDay, higher
               type="date"
               name="date"
               id="date"
-              max={formatDate(new Date()).slice(0, 10)}
-              onChange={changeDatePickerValue}
+              onChange={setDate}
               value={formatDate(currentDate).slice(0, 10)}
               style={{ minWidth: 0 }}
             />

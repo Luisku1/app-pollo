@@ -8,6 +8,7 @@ import { usePricesSelector } from '../../hooks/Prices/usePricesSelector'
 import { FaArrowLeft, FaArrowRight, FaSpinner } from 'react-icons/fa'
 import useChangePrices from '../../hooks/Prices/useChangePrices'
 import { blockedButton } from '../../helpers/Constants'
+import { ToastSuccess } from '../../helpers/toastify'
 
 export default function ChangeBranchPrices({ children, onChange, branch, date, onUpdateBranchReport }) {
 
@@ -16,6 +17,7 @@ export default function ChangeBranchPrices({ children, onChange, branch, date, o
   const [direction, setDirection] = useState(null)
   const { prices, loading } = usePricesSelector(branch, date, pricesDate, direction)
   const { changePrices } = useChangePrices()
+  const [ isLoading, setIsLoading ] = useState(false)
   const { currentUser } = useSelector(state => state.user)
   const [isChanging, setIsChanging] = useState(false)
   const ableToModify = isManager(currentUser.role)
@@ -27,6 +29,8 @@ export default function ChangeBranchPrices({ children, onChange, branch, date, o
       return price.date > latest ? price.date : latest;
     }
   }, null);
+
+  const multiLoading = loading || isLoading
 
   const togglePriceChanger = () => {
     setPricesDate(null)
@@ -54,6 +58,7 @@ export default function ChangeBranchPrices({ children, onChange, branch, date, o
   const handlePricesChange = async (e) => {
     e.preventDefault()
     try {
+      setIsLoading(true)
       if (onChange && onUpdateBranchReport) {
         await onChange(prices, date, newestPricesDate, onUpdateBranchReport)
       }
@@ -62,9 +67,12 @@ export default function ChangeBranchPrices({ children, onChange, branch, date, o
         onUpdateBranchReport(await changePrices(branch, date, newestPricesDate))
       }
 
+      setIsLoading(false)
+      ToastSuccess('Precios cambiados correctamente')
       togglePriceChanger()
       setDirection(null)
     } catch (error) {
+      setIsLoading(false)
       console.error('Error changing prices:', error)
     }
   }
@@ -72,12 +80,12 @@ export default function ChangeBranchPrices({ children, onChange, branch, date, o
   const renderPricesChanger = () => {
     return (
       <div className="relative">
-        {loading && (
+        {multiLoading && (
           <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-50 z-50">
             <FaSpinner className="text-4xl animate-spin" />
           </div>
         )}
-        <div className={`${loading ? 'blur-sm' : ''}`}>
+        <div className={`${multiLoading ? 'blur-sm' : ''}`}>
           <div className="flex justify-between mt-2">
             <button
               className="bg-button text-lg text-white p-2 rounded-lg uppercase hover:bg-gray-600 flex items-center"
@@ -89,7 +97,7 @@ export default function ChangeBranchPrices({ children, onChange, branch, date, o
               className="bg-button text-lg text-white p-2 rounded-lg uppercase hover:bg-gray-600"
               onClick={handleCurrentPrice}
             >
-              Precio Actual
+              Últimos precios
             </button>
             <button
               className="bg-button text-lg text-white p-2 rounded-lg uppercase hover:bg-gray-600 flex items-center"

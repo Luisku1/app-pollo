@@ -1,10 +1,10 @@
 import express from 'express'
-import { createBranchReport, deleteReport, getBranchReport, recalculateBranchReportRequest, refactorBranchReports, setBalanceOnZero, updateBranchReport } from '../controllers/branch.report.controller.js'
+import { createBranchReport, deleteReport, getBranchReport, recalculateBranchReportRequest, refactorBranchReports, setBalanceOnZero, updateBranchReportEmployees } from '../controllers/branch.report.controller.js'
 
 const router = express.Router()
 
 router.post('/create/:companyId', createBranchReport)
-router.put('/update', updateBranchReport)
+router.put('/update-report-employees/:reportId', updateBranchReportEmployees)
 router.put('/recalculate', recalculateBranchReportRequest)
 router.put('/set-balance-on-zero/:reportId', setBalanceOnZero)
 router.get('/get-branch-report/:branchId/:date', getBranchReport)

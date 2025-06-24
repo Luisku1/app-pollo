@@ -10,6 +10,8 @@ import { useProviderInputs } from "../ProviderInputs/useProviderInputs"
 import { useBranchPrices } from "../Prices/useBranchPrices"
 import { useMidDayStock } from "../Stock/useMidDayStock"
 import { Types } from "mongoose"
+import { updateReportEmployees } from "../../services/BranchReports/updateReportsEmployee"
+import { useQuery, useMutation } from '@tanstack/react-query';
 
 export const useBranchReport = ({ branchId = null, date = null }) => {
   // State
@@ -111,8 +113,17 @@ export const useBranchReport = ({ branchId = null, date = null }) => {
     }))
     if (modifyBalance) modifyBalance(tempOutgoing.amount, 'add')
     try {
-      await addOutgoing(tempOutgoing)
-      // Si la API responde con el _id real, aquí podrías reemplazar el tempId
+      console.log('Adding outgoing:', tempOutgoing)
+      addOutgoing({
+        _id: tempOutgoing._id || null,
+        company: tempOutgoing.company,
+        employee: tempOutgoing?.employee?._id ? tempOutgoing.employee._id : outgoing.employee,
+        concept: tempOutgoing.concept,
+        amount: tempOutgoing.amount,
+        date: tempOutgoing.date,
+        branch: tempOutgoing?.branch?._id ? tempOutgoing.branch._id : tempOutgoing.branch,
+        createdAt: tempOutgoing.createdAt,
+      })
     } catch (error) {
       setBranchReport(prev => ({
         ...prev,
@@ -131,7 +142,7 @@ export const useBranchReport = ({ branchId = null, date = null }) => {
     }))
     if (modifyBalance) modifyBalance(outgoing.amount, 'subtract')
     try {
-      await deleteOutgoing(outgoing)
+      deleteOutgoing(outgoing)
     } catch (error) {
       setBranchReport(prev => ({
         ...prev,
@@ -140,6 +151,16 @@ export const useBranchReport = ({ branchId = null, date = null }) => {
       if (modifyBalance) modifyBalance(outgoing.amount, 'add')
       console.log(error)
     }
+  }
+
+  const updateEmployees = async ({ employee, assistants }) => {
+
+    setBranchReport(prev => ({
+      ...prev,
+      employee: employee || null,
+      assistants: assistants || []
+    }))
+    await updateReportEmployees({ reportId: branchReport._id, employeeId: employee?._id || null, assistants: assistants?.map(a => a._id) || [] })
   }
 
   // Fetch branch report from API SOLO cuando branchId y date cambian y NO hay _branchReport
@@ -169,6 +190,9 @@ export const useBranchReport = ({ branchId = null, date = null }) => {
   // Return API
   return {
     branchReport,
+    employee: branchReport?.employee || null,
+    assistants: branchReport?.assistant || [],
+    updateReportEmployees: updateEmployees,
     setBranchReport,
     onUpdateBranchReport: refreshBranchReport,
     outgoings,

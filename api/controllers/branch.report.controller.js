@@ -431,58 +431,52 @@ export const setBalanceOnZero = async (req, res, next) => {
   }
 }
 
-export const updateBranchReport = async (req, res, next) => {
+const areArraysEqual = (arr1, arr2) => {
+  if (arr1.length !== arr2.length) return false;
+  const sortedArr1 = [...arr1].sort();
+  const sortedArr2 = [...arr2].sort();
+  return sortedArr1.every((value, index) => value === sortedArr2[index]);
+};
 
-  const { branchReport, employee, assistant } = req.body
-  let updatedBranchReport = null
-  const actualEmployeeId = employee?.id ?? employee ?? null
-  const previousEmployeeId = branchReport?.employee?._id ?? branchReport.employee ?? null
-  const previousAssistantId = branchReport?.assistant?._id ? branchReport.assistant._id : branchReport.assistant
+export const updateBranchReportEmployees = async (req, res, next) => {
+  const { reportId } = req.params
+  const { employeeId, assistants } = req.body
+
+  if (!reportId) return next(errorHandler(400, 'Report ID is required'))
+  if (!employeeId && !assistants) return next(errorHandler(400, 'At least one employee or assistant is required'))
+
+  let branchReport = null
+  let reportToUpdate = null
+  let previousEmployeeId = null
+  let previousAssistants = null
 
   try {
 
-    if (!actualEmployeeId) throw new Error("Asegúrate de seleccionar un empleado");
+    branchReport = await fetchBranchReport({ reportId })
+    reportToUpdate = { ...branchReport }
 
-    if (actualEmployeeId != previousEmployeeId) {
+    if (!branchReport) throw new Error("No se encontró el reporte, asegúrate de registrar algo antes");
+    previousEmployeeId = branchReport.employee?._id || branchReport.employee || null
+    previousAssistants = branchReport.assistant || null
 
-      if (previousEmployeeId) {
-
-        await updateEmployeeDailyBalances({ branchReport: branchReport, changedEmployee: true })
+    if (previousAssistants && previousAssistants.length > 0 && assistants && assistants.length > 0) {
+      if (!areArraysEqual(previousAssistants, assistants)) {
+        reportToUpdate.assistant = assistants.map(assistant => assistant._id || assistant)
       }
-
-      branchReport.employee = employee
-
-      await updateEmployeeDailyBalances({ branchReport: branchReport })
-
-      updatedBranchReport = await BranchReport.findByIdAndUpdate(branchReport._id, {
-        $set: { employee: actualEmployeeId, dateSent: new Date() }
-      })
     }
 
-    if (previousAssistantId != assistant) {
-
-      updatedBranchReport = await BranchReport.findByIdAndUpdate(branchReport._id, {
-        $set: { assistant: assistant, dateSent: new Date() }
-      })
+    if (employeeId && previousEmployeeId && employeeId !== previousEmployeeId) {
+      reportToUpdate.employee = employeeId
+      await recalculateBranchReport({ branchReport: { ...reportToUpdate, dateSent: (new Date()).toISOString() } })
+      await updateEmployeeDailyBalances({ branchReport: branchReport, changedEmployee: true })
     }
 
-    if (branchReport.dateSent) {
-
-      updatedBranchReport = await BranchReport.findByIdAndUpdate(branchReport._id, {
-        $set: { employee: actualEmployeeId, assistant: assistant }
-      })
-    }
-
-    if (updatedBranchReport) {
-
-      await recalculateBranchReport({ branchReport: updatedBranchReport })
-
-      res.status(200).json('Branch report updated successfully')
-    }
+    res.status(200).json({
+      message: 'Branch report employees updated successfully',
+      success: true
+    })
 
   } catch (error) {
-
-    console.log(error)
     next(error)
   }
 }
@@ -1031,6 +1025,19 @@ export const fetchBranchReportById = async ({ branchReportId, populate = false }
   } catch (error) {
 
     console.log(error)
+  }
+}
+
+export const updateReportEmployees = async (req, res, next) => {
+
+  const reportId = req.params.reportId
+  const { employeeId, assistants } = req.body
+
+  try {
+
+  } catch (error) {
+    console.error(error)
+    next(error)
   }
 }
 

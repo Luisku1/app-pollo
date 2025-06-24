@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types */
 import { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
+import Select from 'react-select';
 import { useNavigate, useParams } from 'react-router-dom';
 import { isToday } from '../helpers/DatePickerFunctions';
 import { useEmployees } from '../hooks/Employees/useEmployees';
@@ -29,14 +30,15 @@ import { CgProfile } from 'react-icons/cg';
 import { useDateNavigation } from '../hooks/useDateNavigation';
 import { ToastInfo } from '../helpers/toastify';
 import ProvidersInputsList from '../components/Providers/ProvidersInputsList';
+import { customSelectStyles } from '../helpers/Constants';
 
 
-export default function RegistroCuentaDiaria({ edit = true, _branch = null }) {
+export default function RegistroCuentaDiaria({ edit = true }) {
 
   const { currentUser, company } = useSelector((state) => state.user)
   const navigate = useNavigate()
   const params = useParams()
-  const [branchId, setBranchId] = useState(params.branchId || _branch?._id || null)
+  const [branchId, setBranchId] = useState(params.branchId || null)
   const { currentDate } = useDateNavigation({ branchId });
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
@@ -45,11 +47,11 @@ export default function RegistroCuentaDiaria({ edit = true, _branch = null }) {
   const { roles, isManager, isJustSeller, isSupervisor } = useRoles()
   const { products } = useProducts({ companyId: company._id })
   const [selectedEmployee, setSelectedEmployee] = useState()
-  const [selectedAssistant, setSelectedAssistant] = useState(null)
-  const [selectedBranch, setSelectedBranch] = useState(_branch)
+  const [selectedAssistants, setSelectedAssistants] = useState([])
+  const [selectedBranch, setSelectedBranch] = useState()
   const [selectBranch, setSelectBranch] = useState(false)
   const [showPrices, setShowPrices] = useState(false)
-  const [showSelectBranchEmployees, setShowSelectBranchEmployees] = useState(false)
+  const [showSelectReportEmployees, setShowSelectReportEmployees] = useState(false)
   const [employeeInfo, setEmployeeInfo] = useState(null)
   const isAuthorized = roles && isManager(currentUser.role)
   const [ableToEdit, setAbleToEdit] = useState(false)
@@ -57,6 +59,8 @@ export default function RegistroCuentaDiaria({ edit = true, _branch = null }) {
   const reportDate = (currentDate ? new Date(currentDate) : new Date()).toLocaleDateString('es-mx', { weekday: 'long', year: 'numeric', month: '2-digit', day: '2-digit' })
   const {
     branchReport,
+    employee,
+    assistants,
     onUpdateBranchReport,
     modifyBalance,
     prices,
@@ -89,8 +93,19 @@ export default function RegistroCuentaDiaria({ edit = true, _branch = null }) {
     outgoings,
     outgoingsTotal,
     onAddOutgoing,
+    updateReportEmployees,
     onDeleteOutgoing
   } = useBranchReport({ branchId, date: currentDate })
+
+  useEffect(() => {
+    if (assistants.length > 0) {
+      setSelectedAssistants(assistants.map(assistant => ({
+        value: assistant._id,
+        label: getEmployeeFullName(assistant),
+        ...assistant
+      })))
+    }
+  }, [assistants]);
 
   useEffect(() => {
     const currentTime = new Date();
@@ -127,15 +142,14 @@ export default function RegistroCuentaDiaria({ edit = true, _branch = null }) {
     setSelectedEmployee(employee)
   }
 
-  const handleAssistantSelectChange = (assistant) => {
-
-    setSelectedAssistant(assistant)
-  }
-
   const handleBranchSelectChange = (branch) => {
 
     setSelectedBranch(branch)
     setBranchId(branch.value)
+    if (!employee && branch) {
+
+      setShowSelectReportEmployees(true)
+    }
     navigate('/formato/' + currentDate)
   }
 
@@ -145,52 +159,18 @@ export default function RegistroCuentaDiaria({ edit = true, _branch = null }) {
     )
   }
 
-  const updateReport = async () => {
+  const onRegisterEmployees = async () => {
 
-    setLoading(true)
-    const assistant = selectedAssistant?._id ?? null
-
-    try {
-
-      const res = await fetch('/api/branch/report/update/', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          branchReport: branchReport,
-          employee: selectedEmployee,
-          assistant: assistant,
-          initialStock: initialStockAmount,
-          finalStock: stockAmount,
-          inputs: inputsWeight,
-          providerInputs: providerInputsTotal,
-          outputs: outputsWeight,
-          outgoings: outgoingsTotal,
-          incomes: incomesTotal,
-        })
-      })
-
-      const data = await res.json()
-
-      if (data.success === false) {
-
-        setError('Algún error ha ocurrido, intenta más tarde.')
-        setLoading(false)
-        return
+    if (selectedEmployee && currentUser._id !== selectedEmployee._id) {
+      if (!selectedAssistants.some(assistant => assistant.value === selectedEmployee._id)) {
+        setSelectedAssistants(prev => [...prev, {
+          value: selectedEmployee._id,
+          label: getEmployeeFullName(selectedEmployee),
+          ...selectedEmployee
+        }])
       }
-
-      setLoading(false)
-      setError(null)
-
-      navigate('/perfil/' + selectedEmployee._id)
-
-    } catch (error) {
-
-      setLoading(false)
-      setError(error.message)
-
     }
+    await updateReportEmployees({ selectedEmployee, selectedAssistants })
   }
 
   useEffect(() => {
@@ -232,34 +212,41 @@ export default function RegistroCuentaDiaria({ edit = true, _branch = null }) {
         </div>
         <div className="mt-1 ">
           <div className='w-full'>
-            <p className='w-full'>Encargado</p>
+            <p className='w-full font-semibold'>Encargado</p>
             <div className='p-3'>
-              <EmployeesSelect defaultLabel={'Sin Encargado'} isEditing={isSupervisor(currentUser.role)} employees={employees} selectedEmployee={selectedEmployee} handleEmployeeSelectChange={handleEmployeeSelectChange}></EmployeesSelect>
+              <EmployeesSelect
+                defaultLabel={'Sin Encargado'}
+                isEditing={isSupervisor(currentUser.role)}
+                employees={employees}
+                selectedEmployee={selectedEmployee}
+                handleEmployeeSelectChange={handleEmployeeSelectChange}
+              />
             </div>
           </div>
         </div>
-        <div className="mt-1 p-3">
-          <div className='w-full border border-red-700 rounded-lg'>
-            <EmployeesSelect defaultLabel={'Sin Auxiliar'} employees={employees} selectedEmployee={selectedAssistant} handleAssistantSelectChange={handleAssistantSelectChange}></EmployeesSelect>
+        <div className="mt-1">
+          <p className='w-full font-semibold'>Auxiliares</p>
+          <div className='p-3'>
+            <Select
+              isMulti={true}
+              options={getArrayForSelects(activeEmployees, (employee) => getEmployeeFullName(employee))}
+              onChange={(options) => {
+                setSelectedAssistants(options);
+              }}
+              styles={customSelectStyles}
+            />
           </div>
         </div>
-        {selectedEmployee && selectedAssistant &&
-          <button onClick={updateReport} className='mt-2 rounded-lg text-white text-md p-3 w-full bg-button'>Enviar</button>
-        }
-        {selectedEmployee && !selectedAssistant &&
-          <ConfirmationButton
-            onConfirm={updateReport}
-            confirmationMessage={'No has seleccionado a ningún auxiliar'}
-            negativeOption={'Volver'}
-            positiveOption={'Continuar sin auxiliar'}
-            className="mt-2 rounded-lg text-white text-md p-3 w-full bg-button"
-            messageClassName={'text-center text-red-800 font-semibold'}
+        {selectedEmployee && selectedAssistants.length > 0 && (
+          <button
+            onClick={onRegisterEmployees}
+            className='mt-2 rounded-lg text-white text-md p-3 w-full bg-button'
           >
-            Enviar
-          </ConfirmationButton>
-        }
+            Asignar personal
+          </button>
+        )}
       </div>
-    )
+    );
   }
 
   const handleShowEmployeeInfo = () => {
@@ -320,6 +307,15 @@ export default function RegistroCuentaDiaria({ edit = true, _branch = null }) {
               </div>
             )}
           </div>
+          {selectedBranch && !employee && (
+            <Modal
+              content={selectEmployees()}
+              closeModal={() => { setShowSelectReportEmployees(false) }}
+              ableToClose={false}
+              closeOnClickOutside={false}
+              isShown={showSelectReportEmployees}
+            />
+          )}
           <EmployeeInfo employee={employeeInfo} toggleInfo={() => { setEmployeeInfo(false) }} />
           <SectionHeader label={'Reporte'} />
           <div className="grid grid-cols-12 items-center mt-1 mb-2">
@@ -396,7 +392,7 @@ export default function RegistroCuentaDiaria({ edit = true, _branch = null }) {
                   <div className="flex items-center justify-around">
                     <div className='w-full items-center gap-4 justify-self-end'>
                       <ShowListModal
-                        title={'Sobrante'}
+                        title={'Sobrante Inicial'}
                         ListComponent={StockList}
                         ListComponentProps={{ stock: initialStock, amount: initialStockAmount, weight: initialStockWeight }}
                         className={'w-full'}
@@ -406,108 +402,53 @@ export default function RegistroCuentaDiaria({ edit = true, _branch = null }) {
                       />
                     </div>
                   </div>
-                  {false ?
-                    <div className='w-full mt-2'>
-                      <ShowListModal
-                        title={'Gastos'}
-                        ListComponent={OutgoingsList}
-                        ListComponentProps={{ outgoings, amount: outgoingsTotal, onDelete: onDeleteOutgoing, modifyBalance }}
-                        className={'w-full'}
-                        clickableComponent={
-                          <p className='font-bold text-lg text-center bg-green-100 rounded-lg p-1 border border-header'>GASTOS {currency({ amount: outgoingsTotal ?? 0 })}</p>
-                        }
-                      />
-                    </div>
-                    :
-                    <AddOutgoing
-                      modifyBalance={modifyBalance}
-                      outgoings={outgoings}
-                      outgoingsTotal={outgoingsTotal}
-                      employee={selectedEmployee}
-                      onAddOutgoing={onAddOutgoing}
-                      onDeleteOutgoing={onDeleteOutgoing}
-                      isReport={true}
-                      branch={selectedBranch}
-                      listButton={<p className='font-bold text-lg text-center bg-green-100 rounded-lg p-1 border border-header'>{currency({ amount: outgoingsTotal ?? 0 })}</p>}
-                    />
-                  }
-                  {true ?
-                    <AddStock
-                      title={'Sobrante'}
-                      stock={stock}
-                      modifyBalance={modifyBalance}
-                      amount={stockAmount}
-                      weight={stockWeight}
-                      products={products}
-                      onAddStock={onAddStock}
-                      onDeleteStock={onDeleteStock}
-                      branchPrices={prices}
-                      branch={selectedBranch}
-                      employee={selectedEmployee}
-                      isReport={true}
-                      date={currentDate}
-                      listButton={<p className='font-bold text-lg text-center bg-green-100 rounded-lg border p-1 border-header'>{currency({ amount: stockAmount ?? 0 })}</p>}
-                    />
-                    :
-                    <div className='w-full mt-2'>
-                      <ShowListModal
-                        title={'Sobrante'}
-                        ListComponent={StockList}
-                        ListComponentProps={{ stock, weight: stockWeight, amount: stockAmount, onDelete: onDeleteStock, modifyBalance }}
-                        className={'w-full'}
-                        clickableComponent={<p className='font-bold text-lg text-center bg-green-100 rounded-lg border p-1 border-header'>SOBRANTE {currency({ amount: stockAmount ?? 0 })}</p>
-                        }
-                      />
-                    </div>
-                  }
-                  {true ?
-                    <AddStock
-                      title={'Sobrante de Medio Día'}
-                      stock={midDayStock}
-                      midDay={true}
-                      amount={midDayStockAmount}
-                      weight={midDayStockWeight}
-                      products={products}
-                      onAddStock={onAddMidStock}
-                      onDeleteStock={onDeleteMidStock}
-                      branchPrices={prices}
-                      branch={selectedBranch}
-                      employee={selectedEmployee}
-                      date={currentDate}
-                      listButton={<p className='font-bold text-lg text-center bg-yellow-200 rounded-lg border p-1 border-header'>{currency({ amount: midDayStockAmount ?? 0 })}</p>}
-                    />
-                    :
-                    <div className='w-full mt-2'>
-                      <ShowListModal
-                        title={'Sobrante de Medio Día'}
-                        ListComponent={StockList}
-                        ListComponentProps={{ midDayStock, weight: midDayStockWeight, amount: midDayStockAmount, onDelete: onDeleteMidStock }}
-                        className={'w-full'}
-                        clickableComponent={<p className='font-bold text-lg text-center bg-yellow-200 rounded-lg border p-1 border-header'>SOBRANTE {currency({ amount: midDayStockAmount ?? 0 })}</p>
-                        }
-                      />
-                    </div>
-                  }
+                  <ShowListModal
+                    title={'Entradas de Proveedores'}
+                    ListComponent={ProvidersInputsList}
+                    ListComponentProps={{ inputs: providerInputs, totalAmount: providerInputsTotal, totalWeight: providerInputsWeight }}
+                    className={'w-full'}
+                    clickableComponent={
+                      <p className='font-bold text-lg text-center bg-red-200 border rounded-lg p-1 border-header mt-2'>PROVEEDORES {currency({ amount: providerInputsTotal ?? 0 })}</p>
+                    }
+                  />
+                  <ShowListModal
+                    title={'Entradas'}
+                    ListComponent={ListaEntradas}
+                    ListComponentProps={{ inputs, totalWeight: inputsWeight, totalAmount: inputsTotal }}
+                    className={'w-full'}
+                    clickableComponent={
+                      <p className='font-bold text-lg text-center bg-red-200 border rounded-lg p-1 border-header mt-2'>ENTRADAS {currency({ amount: inputsTotal ?? 0 })}</p>
+                    }
+                  />
+                  <AddOutgoing
+                    modifyBalance={modifyBalance}
+                    outgoings={outgoings}
+                    outgoingsTotal={outgoingsTotal}
+                    employee={selectedEmployee}
+                    onAddOutgoing={onAddOutgoing}
+                    onDeleteOutgoing={onDeleteOutgoing}
+                    isReport={true}
+                    branch={selectedBranch}
+                    listButton={<p className='font-bold text-lg text-center bg-green-100 rounded-lg p-1 border border-header'>{currency({ amount: outgoingsTotal ?? 0 })}</p>}
+                  />
+                  <AddStock
+                    title={'Sobrante'}
+                    stock={stock}
+                    modifyBalance={modifyBalance}
+                    amount={stockAmount}
+                    weight={stockWeight}
+                    products={products}
+                    onAddStock={onAddStock}
+                    onDeleteStock={onDeleteStock}
+                    branchPrices={prices}
+                    branch={selectedBranch}
+                    employee={selectedEmployee}
+                    isReport={true}
+                    date={currentDate}
+                    listButton={<p className='font-bold text-lg text-center bg-green-100 rounded-lg border p-1 border-header'>{currency({ amount: stockAmount ?? 0 })}</p>}
+                  />
                 </div>
                 : ''}
-              <ShowListModal
-                title={'Entradas de Proveedores'}
-                ListComponent={ProvidersInputsList}
-                ListComponentProps={{ inputs: providerInputs, totalAmount: providerInputsTotal, totalWeight: providerInputsWeight }}
-                className={'w-full'}
-                clickableComponent={
-                  <p className='font-bold text-lg text-center bg-red-200 border rounded-lg p-1 border-header mt-2'>PROVEEDORES {currency({ amount: providerInputsTotal ?? 0 })}</p>
-                }
-              />
-              <ShowListModal
-                title={'Entradas'}
-                ListComponent={ListaEntradas}
-                ListComponentProps={{ inputs, totalWeight: inputsWeight, totalAmount: inputsTotal }}
-                className={'w-full'}
-                clickableComponent={
-                  <p className='font-bold text-lg text-center bg-red-200 border rounded-lg p-1 border-header mt-2'>ENTRADAS {currency({ amount: inputsTotal ?? 0 })}</p>
-                }
-              />
               <ShowListModal
                 title={'Salidas'}
                 ListComponent={ListaSalidas}
@@ -537,19 +478,27 @@ export default function RegistroCuentaDiaria({ edit = true, _branch = null }) {
                 }
               //Comparar con el monto para cubrir la nota de hoy.
               />
+              <AddStock
+                title={'Sobrante de Medio Día'}
+                stock={midDayStock}
+                midDay={true}
+                amount={midDayStockAmount}
+                weight={midDayStockWeight}
+                products={products}
+                onAddStock={onAddMidStock}
+                onDeleteStock={onDeleteMidStock}
+                branchPrices={prices}
+                branch={selectedBranch}
+                employee={selectedEmployee}
+                date={currentDate}
+                listButton={<p className='font-bold text-lg text-center bg-yellow-200 rounded-lg border p-1 border-header'>{currency({ amount: midDayStockAmount ?? 0 })}</p>}
+              />
               {(isAuthorized || branchReport?.balance < 0) &&
                 <p className={`${branchReport?.balance < 0 ? 'bg-red-200' : 'bg-green-100'} font-bold text-lg text-center border rounded-lg p-1 border-header mt-2`}>BALANCE: {currency({ amount: branchReport?.balance ?? 0 })}</p>
               }
               <p className='text-red-700 font-semibold'>{error}</p>
             </div>
           )}
-          {branchId &&
-            <div className='flex flex-col gap-4 mt-4 sticky bottom-4'>
-              {(!branchReport?.dateSent || isAuthorized) &&
-                <button disabled={loading} className='bg-red-800 text-white border border-black p-3 rounded-lg w-full' onClick={() => setShowSelectBranchEmployees(true)}>Terminar llenado</button>
-              }
-            </div>
-          }
         </div>
       )}
     </main>

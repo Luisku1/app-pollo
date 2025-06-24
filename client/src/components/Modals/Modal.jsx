@@ -4,6 +4,7 @@ import { MdCancel } from "react-icons/md";
 import { FaSpinner } from "react-icons/fa";
 import SectionHeader from "../SectionHeader";
 import { ModalContext } from "../../context/ModalContext";
+import { v4 as uuidv4 } from "uuid";
 
 export default function Modal({
   content,
@@ -26,30 +27,15 @@ export default function Modal({
   const { modals, addModal, removeLastModal, count, setCount } = useContext(ModalContext);
 
   useEffect(() => {
+
     if (!isShown) return;
     addModal({ id: modalId });
     setCount((prevCount) => prevCount + 1);
+    // Agrega la modal al stack al montar
     document.body.style.overflow = "hidden";
 
-    let mouseDownOutside = false;
-
-    const handleMouseDown = (e) => {
-      mouseDownOutside = e.target === e.currentTarget;
-    };
-
-    const handleMouseUp = (e) => {
-      if (
-        mouseDownOutside &&
-        e.target === e.currentTarget &&
-        (ableToClose || closeOnClickOutside)
-      ) {
-        closeModal();
-        removeLastModal();
-      }
-      mouseDownOutside = false; // Reset state after mouseup
-    };
-
     const handleKeyDown = (event) => {
+      // Solo la última modal debe cerrar con Escape
       if (
         ((event.key === "Escape" && ableToClose) || (closeOnEsc && event.key === "Escape")) &&
         (modals[modals.length - 1]?.id === modalId || modals.length === 1)
@@ -64,7 +50,7 @@ export default function Modal({
         closeModal();
         removeLastModal();
       } else {
-        history.pushState(null, "", window.location.href);
+        history.pushState(null, "", window.location.href); // Evita que regrese a la página anterior
       }
     };
 
@@ -82,22 +68,21 @@ export default function Modal({
       window.addEventListener("resize", handleResize);
     }
 
+    // Agregar eventos y estado falso al montar
     document.addEventListener("keydown", handleKeyDown);
     window.addEventListener("popstate", handlePopState);
-    document.addEventListener("mousedown", handleMouseDown);
-    document.addEventListener("mouseup", handleMouseUp);
     history.pushState(null, "", window.location.href);
 
+    // Limpiar eventos al desmontar
     return () => {
       document.body.style.overflow = "auto";
       document.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("popstate", handlePopState);
-      document.removeEventListener("mousedown", handleMouseDown);
-      document.removeEventListener("mouseup", handleMouseUp);
       if (adjustForKeyboard) {
         window.removeEventListener("resize", handleResize);
       }
       setCount((prevCount) => prevCount - 1);
+      // Quita la modal del stack al desmontar
       removeLastModal();
     };
   }, [ableToClose, closeModal, removeLastModal, isShown, modals.length, adjustForKeyboard]);
@@ -113,7 +98,6 @@ export default function Modal({
         style={adjustForKeyboard ? { alignItems: "flex-start" } : {}}
         onClick={(e) => {
           if (
-            (e.target === e.currentTarget && ableToClose) ||
             (closeOnClickOutside && e.target === e.currentTarget)
           ) {
             closeModal();

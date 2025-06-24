@@ -6,11 +6,13 @@ import SectionHeader from '../SectionHeader'
 import ShowListModal from '../Modals/ShowListModal'
 import OutgoingsList from './OutgoingsList'
 import { ToastInfo, ToastSuccess } from '../../helpers/toastify'
-import { useDate } from '../../context/DateContext'
+import { useDateNavigation } from '../../hooks/useDateNavigation'
 
 export default function AddOutgoing({ outgoings, modifyBalance, isReport = false, listButton, outgoingsTotal, onAddOutgoing, onDeleteOutgoing, employee, branch }) {
 
-  const { currentDate: date } = useDate()
+  const { currentDate: date } = useDateNavigation()
+
+  console.log(date)
 
   const { company } = useSelector((state) => state.user)
   const [outgoingFormData, setOutgoingFormData] = useState({})
@@ -59,8 +61,6 @@ export default function AddOutgoing({ outgoings, modifyBalance, isReport = false
     e.preventDefault()
 
     try {
-
-
 
       if (!branch) {
         ToastInfo('Selecciona una sucursal')

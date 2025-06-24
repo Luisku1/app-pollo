@@ -25,6 +25,7 @@ import { toPng } from "html-to-image";
 import { AiOutlineDownload, AiOutlineCopy } from "react-icons/ai";
 import { recalculateBranchReport } from "../services/BranchReports/updateBranchReport"
 import { useDateNavigation } from "../hooks/useDateNavigation"
+import { updateReportDatasInfo } from "../../../api/controllers/report.controller"
 
 export default function BranchReportCard({
   reportData = {},
@@ -61,6 +62,13 @@ export default function BranchReportCard({
       setLoading(false)
       ToastDanger('Hubo un error al establecer el balance en cero')
     }
+  }
+
+  const onPricesChange = (newReport) => {
+
+    updateBranchReportSingle && updateBranchReportSingle(newReport)
+    updateBranchReportGroup && employeeId && updateBranchReportGroup(employeeId, newReport)
+    selfChange && selfChange(newReport)
   }
 
   // On reload, update both caches
@@ -165,11 +173,12 @@ export default function BranchReportCard({
               <PiNumberZeroBold />
             </button>
           }
-          {isManager(currentUser.role) && (
+          {isManager(currentUser.role)  && (
             <ChangeBranchPrices
               branch={reportData.branch._id}
               date={reportData.createdAt}
               pricesDate={reportData.pricesDate}
+              onUpdateBranchReport={onPricesChange}
             >
               <MdPriceChange />
             </ChangeBranchPrices>
