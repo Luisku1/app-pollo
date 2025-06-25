@@ -7,6 +7,17 @@ export const formatDate = (date) => {
   return (actualLocaleDate.getFullYear() + '-' + (actualLocaleDate.getMonth() < 9 ? '0' + ((actualLocaleDate.getMonth()) + 1) : ((actualLocaleDate.getMonth()) + 1)) + '-' + ((actualLocaleDate.getDate() < 10 ? '0' : '') + actualLocaleDate.getDate()) + 'T06:00:00.000Z')
 }
 
+export function dateFromYYYYMMDD(dateStr) {
+  const [year, month, day] = dateStr.split('-');
+  return new Date(Number(year), Number(month) - 1, Number(day));
+}
+
+export function formatDateYYYYMMDD(date) {
+  // Esto te da siempre 'yyyy-mm-dd' en hora local, sin desfases
+  const offsetDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+  return offsetDate.toISOString().split('T')[0];
+}
+
 export const formatInformationDate = (date) => {
 
   const pivotDate = new Date(formatDate(date))

@@ -45,6 +45,7 @@ export default function RegistroEmpleadoNuevo({ employee, setEmployee }) {
       setError(null);
       ToastSuccess("Empleado registrado correctamente");
     } catch (error) {
+      console.log(error);
       setError(error.message);
     }
   };
@@ -100,6 +101,9 @@ export default function RegistroEmpleadoNuevo({ employee, setEmployee }) {
 
       await registerEmployee(data)
     }
+
+    setLoading(false);
+
   }
 
   useEffect(() => {

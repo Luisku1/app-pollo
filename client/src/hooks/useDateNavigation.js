@@ -1,5 +1,5 @@
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { formatDate } from '../helpers/DatePickerFunctions';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { dateFromYYYYMMDD, formatDate, formatDateYYYYMMDD } from '../helpers/DatePickerFunctions';
 import { useState, useEffect } from 'react';
 
 // Lista de rutas que aceptan navegación por fecha. Puedes expandirla según tus páginas.
@@ -21,48 +21,47 @@ export default function matchDateAwareRoute(pathname) {
   });
 }
 
-export function useDateNavigation({ fallbackToToday = true, branchId } = {}) {
-  const params = useParams();
+function extractDateFromPath(pathname) {
+  const match = pathname.match(/(\d{4}-\d{2}-\d{2})/);
+  return match ? match[1] : null;
+}
+
+export function useDateNavigation({ branchId } = {}) {
   const navigate = useNavigate();
   const location = useLocation();
-  console.log('useDateNavigation', location.pathname, params);
 
   const isDateAware = matchDateAwareRoute(location.pathname);
-  const paramDate = params.date;
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const extractedDate = extractDateFromPath(location.pathname);
+  const [currentDate, setCurrentDate] = useState(formatDateYYYYMMDD(new Date()));
 
-  // Sincroniza currentDate con paramDate (URL)
   useEffect(() => {
-    if (paramDate && currentDate !== formatDate(paramDate)) {
-      setCurrentDate(formatDate(paramDate));
+    if (extractedDate) {
+      const normalizedParamDate = formatDateYYYYMMDD(dateFromYYYYMMDD(extractedDate));
+      if (formatDate(currentDate) !== normalizedParamDate) {
+        setCurrentDate(normalizedParamDate);
+      }
     }
-    if (!paramDate && fallbackToToday && currentDate !== formatDate(new Date())) {
-      setCurrentDate(formatDate(new Date()));
-    }
-  }, [paramDate]);
+  }, [extractedDate]);
 
-  // Sobrescribe setDate para forzar string
   const setDate = (newDate) => {
-    const dateStr = formatDate(newDate);
-    if (!isDateAware && !dateAwareRoutes.some(route => location.pathname.startsWith(route.replace('/:date', '')))) return;
+    const dateStr = formatDateYYYYMMDD(newDate);
+    if (!isDateAware) return;
     const newPath = getDateAwareLink(dateStr);
     setCurrentDate(dateStr);
     navigate(newPath);
   };
 
-  // Construye el link correcto con fecha
   const getDateAwareLink = (newDate) => {
-    if (isDateAware && paramDate) {
-      // Reemplaza solo el segmento de la fecha en el path
+    if (isDateAware && extractedDate) {
+      console.log(branchId)
       if (branchId) {
-        return location.pathname.replace(paramDate, `${branchId}/${newDate}`);
+        console.log('Llego aquí')
+        return location.pathname.replace(extractedDate, `${branchId}/${newDate}`);
       }
-      return location.pathname.replace(paramDate, newDate);
+      return location.pathname.replace(extractedDate, newDate);
     } else {
-      // Busca si la ruta base está en dateAwareRoutes
       const match = dateAwareRoutes.find(route => {
         let base = route.replace('/:date', '');
-        base = base.replace('/:branchId', '');
         return location.pathname.startsWith(base);
       });
       if (match) {
@@ -72,12 +71,9 @@ export function useDateNavigation({ fallbackToToday = true, branchId } = {}) {
         }
         return `${base}/${newDate}`;
       }
-      // Si no es date-aware, regresa la ruta actual
       return location.pathname;
     }
   };
-
-
 
   return {
     isDateAware,

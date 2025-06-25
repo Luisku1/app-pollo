@@ -12,8 +12,6 @@ export default function AddOutgoing({ outgoings, modifyBalance, isReport = false
 
   const { currentDate: date } = useDateNavigation()
 
-  console.log(date)
-
   const { company } = useSelector((state) => state.user)
   const [outgoingFormData, setOutgoingFormData] = useState({})
   const [loading, setLoading] = useState(false)

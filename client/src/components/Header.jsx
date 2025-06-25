@@ -1,12 +1,5 @@
-import { Link, useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { useEffect, useState } from 'react';
-import { MdSearch, MdHome } from "react-icons/md"; // Added MdHome
-import '../assets/dropdown.css';
-import { useRoles } from '../context/RolesContext';
-import { useDate } from '../context/DateContext'; // Import DateContext
-import { formatDate, formatInformationDate } from '../helpers/DatePickerFunctions';
-import { normalizeText } from '../helpers/Functions';
 import { RegistersMenu } from './RegistersMenu';
 import { SearchMenu } from './Search';
 import { useBranches } from '../hooks/Branches/useBranches';
