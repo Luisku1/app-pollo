@@ -2,76 +2,84 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { dateFromYYYYMMDD, formatDate, formatDateYYYYMMDD } from '../helpers/DatePickerFunctions';
 import { useState, useEffect } from 'react';
 
-// Lista de rutas que aceptan navegación por fecha. Puedes expandirla según tus páginas.
 const dateAwareRoutes = [
-  '/reporte/:date',
   '/formato/:date',
+  '/formato/:branchId/:date',
+  '/reporte/:date',
   '/nomina/:date',
   '/graficos/:date',
   '/supervision-diaria/:date',
-  // Agrega aquí más rutas que acepten fecha
 ];
 
-// Utilidad para saber si la ruta actual es date-aware
-export default function matchDateAwareRoute(pathname) {
-  // Simple: verifica si alguna ruta base está incluida en el pathname
+// Extrae branchId y date desde pathname
+function extractParamsFromPath(pathname) {
+  const parts = pathname.split('/').filter(Boolean); // limpia los slashes vacíos
+  const last = parts.at(-1);
+  const secondLast = parts.at(-2);
+
+  const isDate = /^\d{4}-\d{2}-\d{2}$/.test(last); // simple validación yyyy-mm-dd
+  if (!isDate) return { date: null, branchId: null };
+
+  const date = last;
+  const branchId = isNaN(secondLast) && secondLast?.length >= 6 ? secondLast : null;
+
+  return { date, branchId };
+}
+
+function matchDateAwareRoute(pathname) {
   return dateAwareRoutes.some(route => {
-    const base = route.replace('/:date', '');
+    const base = route.replace('/:branchId', '').replace('/:date', '');
     return pathname.startsWith(base);
   });
 }
 
-function extractDateFromPath(pathname) {
-  const match = pathname.match(/(\d{4}-\d{2}-\d{2})/);
-  return match ? match[1] : null;
+function extractBase(pathname) {
+  const match = dateAwareRoutes.find(route => {
+    const base = route.replace('/:branchId', '').replace('/:date', '');
+    return pathname.startsWith(base);
+  });
+  return match ? match.replace('/:branchId', '').replace('/:date', '') : '';
 }
 
-export function useDateNavigation({ branchId } = {}) {
+export function useDateNavigation() {
   const navigate = useNavigate();
   const location = useLocation();
 
   const isDateAware = matchDateAwareRoute(location.pathname);
-  const extractedDate = extractDateFromPath(location.pathname);
-  const [currentDate, setCurrentDate] = useState(formatDateYYYYMMDD(new Date()));
+  const { date: urlDate, branchId } = extractParamsFromPath(location.pathname);
+
+  const [currentDate, setCurrentDate] = useState(() =>
+    urlDate ? formatDateYYYYMMDD(new Date(urlDate)) : formatDateYYYYMMDD(new Date())
+  );
 
   useEffect(() => {
-    if (extractedDate) {
-      const normalizedParamDate = formatDateYYYYMMDD(dateFromYYYYMMDD(extractedDate));
-      if (formatDate(currentDate) !== normalizedParamDate) {
-        setCurrentDate(normalizedParamDate);
+    if (urlDate) {
+      const formatted = formatDateYYYYMMDD(dateFromYYYYMMDD(urlDate));
+      if (formatted !== currentDate) {
+        setCurrentDate(formatted);
       }
     }
-  }, [extractedDate]);
+  }, [urlDate]);
 
   const setDate = (newDate) => {
-    const dateStr = formatDateYYYYMMDD(newDate);
+    console.log('Setting new date:', newDate);
+    const dateStr = formatDateYYYYMMDD(new Date(newDate));
     if (!isDateAware) return;
     const newPath = getDateAwareLink(dateStr);
-    setCurrentDate(dateStr);
-    navigate(newPath);
+    if (dateStr !== currentDate) {
+      setCurrentDate(dateStr);
+      navigate(newPath);
+    }
   };
 
   const getDateAwareLink = (newDate) => {
-    if (isDateAware && extractedDate) {
-      console.log(branchId)
-      if (branchId) {
-        console.log('Llego aquí')
-        return location.pathname.replace(extractedDate, `${branchId}/${newDate}`);
-      }
-      return location.pathname.replace(extractedDate, newDate);
+    const base = extractBase(location.pathname);
+    if (!base) return location.pathname;
+
+    if (branchId) {
+      return `${base}/${branchId}/${newDate}`;
     } else {
-      const match = dateAwareRoutes.find(route => {
-        let base = route.replace('/:date', '');
-        return location.pathname.startsWith(base);
-      });
-      if (match) {
-        const base = match.replace('/:date', '');
-        if (branchId) {
-          return `${base}/${branchId}/${newDate}`;
-        }
-        return `${base}/${newDate}`;
-      }
-      return location.pathname;
+      return `${base}/${newDate}`;
     }
   };
 
@@ -80,5 +88,6 @@ export function useDateNavigation({ branchId } = {}) {
     currentDate,
     setDate,
     getDateAwareLink,
+    branchId,
   };
 }

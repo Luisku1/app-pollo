@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
 import Select from 'react-select';
 import { useNavigate, useParams } from 'react-router-dom';
-import { isToday } from '../helpers/DatePickerFunctions';
+import { formatDateYYYYMMDD, isToday } from '../helpers/DatePickerFunctions';
 import { useEmployees } from '../hooks/Employees/useEmployees';
 import EmployeesSelect from '../components/Select/EmployeesSelect';
 import { useBranches } from '../hooks/Branches/useBranches';
@@ -31,6 +31,7 @@ import { useDateNavigation } from '../hooks/useDateNavigation';
 import { ToastInfo } from '../helpers/toastify';
 import ProvidersInputsList from '../components/Providers/ProvidersInputsList';
 import { customSelectStyles } from '../helpers/Constants';
+import { SelectReportEmployees } from '../components/SelectReportEmployees';
 
 
 export default function RegistroCuentaDiaria({ edit = true }) {
@@ -39,10 +40,10 @@ export default function RegistroCuentaDiaria({ edit = true }) {
   const navigate = useNavigate()
   const params = useParams()
   const [branchId, setBranchId] = useState(params.branchId || null)
-  const { currentDate } = useDateNavigation({ branchId });
-  const [error, setError] = useState(null)
-  const [loading, setLoading] = useState(false)
-  const { activeEmployees: employees, activeEmployees } = useEmployees({ companyId: company._id })
+  const { currentDate } = useDateNavigation();
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const { activeEmployees: employees } = useEmployees({ companyId: company._id })
   const { branches } = useBranches({ companyId: company._id })
   const { roles, isManager, isJustSeller, isSupervisor } = useRoles()
   const { products } = useProducts({ companyId: company._id })
@@ -145,12 +146,12 @@ export default function RegistroCuentaDiaria({ edit = true }) {
   const handleBranchSelectChange = (branch) => {
 
     setSelectedBranch(branch)
-    setBranchId(branch.value)
+    setBranchId(branch._id)
     if (!employee && branch) {
 
       setShowSelectReportEmployees(true)
     }
-    navigate('/formato/' + currentDate)
+    navigate('/formato/' + branch._id + '/' + formatDateYYYYMMDD(new Date(currentDate)))
   }
 
   const SectionHeader = (props) => {
@@ -159,18 +160,18 @@ export default function RegistroCuentaDiaria({ edit = true }) {
     )
   }
 
-  const onRegisterEmployees = async () => {
+  const onRegisterEmployees = async (selectedEmployee, selectedAssistants) => {
 
-    if (selectedEmployee && currentUser._id !== selectedEmployee._id) {
-      if (!selectedAssistants.some(assistant => assistant.value === selectedEmployee._id)) {
-        setSelectedAssistants(prev => [...prev, {
+    if ((selectedEmployee && currentUser._id !== selectedEmployee._id) || !selectedEmployee) {
+      if (!selectedAssistants.some(assistant => assistant._id === selectedEmployee._id)) {
+        selectedAssistants.push({
           value: selectedEmployee._id,
           label: getEmployeeFullName(selectedEmployee),
           ...selectedEmployee
-        }])
+        });
       }
     }
-    await updateReportEmployees({ selectedEmployee, selectedAssistants })
+    await updateReportEmployees({ selectedEmployee, selectedAssistants });
   }
 
   useEffect(() => {
@@ -188,7 +189,9 @@ export default function RegistroCuentaDiaria({ edit = true }) {
     branches.forEach(branch => {
 
       if (branchId == branch._id) {
-
+        if (!employee && branch) {
+          setShowSelectReportEmployees(true)
+        }
         setSelectedBranch(branch)
       }
     })
@@ -203,51 +206,6 @@ export default function RegistroCuentaDiaria({ edit = true }) {
     }
 
   }, [selectedBranch, currentDate, edit])
-
-  const selectEmployees = () => {
-    return (
-      <div className='w-full mt-10'>
-        <div>
-          <h2 className='text-xl text-center font-semibold mb-4 text-black'>{`Selecciona a los responsables de `}<span className='text-red-800 font-bold'>{selectedBranch.branch}🍗</span></h2>
-        </div>
-        <div className="mt-1 ">
-          <div className='w-full'>
-            <p className='w-full font-semibold'>Encargado</p>
-            <div className='p-3'>
-              <EmployeesSelect
-                defaultLabel={'Sin Encargado'}
-                isEditing={isSupervisor(currentUser.role)}
-                employees={employees}
-                selectedEmployee={selectedEmployee}
-                handleEmployeeSelectChange={handleEmployeeSelectChange}
-              />
-            </div>
-          </div>
-        </div>
-        <div className="mt-1">
-          <p className='w-full font-semibold'>Auxiliares</p>
-          <div className='p-3'>
-            <Select
-              isMulti={true}
-              options={getArrayForSelects(activeEmployees, (employee) => getEmployeeFullName(employee))}
-              onChange={(options) => {
-                setSelectedAssistants(options);
-              }}
-              styles={customSelectStyles}
-            />
-          </div>
-        </div>
-        {selectedEmployee && selectedAssistants.length > 0 && (
-          <button
-            onClick={onRegisterEmployees}
-            className='mt-2 rounded-lg text-white text-md p-3 w-full bg-button'
-          >
-            Asignar personal
-          </button>
-        )}
-      </div>
-    );
-  }
 
   const handleShowEmployeeInfo = () => {
     if (!branchReport?.employee) {
@@ -309,7 +267,7 @@ export default function RegistroCuentaDiaria({ edit = true }) {
           </div>
           {selectedBranch && !employee && (
             <Modal
-              content={selectEmployees()}
+              content={<SelectReportEmployees employee={selectedEmployee} branch={selectedBranch} employees={employees} onChangeEmployee={handleEmployeeSelectChange} onChangeAssistants={setSelectedAssistants} onRegisterEmployees={onRegisterEmployees} />}
               closeModal={() => { setShowSelectReportEmployees(false) }}
               ableToClose={false}
               closeOnClickOutside={false}

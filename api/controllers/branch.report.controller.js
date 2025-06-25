@@ -467,9 +467,11 @@ export const updateBranchReportEmployees = async (req, res, next) => {
 
     if (employeeId && previousEmployeeId && employeeId !== previousEmployeeId) {
       reportToUpdate.employee = employeeId
-      await recalculateBranchReport({ branchReport: { ...reportToUpdate, dateSent: (new Date()).toISOString() } })
+      reportToUpdate.dateSent = (new Date()).toISOString()
       await updateEmployeeDailyBalances({ branchReport: branchReport, changedEmployee: true })
     }
+
+    await recalculateBranchReport({ branchReport: reportToUpdate })
 
     res.status(200).json({
       message: 'Branch report employees updated successfully',

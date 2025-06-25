@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import { MdChevronLeft, MdChevronRight } from "react-icons/md";
-import { dateFromYYYYMMDD, formatDate } from "../helpers/DatePickerFunctions";
+import { dateFromYYYYMMDD, formatDateYYYYMMDD } from "../helpers/DatePickerFunctions";
 import { useDateNavigation } from "../hooks/useDateNavigation";
 import { useEffect, useState } from "react";
 
@@ -8,13 +8,14 @@ export default function FechaDePagina() {
   const { currentDate, setDate, isDateAware } = useDateNavigation();
 
   const prevDay = () => {
-    const datePickerDate = dateFromYYYYMMDD(currentDate);
+    console.log(currentDate)
+    const datePickerDate = dateFromYYYYMMDD(formatDateYYYYMMDD(currentDate));
     datePickerDate.setDate(datePickerDate.getDate() - 1);
     setDate(datePickerDate);
   };
 
   const nextDay = () => {
-    const datePickerDate = dateFromYYYYMMDD(currentDate);
+    const datePickerDate = dateFromYYYYMMDD(formatDateYYYYMMDD(currentDate));
     datePickerDate.setDate(datePickerDate.getDate() + 1);
     setDate(datePickerDate);
   };
@@ -22,6 +23,8 @@ export default function FechaDePagina() {
   if (!isDateAware) return null;
 
   if (!currentDate) return null;
+
+  console.log(currentDate)
 
   return (
     <div className={`w-fit mx-auto`}>
@@ -46,7 +49,7 @@ export default function FechaDePagina() {
             />
           </div>
           <span className="text-xs text-gray-500 font-semibold leading-none mt-0.5">
-            {new Date(currentDate).toLocaleDateString("es-mx", {
+            {dateFromYYYYMMDD(currentDate).toLocaleDateString("es-mx", {
               weekday: "long",
             })}
           </span>
