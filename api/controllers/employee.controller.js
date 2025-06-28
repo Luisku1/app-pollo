@@ -17,6 +17,7 @@ import EmployeeBalanceAdjustment from "../models/employees/balance.adjustment.mo
 import { toCurrency } from "../../common/formatters.js"
 import CompanyPenalties from "../models/company.penalties.model.js"
 import { branchAggregate } from "./branch.controller.js"
+import { dateFromYYYYMMDD, formatDateYYYYMMDD } from "../../common/dateOps.js"
 
 export const employeePaymentIncomeAggregate = (localField, as = 'employeePayment') => {
 	return [
@@ -1876,7 +1877,7 @@ export const deleteEmployeeRest = async (req, res, next) => {
 
 export const getEmployeesDailyBalances = async (req, res, next) => {
 
-	const date = new Date(req.params.date)
+	const date = dateFromYYYYMMDD(req.params.date)
 	const companyId = req.params.companyId
 
 	const { bottomDate, topDate } = getDayRange(date)
@@ -2045,7 +2046,8 @@ export const newEmployeePaymentFunction = async ({ amount, detail, employee, sup
 export const getEmployeePayments = async (req, res, next) => {
 
 	const employeeId = req.params.employeeId
-	const { bottomDate, topDate } = getDayRange(new Date(req.params.date))
+	const date = dateFromYYYYMMDD(req.params.date)
+	const { bottomDate, topDate } = getDayRange(date)
 	const bottomDateDay = (new Date(bottomDate)).getDay()
 
 	try {
@@ -2163,7 +2165,8 @@ export const getEmployeePayments = async (req, res, next) => {
 
 export const getEmployeesPaymentsQuery = async (req, res, next) => {
 
-	const { bottomDate, topDate } = getDayRange(req.params.date)
+	const date = dateFromYYYYMMDD(req.params.date)
+	const { bottomDate, topDate } = getDayRange(date)
 	const companyId = req.params.companyId
 
 	try {
@@ -2305,10 +2308,11 @@ export const deleteEmployeePaymentQuery = async (req, res, next) => {
 export const getEmployeePayroll = async (req, res, next) => {
 
 	const companyId = req.params.companyId
+	const date = dateFromYYYYMMDD(req.params.date)
 
 	try {
 
-		const employeesPayroll = await fetchEmployeesPayroll({ companyId, date: req.params.date })
+		const employeesPayroll = await fetchEmployeesPayroll({ companyId, date })
 		// await refactorEmployeesWeeklyBalances({companyId})
 
 		if (employeesPayroll.length > 0) {
@@ -2746,7 +2750,7 @@ const adjustBalanceSupervisorReport = async (supervisorReport, adjustmentBalance
 		const adjBalanceData = {
 			employee: employeeId,
 			date: supervisorReport.createdAt,
-			concept: `${formatDate(new Date()).split('T')[0]}: modificación en reporte de supervisor el día: ${formatDate(supervisorReport?.createdAt).split('T')[0]} por ${adjustmentBalance > 0 ? '+' : ''} ${toCurrency(adjustmentBalance)}`,
+			concept: `${formatDateYYYYMMDD(new Date())}: modificación en reporte de supervisor el día: ${formatDateYYYYMMDD(supervisorReport?.createdAt)} por ${adjustmentBalance > 0 ? '+' : ''} ${toCurrency(adjustmentBalance)}`,
 			amount: adjustmentBalance,
 		}
 
@@ -2801,7 +2805,7 @@ const adjustBalanceBranchReport = async (branchReport, adjustmentBalance, curren
 		const adjBalanceData = {
 			employee: employeeId,
 			date: branchReport.createdAt,
-			concept: `${formatDate(new Date()).split('T')[0]}: modificación en reporte de pollería el día: ${formatDate(branchReport?.createdAt).split('T')[0]} por ${adjustmentBalance > 0 ? '+' : ''} ${toCurrency(adjustmentBalance)}`,
+			concept: `${formatDateYYYYMMDD(new Date())}: modificación en reporte de pollería el día: ${formatDateYYYYMMDD(branchReport?.createdAt)} por ${adjustmentBalance > 0 ? '+' : ''} ${toCurrency(adjustmentBalance)}`,
 			amount: adjustmentBalance,
 		}
 

@@ -1,23 +1,22 @@
 /* eslint-disable react/prop-types */
 import { MdChevronLeft, MdChevronRight } from "react-icons/md";
-import { dateFromYYYYMMDD, formatDateYYYYMMDD } from "../helpers/DatePickerFunctions";
 import { useDateNavigation } from "../hooks/useDateNavigation";
-import { useEffect, useState } from "react";
+import { dateFromYYYYMMDD, formatDateYYYYMMDD } from "../../../common/dateOps";
 
 export default function FechaDePagina() {
   const { currentDate, setDate, isDateAware } = useDateNavigation();
 
   const prevDay = () => {
     console.log(currentDate)
-    const datePickerDate = dateFromYYYYMMDD(formatDateYYYYMMDD(currentDate));
+    const datePickerDate = dateFromYYYYMMDD(currentDate);
     datePickerDate.setDate(datePickerDate.getDate() - 1);
-    setDate(datePickerDate);
+    setDate(formatDateYYYYMMDD(new Date(datePickerDate)));
   };
 
   const nextDay = () => {
-    const datePickerDate = dateFromYYYYMMDD(formatDateYYYYMMDD(currentDate));
+    const datePickerDate = dateFromYYYYMMDD(currentDate);
     datePickerDate.setDate(datePickerDate.getDate() + 1);
-    setDate(datePickerDate);
+    setDate(formatDateYYYYMMDD(new Date(datePickerDate)));
   };
 
   if (!isDateAware) return null;

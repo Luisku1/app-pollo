@@ -13,10 +13,11 @@ import { branchLookup, employeeLookup, unwindBranch, unwindEmployee } from "./br
 import { lookupSupervisorReportIncomes } from "./income.controller.js"
 import SupervisorReport from "../models/accounts/supervisor.report.model.js"
 import { employeeAggregate } from "./employee.controller.js"
+import { dateFromYYYYMMDD } from "../../common/dateOps.js"
 
 export const getBranchReports = async (req, res, next) => {
 
-  const date = new Date(req.params.date)
+  const date = dateFromYYYYMMDD(req.params.date)
   const companyId = req.params.companyId
 
   const { bottomDate, topDate } = getDayRange(date)
@@ -418,7 +419,7 @@ export const getBranchReports = async (req, res, next) => {
 
 export const getSupervisorsInfo = async (req, res, next) => {
 
-  const date = new Date(req.params.date)
+  const date = dateFromYYYYMMDD(req.params.date)
   const companyId = req.params.companyId
 
   const { bottomDate, topDate } = getDayRange(date)
@@ -667,14 +668,15 @@ export const supervisorsInfoQuery = async (companyId, topDate, bottomDate) => {
 export const getDaysReportsData = async (req, res, next) => {
 
   const companyId = req.params.companyId
+  const page = req.query.page ? parseInt(req.query.page) : 1
 
   try {
 
-    const reportsData = await ReportData.find({ company: companyId }).sort({ createdAt: -1 }).limit(30)
+    const reportsData = await fetchBasicDailyResume(companyId, page)
 
     if (reportsData.length > 0) {
 
-      res.status(200).json({ reportsData: reportsData })
+      res.status(200).json({ data: reportsData, page: page })
 
     } else {
 
@@ -686,6 +688,83 @@ export const getDaysReportsData = async (req, res, next) => {
     next(error)
   }
 }
+
+export const fetchBasicDailyResume = async (companyId, page = 1) => {
+  try {
+    const limit = 7; // Número de días por página
+    const skip = (page - 1) * limit; // Calcular el desplazamiento para la paginación
+
+    const resumes = await SupervisorReport.aggregate([
+      {
+        $match: {
+          company: new Types.ObjectId(companyId),
+        },
+      },
+      {
+        $group: {
+          _id: {
+            day: { $dayOfMonth: "$createdAt" },
+            month: { $month: "$createdAt" },
+            year: { $year: "$createdAt" },
+          },
+          totalIncomes: { $sum: "$incomes" },
+          totalExtraOutgoings: { $sum: "$extraOutgoings" },
+          totalVerifiedCash: { $sum: "$verifiedCash" },
+          totalVerifiedDeposits: { $sum: "$verifiedDeposits" },
+          anyCreatedAt: { $first: "$createdAt" },
+        },
+      },
+      {
+        $addFields: {
+          totalVerifiedIncomes: { $add: ["$totalVerifiedCash", "$totalVerifiedDeposits"] },
+        },
+      },
+      {
+        $addFields: {
+          totalVerifiedIncomes: { $add: ["$totalVerifiedCash", "$totalVerifiedDeposits"] },
+          netIncomes: { $subtract: ["$totalIncomes", "$totalExtraOutgoings"] }
+        },
+      },
+      {
+        $addFields: {
+          verificationPercentage: {
+            $cond: {
+              if: { $gt: ["$netIncomes", 0] },
+              then: { $multiply: [{ $divide: ["$totalVerifiedIncomes", "$netIncomes"] }, 100] },
+              else: 0,
+            },
+          },
+        },
+      },
+      {
+        $sort: { "_id.year": -1, "_id.month": -1, "_id.day": -1 }, // Ordenar por fecha descendente
+      },
+      {
+        $skip: skip, // Saltar los registros según la página
+      },
+      {
+        $limit: limit, // Limitar a 10 días por página
+      },
+      {
+        $project: {
+          _id: 0,
+          date: "$anyCreatedAt",
+          totalIncomes: 1,
+          totalExtraOutgoings: 1,
+          totalVerifiedCash: 1,
+          totalVerifiedDeposits: 1,
+          totalVerifiedIncomes: 1,
+          verificationPercentage: 1,
+        },
+      },
+    ]);
+
+    return resumes;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
 
 export const updateReportDatasInfo = async (req, res, next) => {
 

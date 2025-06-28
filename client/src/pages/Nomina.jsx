@@ -9,44 +9,20 @@ import { useRoles } from "../context/RolesContext";
 import Modal from "../components/Modals/Modal";
 import { useDate } from '../context/DateContext';
 import EmployeePayroll from "../components/Payroll/EmployeePayroll";
+import { useDateNavigation } from "../hooks/useDateNavigation";
 
 export default function Nomina() {
 
-  let paramsDate = useParams().date
-  let datePickerValue = (paramsDate ? new Date(paramsDate) : new Date())
-  let stringDatePickerValue = formatDate(datePickerValue)
+  const { currentDate } = useDateNavigation();
   const { company, currentUser } = useSelector((state) => state.user)
   const [selectedEmployeePayroll, setSelectedEmployeePayroll] = useState(null)
-  const { employeesPayroll, updateBranchReport, updateSupervisorReport } = useEmployeesPayroll({ companyId: company._id, date: stringDatePickerValue, setSelectedEmployeePayroll })
+  const { employeesPayroll, updateBranchReport, updateSupervisorReport } = useEmployeesPayroll({ companyId: company._id, date: currentDate, setSelectedEmployeePayroll })
   const { roles, isManager } = useRoles()
-  const navigate = useNavigate()
-  const { currentDate, setCurrentDate } = useDate()
-
-  const changeDatePickerValue = (e) => {
-
-    const newDate = e.target.value + 'T06:00:00.000Z';
-    setCurrentDate(newDate);
-    navigate('/nomina/' + newDate)
-
-  }
-
-  const changeDay = (date) => {
-    setCurrentDate(date)
-    navigate('/nomina/' + date)
-  }
-
-  useEffect(() => {
-    if (stringDatePickerValue) {
-      setCurrentDate(stringDatePickerValue)
-    }
-  }, [stringDatePickerValue])
 
   useEffect(() => {
 
     document.title = 'Nómina (' + new Date(currentDate).toLocaleDateString() + ')'
   })
-
-  console.log(selectedEmployeePayroll, 'selectedEmployeePayroll')
 
   return (
     <main className="p-3 mx-auto">

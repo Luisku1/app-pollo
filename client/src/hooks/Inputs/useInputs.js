@@ -107,13 +107,15 @@ export const useInputs = ({ companyId = null, date = null, initialInputs = null 
     setInputs(initialArray);
   };
 
+  console.log(date)
+
   // TanStack Query para fetchInputs
   const {
     data: queryInputs,
     isLoading: queryLoading,
     error: queryError
   } = useQuery({
-    queryKey: ["inputs", companyId, formatDate(date)],
+    queryKey: ["inputs", companyId, date],
     queryFn: () => getInputs({ companyId, date }).then(res => res.inputs),
     enabled: !!companyId && !!date,
     staleTime: 1000 * 60 * 3

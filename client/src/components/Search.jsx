@@ -5,7 +5,8 @@ import Modal from "./Modals/Modal";
 import { useNavigate } from "react-router-dom";
 import { formatDate, formatInformationDate } from '../helpers/DatePickerFunctions';
 import { useRoles } from '../context/RolesContext';
-import { useDate } from '../context/DateContext';
+import { today } from "../../../common/dateOps";
+import { useDateNavigation } from "../hooks/useDateNavigation";
 
 
 export const SearchMenu = ({ modalMode }) => {
@@ -15,7 +16,7 @@ export const SearchMenu = ({ modalMode }) => {
   const [highlightedIndex, setHighlightedIndex] = useState(0);
   const navigate = useNavigate();
   const { roles, isSupervisor, isManager } = useRoles();
-  const { currentDate } = useDate();
+  const { currentDate } = useDateNavigation();
   const optionRefs = useRef([]);
 
   if (!currentUser) return null;
@@ -50,8 +51,7 @@ export const SearchMenu = ({ modalMode }) => {
     { text: 'Empresa', link: '/empresas', role: 'manager' },
   ];
 
-  const isToday = formatDate(currentDate) === formatDate(new Date());
-
+  const isToday = today(currentDate);
   // --- Filtrado igual que en Header ---
   const filteredOptions = menuOptions.flatMap(option => {
     const normalize = (str) => str.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();

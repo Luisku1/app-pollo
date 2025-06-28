@@ -26,6 +26,7 @@ import { MdCurrencyExchange } from "react-icons/md";
 import { FaExchangeAlt } from "react-icons/fa";
 import { GiChicken } from "react-icons/gi";
 import { useDate } from '../context/DateContext';
+import { useDateNavigation } from '../hooks/useDateNavigation';
 
 export default function ControlSupervisor({ hideFechaDePagina = false }) {
 
@@ -46,7 +47,7 @@ export default function ControlSupervisor({ hideFechaDePagina = false }) {
     supervisorsInfo,
     replaceSupervisorReport: replaceReport,
   } = useSupervisorsReportInfo({ companyId: company._id, date: stringDatePickerValue })
-  const { currentDate, setCurrentDate } = useDate()
+  const { currentDate, setCurrentDate } = useDateNavigation()
 
   const handleShowSections = (section) => {
 

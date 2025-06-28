@@ -4,7 +4,7 @@ import { deleteOutgoing, newOutgoing, getExtraOutgoings, deleteExtraOutgoing, ne
 const router = express.Router()
 
 router.post('/create', newOutgoing)
-router.put('/reject-outgoing/:outgoingId/:employeeId/:date')
+router.put('/reject-outgoing/:outgoingId/:employeeId')
 router.post('/extra-outgoing/create', newExtraOutgoingQuery)
 router.put('/extra-outgoing/reject-extra-outgoing/:extraOutgoingId/:employeeId/:date')
 router.put('/loan/reject-loan/:loanId/:employeeId/:date')

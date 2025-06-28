@@ -6,6 +6,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { formatDate } from '../helpers/DatePickerFunctions';
 import FechaDePagina from '../components/FechaDePagina';
 import { useDate } from '../context/DateContext';
+import { useDateNavigation } from '../hooks/useDateNavigation';
 
 export const ChartComponent = ({ branchName, branchReports }) => {
 
@@ -47,7 +48,7 @@ export default function Graficos() {
   let datePickerValue = (paramsDate ? new Date(paramsDate) : new Date())
   let stringDatePickerValue = formatDate(datePickerValue)
   const [branchesIncomes, setBranchesIncomes] = useState([])
-  const { currentDate, setCurrentDate } = useDate()
+  const { currentDate, setCurrentDate } = useDateNavigation()
 
   const changeDatePickerValue = (e) => {
 

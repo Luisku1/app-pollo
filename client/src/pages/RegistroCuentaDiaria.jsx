@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
 import Select from 'react-select';
 import { useNavigate, useParams } from 'react-router-dom';
-import { formatDateYYYYMMDD, isToday } from '../helpers/DatePickerFunctions';
 import { useEmployees } from '../hooks/Employees/useEmployees';
 import EmployeesSelect from '../components/Select/EmployeesSelect';
 import { useBranches } from '../hooks/Branches/useBranches';
@@ -32,6 +31,7 @@ import { ToastInfo } from '../helpers/toastify';
 import ProvidersInputsList from '../components/Providers/ProvidersInputsList';
 import { customSelectStyles } from '../helpers/Constants';
 import { SelectReportEmployees } from '../components/SelectReportEmployees';
+import { formatDateYYYYMMDD } from '../../../common/dateOps';
 
 
 export default function RegistroCuentaDiaria({ edit = true }) {
@@ -115,14 +115,14 @@ export default function RegistroCuentaDiaria({ edit = true }) {
 
     setAbleToEdit(true)
 
-    if (isJustSeller(currentUser.role) && !isToday(reportDate)) {
+    if (isJustSeller(currentUser.role) && !today(reportDate)) {
       ToastInfo('No puedes editar el formato de otro día')
       setAbleToEdit(false)
       return
     }
 
-    if (isJustSeller(currentUser.role) && isToday(reportDate)) {
-      if ((isToday(reportDate) && currentUTCHours > 2 && currentUTCHours < 6) || (isToday(reportDate) && currentUTCHours > 2 && currentUTCMinutes > 30 && currentUTCHours < 6)) {
+    if (isJustSeller(currentUser.role) && today(reportDate)) {
+      if ((today(reportDate) && currentUTCHours > 2 && currentUTCHours < 6) || (today(reportDate) && currentUTCHours > 2 && currentUTCMinutes > 30 && currentUTCHours < 6)) {
         ToastInfo('No puedes editar el formato después de las 8 pm')
         setAbleToEdit(false)
         return
@@ -245,7 +245,7 @@ export default function RegistroCuentaDiaria({ edit = true }) {
     return (
       <div className='flex flex-col gap-4 mt-4 sticky bottom-4'>
         <p className='bg-red-800 text-white border border-black p-3 rounded-lg w-full'>
-          {isToday(reportDate) ? 'No puedes editar el formato después de las 8 pm' : 'No puedes editar el formato de otro día'}
+          {today(reportDate) ? 'No puedes editar el formato después de las 8 pm' : 'No puedes editar el formato de otro día'}
         </p>
       </div>
     )
@@ -327,7 +327,6 @@ export default function RegistroCuentaDiaria({ edit = true }) {
                           pricesDate={branchReport.pricesDate}
                           branch={branchId || selectedBranch?._id || null}
                           onChange={onChangePrices}
-                          date={currentDate}
                         />
                       }
                     />

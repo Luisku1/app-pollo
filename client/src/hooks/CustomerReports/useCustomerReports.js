@@ -10,7 +10,7 @@ export const useCustomersReports = ({ companyId = null, date = null, reports = [
     isLoading,
     refetch: refetchCustomerReports,
   } = useQuery({
-    queryKey: ['customerReports', companyId, formatDate(date)],
+    queryKey: ['customerReports', companyId, date],
     queryFn: () => getCustomersReports({ companyId, date }),
     enabled: !!companyId && !!date && reports.length === 0,
     select: (data) => data?.customersReports || [],
@@ -65,7 +65,7 @@ export const useCustomersReports = ({ companyId = null, date = null, reports = [
   return {
     customerReports: filteredReports,
     replaceReport, // (no-op, sólo para compatibilidad)
-    setReports: () => {}, // (no-op, sólo para compatibilidad)
+    setReports: () => { }, // (no-op, sólo para compatibilidad)
     totalSales,
     totalReturns,
     totalPayments,

@@ -7,6 +7,7 @@ import { Types } from "mongoose"
 import Branch from "../models/branch.model.js"
 import { pushOrPullBranchReportRecord } from "./branch.report.controller.js"
 import { pushOrPullSupervisorReportRecord } from "./employee.controller.js"
+import { dateFromYYYYMMDD } from "../../common/dateOps.js"
 
 export const newOutgoing = async (req, res, next) => {
 
@@ -67,7 +68,7 @@ export const newOutgoingAndUpdateBranchReport = async ({ _id, amount, concept, c
 export const getOutgoings = async (req, res, next) => {
 
   const companyId = req.params.companyId
-  const date = new Date(req.params.date)
+  const date = dateFromYYYYMMDD(req.params.date)
 
   const { bottomDate, topDate } = getDayRange(date)
 
@@ -174,7 +175,7 @@ export const newExtraOutgoingFunction = async ({ _id, amount, concept, company, 
 
 export const getBranchOutgoingsRequest = async (req, res, next) => {
 
-  const date = new Date(req.params.date)
+  const date = dateFromYYYYMMDD(req.params.date)
   const branchId = req.params.branchId
 
   try {
@@ -234,7 +235,7 @@ export const getBranchOutgoings = async ({ branchId, date }) => {
 
 export const getExtraOutgoings = async (req, res, next) => {
 
-  const date = new Date(req.params.date)
+  const date = dateFromYYYYMMDD(req.params.date)
   const companyId = req.params.companyId
 
   const { bottomDate, topDate } = getDayRange(date)

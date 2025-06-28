@@ -10,6 +10,7 @@ import './index.css';
 import { useSelector } from 'react-redux';
 import { DateProvider } from './context/DateContext';
 import React, { Suspense } from 'react';
+import DailyResumePage from './pages/DailyResume';
 
 // Importa los componentes de página de forma lazy
 const ListadoDeCuentas = React.lazy(() => import('./pages/ListadoDeCuentas'));
@@ -66,11 +67,12 @@ export default function App() {
                                   <ControlSupervisor />
                                   :
                                   (currentUser.role?._id ?? currentUser.role) == '65f4d02fac6002fac0321cd9' ?
-                                    <Reporte />
+                                    <DailyResumePage />
                                     :
-                                    <Reporte />
+                                    <DailyResumePage />
                             }
                           />
+                          <Route path='/diario' element={<DailyResumePage />} />
                           <Route path="/perfil/:employeeId" element={<Perfil />} />
                           <Route path="/formato" element={<RegistroCuentaDiaria />} />
                           <Route path="/formato/:branchId/:date" element={<RegistroCuentaDiaria />} />

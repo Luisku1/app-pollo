@@ -10,7 +10,7 @@ export const useSupervisorsReportInfo = ({ companyId, date, onlyNegativeBalances
     isLoading: loading,
     refetch: refetchSupervisorsInfo,
   } = useQuery({
-    queryKey: ["supervisorsReportInfo", companyId, formatDate(date)],
+    queryKey: ["supervisorsReportInfo", companyId, date],
     queryFn: () => getSupervisorsInfoReportFetch({ companyId, date }).then(res => res.reports),
     enabled: !!companyId && !!date,
     staleTime: 1000 * 60 * 3

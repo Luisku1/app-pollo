@@ -3,6 +3,7 @@ import Price from '../models/accounts/price.model.js';
 import Branch from '../models/branch.model.js'
 import { errorHandler } from '../utils/error.js'
 import BranchReport from '../models/accounts/branch.report.model.js';
+import { dateFromYYYYMMDD } from '../../common/dateOps.js';
 
 export const branchAggregate = (localField = 'branch') => {
 	return [
@@ -125,7 +126,7 @@ export const getBranchesLastPosition = async (req, res, next) => {
 
 export const getMonthBranchesIncomesQuery = async (req, res, next) => {
 
-	const date = new Date(req.params.date)
+	const date = dateFromYYYYMMDD(req.params.date)
 	const companyId = req.params.companyId
 
 	try {

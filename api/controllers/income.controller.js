@@ -8,6 +8,7 @@ import { pushOrPullCustomerReportRecord } from "./customer.controller.js";
 import { employeeAggregate, pushOrPullSupervisorReportRecord } from "./employee.controller.js";
 import SupervisorReport from "../models/accounts/supervisor.report.model.js";
 import Employee from "../models/employees/employee.model.js";
+import { dateFromYYYYMMDD } from "../../common/dateOps.js";
 
 export const typeAggregate = (localField = 'type') => {
   return [
@@ -405,7 +406,7 @@ export const getIncomeTypeId = async ({ name }) => {
 
 export const getBranchIncomesRequest = async (req, res, next) => {
 
-  const date = new Date(req.params.date)
+  const date = dateFromYYYYMMDD(req.params.date)
   const branchId = req.params.branchId
 
   try {
@@ -498,7 +499,7 @@ export const getBranchIncomes = async ({ branchId, date }) => {
 }
 
 export const getIncomes = async (req, res, next) => {
-  const date = new Date(req.params.date);
+  const date = dateFromYYYYMMDD(req.params.date);
   const companyId = req.params.companyId;
 
   const { bottomDate, topDate } = getDayRange(date);

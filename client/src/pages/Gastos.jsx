@@ -5,7 +5,7 @@ import { FaCheck } from "react-icons/fa"
 import { MdCancel } from "react-icons/md";
 import { formatDate } from "../helpers/DatePickerFunctions"
 import FechaDePagina from "../components/FechaDePagina"
-import { useDate } from '../context/DateContext';
+import { useDateNavigation } from "../hooks/useDateNavigation";
 
 export default function Gastos() {
 
@@ -23,7 +23,7 @@ export default function Gastos() {
   const [manager, setManagerRole] = useState({})
   const navigate = useNavigate()
 
-  const { currentDate, setCurrentDate } = useDate()
+  const { currentDate, setCurrentDate } = useDateNavigation()
 
   const changeDatePickerValue = (e) => {
 

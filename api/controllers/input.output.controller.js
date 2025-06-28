@@ -10,6 +10,7 @@ import { employeeAggregate } from './employee.controller.js'
 import { createStockAndUpdateBranchReport, deleteStockAndUpdateBranchReport } from './stock.controller.js'
 import { branchAggregate } from './branch.controller.js'
 import { productAggregate } from './product.controller.js'
+import { dateFromYYYYMMDD } from '../../common/dateOps.js'
 
 const inputLookups = () => {
   return [
@@ -172,7 +173,7 @@ export const newCustomerInput = async (req, res, next) => {
 }
 
 export const getNetDifference = async (req, res, next) => {
-  const date = new Date(req.params.date)
+  const date = dateFromYYYYMMDD(req.params.date)
   const companyId = req.params.companyId
   const { bottomDate, topDate } = getDayRange(date)
 
@@ -382,7 +383,7 @@ const groupAndSumFunction = (items) => {
 
 export const getBranchInputsRequest = async (req, res, next) => {
 
-  const date = new Date(req.params.date)
+  const date = dateFromYYYYMMDD(req.params.date)
   const branchId = req.params.branchId
 
   try {
@@ -437,7 +438,7 @@ export const getBranchInputs = async ({ branchId, date }) => {
 export const getBranchProviderInputsRequest = async (req, res, next) => {
 
   const branchId = req.params.branchId
-  const date = new Date(req.params.date)
+  const date = dateFromYYYYMMDD(req.params.date)
 
   try {
 
@@ -486,11 +487,11 @@ export const getBranchProviderInputs = async ({ branchId, date }) => {
 
 export const getInputs = async (req, res, next) => {
 
-  const date = new Date(req.params.date)
+  console.log(req.params.date)
+  const date = dateFromYYYYMMDD(req.params.date)
   const companyId = req.params.companyId
 
   const { bottomDate, topDate } = getDayRange(date)
-
 
   try {
 
@@ -769,7 +770,7 @@ export const newCustomerOutput = async (req, res, next) => {
 
 export const getBranchOutputsRequest = async (req, res, next) => {
 
-  const date = new Date(req.params.date)
+  const date = dateFromYYYYMMDD(req.params.date)
   const branchId = req.params.branchId
 
   try {
@@ -822,7 +823,7 @@ export const getBranchOutputs = async ({ branchId, date }) => {
 
 export const getOutputs = async (req, res, next) => {
 
-  const date = new Date(req.params.date)
+  const date = dateFromYYYYMMDD(req.params.date)
   const companyId = req.params.companyId
 
   const { bottomDate, topDate } = getDayRange(date)
@@ -989,7 +990,7 @@ export const getProviderProductInputs = async (req, res, next) => {
 
 export const getProviderInputs = async (req, res, next) => {
 
-  const date = new Date(req.params.date)
+  const date = dateFromYYYYMMDD(req.params.date)
   const companyId = req.params.companyId
   const { bottomDate, topDate } = getDayRange(date)
 

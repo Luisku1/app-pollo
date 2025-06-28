@@ -8,10 +8,12 @@ export const useOutgoings = () => {
     mutationFn: addOutgoingFetch
   });
 
-  const deleteOutgoingMutation = useMutation(async (outgoing) => {
-    console.log("Executing deleteOutgoingFetch with:", outgoing);
-    alert("Executing deleteOutgoingFetch with: " + JSON.stringify(outgoing));
-    return await deleteOutgoingFetch(outgoing._id);
+  const deleteOutgoingMutation = useMutation({
+    mutationFn: (outgoing) => {
+      console.log("Executing deleteOutgoingFetch with:", outgoing);
+      alert("Executing deleteOutgoingFetch with: " + JSON.stringify(outgoing));
+      return deleteOutgoingFetch(outgoing._id);
+    },
   });
 
   const [loading, setLoading] = useState(false);

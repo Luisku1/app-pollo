@@ -3,12 +3,12 @@ import { useSelector } from "react-redux";
 import Modal from "./Modals/Modal";
 import { useProvidersMovements } from "../hooks/Providers/useProvidersMovements";
 import HistoryMovementsProvideres from "./Proveedores/HistoryMovementsProviders";
-import { useDate } from "../context/DateContext";
 import { isToday } from "../helpers/DatePickerFunctions";
+import { useDateNavigation } from "../hooks/useDateNavigation";
 
 export default function CreateMovementsProviders() {
 
-  const { currentDate } = useDate();
+  const { currentDate } = useDateNavigation();
   const { currentUser, company } = useSelector((state) => state.user);
   const [providers, setProviders] = useState([]);
   const [products, setProducts] = useState([]);

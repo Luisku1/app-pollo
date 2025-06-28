@@ -2,12 +2,12 @@ import { useEffect, useState, useRef } from "react"
 import SectionHeader from "./SectionHeader"
 import SearchBar from "./SearchBar"
 import { useEmployeesDailyBalances } from "../hooks/Employees/useEmployeesDailyBalances"
-import { useDate } from "../context/DateContext"
 import { useSelector } from "react-redux"
 import { Link } from "react-router-dom"
+import { useDateNavigation } from "../hooks/useDateNavigation"
 
 export default function Penalties() {
-  const { currentDate } = useDate()
+  const { currentDate } = useDateNavigation()
   const { company } = useSelector((state) => state.user)
   const companyId = company?._id
   const {

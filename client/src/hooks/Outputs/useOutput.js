@@ -113,7 +113,7 @@ export const useOutput = ({ companyId = null, date = null, initialOutputs = null
     isLoading: queryLoading,
     error: queryError
   } = useQuery({
-    queryKey: ["outputs", companyId, formatDate(date)],
+    queryKey: ["outputs", companyId, date],
     queryFn: () => getOutputs({ companyId, date }).then(res => res.outputs),
     enabled: !!companyId && !!date,
     staleTime: 1000 * 60 * 3

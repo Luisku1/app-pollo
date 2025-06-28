@@ -11,7 +11,7 @@ router.put('/supervisor-report/verify-cash', verifySupervisorCash)
 router.put('/update-report-employees/:reportId', updateReportEmployees)
 router.put('/supervisor-report/verify-deposits', verifySupervisorDeposits)
 router.get('/get-supervisor-info/:employeeId', getSupervisorInfo)
-router.get('/get-days-reports-data/:companyId/:date', getDaysReportsData)
+router.get('/get-days-reports-data/:companyId', getDaysReportsData)
 router.get('/get-branches-reports/:companyId/:date', getBranchReports)
 router.put('/update-report-datas-info/:companyId', updateReportDatasInfo)
 

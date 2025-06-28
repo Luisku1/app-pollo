@@ -73,6 +73,17 @@ export const localTimeZone = () => {
 
 }
 
+export function dateFromYYYYMMDD(dateStr) {
+  const [year, month, day] = dateStr.split('-');
+  return new Date(Number(year), Number(month) - 1, Number(day));
+}
+
+export function formatDateYYYYMMDD(date) {
+  // Esto te da siempre 'yyyy-mm-dd' en hora local, sin desfases
+  const offsetDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+  return offsetDate.toISOString().split('T')[0];
+}
+
 export const today = (date) => {
 
   return formatDate(date) == formatDate((new Date())) ? true : false

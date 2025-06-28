@@ -1,6 +1,6 @@
 import { useNavigate, useLocation } from 'react-router-dom';
-import { dateFromYYYYMMDD, formatDate, formatDateYYYYMMDD } from '../helpers/DatePickerFunctions';
 import { useState, useEffect } from 'react';
+import { dateFromYYYYMMDD, formatDateYYYYMMDD } from '../../../common/dateOps';
 
 const dateAwareRoutes = [
   '/formato/:date',
@@ -10,6 +10,8 @@ const dateAwareRoutes = [
   '/graficos/:date',
   '/supervision-diaria/:date',
 ];
+
+const dateAwareBases = ['reporte', 'nomina', 'formato', 'graficos', 'supervision-diaria'];
 
 // Extrae branchId y date desde pathname
 function extractParamsFromPath(pathname) {
@@ -21,7 +23,7 @@ function extractParamsFromPath(pathname) {
   if (!isDate) return { date: null, branchId: null };
 
   const date = last;
-  const branchId = isNaN(secondLast) && secondLast?.length >= 6 ? secondLast : null;
+  const branchId = secondLast && !dateAwareBases.includes(secondLast) && secondLast?.length >= 6 ? secondLast : null;
 
   return { date, branchId };
 }
@@ -62,12 +64,11 @@ export function useDateNavigation() {
   }, [urlDate]);
 
   const setDate = (newDate) => {
-    console.log('Setting new date:', newDate);
-    const dateStr = formatDateYYYYMMDD(new Date(newDate));
     if (!isDateAware) return;
-    const newPath = getDateAwareLink(dateStr);
-    if (dateStr !== currentDate) {
-      setCurrentDate(dateStr);
+    const newPath = getDateAwareLink(newDate);
+    console.log(newPath)
+    if (newDate !== currentDate) {
+      setCurrentDate(newDate);
       navigate(newPath);
     }
   };
@@ -77,8 +78,10 @@ export function useDateNavigation() {
     if (!base) return location.pathname;
 
     if (branchId) {
+      console.log(base, branchId)
       return `${base}/${branchId}/${newDate}`;
     } else {
+      console.log(base)
       return `${base}/${newDate}`;
     }
   };

@@ -1,7 +1,6 @@
 import { useState } from "react"
 import SectionHeader from "../SectionHeader"
 import { useSelector } from "react-redux"
-import { useDate } from "../../context/DateContext"
 import { useProducts } from "../../hooks/Products/useProducts"
 import ShowListModal from "../Modals/ShowListModal"
 import Select from "react-select"
@@ -10,10 +9,11 @@ import { currency, getArrayForSelects, getElementForSelect } from "../../helpers
 import { useProviders } from "../../hooks/Providers/useProviders"
 import useProvidersMovements from "../../hooks/Providers/useProvidersMovements"
 import ProviderMovementsList from "./ProviderMovementsList"
+import { useDateNavigation } from "../../hooks/useDateNavigation"
 
 export default function CreateProviderMovement() {
   const { company } = useSelector((state) => state.user)
-  const { currentDate: date } = useDate()
+  const { currentDate: date } = useDateNavigation()
   const { products } = useProducts({ companyId: company._id })
   const { providers } = useProviders(company._id)
 
@@ -34,7 +34,7 @@ export default function CreateProviderMovement() {
   // Generar monto automáticamente
   const generarMonto = () => {
     const weight = parseFloat(movementFormData.weight || 0);
-    const priceValue = priceCurrency.raw != null ? priceCurrency.raw : (movementFormData.price != '' ? movementFormData.price : 0);
+    const priceValue = movementFormData.price != '' ? movementFormData.price : lastPrice;
     setAmount((priceValue * weight).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' }));
   };
 
@@ -43,9 +43,6 @@ export default function CreateProviderMovement() {
       ...movementFormData,
       [e.target.name]: e.target.value
     });
-    if (["price", "weight"].includes(e.target.name)) {
-      setTimeout(generarMonto, 0);
-    }
   }
 
   const handleProductSelectChange = (product) => {
@@ -79,6 +76,8 @@ export default function CreateProviderMovement() {
     setAmount('$0.00')
   }
 
+  useEffect(generarMonto, [movementFormData.price,movementFormData.weight, lastPrice])
+
   const onChangeCheck = (e) => {
 
     const priceInput = document.getElementById('input-price');
@@ -99,7 +98,6 @@ export default function CreateProviderMovement() {
       });
       priceInput.select();
     }
-    generarMonto();
   }
 
   return (
@@ -160,7 +158,6 @@ export default function CreateProviderMovement() {
                 value={movementFormData.price || ''}
                 onChange={handleInputChange}
                 disabled={!changePrice}
-                onInput={generarMonto}
               />
               <label htmlFor="input-price" className="-translate-y-full px-1 absolute top-1/4 left-2 transform rounded-sm bg-white text-black text-sm font-semibold">
                 Precio
@@ -173,7 +170,7 @@ export default function CreateProviderMovement() {
                 name="changePriceInput"
                 className="w-5 h-5 accent-blue-600"
                 checked={changePrice}
-                onChange={(e) => setChangePrice(e.target.checked)}
+                onChange={onChangeCheck}
               />
               <label htmlFor="changePriceInput" className="text-md font-semibold">
                 Cambiar precio

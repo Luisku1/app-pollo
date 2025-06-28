@@ -9,10 +9,12 @@ import { FaArrowLeft, FaArrowRight, FaSpinner } from 'react-icons/fa'
 import useChangePrices from '../../hooks/Prices/useChangePrices'
 import { blockedButton } from '../../helpers/Constants'
 import { ToastSuccess } from '../../helpers/toastify'
+import { useDateNavigation } from '../../hooks/useDateNavigation'
 
-export default function ChangeBranchPrices({ children, onChange, branch, date, onUpdateBranchReport }) {
+export default function ChangeBranchPrices({ children, onChange, branch, onUpdateBranchReport }) {
 
   const { isManager } = useRoles()
+  const { currentDate: date } = useDateNavigation();
   const [pricesDate, setPricesDate] = useState(null)
   const [direction, setDirection] = useState(null)
   const { prices, loading } = usePricesSelector(branch, date, pricesDate, direction)

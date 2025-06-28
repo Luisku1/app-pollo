@@ -40,7 +40,7 @@ export const RegistersMenu = () => {
     { title: "Formato", onSelec: () => { return <RegistroCuentaDiaria /> } },
     { title: "Descansos", onSelec: () => { return <CreateRest /> } },
     { title: "Retardos y faltas", onSelec: () => { <Penalties /> } },
-    { title: "Registro de proveedor", onSelec: () => { return <RegistroProveedor /> } },
+    { title: "Registrar proveedor", onSelec: () => { return <RegistroProveedor /> } },
   ]
 
   const toggleMenu = () => {

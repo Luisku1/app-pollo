@@ -67,7 +67,7 @@ export default function Empleados() {
   useEffect(() => {
 
     const handleKeyDown = (event) => {
-      if (event.ctrlKey && event.key === 'b') {
+      if (event.ctrlKey && event.key === 'f') {
         event.preventDefault();
         setSearching(true)
         searchBarRef.current.focus();
@@ -147,7 +147,7 @@ export default function Empleados() {
       </div>
       <div className="w-full bg-white p-3 border rounded-lg sticky top-16 z-10 mb-4">
         <div className="border rounded-lg flex items-center w-full">
-          <SearchBar ref={searchBarRef} handleFilterTextChange={handleSearchBarChange} placeholder={'Busca a tus empleados (CTRL + b)'}></SearchBar>
+          <SearchBar ref={searchBarRef} handleFilterTextChange={handleSearchBarChange} placeholder={'Busca a tus empleados (CTRL + f)'}></SearchBar>
         </div>
       </div>
       <div className="overflow-x-auto rounded-2xl shadow-md bg-white">

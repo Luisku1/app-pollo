@@ -8,6 +8,7 @@ import { changePricesDate, fetchBranchReport, fetchOrCreateBranchReport } from "
 import ProviderInput from "../models/providers/provider.input.model.js";
 import Input from "../models/accounts/input.model.js";
 import Output from "../models/accounts/output.model.js";
+import { dateFromYYYYMMDD } from "../../common/dateOps.js";
 
 export const newPrice = async (req, res, next) => {
 
@@ -151,7 +152,7 @@ export const initializeBranchPrices = async (req, res, next) => {
 export const getBranchCurrentPrices = async (req, res, next) => {
 
   const branchId = req.params.branchId;
-  const date = new Date(req.params.date);
+  const date = dateFromYYYYMMDD(req.params.date);
   const pricesDate = req.params.pricesDate != "null" ? new Date(req.params.pricesDate) : null;
   const sortOrder = req.params.sortOrder == "null" ? null : req.params.sortOrder;
 

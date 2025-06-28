@@ -1,11 +1,13 @@
 /* eslint-disable react/prop-types */
 
 import { currency } from "../../helpers/Functions";
+import { useDateNavigation } from "../../hooks/useDateNavigation";
 import ChangeBranchPrices from "./ChangeBranchPrices"
 
-export default function BranchPrices({ prices, pricesDate, branch, onChange, onUpdateBranchReport, date }) {
+export default function BranchPrices({ prices, pricesDate, branch, onChange, onUpdateBranchReport }) {
 
   const isEmpty = !prices || prices.length === 0;
+  const { currentDate: date } = useDateNavigation();
 
   const renderProductPrice = (price, index) => {
     return (
@@ -15,7 +17,7 @@ export default function BranchPrices({ prices, pricesDate, branch, onChange, onU
           } border-b border-gray-300`}
       >
         <span className="font-semibold">{price.product}:</span>
-        <span className="text-red-800 font-bold">{currency({amount: price.latestPrice})}</span>
+        <span className="text-red-800 font-bold">{currency({ amount: price.latestPrice })}</span>
       </li>
     );
   };
@@ -32,7 +34,7 @@ export default function BranchPrices({ prices, pricesDate, branch, onChange, onU
   return (
     <div className="p-1 border justify-items-center rounded-lg shadow-md text-lg">
       {onChange ?
-        <ChangeBranchPrices onUpdateBranchReport={onUpdateBranchReport} onChange={onChange} branch={branch} date={date} pricesDate={pricesDate}>
+        <ChangeBranchPrices onUpdateBranchReport={onUpdateBranchReport} onChange={onChange} branch={branch} pricesDate={pricesDate}>
           {renderPrices()}
         </ChangeBranchPrices>
         :

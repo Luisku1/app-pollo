@@ -13,6 +13,7 @@ import SupervisorReport from '../models/accounts/supervisor.report.model.js'
 import { supervisorsInfoQuery } from './report.controller.js'
 import { pricesAggregate } from './price.controller.js'
 import Branch from '../models/branch.model.js'
+import { dateFromYYYYMMDD } from '../../common/dateOps.js'
 
 export const branchLookup = {
   $lookup: {
@@ -486,7 +487,7 @@ export const updateBranchReportEmployees = async (req, res, next) => {
 export const getBranchReport = async (req, res, next) => {
 
   const branchId = req.params.branchId
-  const date = new Date(req.params.date)
+  const date = dateFromYYYYMMDD(req.params.date)
 
   try {
 

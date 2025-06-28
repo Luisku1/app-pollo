@@ -1,8 +1,8 @@
 /* eslint-disable react/prop-types */
-import { IoReload } from "react-icons/io5";
+import { IoArrowBack, IoReload } from "react-icons/io5";
 import { useRef, useEffect, useState } from "react";
 import { useSelector } from "react-redux"
-import { useNavigate, } from "react-router-dom"
+import { useLocation, useNavigate, } from "react-router-dom"
 import { FaMinus } from "react-icons/fa";
 import Sobrante from "../pages/Sobrante"
 import { useBranchReports } from "../hooks/BranchReports.js/useBranchReports";
@@ -34,11 +34,12 @@ import ExtraOutgoingsList from "../components/Outgoings/ExtraOutgoingsList.jsx";
 import { useDateNavigation } from "../hooks/useDateNavigation.js";
 import ProductPriceComparisonCard from "../components/statistics/ProductPriceComparisonCard.jsx";
 import ProviderMovementsCard from "../components/statistics/ProviderMovementsCard.jsx";
+import { dateFromYYYYMMDD } from "../../../common/dateOps.js";
 
 export default function Reporte({ untitled = false }) {
 
-  const { company, currentUser } = useSelector((state) => state.user)
-  const { currentDate } = useDateNavigation({ fallbackToToday: true })
+  const { company } = useSelector((state) => state.user)
+  const { currentDate } = useDateNavigation();
   const { roles } = useRoles()
   const [showTable, setShowTable] = useState(true)
   const [onlyNegativeBalances, setOnlyNegativeBalances] = useState(false);
@@ -101,6 +102,7 @@ export default function Reporte({ untitled = false }) {
     date: currentDate,
     onlyNegativeBalances
   })
+
 
   // Un solo estado de loading global
   const isAnyLoading = useLoading([
@@ -199,6 +201,18 @@ export default function Reporte({ untitled = false }) {
   const [selectedSupervisorReport, setSelectedSupervisorReport] = useState(null);
   const [tablesOnTop, setTablesOnTop] = useState(false);
 
+  const location = useLocation();
+  const from = location.state?.from;
+
+  const getBackText = () => {
+    if (!from) return "Volver";
+    if (from.includes("diario")) return "Volver al resumen diario";
+    if (from.includes("inicio")) return "Volver al inicio";
+    if (from.includes("formato")) return "Volver al formato";
+    if (from.includes("reporte")) return "Volver a reportes";
+    return "Volver";
+  };
+
   useEffect(() => {
     const handleResize = () => {
       const size = window.innerWidth
@@ -248,7 +262,7 @@ export default function Reporte({ untitled = false }) {
 
   useEffect(() => {
     if (untitled) return
-    document.title = 'Reporte (' + new Date(currentDate).toLocaleDateString() + ')'
+    document.title = 'Reporte (' + dateFromYYYYMMDD(currentDate).toLocaleDateString() + ')'
   }, [currentDate, untitled])
 
   // Mostrar ayuda de atajos solo en pantallas grandes (desktop)
@@ -311,7 +325,15 @@ export default function Reporte({ untitled = false }) {
 
   return (
     <main className="p-3 mx-auto mb-40 relative">
-      {/* Loading overlay (fixed, does not cover header, only one spinner, z-30) */}
+      <div className="flex items-center mb-6">
+        <button
+          className="flex items-center gap-2 px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-800 font-semibold rounded-lg shadow transition"
+          onClick={() => navigate(-1)}
+        >
+          <IoArrowBack className="w-5 h-5" />
+          {getBackText()}
+        </button>
+      </div>
 
       {/* Shortcuts help always above overlay */}
       {showShortcutsHelp && shortcutsHelp}

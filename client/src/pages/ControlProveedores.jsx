@@ -9,10 +9,10 @@ import { useLoading } from "../hooks/loading";
 import Loading from "../components/Loading";
 import { useRoles } from "../context/RolesContext";
 import SectionsMenu from "../components/SectionsMenu";
-import { useDate } from "../context/DateContext";
 import { MdDomainAdd } from "react-icons/md";
 import MenuProveedor from "./MenuProveedor";
 import CreateMovementsProviders from "../components/CreateMovementsProviders";
+import { useDateNavigation } from "../hooks/useDateNavigation";
 
 export default function ControlProveedores() {
   const hideFechaDePagina = false;
@@ -24,7 +24,7 @@ export default function ControlProveedores() {
   const navigate = useNavigate();
   const [selectedSection, setSelectedSection] = useState(null);
 
-  const { currentDate, setCurrentDate } = useDate();
+  const { currentDate, setCurrentDate } = useDateNavigation();
 
   const handleShowSections = (section) => {
     setSelectedSection(section);

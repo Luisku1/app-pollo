@@ -16,11 +16,12 @@ import { useDate } from "../../../context/DateContext"
 import { useCustomers } from "../../../hooks/Customers/useCustomers"
 import { useBranches } from "../../../hooks/Branches/useBranches"
 import { useProducts } from "../../../hooks/Products/useProducts"
+import { useDateNavigation } from "../../../hooks/useDateNavigation"
 
 export default function Salidas({ selectedProduct, setSelectedProduct }) {
 
   const { company, currentUser } = useSelector((state) => state.user)
-  const { currentDate: date } = useDate();
+  const { currentDate: date } = useDateNavigation();
   const [outputFormData, setOutputFormData] = useState({})
   const {
     outputs,

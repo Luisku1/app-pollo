@@ -7,6 +7,7 @@ import { getDayRange } from "../../utils/formatDate.js";
 import { Types } from "mongoose";
 import { productAggregate } from "./../product.controller.js";
 import { employeeAggregate } from "./../employee.controller.js";
+import { dateFromYYYYMMDD } from "../../../common/dateOps.js";
 
 export const providerAggregate = (localField, as) => {
   return [
@@ -335,7 +336,7 @@ export const deleteMovement = async (req, res, next) => {
 
 export const getMovements = async (req, res, next) => {
   const companyId = req.params.companyId;
-  const date = req.params.date;
+  const date = dateFromYYYYMMDD(req.params.date);
 
   const { bottomDate, topDate } = getDayRange(date);
 

@@ -16,12 +16,18 @@ import { useDate } from '../../../context/DateContext'
 import { useBranches } from '../../../hooks/Branches/useBranches'
 import { useCustomers } from '../../../hooks/Customers/useCustomers'
 import { useProducts } from '../../../hooks/Products/useProducts'
+import { useDateNavigation } from '../../../hooks/useDateNavigation'
 
-export default function Entradas({ selectedProduct, setSelectedProduct, setSelectedProductToNull }) {
+export default function Entradas({ selectedProduct, setSelectedProduct }) {
 
   const { company, currentUser } = useSelector((state) => state.user)
-  const { currentDate: date } = useDate()
-  const [inputFormData, setInputFormData] = useState({})
+  const { currentDate: date } = useDateNavigation()
+  const [inputFormData, setInputFormData] = useState({
+    price: '',
+    weight: '',
+    pieces: '',
+    comment: ''
+  })
   const {
     inputs,
     totalWeight,
@@ -68,11 +74,12 @@ export default function Entradas({ selectedProduct, setSelectedProduct, setSelec
 
   const generarMonto = () => {
     const weightInput = document.getElementById('input-weight')
-    const price = inputFormData.price != '' ? parseFloat(inputFormData.price) : lastPrice;
-    const priceValue =  price;
+    const price = inputFormData.price != '' ? parseFloat(inputFormData.price) : parseFloat(lastPrice) || 0;
+    const priceValue = price;
     const weight = parseFloat(weightInput.value != '' ? weightInput.value : '0.0')
     setAmount((priceValue * weight).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' }))
   }
+
 
   const inputButtonControl = () => {
 
@@ -110,40 +117,25 @@ export default function Entradas({ selectedProduct, setSelectedProduct, setSelec
       ...inputFormData,
       [e.target.name]: e.target.value,
     })
-
-    if (e.target.name === 'weight' || e.target.name === 'price') {
-      generarMonto();
-    }
   }
 
-  useEffect(() => {
-
-    if (!selectedProduct) return
-    if (!selectedCustomerBranchOption) return
-    if (priceIsLoading) return
-    if (lastPrice === null || lastPrice === undefined) {
-      setInputFormData({
-        ...inputFormData,
-        price: ''
-      })
-      return
-    }
+  const resetData = () => {
 
     setInputFormData({
-      ...inputFormData,
-      price: price,
+      price: '',
+      weight: '',
+      pieces: '',
+      comment: ''
     })
-
-    generarMonto()
-
-  }, [lastPrice])
+    setSelectedProduct(null)
+    setSelectedCustomerBranchOption(null)
+  }
 
   useEffect(inputButtonControl, [selectedProduct, selectedCustomerBranchOption, loading, priceIsLoading])
+  useEffect(generarMonto, [inputFormData.price, inputFormData.weight, lastPrice])
 
   const addInputSubmit = async (e) => {
 
-    const piecesInput = document.getElementById('input-pieces')
-    const weightInput = document.getElementById('input-weight')
     const commentInput = document.getElementById('input-comment')
     const priceInput = document.getElementById('input-price')
     const createdAt = isToday(date) ? new Date().toISOString() : new Date(date).toISOString()
@@ -207,17 +199,18 @@ export default function Entradas({ selectedProduct, setSelectedProduct, setSelec
         }
       }
 
-      onAddInput(input, group)
 
-      piecesInput.value = ''
-      weightInput.value = ''
-      priceInput.value = ''
-      setSelectedProductToNull()
+      ToastSuccess(`Se guardó la entrada de ${input.product.label}`)
+
+      await onAddInput(input, group)
+      resetData()
       setLoading(false)
 
     } catch (error) {
 
-      ToastDanger(error.message)
+      ToastDanger(`No se guardó la entrada de ${input.product.label}`)
+      console.log(error)
+      resetData();
       setLoading(false)
 
     }
