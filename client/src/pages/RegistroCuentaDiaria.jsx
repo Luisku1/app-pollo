@@ -31,7 +31,8 @@ import { ToastInfo } from '../helpers/toastify';
 import ProvidersInputsList from '../components/Providers/ProvidersInputsList';
 import { customSelectStyles } from '../helpers/Constants';
 import { SelectReportEmployees } from '../components/SelectReportEmployees';
-import { formatDateYYYYMMDD } from '../../../common/dateOps';
+import { formatDateYYYYMMDD, today } from '../../../common/dateOps';
+import { areArraysEqual } from '../../../common/arraysOps';
 
 
 export default function RegistroCuentaDiaria({ edit = true }) {
@@ -47,7 +48,6 @@ export default function RegistroCuentaDiaria({ edit = true }) {
   const { branches } = useBranches({ companyId: company._id })
   const { roles, isManager, isJustSeller, isSupervisor } = useRoles()
   const { products } = useProducts({ companyId: company._id })
-  const [selectedEmployee, setSelectedEmployee] = useState()
   const [selectedAssistants, setSelectedAssistants] = useState([])
   const [selectedBranch, setSelectedBranch] = useState()
   const [selectBranch, setSelectBranch] = useState(false)
@@ -99,16 +99,6 @@ export default function RegistroCuentaDiaria({ edit = true }) {
   } = useBranchReport({ branchId, date: currentDate })
 
   useEffect(() => {
-    if (assistants.length > 0) {
-      setSelectedAssistants(assistants.map(assistant => ({
-        value: assistant._id,
-        label: getEmployeeFullName(assistant),
-        ...assistant
-      })))
-    }
-  }, [assistants]);
-
-  useEffect(() => {
     const currentTime = new Date();
     const currentUTCHours = currentTime.getUTCHours();
     const currentUTCMinutes = currentTime.getUTCMinutes();
@@ -138,11 +128,6 @@ export default function RegistroCuentaDiaria({ edit = true }) {
 
   }, [branchId, selectedBranch])
 
-  const handleEmployeeSelectChange = (employee) => {
-
-    setSelectedEmployee(employee)
-  }
-
   const handleBranchSelectChange = (branch) => {
 
     setSelectedBranch(branch)
@@ -171,16 +156,16 @@ export default function RegistroCuentaDiaria({ edit = true }) {
         });
       }
     }
+
+    setShowSelectReportEmployees(false);
+
+    if (areArraysEqual(selectedAssistants, assistants) && selectedEmployee?._id === branchReport?.employee?._id) {
+      ToastInfo('No se han realizado cambios en los empleados del reporte');
+      return;
+    }
+
     await updateReportEmployees({ selectedEmployee, selectedAssistants });
   }
-
-  useEffect(() => {
-
-    if (!employees.length > 0 || !branchReport) return
-
-    setSelectedEmployee(branchReport.employee ? branchReport.employee : !edit ? null : currentUser)
-
-  }, [branchReport, employees, currentUser, edit])
 
   useEffect(() => {
 
@@ -267,7 +252,7 @@ export default function RegistroCuentaDiaria({ edit = true }) {
           </div>
           {selectedBranch && !employee && (
             <Modal
-              content={<SelectReportEmployees employee={selectedEmployee} branch={selectedBranch} employees={employees} onChangeEmployee={handleEmployeeSelectChange} onChangeAssistants={setSelectedAssistants} onRegisterEmployees={onRegisterEmployees} />}
+              content={<SelectReportEmployees employee={selectedEmployee} currentReportEmployee={employee} branch={selectedBranch} employees={employees} onChangeEmployee={handleEmployeeSelectChange} onChangeAssistants={setSelectedAssistants} onRegisterEmployees={onRegisterEmployees} />}
               closeModal={() => { setShowSelectReportEmployees(false) }}
               ableToClose={false}
               closeOnClickOutside={false}

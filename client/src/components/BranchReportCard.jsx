@@ -2,6 +2,7 @@
 import { MdEdit } from "react-icons/md"
 import { useRoles } from "../context/RolesContext"
 import { PiNumberZeroBold } from "react-icons/pi"
+import { MdPersonAdd } from "react-icons/md";
 import { formatInformationDate, isToday } from "../helpers/DatePickerFunctions"
 import { useSelector } from "react-redux"
 import { useState } from "react"
@@ -9,7 +10,6 @@ import { useNavigate } from "react-router-dom"
 import { setBalanceOnZero } from "../services/BranchReports/setBalanceOnZero"
 import { ToastDanger, ToastSuccess } from "../helpers/toastify"
 import { TbReload } from "react-icons/tb"
-import { blockedButton } from "../helpers/Constants"
 import { FaSpinner } from "react-icons/fa"
 import ShowListModal from "./Modals/ShowListModal"
 import IncomesList from "./Incomes/IncomesList"
@@ -24,8 +24,10 @@ import { CgProfile } from "react-icons/cg"
 import { toPng } from "html-to-image";
 import { AiOutlineDownload, AiOutlineCopy } from "react-icons/ai";
 import { recalculateBranchReport } from "../services/BranchReports/updateBranchReport"
-import { useDateNavigation } from "../hooks/useDateNavigation"
-import { updateReportDatasInfo } from "../../../api/controllers/report.controller"
+import { SelectReportEmployees } from "./SelectReportEmployees"
+import Modal from "./Modals/Modal"
+import { useEmployees } from "../hooks/Employees/useEmployees"
+import { updateReportEmployees } from "../services/BranchReports/updateReportsEmployee"
 
 export default function BranchReportCard({
   reportData = {},
@@ -35,12 +37,17 @@ export default function BranchReportCard({
   selfChange
 }) {
 
-  const { currentUser } = useSelector((state) => state.user)
+
+  const { currentUser, company } = useSelector((state) => state.user)
+  const companyId = company?._id || company
   const { isController, isManager } = useRoles()
   const [selectedEmployee, setSelectedEmployee] = useState(null)
   const [toModifyReport, setToModifyReport] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [showSelectReportEmployees, setShowSelectReportEmployees] = useState(false)
+  const { activeEmployees: employees } = useEmployees({ companyId })
   const navigate = useNavigate()
+  const assistants = reportData.assistants || []
 
   // On set to zero, update both caches
   const handleSetReportOnZero = async (report) => {
@@ -69,6 +76,30 @@ export default function BranchReportCard({
     updateBranchReportSingle && updateBranchReportSingle(newReport)
     updateBranchReportGroup && employeeId && updateBranchReportGroup(employeeId, newReport)
     selfChange && selfChange(newReport)
+  }
+
+  const onRegisterEmployees = async (selectedEmployee, selectedAssistants) => {
+
+    if ((selectedEmployee && currentUser._id !== selectedEmployee._id) || !selectedEmployee) {
+      if (!selectedAssistants.some(assistant => assistant._id === selectedEmployee._id)) {
+        selectedAssistants.push({
+          value: selectedEmployee._id,
+          label: getEmployeeFullName(selectedEmployee),
+          ...selectedEmployee
+        });
+      }
+    }
+
+    setShowSelectReportEmployees(false);
+
+    if (areArraysEqual(selectedAssistants, assistants) && selectedEmployee?._id === branchReport?.employee?._id) {
+      ToastInfo('No se han realizado cambios en los empleados del reporte');
+      return;
+    }
+
+    if (selfChange) selfChange({ ...reportData, employee: selectedEmployee, assistants: selectedAssistants });
+
+    await updateReportEmployees({ selectedEmployee, selectedAssistants });
   }
 
   // On reload, update both caches
@@ -118,6 +149,7 @@ export default function BranchReportCard({
       ToastDanger("Hubo un error al descargar la imagen");
     }
   };
+
 
   const handleCopyImage = async () => {
     try {
@@ -173,7 +205,20 @@ export default function BranchReportCard({
               <PiNumberZeroBold />
             </button>
           }
-          {isManager(currentUser.role)  && (
+          {showSelectReportEmployees && (
+            <Modal
+              content={
+                <SelectReportEmployees
+                  branch={reportData.branch}
+                  employees={employees}
+                  currentAssistants={reportData.assistants}
+                  currentReportEmployee={reportData.employee}
+                  onRegisterEmployees={onRegisterEmployees}
+                />
+              }
+            />
+          )}
+          {isManager(currentUser.role) && (
             <ChangeBranchPrices
               branch={reportData.branch._id}
               date={reportData.createdAt}
@@ -185,6 +230,13 @@ export default function BranchReportCard({
           )}
           <button className="border h-fit border-black rounded-lg" onClick={handleDownloadImage}>
             <AiOutlineDownload />
+          </button>
+          <button
+            className="border h-fit border-black rounded-lg flex items-center justify-center"
+            title="Asignar empleados"
+            onClick={() => setShowSelectReportEmployees(true)}
+          >
+            <MdPersonAdd />
           </button>
           <button className="border h-fit border-black rounded-lg" onClick={handleCopyImage}>
             <AiOutlineCopy />

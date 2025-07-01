@@ -12,7 +12,6 @@ import { useBranchCustomerProductPrice } from '../../../hooks/Prices/useBranchCu
 import { getArrayForSelects, getElementForSelect, priceShouldNotBeZero } from '../../../helpers/Functions'
 import ShowListModal from '../../Modals/ShowListModal'
 import ListaEntradas from './ListaEntradas'
-import { useDate } from '../../../context/DateContext'
 import { useBranches } from '../../../hooks/Branches/useBranches'
 import { useCustomers } from '../../../hooks/Customers/useCustomers'
 import { useProducts } from '../../../hooks/Products/useProducts'

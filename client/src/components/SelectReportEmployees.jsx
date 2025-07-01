@@ -4,11 +4,24 @@ import EmployeesSelect from "./Select/EmployeesSelect";
 import Select from "react-select";
 import { useRoles } from "../context/RolesContext";
 import { customSelectStyles } from "../helpers/Constants";
+import { useEffect } from "react";
 
-export const SelectReportEmployees = ({ employees, employee, branch, onRegisterEmployees, onChangeAssistants, onChangeEmployee, selectedAssistants }) => {
+export const SelectReportEmployees = ({ employees, currentReportEmployee, branch, onRegisterEmployees, currentAssistants, inReport = false }) => {
 
   const { currentUser } = useSelector((state) => state.user);
   const { isSupervisor } = useRoles();
+  const isCurrentUserSupervisor = isSupervisor(currentUser.role);
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [selectedAssistants, setSelectedAssistants] = useState(currentAssistants || []);
+
+  useEffect(() => {
+
+    if (!employees.length > 0) return
+    if (selectedEmployee) return
+
+    setSelectedEmployee(currentReportEmployee ? currentReportEmployee : { ...currentUser, label: getEmployeeFullName(currentUser), value: currentUser._id });
+
+  }, [currentReportEmployee, employees, currentUser])
 
   return (
     <div className='w-full mt-10'>
@@ -21,9 +34,9 @@ export const SelectReportEmployees = ({ employees, employee, branch, onRegisterE
           <div className='p-3'>
             <EmployeesSelect
               defaultLabel={'Sin Encargado'}
-              isEditing={isSupervisor(currentUser.role)}
+              isEditing={isCurrentUserSupervisor}
               employees={employees}
-              selectedEmployee={employee}
+              selectedEmployee={selectedEmployee}
               handleEmployeeSelectChange={onChangeEmployee}
             />
           </div>
@@ -36,20 +49,23 @@ export const SelectReportEmployees = ({ employees, employee, branch, onRegisterE
             isMulti={true}
             options={getArrayForSelects(employees, (employee) => getEmployeeFullName(employee))}
             onChange={(options) => {
-              onChangeAssistants(options);
+              setSelectedAssistants(options);
             }}
             styles={customSelectStyles}
             placeholder={'Selecciona auxiliares'}
           />
         </div>
       </div>
-      <button
-        onClick={() => onRegisterEmployees(employee, selectedAssistants)}
-        className='mt-2 rounded-lg text-white text-md p-3 w-full bg-button'
-      >
-        Asignar personal
-      </button>
-      {!employee && (
+      {!currentReportEmployee || (currentReportEmployee && (currentReportEmployee?._id !== currentUser._id && isSupervisor(currentUser._id))) &&
+
+        <button
+          onClick={() => onRegisterEmployees(selectedEmployee, selectedAssistants)}
+          className='mt-2 rounded-lg text-white text-md p-3 w-full bg-button'
+        >
+          {!inReport ? 'Asignar Personal' : 'Continuar con el Reporte'}
+        </button>
+      }
+      {(currentReportEmployee && currentReportEmployee._id !== currentUser._id) || !inReport && (
         <button
           onClick={() => onRegisterEmployees(null, selectedAssistants)}
         >

@@ -14,6 +14,7 @@ import { supervisorsInfoQuery } from './report.controller.js'
 import { pricesAggregate } from './price.controller.js'
 import Branch from '../models/branch.model.js'
 import { dateFromYYYYMMDD } from '../../common/dateOps.js'
+import { areArraysEqual } from '../../common/arraysOps.js'
 
 export const branchLookup = {
   $lookup: {
@@ -431,13 +432,6 @@ export const setBalanceOnZero = async (req, res, next) => {
     next(error)
   }
 }
-
-const areArraysEqual = (arr1, arr2) => {
-  if (arr1.length !== arr2.length) return false;
-  const sortedArr1 = [...arr1].sort();
-  const sortedArr2 = [...arr2].sort();
-  return sortedArr1.every((value, index) => value === sortedArr2[index]);
-};
 
 export const updateBranchReportEmployees = async (req, res, next) => {
   const { reportId } = req.params
@@ -1028,19 +1022,6 @@ export const fetchBranchReportById = async ({ branchReportId, populate = false }
   } catch (error) {
 
     console.log(error)
-  }
-}
-
-export const updateReportEmployees = async (req, res, next) => {
-
-  const reportId = req.params.reportId
-  const { employeeId, assistants } = req.body
-
-  try {
-
-  } catch (error) {
-    console.error(error)
-    next(error)
   }
 }
 
