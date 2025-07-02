@@ -35,6 +35,8 @@ import { useDateNavigation } from "../hooks/useDateNavigation.js";
 import ProductPriceComparisonCard from "../components/statistics/ProductPriceComparisonCard.jsx";
 import ProviderMovementsCard from "../components/statistics/ProviderMovementsCard.jsx";
 import { dateFromYYYYMMDD } from "../../../common/dateOps.js";
+import ShowListModal from "../components/Modals/ShowListModal.jsx";
+import OutgoingsList from "../components/Outgoings/OutgoingsList.jsx";
 
 export default function Reporte({ untitled = false }) {
 
@@ -119,6 +121,7 @@ export default function Reporte({ untitled = false }) {
   const [showProviderInputs, setShowProviderInputs] = useState(false);
   const [showInputs, setShowInputs] = useState(false);
   const [showOutgoings, setShowOutgoings] = useState(false);
+  const [listTitle, setListTitle] = useState('');
   const [showExtraOutgoings, setShowExtraOutgoings] = useState(false);
   const [showIncomes, setShowIncomes] = useState(false);
   const [showStock, setShowStock] = useState(false);
@@ -135,6 +138,21 @@ export default function Reporte({ untitled = false }) {
     refetchSupervisorsInfo();
   }
 
+  const showSupervisorsMissingIncomes = (e) => {
+    e.preventDefault();
+    console.log(missingIncomes)
+    if (missingIncomes === 0) return
+
+    setCurrentView({ view: 'supervisors', props: {} });
+    setShowTable(false);
+    setOnlyNegativeBalances(true);
+    setTimeout(() => {
+      supervisorTableRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 150);
+    setShowTable(true);
+    setShowPieChartModal(false);
+  }
+
   useEffect(() => {
     if (supervisorsInfo?.length === 0) return
 
@@ -145,7 +163,12 @@ export default function Reporte({ untitled = false }) {
         bgColor: '#4CAF50',
         borderColor: '#206e09',
         hoverBgColor: '#24d111',
-        data: cashArray
+        data: cashArray,
+        actionOnReport: () => {
+          setShowIncomes(cashArray)
+          setListTitle('Efectivos recogidos')
+          setShowPieChartModal(null);
+        }
       },
       {
         label: 'Terminal',
@@ -153,7 +176,11 @@ export default function Reporte({ untitled = false }) {
         bgColor: '#808b96',
         borderColor: '#000',
         hoverBgColor: '#2c3e50',
-        data: terminalIncomesArray
+        data: terminalIncomesArray,
+        actionOnReport: () => {
+          setShowIncomes(terminalIncomesArray)
+          setListTitle('Ingresos con Terminal')
+        }
       },
       {
         label: 'Depósitos',
@@ -161,7 +188,11 @@ export default function Reporte({ untitled = false }) {
         bgColor: '#56a0db',
         borderColor: '#0c4e82',
         hoverBgColor: '#0091ff',
-        data: depositsArray
+        data: depositsArray,
+        actionOnReport: () => {
+          setShowIncomes(depositsArray)
+          setListTitle('Depósitos')
+        }
       },
       {
         label: 'Gastos fuera de cuentas',
@@ -169,7 +200,10 @@ export default function Reporte({ untitled = false }) {
         bgColor: '#f0e795',
         borderColor: '#736809',
         hoverBgColor: '#ffe600',
-        data: extraOutgoingsArray
+        data: extraOutgoingsArray,
+        actionOnReport: () => {
+          setShowExtraOutgoings(true)
+        }
       },
       {
         label: 'Ingresos sin verificar',
@@ -178,14 +212,7 @@ export default function Reporte({ untitled = false }) {
         borderColor: '#801313',
         hoverBgColor: '#AF0000',
         action: () => {
-          setCurrentView({ view: 'supervisors', props: {} });
-          setShowTable(false);
-          setOnlyNegativeBalances(true);
-          setTimeout(() => {
-            supervisorTableRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          }, 150);
-          setShowTable(true);
-          setShowPieChartModal(false);
+          showSupervisorsMissingIncomes();
         }
       },
       {
@@ -426,41 +453,47 @@ export default function Reporte({ untitled = false }) {
           width="11/12"
         />
       )}
-      {showIncomes && (
+      {showOutgoings && (
         <Modal
-          content={
-            <IncomesList
-              incomes={incomesArray}
-              incomesTotal={incomesArray.reduce((acc, curr) => acc + curr.amount, 0)}
-              statistics={() => (
-                <div className="w-full">
-                  {(verifiedIncomes || verifiedIncomes === 0) && (netIncomes || netIncomes === 0) && (
-                    <div>
-                      <p className='text-lg'>Ingresos totales confirmados</p>
-                      <div className='flex gap-2'>
-                        <p className='text-lg'>
-                          <span className={`${verifiedIncomes < netIncomes ? 'text-red-600' : 'text-green-600'}`}>
-                            {currency({ amount: verifiedIncomes })}
-                          </span>
-                          /
-                          <span className='text-green-600'>{currency({ amount: netIncomes })}</span>
-                        </p>
-                        {verifiedIncomes < netIncomes && (
-                          <p className='text-red-500'>{`(${currency({ amount: verifiedIncomes - netIncomes })})`}</p>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-            />
-          }
-          closeModal={() => setShowIncomes(false)}
-          title={'Ingresos'}
+          content={<OutgoingsList outgoings={outgoingsArray} totalOutgoings={totalOutgoings} />}
+          closeModal={() => setShowOutgoings(false)}
+          title={'Gastos'}
           ableToClose={true}
           closeOnEsc={true}
           closeOnClickOutside={true}
-          width="11/12"
+        />
+      )}
+      {showIncomes && showIncomes.length > 0 && (
+        <ShowListModal
+          title={listTitle}
+          modalIsOpen={showIncomes && showIncomes.length > 0}
+          ListComponentProps={{ incomes: showIncomes, incomesTotal: showIncomes.reduce((acc, curr) => acc + curr.amount, 0) }}
+          ListComponent={IncomesList}
+          extraInformation={() => (
+            <div className="w-full">
+              {(verifiedIncomes || verifiedIncomes === 0) && (netIncomes || netIncomes === 0) && (
+                <div>
+                  <p className='text-lg'>Ingresos totales confirmados</p>
+                  <div className='flex gap-2'>
+                    <p className='text-lg'>
+                      <span className={`${verifiedIncomes < netIncomes ? 'text-red-600' : 'text-green-600'}`}>
+                        {currency({ amount: verifiedIncomes })}
+                      </span>
+                      /
+                      <span className='text-green-600'>{currency({ amount: netIncomes })}</span>
+                    </p>
+                    {verifiedIncomes < netIncomes && (
+                      <p className='text-red-500'>{`(${currency({ amount: verifiedIncomes - netIncomes })})`}</p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>)}
+          toggleComponent={() => {
+            setShowIncomes(null)
+            setListTitle('')
+            setShowPieChartModal(prev => prev === null ? true : false)
+          }}
         />
       )}
       {(branchReports || supervisorsInfo) && roles && roles.manager ?
@@ -546,7 +579,10 @@ export default function Reporte({ untitled = false }) {
                               {currency(totalIncomes)}
                             </span>
                           ),
-                          onClick: () => setShowIncomes(true)
+                          onClick: () => {
+                            setShowIncomes(incomesArray)
+                            setListTitle('Ingresos en sucursales')
+                          }
                         },
                         finalStock: {
                           value: (
@@ -628,7 +664,10 @@ export default function Reporte({ untitled = false }) {
                         <button
                           type="button"
                           className="flex items-center gap-2 px-3 py-2 rounded-xl bg-green-50 border border-green-200 shadow-sm min-w-[160px] focus:outline-none focus:ring-2 focus:ring-green-300 transition hover:bg-green-100"
-                          onClick={() => setShowIncomes(true)}
+                          onClick={() => {
+                            setListTitle('Todos los ingresos')
+                            setShowIncomes(incomesArray)
+                          }}
                           title="Ver lista de ingresos brutos"
                         >
                           <span className="text-2xl">💰</span>
@@ -654,13 +693,32 @@ export default function Reporte({ untitled = false }) {
                         <button
                           type="button"
                           className="flex items-center gap-2 px-3 py-2 rounded-xl bg-blue-50 border border-blue-200 shadow-sm min-w-[160px] focus:outline-none focus:ring-2 focus:ring-blue-300 transition hover:bg-blue-100"
-                          onClick={() => setShowIncomes(true)}
+                          onClick={() => {
+                            setShowIncomes(incomesArray)
+                            setListTitle('Todos los ingresos')
+                          }}
                           title="Ver lista de ingresos a verificar"
                         >
                           <span className="text-2xl">📈</span>
                           <div className="flex flex-col items-start">
                             <span className="text-xs text-gray-500 font-semibold">Ingresos a verificar</span>
                             <span className="text-lg font-bold text-blue-600">{currency(netIncomes)}</span>
+                          </div>
+                        </button>
+                        {/* Ingresos verificados */}
+                        <button
+                          type="button"
+                          className="flex items-center gap-2 px-3 py-2 rounded-xl bg-purple-50 border border-purple-200 shadow-sm min-w-[160px] focus:outline-none focus:ring-2 focus:ring-purple-300 transition hover:bg-purple-100"
+                          onClick={() => {
+                            setShowIncomes(incomesArray)
+                            setListTitle('Todos los ingresos')
+                          }}
+                          title="Ver lista de ingresos verificados"
+                        >
+                          <span className="text-2xl">✅</span>
+                          <div className="flex flex-col items-start">
+                            <span className="text-xs text-gray-500 font-semibold">Ingresos verificados</span>
+                            <span className="text-lg font-bold text-purple-700">{currency(verifiedIncomes)}</span>
                           </div>
                         </button>
                       </div>
@@ -739,7 +797,9 @@ export default function Reporte({ untitled = false }) {
                             <div className="flex flex-col gap-3 overflow-y-auto max-h-[320px] w-full max-w-[420px] mx-auto">
                               <h3 className="text-xl font-bold mb-2 text-gray-700 text-center">Detalle de ingresos</h3>
                               {pieChartInfo.map((item, idx) => (
-                                <div key={item.label} className="flex items-center gap-3 bg-gray-50 rounded-lg shadow-sm border border-gray-200 px-4 py-3">
+                                <div key={item.label} className={`flex items-center gap-3 bg-gray-50 rounded-lg shadow-sm border border-gray-200 px-4 py-3 ${item.actionOnReport ? 'cursor-pointer' : ''}`}
+                                  onClick={item?.actionOnReport}
+                                >
                                   <span className="inline-block w-4 h-4 rounded-full" style={{ background: item.bgColor, border: `2px solid ${item.borderColor}` }} />
                                   <span className="font-semibold text-gray-700 flex-1">{item.label}</span>
                                   <span className="font-mono text-lg font-bold text-gray-900">{currency(item.value)}</span>

@@ -37,7 +37,6 @@ export default function BranchReportCard({
   selfChange
 }) {
 
-
   const { currentUser, company } = useSelector((state) => state.user)
   const companyId = company?._id || company
   const { isController, isManager } = useRoles()
@@ -216,6 +215,7 @@ export default function BranchReportCard({
                   onRegisterEmployees={onRegisterEmployees}
                 />
               }
+              closeModal={() => setShowSelectReportEmployees(false)}
             />
           )}
           {isManager(currentUser.role) && (
@@ -231,15 +231,15 @@ export default function BranchReportCard({
           <button className="border h-fit border-black rounded-lg" onClick={handleDownloadImage}>
             <AiOutlineDownload />
           </button>
+          <button className="border h-fit border-black rounded-lg" onClick={handleCopyImage}>
+            <AiOutlineCopy />
+          </button>
           <button
             className="border h-fit border-black rounded-lg flex items-center justify-center"
             title="Asignar empleados"
             onClick={() => setShowSelectReportEmployees(true)}
           >
             <MdPersonAdd />
-          </button>
-          <button className="border h-fit border-black rounded-lg" onClick={handleCopyImage}>
-            <AiOutlineCopy />
           </button>
           <EmployeeInfo employee={selectedEmployee} toggleInfo={() => setSelectedEmployee(null)} />
         </div>

@@ -4,7 +4,7 @@ import EmployeesSelect from "./Select/EmployeesSelect";
 import Select from "react-select";
 import { useRoles } from "../context/RolesContext";
 import { customSelectStyles } from "../helpers/Constants";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export const SelectReportEmployees = ({ employees, currentReportEmployee, branch, onRegisterEmployees, currentAssistants, inReport = false }) => {
 
@@ -37,7 +37,7 @@ export const SelectReportEmployees = ({ employees, currentReportEmployee, branch
               isEditing={isCurrentUserSupervisor}
               employees={employees}
               selectedEmployee={selectedEmployee}
-              handleEmployeeSelectChange={onChangeEmployee}
+              handleEmployeeSelectChange={setSelectedEmployee}
             />
           </div>
         </div>
@@ -56,7 +56,7 @@ export const SelectReportEmployees = ({ employees, currentReportEmployee, branch
           />
         </div>
       </div>
-      {!currentReportEmployee || (currentReportEmployee && (currentReportEmployee?._id !== currentUser._id && isSupervisor(currentUser._id))) &&
+      {!currentReportEmployee || (currentReportEmployee && (currentReportEmployee?._id !== currentUser._id && isSupervisor(currentUser.role))) &&
 
         <button
           onClick={() => onRegisterEmployees(selectedEmployee, selectedAssistants)}
