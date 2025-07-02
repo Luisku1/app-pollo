@@ -1,7 +1,6 @@
 /* eslint-disable react/prop-types */
 import { useState } from 'react'
 import { useSelector } from 'react-redux'
-import { isToday } from '../../helpers/DatePickerFunctions'
 import SectionHeader from '../SectionHeader'
 import ShowListModal from '../Modals/ShowListModal'
 import OutgoingsList from './OutgoingsList'
@@ -10,8 +9,7 @@ import { useDateNavigation } from '../../hooks/useDateNavigation'
 
 export default function AddOutgoing({ outgoings, modifyBalance, isReport = false, listButton, outgoingsTotal, onAddOutgoing, onDeleteOutgoing, employee, branch }) {
 
-  const { currentDate: date } = useDateNavigation()
-
+  const { today, dateFromYYYYMMDD } = useDateNavigation()
   const { company } = useSelector((state) => state.user)
   const [outgoingFormData, setOutgoingFormData] = useState({})
   const [loading, setLoading] = useState(false)
@@ -54,7 +52,7 @@ export default function AddOutgoing({ outgoings, modifyBalance, isReport = false
     const conceptInput = document.getElementById('concept')
     const amountInput = document.getElementById('amount')
     const button = document.getElementById('outgoing-button')
-    const createdAt = isToday(date) ? new Date().toISOString() : new Date(date).toISOString()
+    const createdAt = today ? new Date().toISOString() : dateFromYYYYMMDD.toISOString()
 
     e.preventDefault()
 

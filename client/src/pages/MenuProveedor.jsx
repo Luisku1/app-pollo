@@ -108,7 +108,6 @@ const MenuProveedor = () => {
       setError(error.message);
       setLoading(false);
     }
-    console.log(index);
   };
 
   useEffect(() => {

@@ -84,7 +84,14 @@ export function formatDateYYYYMMDD(date) {
   return offsetDate.toISOString().split('T')[0];
 }
 
-export const today = (date) => {
+export const isYYYYMMDD = (date) => {
 
-  return formatDate(date) == formatDate((new Date())) ? true : false
+  const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+
+  return dateRegex.test(date);
+}
+
+export const today = (date) => {
+  const _date = isYYYYMMDD(date) ? dateFromYYYYMMDD(date) : formatDate(date);
+  return _date == formatDate((new Date())) ? true : false
 }

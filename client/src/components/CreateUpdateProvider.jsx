@@ -27,7 +27,7 @@ export default function CreateUpdateProvider({
 
       if (isUpdating) {
         await handleUpdate(data);
-        
+
       } else {
         await handleRegisterProvider(data);
       }
@@ -70,7 +70,7 @@ export default function CreateUpdateProvider({
 
   const handleRegisterProvider = async (provider) => {
     const form = document.getElementById("form");
-    
+
     try {
       setLoading(true);
 
@@ -105,7 +105,7 @@ export default function CreateUpdateProvider({
       [e.target.id]: e.target.value
     });
   };
-  console.log(formData)
+
   return (
     <form
       onSubmit={handleSubmit}

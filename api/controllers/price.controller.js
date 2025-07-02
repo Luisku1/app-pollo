@@ -64,14 +64,14 @@ export const newPrices = async (req, res, next) => {
 
   try {
 
+    const createdAt = new Date().toISOString()
+
     for (let key in data) {
-
       if (data.hasOwnProperty(key)) {
-
-        const createdAt = new Date().toISOString()
-
+        if (Object.keys(data[key]).length === 0 || !data[key].price || !data[key].product || !data[key].branch) {
+          continue
+        }
         let document = {
-
           price: data[key].price,
           product: data[key].product,
           branch: data[key].branch,
@@ -79,17 +79,18 @@ export const newPrices = async (req, res, next) => {
           company: companyId,
           createdAt: createdAt
         }
-
         bulkOps.push({ "insertOne": { "document": document } })
-
       }
     }
+    await Price.bulkWrite(bulkOps)
 
-    Price.bulkWrite(bulkOps)
-      .then(result => {
-        res.status(200).json('Prices initialized correctly')
-      })
-
+    if (data.applyChanges) {
+      const { document } = bulkOps[0].insertOne;
+      if (data.applyChanges) {
+        await changePricesDate(document.branch, document.createdAt, document.createdAt, document.residual);
+      }
+    }
+    res.status(200).json('Prices created correctly')
   } catch (error) {
 
     next(error)
@@ -410,8 +411,6 @@ export const getCustomerProductPrice = async (req, res, next) => {
 
 export const getProductPrice = async (productId, branchId, topDate = new Date(), residualPrice = false) => {
 
-  console.log('Fetching price for product:', productId, 'branch:', branchId, 'date:', topDate, 'residual:', residualPrice)
-
   try {
 
     const matchCondition = {
@@ -426,8 +425,12 @@ export const getProductPrice = async (productId, branchId, topDate = new Date(),
       matchCondition.residual = true
     }
 
-    const price = await Price.find(matchCondition, 'price').sort({ createdAt: -1 }).limit(1)
+    let price = await Price.find(matchCondition, 'price').sort({ createdAt: -1 }).limit(1)
 
+    if ((!price || price.length === 0) && residualPrice) {
+      matchCondition.residual = false
+      price = await Price.find(matchCondition, 'price').sort({ createdAt: -1 }).limit(1)
+    }
     return price[0]?.price ?? null
 
   } catch (error) {

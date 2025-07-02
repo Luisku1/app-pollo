@@ -34,8 +34,6 @@ export default function Modal({
     try {
       const node = modalRef?.current;
       if (!node) return;
-      console.log("Copying modal image...");
-      // Opcional: puedes clonar el nodo y ajustar el ancho si lo deseas
       const dataUrl = await toPng(node, { cacheBust: true, pixelRatio: 2 });
       const blob = await (await fetch(dataUrl)).blob();
       await navigator.clipboard.write([

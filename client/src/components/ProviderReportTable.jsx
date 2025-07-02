@@ -59,8 +59,6 @@ const ProviderReportTable = ({ providerReports, onRowClick, totals }) => {
 		return () => window.removeEventListener('resize', handleResize);
 	}, []);
 
-	console.log('ProviderReportTable', providerReports, columns);
-
 	if (!providerReports || providerReports.length === 0) {
 		return (
 			<div className="flex justify-center items-center h-96">

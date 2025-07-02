@@ -20,7 +20,7 @@ import { useDateNavigation } from '../../../hooks/useDateNavigation'
 export default function Entradas({ selectedProduct, setSelectedProduct }) {
 
   const { company, currentUser } = useSelector((state) => state.user)
-  const { currentDate: date } = useDateNavigation()
+  const { currentDate: date, today, dateFromYYYYMMDD } = useDateNavigation()
   const [inputFormData, setInputFormData] = useState({
     price: '',
     weight: '',
@@ -137,7 +137,7 @@ export default function Entradas({ selectedProduct, setSelectedProduct }) {
 
     const commentInput = document.getElementById('input-comment')
     const priceInput = document.getElementById('input-price')
-    const createdAt = isToday(date) ? new Date().toISOString() : new Date(date).toISOString()
+    const createdAt = today ? new Date().toISOString() : dateFromYYYYMMDD.toISOString()
 
     if (priceInput.value != '' ? priceInput.value == 0 : lastPrice == 0) {
 

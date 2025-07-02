@@ -277,6 +277,7 @@ export const fetchOrCreateBranchReport = async ({ branchId, companyId = null, da
     return branchReport
 
   } catch (error) {
+    console.log(error)
 
     throw error
   }
@@ -508,9 +509,11 @@ export const changePricesDate = async (branchId, reportDate, pricesDate, residua
   let updatedBranchReport = null
 
   try {
-    branchReport = await fetchBranchReportInfo({ branchId, date: reportDate })
 
-    if (!branchReport) throw new Error("No se encontró el reporte, asegúrate de registrar algo antes");
+    const reportExists = await fetchOrCreateBranchReport({ branchId, date: reportDate })
+
+    if (!reportExists) throw new Error("No se encontró el reporte para la fecha indicada");
+    branchReport = await fetchBranchReportInfo({ branchId, date: reportDate })
 
     const newPricesBranchReport = await updateBranchReportPrices(branchReport, pricesDate)
     const updateFields = {
@@ -544,7 +547,6 @@ export const changePricesDate = async (branchId, reportDate, pricesDate, residua
 
       await BranchReport.findByIdAndUpdate(branchReport._id, branchReport)
     }
-
     throw error
   }
 }

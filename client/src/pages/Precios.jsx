@@ -19,11 +19,42 @@ export default function Precios() {
   const { onUpdateResidualUse } = useBranch()
   const [buttonDisabled, setButtonDisabled] = useState({})
   const [searchTerm, setSearchTerm] = useState("")
-
+  const [applyChanges, setApplyChanges] = useState({});
 
   // Maneja cambios para precios normales y residuales
   const handleInputsChange = (e, productId, branchId, isResidual = false) => {
     const key = `${productId}${branchId}`
+
+    if (!e.target.value || isNaN(e.target.value) || e.target.value < 0) {
+
+      if (e.target.value === '') {
+        if (isResidual) {
+          setResidualFormData(prev => {
+            const newData = { ...prev }
+            if (newData[branchId]) {
+              delete newData[branchId][key]
+            }
+            if (Object.keys(newData[branchId] || {}).length === 0) {
+              delete newData[branchId]
+            }
+            return newData
+          })
+        } else {
+          setPricesFormData(prev => {
+            const newData = { ...prev }
+            if (newData[branchId]) {
+              delete newData[branchId][key]
+            }
+            if (Object.keys(newData[branchId] || {}).length === 0) {
+              delete newData[branchId]
+            }
+            return newData
+          })
+        }
+        return
+      }
+    }
+
     if (isResidual) {
       setResidualFormData(prev => ({
         ...prev,
@@ -57,12 +88,14 @@ export default function Precios() {
     }))
   }
 
-  // Envía ambos tipos de precios
   const submitBranchPrices = async (branchId) => {
     const normal = pricesFormData[branchId] || {}
     const residual = residualFormData[branchId] || {}
-    const payload = showResidual[branchId] ? residual : normal
+    let payload = showResidual[branchId] ? residual : normal
     if (Object.keys(payload).length === 0) return
+    if (applyChanges[branchId]) {
+      payload = { ...payload, applyChanges: true }
+    }
     setLoading(prev => ({ ...prev, [branchId]: true }))
     setError(null)
     setSuccessMessage(prev => ({ ...prev, [branchId]: null }))
@@ -137,6 +170,7 @@ export default function Precios() {
       }))
       await onUpdateResidualUse(branchId)
       ToastSuccess('Uso de precios fríos actualizado')
+      ToastInfo('Recuerda actualizar los precios para productos fríos')
 
     } catch (error) {
       ToastDanger(error.message || 'Error al actualizar uso de precios fríos')
@@ -252,6 +286,7 @@ export default function Precios() {
                             {left && (
                               <input
                                 type="number"
+                                autoComplete="off"
                                 name={isResidual ? 'residualPrice' : 'price'}
                                 id={isResidual ? leftKey + '-residual' : leftKey}
                                 className={`${isResidual ? 'border border-blue-600' : 'border-gray-300'} w-full rounded-lg px-2 py-1 text-right focus:outline-none focus:ring-2 focus:ring-blue-400 transition`}
@@ -270,6 +305,7 @@ export default function Precios() {
                             {right && (
                               <input
                                 type="number"
+                                autoComplete="off"
                                 name={isResidual ? 'residualPrice' : 'price'}
                                 id={isResidual ? rightKey + '-residual' : rightKey}
                                 className={`border ${isResidual ? 'border-blue-600' : 'border-gray-300'} w-full rounded-lg px-2 py-1 text-right focus:outline-none focus:ring-2 focus:ring-blue-400 transition`}
@@ -287,7 +323,17 @@ export default function Precios() {
                 </table>
               </div>
               <button
-                className={`mt-4 w-full bg-[#3B82F6] opacity-90 text-white p-3 rounded-xl font-bold uppercase tracking-wide shadow transition hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed`}
+                className={`w-full mb-2 font-bold rounded-xl p-2 uppercase tracking-wide shadow transition border-2 flex items-center justify-center gap-2
+    ${applyChanges[data._id.branchId] ? 'bg-yellow-400 text-yellow-900 border-yellow-500' : 'bg-white text-yellow-900 border-yellow-400 hover:bg-yellow-100'}`}
+                type="button"
+                onClick={() => setApplyChanges(prev => ({ ...prev, [data._id.branchId]: !prev[data._id.branchId] }))}
+              >
+                <span className={`inline-block w-4 h-4 rounded-full border-2 mr-1
+    ${applyChanges[data._id.branchId] ? 'bg-yellow-400 border-yellow-600' : 'bg-white border-yellow-400'}`}></span>
+                {applyChanges[data._id.branchId] ? 'FORMATO DE HOY ACTIVADO' : 'CAMBIAR PARA FORMATO DE HOY'}
+              </button>
+              <button
+                className={`mt-0 w-full bg-[#3B82F6] opacity-90 text-white p-3 rounded-xl font-bold uppercase tracking-wide shadow transition hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed`}
                 onClick={() => submitBranchPrices(data._id.branchId)}
                 disabled={buttonDisabled[data._id.branchId] || loading[data._id.branchId]}
               >

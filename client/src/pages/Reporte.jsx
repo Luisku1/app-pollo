@@ -140,7 +140,6 @@ export default function Reporte({ untitled = false }) {
 
   const showSupervisorsMissingIncomes = (e) => {
     e.preventDefault();
-    console.log(missingIncomes)
     if (missingIncomes === 0) return
 
     setCurrentView({ view: 'supervisors', props: {} });

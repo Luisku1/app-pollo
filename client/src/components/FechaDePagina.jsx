@@ -7,7 +7,6 @@ export default function FechaDePagina() {
   const { currentDate, setDate, isDateAware } = useDateNavigation();
 
   const prevDay = () => {
-    console.log(currentDate)
     const datePickerDate = dateFromYYYYMMDD(currentDate);
     datePickerDate.setDate(datePickerDate.getDate() - 1);
     setDate(formatDateYYYYMMDD(new Date(datePickerDate)));
@@ -22,8 +21,6 @@ export default function FechaDePagina() {
   if (!isDateAware) return null;
 
   if (!currentDate) return null;
-
-  console.log(currentDate)
 
   return (
     <div className={`w-fit mx-auto`}>

@@ -487,7 +487,6 @@ export const getBranchProviderInputs = async ({ branchId, date }) => {
 
 export const getInputs = async (req, res, next) => {
 
-  console.log(req.params.date)
   const date = dateFromYYYYMMDD(req.params.date)
   const companyId = req.params.companyId
 

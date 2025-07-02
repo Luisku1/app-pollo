@@ -2,7 +2,6 @@
 import { FaListAlt } from 'react-icons/fa'
 import SectionHeader from '../SectionHeader'
 import { currency } from '../../helpers/Functions'
-import { isToday } from '../../helpers/DatePickerFunctions'
 import { useState } from 'react'
 import { useDayExtraOutgoings } from '../../hooks/ExtraOutgoings/useDayExtraOutgoings'
 import { useRoles } from '../../context/RolesContext'
@@ -16,7 +15,7 @@ export default function ExtraOutgoings() {
 
   const { currentUser, company } = useSelector((state) => state.user)
   const { isManager } = useRoles()
-  const { currentDate: date } = useDateNavigation();
+  const { currentDate: date, today, dateFromYYYYMMDD } = useDateNavigation();
   const [extraOutgoingFormData, setExtraOutgoingFormData] = useState({})
   const { extraOutgoings, spliceExtraOutgoingById, totalExtraOutgoings, onAddExtraOutgoing, onDeleteExtraOutgoing } = useDayExtraOutgoings({ companyId: company._id, date })
 
@@ -24,7 +23,7 @@ export default function ExtraOutgoings() {
 
     const conceptInput = document.getElementById('extraOutgoingConcept')
     const amountInput = document.getElementById('extraOutgoingAmount')
-    const createdAt = isToday(date) ? new Date().toISOString() : new Date(date).toISOString()
+    const createdAt = today ? new Date().toISOString() : dateFromYYYYMMDD.toISOString()
 
     e.preventDefault()
 

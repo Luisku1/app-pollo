@@ -1,6 +1,6 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { dateFromYYYYMMDD, formatDateYYYYMMDD } from '../../../common/dateOps';
+import { dateFromYYYYMMDD, formatDateYYYYMMDD, today } from '../../../common/dateOps';
 
 const dateAwareRoutes = [
   '/formato/:date',
@@ -66,7 +66,6 @@ export function useDateNavigation() {
   const setDate = (newDate) => {
     if (!isDateAware) return;
     const newPath = getDateAwareLink(newDate);
-    console.log(newPath)
     if (newDate !== currentDate) {
       setCurrentDate(newDate);
       navigate(newPath);
@@ -78,10 +77,8 @@ export function useDateNavigation() {
     if (!base) return location.pathname;
 
     if (branchId) {
-      console.log(base, branchId)
       return `${base}/${branchId}/${newDate}`;
     } else {
-      console.log(base)
       return `${base}/${newDate}`;
     }
   };
@@ -89,6 +86,8 @@ export function useDateNavigation() {
   return {
     isDateAware,
     currentDate,
+    dateFromYYYYMMDD: dateFromYYYYMMDD(currentDate),
+    today: today(currentDate),
     setDate,
     getDateAwareLink,
     branchId,

@@ -59,7 +59,6 @@ export const recalculateCurrentNumina = async (req, res, next) => {
       }
     ])
 
-    console.log(`weeklyBalances: ${weeklyBalances.length}`, weeklyBalances)
 
 
     for (const weeklyBalance of weeklyBalances) {

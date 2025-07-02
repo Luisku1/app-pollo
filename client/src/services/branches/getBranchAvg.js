@@ -5,7 +5,6 @@ export const getBranchAvg = async ({branchId}) => {
 
   if(data.success === false) {
 
-    console.log(data.message)
     return 0
   }
 

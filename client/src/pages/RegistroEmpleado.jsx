@@ -64,7 +64,6 @@ export default function RegistroEmpleadoNuevo({ employee, setEmployee }) {
     const role = Object.keys(roles).find(role => roles[role]._id == changes.role ? roles[role] : employee.role)
     const newEmployee = { ...employee, ...changes, role: roles[role] };
 
-    console.log(newEmployee, changes)
     setEmployee(newEmployee);
 
     try {

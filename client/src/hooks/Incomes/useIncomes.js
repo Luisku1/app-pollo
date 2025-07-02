@@ -22,7 +22,7 @@ export const useIncomes = ({ companyId = null, date = null, initialIncomes = nul
     isLoading: loading,
     refetch: refetchIncomes
   } = useQuery({
-    queryKey: ["incomes", companyId, formatDate(date)],
+    queryKey: ["incomes", companyId, date],
     queryFn: () => getIncomesFetch(companyId, date).then(res => res.incomes),
     enabled: !!companyId && !!date,
     staleTime: 1000 * 60 * 3
@@ -32,7 +32,11 @@ export const useIncomes = ({ companyId = null, date = null, initialIncomes = nul
 
   // Inicializa incomes desde React Query o initialIncomes
   useEffect(() => {
-    if (incomesData) setIncomes(incomesData);
+    if (!incomesData) {
+      setIncomes([]);
+      return;
+    }
+    if (incomesData.length >= 0) setIncomes(incomesData);
   }, [incomesData]);
 
   useEffect(() => {

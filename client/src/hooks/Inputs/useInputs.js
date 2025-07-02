@@ -107,9 +107,6 @@ export const useInputs = ({ companyId = null, date = null, initialInputs = null 
     setInputs(initialArray);
   };
 
-  console.log(date)
-
-  // TanStack Query para fetchInputs
   const {
     data: queryInputs,
     isLoading: queryLoading,

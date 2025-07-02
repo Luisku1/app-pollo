@@ -6,13 +6,11 @@ import { useOutput } from "../../../hooks/Outputs/useOutput"
 import { useSelector } from "react-redux"
 import Select from 'react-select'
 import { customSelectStyles } from "../../../helpers/Constants"
-import { isToday } from "../../../helpers/DatePickerFunctions"
 import BranchAndCustomerSelect from "../../Select/BranchAndCustomerSelect"
 import { ToastDanger } from "../../../helpers/toastify"
 import { useBranchCustomerProductPrice } from "../../../hooks/Prices/useBranchCustomerProductPrice"
 import { getArrayForSelects, getElementForSelect, priceShouldNotBeZero } from "../../../helpers/Functions"
 import ShowListModal from "../../Modals/ShowListModal"
-import { useDate } from "../../../context/DateContext"
 import { useCustomers } from "../../../hooks/Customers/useCustomers"
 import { useBranches } from "../../../hooks/Branches/useBranches"
 import { useProducts } from "../../../hooks/Products/useProducts"
@@ -21,7 +19,7 @@ import { useDateNavigation } from "../../../hooks/useDateNavigation"
 export default function Salidas({ selectedProduct, setSelectedProduct }) {
 
   const { company, currentUser } = useSelector((state) => state.user)
-  const { currentDate: date } = useDateNavigation();
+  const { currentDate: date, dateFromYYYYMMDD, today } = useDateNavigation();
   const [outputFormData, setOutputFormData] = useState({})
   const {
     outputs,
@@ -128,7 +126,7 @@ export default function Salidas({ selectedProduct, setSelectedProduct }) {
     const weightInput = document.getElementById('output-weight')
     const commentInput = document.getElementById('output-comment')
     const priceInput = document.getElementById('output-price')
-    const createdAt = isToday(date) ? new Date().toISOString() : new Date(date).toISOString()
+    const createdAt = today ? new Date().toISOString() : dateFromYYYYMMDD.toISOString()
 
     e.preventDefault()
 

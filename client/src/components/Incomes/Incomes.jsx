@@ -19,6 +19,7 @@ import { useBranches } from '../../hooks/Branches/useBranches'
 import { useCustomers } from '../../hooks/Customers/useCustomers'
 import { useEmployees } from '../../hooks/Employees/useEmployees'
 import { useDateNavigation } from '../../hooks/useDateNavigation'
+import { dateFromYYYYMMDD } from '../../../../common/dateOps'
 
 export default function Incomes() {
 
@@ -36,8 +37,6 @@ export default function Incomes() {
   const { branches } = useBranches({ companyId: company._id })
   const { employees } = useEmployees({ companyId: company._id })
   const { customers } = useCustomers({ companyId: company._id })
-
-  console.log(currentDate)
 
   useEffect(() => {
     setBranchAndCustomerSelectOptions([
@@ -76,7 +75,7 @@ export default function Incomes() {
 
     e.preventDefault()
 
-    const createdAt = isToday(currentDate) ? new Date().toISOString() : new Date(currentDate).toISOString()
+    const createdAt = isToday(dateFromYYYYMMDD(currentDate)) ? new Date().toISOString() : new Date(dateFromYYYYMMDD(currentDate)).toISOString()
     let income = null
 
     try {

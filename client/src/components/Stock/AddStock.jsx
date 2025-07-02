@@ -1,17 +1,18 @@
 /* eslint-disable react/prop-types */
 import { useEffect, useState } from "react"
 import { useSelector } from "react-redux"
-import { isToday } from "../../helpers/DatePickerFunctions"
 import Select from 'react-select'
 import SectionHeader from "../SectionHeader"
 import ShowListModal from "../Modals/ShowListModal"
 import StockList from "./StockList"
 import { getArrayForSelects, getElementForSelect } from "../../helpers/Functions"
 import { ToastInfo, ToastSuccess } from "../../helpers/toastify"
+import { useDateNavigation } from "../../hooks/useDateNavigation"
 
-export default function AddStock({ title, midDay, modifyBalance, stock, isReport = false, listButton, weight, amount, products, onAddStock, onDeleteStock, branch, employee, date, branchPrices }) {
+export default function AddStock({ title, midDay, modifyBalance, stock, isReport = false, listButton, weight, amount, products, onAddStock, onDeleteStock, branch, employee, branchPrices }) {
 
   const { company } = useSelector((state) => state.user)
+  const { today, dateFromYYYYMMDD } = useDateNavigation();
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [stockFormData, setStockFormData] = useState({ pieces: '', weight: '' })
   const [isButtonDisabled, setIsButtonDisabled] = useState(true)
@@ -57,7 +58,7 @@ export default function AddStock({ title, midDay, modifyBalance, stock, isReport
 
     const price = getProductPrice(selectedProduct.value)
     const amount = parseFloat(price * stockFormData.weight)
-    const createdAt = isToday(date) ? new Date().toISOString() : new Date(date).toISOString()
+    const createdAt = today ? new Date().toISOString() : dateFromYYYYMMDD.toISOString()
 
     try {
       const { pieces, weight } = stockFormData

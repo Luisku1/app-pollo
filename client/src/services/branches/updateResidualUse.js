@@ -1,6 +1,5 @@
 export const updateResidualsUse = async (branchId) => {
   try {
-    console.log(branchId)
     const res = await fetch(`/api/branch/change-prices-use`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },

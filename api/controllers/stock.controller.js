@@ -5,7 +5,6 @@ import { fetchOrCreateBranchReport } from "./branch.report.controller.js";
 import { getProductPrice } from "./price.controller.js";
 import { pushOrPullBranchReportRecord } from './branch.report.controller.js'
 import { Types } from "mongoose";
-import { getBranch } from "./branch.controller.js";
 import Branch from "../models/branch.model.js";
 
 export const createStock = async (req, res, next) => {

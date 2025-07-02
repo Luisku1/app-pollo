@@ -113,7 +113,6 @@ export const useBranchReport = ({ branchId = null, date = null }) => {
     }))
     if (modifyBalance) modifyBalance(tempOutgoing.amount, 'add')
     try {
-      console.log('Adding outgoing:', tempOutgoing)
       addOutgoing({
         _id: tempOutgoing._id || null,
         company: tempOutgoing.company,

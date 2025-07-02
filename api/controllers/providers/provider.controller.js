@@ -283,8 +283,6 @@ export const newMovement = async (req, res, next) => {
     specialPrice,
   } = req.body;
 
-  console.log(req.body);
-
   try {
     const movement = await ProviderMovements.create({
       isReturn,
@@ -299,8 +297,6 @@ export const newMovement = async (req, res, next) => {
       createdAt,
       specialPrice,
     });
-
-    console.log(movement);
 
     res.status(201).json({
       data: movement,

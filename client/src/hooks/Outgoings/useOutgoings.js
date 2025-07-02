@@ -10,8 +10,6 @@ export const useOutgoings = () => {
 
   const deleteOutgoingMutation = useMutation({
     mutationFn: (outgoing) => {
-      console.log("Executing deleteOutgoingFetch with:", outgoing);
-      alert("Executing deleteOutgoingFetch with: " + JSON.stringify(outgoing));
       return deleteOutgoingFetch(outgoing._id);
     },
   });

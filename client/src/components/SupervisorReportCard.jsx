@@ -62,7 +62,6 @@ export default function SupervisorReportCard({
       setToModifyReport(supervisorReport._id)
       const updatedReport = await recalculateSupervisorReport(supervisorReport._id)
       if (updateSupervisorReportGroup && employeeId) updateSupervisorReportGroup(employeeId, updatedReport)
-      console.log(updatedReport, 'updatedReport')
       if (updateSupervisorReportSingle) updateSupervisorReportSingle(updatedReport)
       if (selfChange) selfChange({ ...supervisorReport, balance: updatedReport.balance })
       setToModifyReport(null)

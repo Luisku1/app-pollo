@@ -1325,8 +1325,6 @@ export const isCurrentOrInmediateWeek = (date, payDay) => {
 	const isInmediatePrevWeek = bottomDate === checkEnd
 	const isCurrentWeek = currentStart === checkStart && currentEnd === checkEnd
 
-	console.log('isCurrentOrInmediateWeek', { payDay, checkStart, checkEnd, bottomDate, isInmediatePrevWeek })
-
 	return {
 		paramsWeekRange: {
 			weekStart: checkStart,
@@ -2363,8 +2361,6 @@ export const updateEmployeeDailyBalance = async (req, res, next) => {
 
 		if (updatedDailyBalance) {
 
-			console.log(updatedDailyBalance)
-
 			res.status(200).json('Balance updated')
 
 		} else {
@@ -2623,8 +2619,6 @@ export const updateSupervisorBalance = async (supervisorReport) => {
 
 		if (adjustmentBalance === 0)
 			return dailyBalance
-
-		console.log(employee, adjustmentBalance)
 
 		employee = await Employee.findByIdAndUpdate(employeeId, {
 			$inc: { balance: adjustmentBalance }
