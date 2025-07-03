@@ -365,9 +365,10 @@ export const updateBranchReportEmployees = async (req, res, next) => {
 
   try {
 
-    if (!reportId) {
+    if (!reportId && branchId && date) {
       branchReport = await fetchOrCreateBranchReport({ branchId, date })
     } else {
+      if (!reportId) return next(errorHandler(400, 'Report ID is required'))
       branchReport = await fetchBranchReportById({ branchReportId: reportId, populate: true })
     }
 

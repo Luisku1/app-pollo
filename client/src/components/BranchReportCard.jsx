@@ -79,26 +79,34 @@ export default function BranchReportCard({
 
   const onRegisterEmployees = async (selectedEmployee, selectedAssistants) => {
 
-    if ((selectedEmployee && currentUser._id !== selectedEmployee._id) || !selectedEmployee) {
-      if (!selectedAssistants.some(assistant => assistant._id === selectedEmployee._id)) {
-        selectedAssistants.push({
-          value: selectedEmployee._id,
-          label: getEmployeeFullName(selectedEmployee),
-          ...selectedEmployee
-        });
-      }
-    }
-
+    let employeeChanged = false;
+    let assistantsChanged = false;
     setShowSelectReportEmployees(false);
 
-    if (areArraysEqual(selectedAssistants, assistants) && selectedEmployee?._id === branchReport?.employee?._id) {
+    if (selectedEmployee?._id !== reportData?.employee?._id) {
+      employeeChanged = true;
+    }
+    if ((selectedAssistants.length > 0 && assistants.length === 0) || (!areArraysEqual(selectedAssistants, assistants))) {
+      assistantsChanged = true;
+    }
+
+    if (!(assistantsChanged || employeeChanged)) {
       ToastInfo('No se han realizado cambios en los empleados del reporte');
       return;
     }
 
+    let newReport = {
+      ...reportData
+    }
+
+    if (assistantsChanged)
+      newReport.assistant = selectedAssistants.map(assistant => assistant)
+    if (employeeChanged)
+      newReport.employee = selectedEmployee
+
     if (selfChange) selfChange({ ...reportData, employee: selectedEmployee, assistants: selectedAssistants });
 
-    await updateReportEmployees({ selectedEmployee, selectedAssistants });
+    await updateReportEmployees({reportId: reportData._id, employeeId: selectedEmployee._id, assistants: selectedAssistants });
   }
 
   // On reload, update both caches

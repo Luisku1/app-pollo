@@ -145,7 +145,7 @@ export default function RegistroCuentaDiaria({ edit = true }) {
 
   const onRegisterEmployees = async (selectedEmployee, selectedAssistants) => {
     let finalAssistants = [...selectedAssistants] || [];
-    let finalEmployee = selectedEmployee
+    let finalEmployee = selectedEmployee || null
     if ((selectedEmployee && currentUser._id !== selectedEmployee._id) || !selectedEmployee) {
       if (!selectedAssistants.some(assistant => assistant._id === currentUser._id)) {
         finalAssistants.push({
@@ -166,7 +166,6 @@ export default function RegistroCuentaDiaria({ edit = true }) {
     await updateReportEmployees({ employee: finalEmployee, assistants: finalAssistants });
   }
 
-  console.log(branchReport)
   useEffect(() => {
 
     if (!branchId || !branches) return
