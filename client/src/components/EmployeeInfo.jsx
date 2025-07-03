@@ -14,7 +14,7 @@ import { FaEdit } from "react-icons/fa";
 import RegistroEmpleadoNuevo from "../pages/RegistroEmpleado";
 import PortatilEmployeePayroll from "./Payroll/PortatilEmployeePayroll";
 
-export default function EmployeeInfo({ employee, setEmployee, toggleInfo, isShown, handleEmployeeUpdate }) {
+export default function EmployeeInfo({ employee, toggleInfo, isShown, handleEmployeeUpdate }) {
 
   const { currentUser } = useSelector((state) => state.user);
   const [showEmployeeBranchReports, setShowEmployeeBranchReports] = useState(false);

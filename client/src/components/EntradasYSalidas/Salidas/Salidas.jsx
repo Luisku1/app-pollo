@@ -105,18 +105,13 @@ export default function Salidas({ selectedProduct, setSelectedProduct }) {
   }
 
   const handleOutputInputsChange = (e) => {
-    generarMonto()
     setOutputFormData({
       ...outputFormData,
       [e.target.name]: e.target.value,
     })
   }
 
-  useEffect(() => {
-
-    generarMonto()
-
-  }, [price])
+  useEffect(generarMonto, [outputFormData.price, outputFormData.weight, price])
 
   useEffect(outputButtonControl, [selectedProduct, selectedCustomerBranchOption, loading, priceIsLoading])
 
@@ -254,7 +249,6 @@ export default function Salidas({ selectedProduct, setSelectedProduct }) {
                 step={0.01}
                 type="number"
                 disabled={!changePrice}
-                onInput={generarMonto}
               />
               <label htmlFor="output-price" className="-translate-y-full px-1 absolute top-1/4 left-2 transform rounded-sm bg-white text-black text-sm font-semibold">
                 Precio

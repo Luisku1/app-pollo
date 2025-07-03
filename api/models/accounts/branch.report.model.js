@@ -125,6 +125,11 @@ const branchReportSchema = mongoose.Schema({
     required: true
   },
 
+  residualPricesDate: {
+    type: Date,
+    required: true
+  },
+
   dateSent: {
     type: Date
   }

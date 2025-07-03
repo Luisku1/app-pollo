@@ -1,24 +1,41 @@
 import { useEffect, useState, useMemo } from "react"
 import { useSelector } from "react-redux"
-import { useNavigate } from "react-router-dom"
-import { currency } from "../helpers/Functions"
-import { ToastSuccess, ToastDanger, ToastContainerComponent } from "../helpers/toastify"
+import { currency, normalizeText } from "../helpers/Functions"
+import { ToastSuccess, ToastInfo, ToastDanger, ToastContainerComponent } from "../helpers/toastify"
 import { useBranch } from "../hooks/Branches/useBranch"
 import "../assets/super-xl.css"
+import { useProducts } from "../hooks/Products/useProducts"
 
 export default function Precios() {
 
   const { company } = useSelector((state) => state.user)
+  const companyId = company._id
   const [prices, setPrices] = useState([])
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState({})
   const [successMessage, setSuccessMessage] = useState({})
   const [pricesFormData, setPricesFormData] = useState({})
   const [residualFormData, setResidualFormData] = useState({})
+  const { products } = useProducts({ companyId })
   const [showResidual, setShowResidual] = useState({})
   const { onUpdateResidualUse } = useBranch()
   const [buttonDisabled, setButtonDisabled] = useState({})
   const [searchTerm, setSearchTerm] = useState("")
+  const searchInputRef = useState(null)[0] || (typeof window !== 'undefined' ? { current: null } : null);
+
+  // Atajo Ctrl+F para enfocar el input de búsqueda
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f') {
+        e.preventDefault();
+        if (searchInputRef && searchInputRef.current) {
+          searchInputRef.current.focus();
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [searchInputRef]);
   const [applyChanges, setApplyChanges] = useState({});
 
   // Maneja cambios para precios normales y residuales
@@ -91,7 +108,8 @@ export default function Precios() {
   const submitBranchPrices = async (branchId) => {
     const normal = pricesFormData[branchId] || {}
     const residual = residualFormData[branchId] || {}
-    let payload = showResidual[branchId] ? residual : normal
+    const isResidual = showResidual[branchId]
+    let payload = isResidual ? residual : normal
     if (Object.keys(payload).length === 0) return
     if (applyChanges[branchId]) {
       payload = { ...payload, applyChanges: true }
@@ -100,6 +118,9 @@ export default function Precios() {
     setError(null)
     setSuccessMessage(prev => ({ ...prev, [branchId]: null }))
     try {
+      if (applyChanges[branchId])
+        ToastInfo('Actualizando precios, por favor espere...')
+
       const res = await fetch('/api/product/price/new-prices/' + company._id, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -114,8 +135,42 @@ export default function Precios() {
       }
       ToastSuccess('Precios actualizados')
       setSuccessMessage(prev => ({ ...prev, [branchId]: 'Precios actualizados' }))
-      setPricesFormData(prev => ({ ...prev, [branchId]: {} }))
-      setResidualFormData(prev => ({ ...prev, [branchId]: {} }))
+      setPrices(prev => prev.map(item => {
+        if (item._id.branchId === branchId) {
+          return {
+            ...item,
+            prices: item.prices.map(price => {
+              if (payload[`${price.productId}${branchId}`]) {
+                console.log(payload, price, payload[`${price.productId}${branchId}`].price)
+                return {
+                  ...price,
+                  latestPrice: parseFloat(payload[`${price.productId}${branchId}`].price),
+                  latestResidualPrice: isResidual ? parseFloat(payload[`${price.productId}${branchId}`]).price : parseFloat(price.residualPrice)
+                }
+              }
+              return price
+            }),
+          }
+        }
+        return item
+      }))
+      if (!isResidual) {
+        setPricesFormData(prev => {
+          let newData = { ...prev }
+          if (newData[branchId]) {
+            delete newData[branchId]
+          }
+          return newData
+        })
+      } else {
+        setResidualFormData(prev => {
+          let newData = { ...prev }
+          if (newData[branchId]) {
+            delete newData[branchId]
+          }
+          return newData
+        })
+      }
       setButtonDisabled(prev => ({ ...prev, [branchId]: true }))
       setLoading(prev => ({ ...prev, [branchId]: false }))
     } catch (error) {
@@ -190,7 +245,7 @@ export default function Precios() {
   const filteredPrices = useMemo(() => {
     if (!searchTerm) return prices;
     return prices.filter((data) =>
-      `${data._id.branchName ?? ''}`.toLowerCase().includes(searchTerm.toLowerCase()
+      normalizeText(`${data._id.branchName ?? ''}`).toLowerCase().includes(normalizeText(searchTerm).toLowerCase()
       )
     );
   }, [searchTerm, prices]);
@@ -213,7 +268,9 @@ export default function Precios() {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+          ref={searchInputRef}
         />
+        <div className="text-xs text-gray-500 mt-1">Atajo: <kbd className="px-1 py-0.5 bg-gray-200 rounded border">Ctrl</kbd> + <kbd className="px-1 py-0.5 bg-gray-200 rounded border">F</kbd> para buscar sucursal</div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 super-xl:grid-cols-3 gap-6">
@@ -229,6 +286,7 @@ export default function Precios() {
               ])
             }
           }
+
           return (
             <div key={data._id.branchId} className="rounded-2xl shadow-md bg-white border border-gray-200 flex flex-col p-4 transition hover:shadow-lg">
               <div className="flex items-center justify-between mb-2 gap-2">
@@ -294,6 +352,11 @@ export default function Precios() {
                                 placeholder={isResidual ? (left.residualPrice ? currency(left.residualPrice) : '$0.00') : (left.latestPrice ? currency(left.latestPrice) : '$0.00')}
                                 min="0"
                                 step="0.01"
+                                value={
+                                  isResidual
+                                    ? (residualFormData[data._id.branchId]?.[leftKey]?.price ?? '')
+                                    : (pricesFormData[data._id.branchId]?.[leftKey]?.price ?? '')
+                                }
                               />
                             )}
                           </td>
@@ -313,6 +376,11 @@ export default function Precios() {
                                 placeholder={isResidual ? (right.residualPrice ? currency(right.residualPrice) : '$0.00') : (right.latestPrice ? currency(right.latestPrice) : '$0.00')}
                                 min="0"
                                 step="0.01"
+                                value={
+                                  isResidual
+                                    ? (residualFormData[data._id.branchId]?.[rightKey]?.price ?? '')
+                                    : (pricesFormData[data._id.branchId]?.[rightKey]?.price ?? '')
+                                }
                               />
                             )}
                           </td>

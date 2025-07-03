@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
-import { FaTrash } from "react-icons/fa"
 import { useSelector } from "react-redux"
+import DeleteButton from "../components/Buttons/DeleteButton"
 
 export default function Productos() {
 
@@ -8,9 +8,7 @@ export default function Productos() {
   const [products, setProducts] = useState([])
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
-  const [productFormData, setProductFormData] = useState({})
-  const [isOpen, setIsOpen] = useState(false)
-  const [buttonId, setButtonId] = useState(null)
+  const [productFormData, setProductFormData] = useState({ byPieces: true })
 
   const handleProductInputsChange = (e) => {
 
@@ -138,9 +136,7 @@ export default function Productos() {
 
         setError(error.message)
       }
-
     }
-
     fetchProducts()
   }, [company._id])
 
@@ -151,65 +147,75 @@ export default function Productos() {
 
   return (
 
-    <main className="p-3 max-w-lg mx-auto">
-
-      <h1 className='text-3xl text-center font-semibold my-7'>
-
+    <main className="p-2 md:p-6 max-w-2xl mx-auto mb-32">
+      <h1 className="text-3xl md:text-4xl text-center font-bold mt-7 mb-6 text-gray-800">
         Productos
-
       </h1>
-
-      {error ? <p>{error}</p> : ''}
-
-      <form id='productForm' onSubmit={addProduct} className="bg-white shadow-md grid grid-cols-1 items-center justify-between rounded-lg gap-2">
-
-        <input type="text" name="name" id="name" placeholder='Nombre del producto' className='border border-black p-3 rounded-lg' required onInput={productButtonControl} onChange={handleProductInputsChange} />
-        <input type="number" name="price" id="price" placeholder="Precio inicial" className="border border-black p-3 rounded-lg" onChange={handleProductInputsChange} />
-        <button type='submit' id='product-button' disabled={loading} className='bg-button text-white p-3 rounded-lg'>Agregar</button>
-
+      {error && <div className="bg-red-100 text-red-700 rounded-lg p-3 mb-4 text-center">{error}</div>}
+      <form id="productForm" onSubmit={addProduct} className="bg-white shadow-md rounded-2xl border border-gray-200 flex flex-col gap-3 p-4 mb-6">
+        <div className="flex flex-col md:flex-row gap-3">
+          <input
+            type="text"
+            autoCapitalize="on"
+            autoComplete="off"
+            name="name"
+            id="name"
+            placeholder="Nombre del producto"
+            className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 transition text-lg"
+            required
+            onInput={productButtonControl}
+            onChange={handleProductInputsChange}
+          />
+          <input
+            type="number"
+            autoComplete="off"
+            name="price"
+            id="price"
+            placeholder="Precio inicial"
+            className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 transition text-lg"
+            onChange={handleProductInputsChange}
+            min="0"
+            required
+            step="0.01"
+          />
+        </div>
+        <div className="flex items-center gap-2 mt-1">
+          <input
+            type="checkbox"
+            id="byPieces"
+            name="byPieces"
+            checked={!!productFormData.byPieces}
+            onChange={e => setProductFormData(prev => ({ ...prev, byPieces: e.target.checked }))}
+            className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-400"
+          />
+          <label htmlFor="byPieces" className="text-sm text-gray-700 select-none cursor-pointer">
+            Marca la casilla si el producto se vende por pieza
+          </label>
+        </div>
+        <button
+          type="submit"
+          id="product-button"
+          disabled={loading}
+          className="w-full bg-blue-600 text-white font-bold rounded-xl p-3 uppercase tracking-wide shadow transition hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed"
+        >
+          {loading ? 'Agregando...' : 'Agregar'}
+        </button>
       </form>
-
-      <div className="grid my-4 grid-cols-2" id="list-element">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4" id="list-element">
         {products && products.length > 0 && products.map((product, index) => (
-
-          <div className="m-1 p-3 bg-white text-center shadow-lg grid grid-cols-5 rounded-lg" key={product._id}>
-
-            <p className="col-span-3 text-center font-sans text-lg font-semibold ">
+          <div className="flex flex-col bg-white shadow-md border border-gray-200 rounded-xl p-4 gap-2 transition hover:shadow-lg" key={product._id}>
+            <div className="flex-1 text-center font-sans text-lg font-semibold text-gray-800 break-words">
               {product.name}
-            </p>
-
-            <div>
-                <button id={product._id} onClick={() => { setIsOpen(isOpen ? false : true), setButtonId(product._id) }} disabled={loading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
-                  <span>
-                    <FaTrash className='text-red-700 m-auto' />
-                  </span>
-                </button>
-
-                {isOpen && product._id == buttonId ?
-                  <div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center items-center'>
-                    <div className='bg-white p-5 rounded-lg flex flex-col justify-center items-center gap-5'>
-                      <div>
-                        <p className='text-3xl font-semibold'>¿Estás seguro de borrar este registro?</p>
-                      </div>
-                      <div className='flex gap-10'>
-                        <div>
-                          <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteProduct(product._id, index), setIsOpen(isOpen ? false : true) }}>Si</button>
-                        </div>
-                        <div>
-                          <button className='rounded-lg border shadow-lg w-20 h-10' onClick={() => { setIsOpen(isOpen ? false : true) }}>No</button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  : ''}
-
-              </div>
-
+            </div>
+            <div className="">
+              <DeleteButton
+                deleteFunction={() => deleteProduct(product._id, index)}
+                className=""
+              />
+            </div>
           </div>
-
         ))}
       </div>
-
     </main>
   )
 }

@@ -17,9 +17,15 @@ export default function MenuSucursal({ branchAndCustomerSelectOptions, date, sel
   const [providerInputFormData, setProviderInputFormData] = useState({})
   const [amount, setAmount] = useState(0)
 
+  console.log(selectedProduct)
+
   const generarMonto = () => {
     const priceInput = document.getElementById('provider-input-price')
+    const piecesInput = document.getElementById('provider-input-pieces')
     const weightInput = document.getElementById('provider-input-weight')
+    const weightValue = weightInput.value != '' ? parseFloat(weightInput.value) : 0
+    const piecesValue = piecesInput.value != '' ? parseFloat(piecesInput.value) : 0
+    const unit = selectedProduct.byPieces ? piecesValue : weightValue
 
     if (parseFloat(priceInput.value) == 0) {
       ToastDanger('El precio no puede ser $0.00')
@@ -28,9 +34,8 @@ export default function MenuSucursal({ branchAndCustomerSelectOptions, date, sel
     }
 
     const price = parseFloat(priceInput.value == '' ? priceInput.placeholder : priceInput.value)
-    const weight = parseFloat(weightInput.value != '' ? weightInput.value : '0.0')
 
-    setAmount((price * weight).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' }))
+    setAmount((price * unit).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' }))
   }
 
   useEffect(() => {

@@ -116,7 +116,7 @@ const createInitialStock = async (stock, stockData, price, branch, product, crea
 
   if (!branchReport) throw new Error("No se logró obtener el reporte de la sucursal");
 
-  const nextReportPrice = await getProductPrice(product, branch, branchReport.pricesDate || bottomDate, isResidual);
+  const nextReportPrice = await getProductPrice(product, branch, (isResidual ? branchReport.residualPricesDate : branchReport.pricesDate) || bottomDate, isResidual);
   const initialStockId = new Types.ObjectId().toHexString();
   const initialStock = { ...stock._doc, _id: initialStockId, isInitial: true, associatedStock: stock._id, createdAt: bottomDate };
 

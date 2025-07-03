@@ -1319,10 +1319,9 @@ export const isCurrentOrInmediateWeek = (date, payDay) => {
 
 	const currentDate = new Date()
 	const dateToCheck = new Date(date)
-	const { bottomDate } = getDayRange(currentDate)
 	const { weekStart: currentStart, weekEnd: currentEnd } = getWeekRange(currentDate, payDay)
 	const { weekStart: checkStart, weekEnd: checkEnd } = getWeekRange(dateToCheck, payDay)
-	const isInmediatePrevWeek = bottomDate === checkEnd
+	const isInmediatePrevWeek = currentStart === checkEnd
 	const isCurrentWeek = currentStart === checkStart && currentEnd === checkEnd
 
 	return {
@@ -2700,6 +2699,8 @@ export const updateAccountBalance = async (branchReport, changedEmployee) => {
 		employee = await Employee.findByIdAndUpdate(employeeId, {
 			$inc: { balance: adjustmentBalance }
 		}, { new: true })
+
+		console.log(isCurrentWeek, isInmediatePrevWeek)
 
 		if (!(isCurrentWeek || isInmediatePrevWeek)) {
 
