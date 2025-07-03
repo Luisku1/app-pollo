@@ -31,7 +31,7 @@ export default function Salidas({ selectedProduct, setSelectedProduct }) {
   const [selectedCustomerBranchOption, setSelectedCustomerBranchOption] = useState(null)
   const [internalSelectedProduct, setInternalSelectedProduct] = useState(null)
   const [selectedGroup, setSelectedGroup] = useState('');
-  const { price, loading: priceIsLoading } = useBranchCustomerProductPrice({ branchCustomerId: selectedCustomerBranchOption ? selectedCustomerBranchOption.value : null, productId: internalSelectedProduct ? internalSelectedProduct._id : null, date, group: selectedGroup == '' ? null : selectedGroup })
+  const { price: lastPrice, loading: priceIsLoading } = useBranchCustomerProductPrice({ branchCustomerId: selectedCustomerBranchOption ? selectedCustomerBranchOption.value : null, productId: internalSelectedProduct ? internalSelectedProduct._id : null, date, group: selectedGroup == '' ? null : selectedGroup })
   const [amount, setAmount] = useState('$0.00')
   const [loading, setLoading] = useState(false)
   const [isRegisteredInSurplus, setIsRegisteredInSurplus] = useState(false);
@@ -62,7 +62,7 @@ export default function Salidas({ selectedProduct, setSelectedProduct }) {
     const weightInput = document.getElementById('output-weight');
     const priceInput = document.getElementById('output-price');
 
-    const priceValue = parseFloat(priceInput.value != '' ? priceInput.value : '0.0');
+    const priceValue = parseFloat(priceInput.value != '' ? priceInput.value : lastPrice);
     const weight = parseFloat(weightInput.value != '' ? weightInput.value : '0.0');
 
     setAmount((priceValue * weight).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' }))
@@ -244,7 +244,7 @@ export default function Salidas({ selectedProduct, setSelectedProduct }) {
               <input
                 className={`pl-6 w-full ${!changePrice ? 'bg-gray-100' : 'bg-white'} rounded-lg p-3 text-red-700 font-semibold border border-red-600`}
                 name='price'
-                placeholder={price.toFixed(2)}
+                placeholder={lastPrice.toFixed(2)}
                 id='output-price'
                 step={0.01}
                 type="number"

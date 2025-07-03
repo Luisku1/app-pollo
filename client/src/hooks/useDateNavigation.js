@@ -82,13 +82,23 @@ export function useDateNavigation() {
       return `${base}/${newDate}`;
     }
   };
+  // Estado para controlar si se registra para hoy o para la fecha seleccionada
+  const [registerDateMode, setRegisterDateMode] = useState(); // 'current' | 'today'
+  const dateFromYYYYMMDDFormat = dateFromYYYYMMDD(currentDate);
+  // Fecha efectiva para registro
+  const registerDate = registerDateMode === 'today' ? new Date().toISOString() : dateFromYYYYMMDDFormat.toISOString();
+
+  console.log(registerDate, registerDateMode);
 
   return {
     isDateAware,
     currentDate,
-    dateFromYYYYMMDD: dateFromYYYYMMDD(currentDate),
+    dateFromYYYYMMDD: dateFromYYYYMMDDFormat,
     today: today(currentDate),
     setDate,
+    registerDate,
+    registerDateMode,
+    setRegisterDateMode,
     getDateAwareLink,
     branchId,
   };

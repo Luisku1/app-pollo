@@ -89,13 +89,6 @@ export const assistantLookup = {
   }
 };
 
-export const unwindAssistant = {
-  $unwind: {
-    path: '$assistant',
-    preserveNullAndEmptyArrays: true,
-  }
-}
-
 export const senderLookup = {
   $lookup: {
     from: 'employees',
@@ -252,9 +245,9 @@ export const recalculateBranchReport = async ({ branchReport: paramsBranchReport
     if (paramsBranchReport) {
 
       const reportDate = paramsBranchReport.createdAt
-      const reportBranchId = paramsBranchReport?.branch?._id ? paramsBranchReport.branch._id : paramsBranchReport.branch
+      const reportBranchId = paramsBranchReport?.branch?._id ?? paramsBranchReport?.branch
 
-      const { incomesArray, outgoingsArray, inputsArray, outputsArray, providerInputsArray, initialStockArray, finalStockArray, sender, createdAt, branch, employee, assistant, company, pricesDate, dateSent } = await fetchBranchReportInfo({ branchId: reportBranchId, date: reportDate })
+      const { incomesArray, outgoingsArray, inputsArray, outputsArray, providerInputsArray, initialStockArray, finalStockArray, sender, createdAt, branch, employee, assistant, company, pricesDate, dateSent } = await fetchBranchReportInfo({ branchId: reportBranchId, date: reportDate, reportId: paramsBranchReport._id })
 
       const incomes = incomesArray?.length > 0
         ? incomesArray.reduce((total, income) => total + income.amount, 0)
@@ -360,9 +353,9 @@ export const setBalanceOnZero = async (req, res, next) => {
 
 export const updateBranchReportEmployees = async (req, res, next) => {
   const { reportId } = req.params
-  const { employeeId, assistants } = req.body
+  const { employeeId, assistants, branchId } = req.body
+  const date = dateFromYYYYMMDD(req.body.date);
 
-  if (!reportId) return next(errorHandler(400, 'Report ID is required'))
   if (!employeeId && !assistants) return next(errorHandler(400, 'At least one employee or assistant is required'))
 
   let branchReport = null
@@ -372,33 +365,46 @@ export const updateBranchReportEmployees = async (req, res, next) => {
 
   try {
 
-    branchReport = await fetchBranchReport({ reportId })
-    reportToUpdate = { ...branchReport }
+    if (!reportId) {
+      branchReport = await fetchOrCreateBranchReport({ branchId, date })
+    } else {
+      branchReport = await fetchBranchReportById({ branchReportId: reportId, populate: true })
+    }
 
-    if (!branchReport) throw new Error("No se encontró el reporte, asegúrate de registrar algo antes");
+    reportToUpdate = branchReport.toObject();
+
+    if (!branchReport) throw new Error("Un error ha ocurrido al consultar o crear el reporte");
     previousEmployeeId = branchReport.employee?._id || branchReport.employee || null
-    previousAssistants = branchReport.assistant || null
+    previousAssistants = branchReport.assistant || []
 
-    if (previousAssistants && previousAssistants.length > 0 && assistants && assistants.length > 0) {
-      if (!areArraysEqual(previousAssistants, assistants)) {
+    if (assistants && assistants.length > 0) {
+      if ((previousAssistants.length === 0 && assistants.length > 0) || !areArraysEqual(previousAssistants, assistants)) {
         reportToUpdate.assistant = assistants.map(assistant => assistant._id || assistant)
       }
     }
 
-    if (employeeId && previousEmployeeId && employeeId !== previousEmployeeId) {
+    if (employeeId && (previousEmployeeId && employeeId !== previousEmployeeId) || !previousEmployeeId) {
       reportToUpdate.employee = employeeId
       reportToUpdate.dateSent = (new Date()).toISOString()
-      await updateEmployeeDailyBalances({ branchReport: branchReport, changedEmployee: true })
+      await updateEmployeeDailyBalances({ branchReport: reportToUpdate, changedEmployee: previousEmployeeId ?? null })
     }
 
-    await recalculateBranchReport({ branchReport: reportToUpdate })
+    await BranchReport.findByIdAndUpdate(branchReport._id, {
+      employee: reportToUpdate.employee,
+      assistant: reportToUpdate.assistant,
+      dateSent: reportToUpdate.dateSent
+    }, { new: true })
+
+    recalculateBranchReport({ branchReport: reportToUpdate })
 
     res.status(200).json({
       message: 'Branch report employees updated successfully',
-      success: true
+      success: true,
+      data: reportToUpdate
     })
 
   } catch (error) {
+    console.log(error)
     next(error)
   }
 }
@@ -863,7 +869,6 @@ const fetchBranchReportInfo = async ({ branchId = null, date = null, reportId = 
       employeeLookup,
       unwindEmployee,
       assistantLookup,
-      unwindAssistant,
       senderLookup,
       unwindSender,
       {
@@ -957,6 +962,7 @@ export const fetchBranchReportById = async ({ branchReportId, populate = false }
         .populate('outputsArray')
         .populate('outgoingsArray')
         .populate('incomesArray')
+        .populate('branch')
 
     } else {
 

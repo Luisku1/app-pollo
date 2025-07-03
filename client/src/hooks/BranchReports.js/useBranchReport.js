@@ -15,7 +15,7 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 
 export const useBranchReport = ({ branchId = null, date = null }) => {
   // State
-  const [branchReport, setBranchReport] = useState()
+  const [branchReport, setBranchReport] = useState({})
   const [loading, setLoading] = useState(false)
 
   // Hooks for each report section
@@ -157,9 +157,11 @@ export const useBranchReport = ({ branchId = null, date = null }) => {
     setBranchReport(prev => ({
       ...prev,
       employee: employee || null,
-      assistants: assistants || []
+      assistant: assistants || []
     }))
-    await updateReportEmployees({ reportId: branchReport._id, employeeId: employee?._id || null, assistants: assistants?.map(a => a._id) || [] })
+
+    console.log(assistants)
+    await updateReportEmployees({ reportId: branchReport._id, employeeId: employee?._id || null, assistants: assistants?.map(a => a._id) || [], branchId, date })
   }
 
   // Fetch branch report from API SOLO cuando branchId y date cambian y NO hay _branchReport
@@ -168,7 +170,9 @@ export const useBranchReport = ({ branchId = null, date = null }) => {
     setLoading(true);
     getBranchReport({ branchId, date })
       .then(setBranchReport)
-      .catch(console.log)
+      .catch(() => {
+        setBranchReport({})
+      })
       .finally(() => setLoading(false));
   }, [branchId, date]);
 

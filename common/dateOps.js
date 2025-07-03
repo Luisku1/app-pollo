@@ -92,6 +92,6 @@ export const isYYYYMMDD = (date) => {
 }
 
 export const today = (date) => {
-  const _date = isYYYYMMDD(date) ? dateFromYYYYMMDD(date) : formatDate(date);
+  const _date = isYYYYMMDD(date) ? formatDate(dateFromYYYYMMDD(date)) : formatDate(date);
   return _date == formatDate((new Date())) ? true : false
 }

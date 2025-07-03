@@ -157,7 +157,6 @@ export const getBranchCurrentPrices = async (req, res, next) => {
   const pricesDate = req.params.pricesDate != "null" ? new Date(req.params.pricesDate) : null;
   const sortOrder = req.params.sortOrder == "null" ? null : req.params.sortOrder;
   const residuals = req.query.residuals === 'true' ? true : false;
-  console.log(residuals)
 
   try {
     const currentPrices = await getPrices({ branchId, date, pricesDate, sortOrder, residuals });

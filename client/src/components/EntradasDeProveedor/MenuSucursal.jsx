@@ -6,18 +6,18 @@ import Select from 'react-select'
 import { customSelectStyles } from '../../helpers/Constants'
 import { useBranchCustomerProductPrice } from '../../hooks/Prices/useBranchCustomerProductPrice'
 import { ToastDanger } from '../../helpers/toastify'
-import { isToday } from '../../helpers/DatePickerFunctions'
+import { formatDate, isToday } from '../../helpers/DatePickerFunctions'
+import { useDateNavigation } from '../../hooks/useDateNavigation'
 
-export default function MenuSucursal({ branchAndCustomerSelectOptions, date, selectedProduct, onAddProviderInput }) {
+export default function MenuSucursal({ branchAndCustomerSelectOptions, selectedProduct, onAddProviderInput }) {
 
+  const { currentDate: date, dateFromYYYYMMDD, today } = useDateNavigation();
   const { currentUser, company } = useSelector((state) => state.user)
   const [selectedBranchCustomerOption, setSelectedBranchCustomerOption] = useState(null)
   const [selectedGroup, setSelectedGroup] = useState('')
-  const { price } = useBranchCustomerProductPrice({ branchCustomerId: selectedBranchCustomerOption ? selectedBranchCustomerOption.value : null, productId: selectedProduct ? selectedProduct._id : null, date, group: selectedGroup == '' ? null : selectedGroup })
+  const { price: lastPrice } = useBranchCustomerProductPrice({ branchCustomerId: selectedBranchCustomerOption ? selectedBranchCustomerOption.value : null, productId: selectedProduct ? selectedProduct._id : null, date, group: selectedGroup == '' ? null : selectedGroup })
   const [providerInputFormData, setProviderInputFormData] = useState({})
   const [amount, setAmount] = useState(0)
-
-  console.log(selectedProduct)
 
   const generarMonto = () => {
     const priceInput = document.getElementById('provider-input-price')
@@ -25,7 +25,7 @@ export default function MenuSucursal({ branchAndCustomerSelectOptions, date, sel
     const weightInput = document.getElementById('provider-input-weight')
     const weightValue = weightInput.value != '' ? parseFloat(weightInput.value) : 0
     const piecesValue = piecesInput.value != '' ? parseFloat(piecesInput.value) : 0
-    const unit = selectedProduct.byPieces ? piecesValue : weightValue
+    const unit = selectedProduct?.byPieces === true ? piecesValue : weightValue
 
     if (parseFloat(priceInput.value) == 0) {
       ToastDanger('El precio no puede ser $0.00')
@@ -38,9 +38,7 @@ export default function MenuSucursal({ branchAndCustomerSelectOptions, date, sel
     setAmount((price * unit).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' }))
   }
 
-  useEffect(() => {
-    generarMonto()
-  }, [price])
+  useEffect(generarMonto, [providerInputFormData.price, providerInputFormData.weight, lastPrice])
 
   const handleProviderInputInputsChange = (e) => {
     generarMonto()
@@ -86,7 +84,6 @@ export default function MenuSucursal({ branchAndCustomerSelectOptions, date, sel
     document.getElementById('provider-input-pieces').value = ''
     document.getElementById('provider-input-weight').value = ''
     document.getElementById('provider-input-comment').value = ''
-    generarMonto()
   }
 
   const submitProviderInput = async (e) => {
@@ -98,9 +95,9 @@ export default function MenuSucursal({ branchAndCustomerSelectOptions, date, sel
     e.preventDefault()
 
     try {
-      const price = parseFloat(priceInput.value == '' ? priceInput.placeholder : priceInput.value)
+      const price = parseFloat(priceInput.value == '' ? priceInput.placeholder ?? 0 : priceInput.value ?? 0)
       inputButton.disabled = true
-
+      const createdAt = today ? new Date().toISOString() : dateFromYYYYMMDD.toISOString()
       const { weight, pieces } = providerInputFormData
       const group = selectedGroup == 'Sucursales' ? 'branch' : 'customer'
 
@@ -118,7 +115,7 @@ export default function MenuSucursal({ branchAndCustomerSelectOptions, date, sel
           product: selectedProduct,
           company: company._id,
           employee: currentUser,
-          createdAt: isToday(date) ? new Date().toISOString() : date,
+          createdAt,
         }
       } else {
         providerInput = {
@@ -132,11 +129,11 @@ export default function MenuSucursal({ branchAndCustomerSelectOptions, date, sel
           product: selectedProduct,
           employee: currentUser,
           customer: selectedBranchCustomerOption,
-          createdAt: isToday(date) ? new Date().toISOString() : date,
+          createdAt,
         }
       }
 
-      if (price == 0 || amount == 0 || parseFloat(priceInput.placeholder) == 0) {
+      if (price == 0 || amount == 0) {
         ToastDanger('El monto o precio no pueden tener un valor de $0.00')
         return
       }
@@ -174,7 +171,7 @@ export default function MenuSucursal({ branchAndCustomerSelectOptions, date, sel
         </div>
         <div className="relative">
           <span className="absolute text-red-700 font-semibold left-3 top-3">$</span>
-          <input className='pl-6 w-full rounded-lg p-3 text-red-700 font-semibold border border-red-600' name='price' placeholder={price.toFixed(2)} onChange={() => { generarMonto() }} id='provider-input-price' step={0.01} type="number" />
+          <input className='pl-6 w-full rounded-lg p-3 text-red-700 font-semibold border border-red-600' name='price' placeholder={lastPrice.toFixed(2)} onChange={() => { generarMonto() }} id='provider-input-price' step={0.01} type="number" />
           <label htmlFor="compact-input" className="-translate-y-full px-1 absolute top-1/4 left-2 transform rounded-sm bg-white text-black text-sm font-semibold">
             Precio
           </label>

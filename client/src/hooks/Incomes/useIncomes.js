@@ -7,7 +7,7 @@ import { Types } from "mongoose";
 import { optimisticUpdateReport, rollbackReport } from "../../helpers/optimisticReportUpdate";
 import { addToArrayAndSum, removeFromArrayAndSum } from '../../helpers/reportActions';
 import { getId } from "../../helpers/Functions";
-import { formatDate } from "../../../../common/dateOps";
+import { formatDate, formatDateYYYYMMDD } from "../../../../common/dateOps";
 
 
 export const useIncomes = ({ companyId = null, date = null, initialIncomes = null }) => {
@@ -47,17 +47,51 @@ export const useIncomes = ({ companyId = null, date = null, initialIncomes = nul
     setIncomes(initialArray);
   };
 
+  // Actualiza el caché de React Query directamente para evitar problemas de concurrencia
   const pushIncome = (income) => {
-    if (income?.length > 0)
-      setIncomes((prevIncomes) => [...income, ...prevIncomes]);
-    else
-      setIncomes((prevIncomes) => [income, ...prevIncomes]);
+
+    const cacheDate = formatDateYYYYMMDD(new Date(income.createdAt));
+
+    queryClient.setQueryData(["incomes", companyId, cacheDate], (prev = []) => {
+      if (income?.length > 0) {
+        return [...income, ...prev];
+      } else {
+        return [income, ...prev];
+      }
+    });
+    // También actualiza el estado local para mantener consistencia visual inmediata
+    setIncomes((prevIncomes) => {
+      if (income?.length > 0) {
+        return [...income, ...prevIncomes];
+      } else {
+        return [income, ...prevIncomes];
+      }
+    });
   };
 
   const spliceIncome = (index) => {
     setIncomes((prevIncomes) => {
-      const newIncomes = prevIncomes.filter((_, i) => i !== index);
-      return newIncomes;
+      const cacheDate = formatDateYYYYMMDD(new Date(prevIncomes[index].createdAt));
+      // Actualiza el caché de React Query para eliminar el income eliminado
+      queryClient.setQueryData(["incomes", companyId, cacheDate], (prev = []) => {
+        if (prev.length === 1) {
+          return [];
+        }
+        if (prev.length > 1) {
+          return prev.filter((_, i) => i !== index);
+        }
+        return [];
+      });
+    });
+    // También actualiza el estado local para mantener consistencia visual inmediata
+    setIncomes((prevIncomes) => {
+      if (prevIncomes.length === 1) {
+        return [];
+      }
+      if (prevIncomes.length > 1) {
+        return prevIncomes.filter((_, i) => i !== index);
+      }
+      return [];
     });
   };
 

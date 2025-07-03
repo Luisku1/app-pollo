@@ -5,7 +5,7 @@ import ProviderInput from '../models/providers/provider.input.model.js'
 import { getDayRange, today } from '../utils/formatDate.js'
 import { Types } from 'mongoose'
 import { pushOrPullBranchReportRecord } from './branch.report.controller.js'
-import { pushOrPullCustomerReportRecord } from './customer.controller.js'
+import { customerAggregate, pushOrPullCustomerReportRecord } from './customer.controller.js'
 import { employeeAggregate } from './employee.controller.js'
 import { createStockAndUpdateBranchReport, deleteStockAndUpdateBranchReport } from './stock.controller.js'
 import { branchAggregate } from './branch.controller.js'
@@ -160,8 +160,8 @@ export const newCustomerInput = async (req, res, next) => {
       date: createdAt,
       record: input,
       affectsBalancePositively: false,
-      amountField: 'salesAmount',
-      arrayField: 'branchProducts'
+      amountField: 'sales',
+      arrayField: 'branchSales'
     })
 
     res.status(200).json({ input })
@@ -601,11 +601,6 @@ export const deleteInput = async (req, res, next) => {
 
   } catch (error) {
 
-    if (deletedInput) {
-
-      await Input.create({ deletedInput })
-    }
-
     next(error);
   }
 }
@@ -645,8 +640,8 @@ export const deleteInputById = async (inputId) => {
         record: deletedInput,
         affectsBalancePositively: false,
         operation: '$pull',
-        arrayField: 'branchProducts',
-        amountField: 'salesAmount'
+        arrayField: 'branchSales',
+        amountField: 'sales'
       })
     }
 
@@ -1005,6 +1000,7 @@ export const getProviderInputs = async (req, res, next) => {
       ...productAggregate('product'),
       ...employeeAggregate('employee'),
       ...branchAggregate('branch'),
+      ...customerAggregate('customer'),
       {
         $group: {
           _id: "$product._id",
@@ -1162,14 +1158,14 @@ export const createCustomerProviderInput = async (req, res, next) => {
 
     providerInput = await ProviderInput.create(providerInputData)
 
-    pushOrPullCustomerReportRecord({
+    await pushOrPullCustomerReportRecord({
       customerId: customer,
       date: createdAt,
       record: providerInput,
       affectsBalancePositively: false,
       operation: '$addToSet',
-      arrayField: 'providerInputsArray',
-      amountField: 'providerInputs'
+      arrayField: 'directSales',
+      amountField: 'sales'
     })
 
     res.status(200).json({ providerInput })
@@ -1209,11 +1205,11 @@ export const deleteProviderInput = async (req, res, next) => {
       await pushOrPullCustomerReportRecord({
         customerId: deletedProviderInput.customer,
         date: deletedProviderInput.createdAt,
-        record: deleteProviderInput,
+        record: deletedProviderInput,
         affectsBalancePositively: false,
         operation: '$pull',
-        arrayField: 'providerProducts',
-        amountField: 'salesAmount'
+        arrayField: 'directSales',
+        amountField: 'sales'
       })
     }
 

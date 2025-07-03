@@ -41,23 +41,21 @@ export default function RegistroCuentaDiaria({ edit = true }) {
   const navigate = useNavigate()
   const params = useParams()
   const [branchId, setBranchId] = useState(params.branchId || null)
-  const { currentDate } = useDateNavigation();
+  const { currentDate, dateFromYYYYMMDD } = useDateNavigation();
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const { activeEmployees: employees } = useEmployees({ companyId: company._id })
   const { branches } = useBranches({ companyId: company._id })
   const { roles, isManager, isJustSeller, isSupervisor } = useRoles()
   const { products } = useProducts({ companyId: company._id })
-  const [selectedAssistants, setSelectedAssistants] = useState([])
   const [selectedBranch, setSelectedBranch] = useState()
   const [selectBranch, setSelectBranch] = useState(false)
-  const [showPrices, setShowPrices] = useState(false)
   const [showSelectReportEmployees, setShowSelectReportEmployees] = useState(false)
   const [employeeInfo, setEmployeeInfo] = useState(null)
   const isAuthorized = roles && isManager(currentUser.role)
   const [ableToEdit, setAbleToEdit] = useState(false)
 
-  const reportDate = (currentDate ? new Date(currentDate) : new Date()).toLocaleDateString('es-mx', { weekday: 'long', year: 'numeric', month: '2-digit', day: '2-digit' })
+  const reportDate = dateFromYYYYMMDD.toLocaleDateString('es-mx', { weekday: 'long', year: 'numeric', month: '2-digit', day: '2-digit' })
   const {
     branchReport,
     employee,
@@ -146,27 +144,29 @@ export default function RegistroCuentaDiaria({ edit = true }) {
   }
 
   const onRegisterEmployees = async (selectedEmployee, selectedAssistants) => {
-
+    let finalAssistants = [...selectedAssistants] || [];
+    let finalEmployee = selectedEmployee
     if ((selectedEmployee && currentUser._id !== selectedEmployee._id) || !selectedEmployee) {
-      if (!selectedAssistants.some(assistant => assistant._id === selectedEmployee._id)) {
-        selectedAssistants.push({
-          value: selectedEmployee._id,
-          label: getEmployeeFullName(selectedEmployee),
-          ...selectedEmployee
+      if (!selectedAssistants.some(assistant => assistant._id === currentUser._id)) {
+        finalAssistants.push({
+          value: currentUser._id,
+          label: getEmployeeFullName(currentUser),
+          ...currentUser
         });
       }
     }
 
     setShowSelectReportEmployees(false);
 
-    if (areArraysEqual(selectedAssistants, assistants) && selectedEmployee?._id === branchReport?.employee?._id) {
+    if (!(finalAssistants.length > 0 && assistants.length === 0) || (areArraysEqual(finalAssistants, assistants) && selectedEmployee?._id === branchReport?.employee?._id)) {
       ToastInfo('No se han realizado cambios en los empleados del reporte');
       return;
     }
 
-    await updateReportEmployees({ selectedEmployee, selectedAssistants });
+    await updateReportEmployees({ employee: finalEmployee, assistants: finalAssistants });
   }
 
+  console.log(branchReport)
   useEffect(() => {
 
     if (!branchId || !branches) return
@@ -187,7 +187,7 @@ export default function RegistroCuentaDiaria({ edit = true }) {
 
     if (selectedBranch != null && currentDate != null && edit) {
 
-      document.title = (selectedBranch?.branch ?? 'Formato') + ' ' + '(' + (new Date(currentDate).toLocaleDateString()) + ')'
+      document.title = (selectedBranch?.branch ?? 'Formato') + ' ' + '(' + (dateFromYYYYMMDD.toLocaleDateString()) + ')'
     }
 
   }, [selectedBranch, currentDate, edit])
@@ -250,9 +250,9 @@ export default function RegistroCuentaDiaria({ edit = true }) {
               </div>
             )}
           </div>
-          {selectedBranch && !employee && (
+          {(selectedBranch && showSelectReportEmployees) && (
             <Modal
-              content={<SelectReportEmployees employee={selectedEmployee} currentReportEmployee={employee} branch={selectedBranch} employees={employees} onChangeEmployee={handleEmployeeSelectChange} onChangeAssistants={setSelectedAssistants} onRegisterEmployees={onRegisterEmployees} />}
+              content={<SelectReportEmployees currentReportEmployee={employee} branch={selectedBranch} employees={employees} onRegisterEmployees={onRegisterEmployees} inReport={true} />}
               closeModal={() => { setShowSelectReportEmployees(false) }}
               ableToClose={false}
               closeOnClickOutside={false}
@@ -276,8 +276,10 @@ export default function RegistroCuentaDiaria({ edit = true }) {
                 )}
               </div>
             </h1>
-            {branchReport && branchId !== null && (
-              <h2 className='col-span-12 px-2 rounded-lg border-black mx-2 mt-2 bg-white'>
+          </div>
+          {branchReport && branchId !== null && employee !== null && (employee._id !== currentUser._id && isSupervisor(currentUser.role)) && (
+            <div>
+              <h2 className='w-full px-2 rounded-lg border-black mx-2 mt-2 bg-white'>
                 <div className='flex gap-2 py-2 items-center'>
                   {branchReport?.employee &&
                     <p className='flex-shrink-0'>Encargado:</p>
@@ -295,40 +297,15 @@ export default function RegistroCuentaDiaria({ edit = true }) {
                   </div>
                 )}
               </h2>
-            )}
-          </div>
-          {branchReport && branchId !== null && (
-            <div>
-              {false ?
-                <div>
-                  <button className='font-bold border border-black p-3 rounded-lg text-black flex justify-self-end' onClick={() => setShowPrices(true)}>$ Precios</button>
-                  {showPrices &&
-                    <Modal
-                      closeModal={() => setShowPrices(false)}
-                      content={
-                        <BranchPrices
-                          onUpdateBranchReport={onUpdateBranchReport}
-                          prices={prices}
-                          pricesDate={branchReport.pricesDate}
-                          branch={branchId || selectedBranch?._id || null}
-                          onChange={onChangePrices}
-                        />
-                      }
-                    />
-                  }
-                </div>
-                :
-                <div className='my-2'>
-                  <BranchPrices
-                    onUpdateBranchReport={onUpdateBranchReport}
-                    prices={prices}
-                    pricesDate={branchReport.pricesDate}
-                    branch={branchId || selectedBranch?._id || null}
-                    onChange={onChangePrices}
-                    date={currentDate}
-                  />
-                </div>
-              }
+              <div className='my-2'>
+                <BranchPrices
+                  onUpdateBranchReport={onUpdateBranchReport}
+                  prices={prices}
+                  pricesDate={branchReport.pricesDate}
+                  branch={branchId || selectedBranch?._id || null}
+                  onChange={onChangePrices}
+                />
+              </div>
               {branchReport ?
                 <div>
                   <div className="flex items-center justify-around">
@@ -366,7 +343,7 @@ export default function RegistroCuentaDiaria({ edit = true }) {
                     modifyBalance={modifyBalance}
                     outgoings={outgoings}
                     outgoingsTotal={outgoingsTotal}
-                    employee={selectedEmployee}
+                    employee={employee}
                     onAddOutgoing={onAddOutgoing}
                     onDeleteOutgoing={onDeleteOutgoing}
                     isReport={true}
@@ -384,7 +361,7 @@ export default function RegistroCuentaDiaria({ edit = true }) {
                     onDeleteStock={onDeleteStock}
                     branchPrices={prices}
                     branch={selectedBranch}
-                    employee={selectedEmployee}
+                    employee={employee}
                     isReport={true}
                     date={currentDate}
                     listButton={<p className='font-bold text-lg text-center bg-green-100 rounded-lg border p-1 border-header'>{currency({ amount: stockAmount ?? 0 })}</p>}
@@ -431,7 +408,7 @@ export default function RegistroCuentaDiaria({ edit = true }) {
                 onDeleteStock={onDeleteMidStock}
                 branchPrices={prices}
                 branch={selectedBranch}
-                employee={selectedEmployee}
+                employee={employee}
                 date={currentDate}
                 listButton={<p className='font-bold text-lg text-center bg-yellow-200 rounded-lg border p-1 border-header'>{currency({ amount: midDayStockAmount ?? 0 })}</p>}
               />

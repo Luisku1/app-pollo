@@ -16,13 +16,22 @@ export const SelectReportEmployees = ({ employees, currentReportEmployee, branch
 
   useEffect(() => {
 
-    if (!employees.length > 0) return
-    if (selectedEmployee) return
+    if (!employees || employees.length === 0) return;
+    if (currentReportEmployee && !selectedEmployee) {
+      setSelectedEmployee({ ...currentReportEmployee, label: getEmployeeFullName(currentReportEmployee), value: currentReportEmployee._id });
+      return;
+    }
 
-    setSelectedEmployee(currentReportEmployee ? currentReportEmployee : { ...currentUser, label: getEmployeeFullName(currentUser), value: currentUser._id });
+    if (currentReportEmployee && selectedEmployee && currentReportEmployee._id !== selectedEmployee._id && !isSupervisor(currentUser.role)) return;
 
-  }, [currentReportEmployee, employees, currentUser])
+    if (currentReportEmployee && selectedEmployee && currentReportEmployee._id === selectedEmployee._id) return;
 
+    if (!selectedEmployee && !currentReportEmployee) {
+      setSelectedEmployee({ ...currentUser, label: getEmployeeFullName(currentUser), value: currentUser._id });
+      return;
+    }
+
+  }, [selectedEmployee, currentReportEmployee, currentUser, employees]);
   return (
     <div className='w-full mt-10'>
       <div>
@@ -56,18 +65,18 @@ export const SelectReportEmployees = ({ employees, currentReportEmployee, branch
           />
         </div>
       </div>
-      {!currentReportEmployee || (currentReportEmployee && (currentReportEmployee?._id !== currentUser._id && isSupervisor(currentUser.role))) &&
-
+      {(!currentReportEmployee || (currentReportEmployee && (currentReportEmployee?._id !== currentUser._id && isSupervisor(currentUser.role))) || (currentReportEmployee && currentReportEmployee._id === currentUser._id)) &&
         <button
           onClick={() => onRegisterEmployees(selectedEmployee, selectedAssistants)}
           className='mt-2 rounded-lg text-white text-md p-3 w-full bg-button'
         >
-          {!inReport ? 'Asignar Personal' : 'Continuar con el Reporte'}
+          {!inReport || !currentReportEmployee ? 'Asignar Personal' : 'Continuar con el Reporte'}
         </button>
       }
-      {(currentReportEmployee && currentReportEmployee._id !== currentUser._id) || !inReport && (
+      {((currentReportEmployee && currentReportEmployee._id !== currentUser._id) || inReport) && (
         <button
           onClick={() => onRegisterEmployees(null, selectedAssistants)}
+          className="mt-2 rounded-lg text-white text-md p-3 w-full bg-red-600 hover:bg-red-700"
         >
           No soy el encargado de la sucursal
         </button>

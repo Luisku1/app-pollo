@@ -20,6 +20,7 @@ import { useCustomers } from '../../hooks/Customers/useCustomers'
 import { useEmployees } from '../../hooks/Employees/useEmployees'
 import { useDateNavigation } from '../../hooks/useDateNavigation'
 import { dateFromYYYYMMDD } from '../../../../common/dateOps'
+import RegisterDateSwitch from '../RegisterDateSwitch'
 
 export default function Incomes() {
 
@@ -32,8 +33,9 @@ export default function Incomes() {
   const [branchAndCustomerSelectOptions, setBranchAndCustomerSelectOptions] = useState([])
   const [selectedIncomeGroup, setSelectedIncomeGroup] = useState('')
   const [selectedIncomeType, setSelectedIncomeType] = useState(null)
-  const { currentDate } = useDateNavigation()
+  const { currentDate, today, dateFromYYYYMMDD } = useDateNavigation()
   const { incomes, incomesTotal, onAddIncome, onDeleteIncome } = useIncomes({ companyId, date: currentDate })
+  const  [useToday, setUseToday]  = useState(false);
   const { branches } = useBranches({ companyId: company._id })
   const { employees } = useEmployees({ companyId: company._id })
   const { customers } = useCustomers({ companyId: company._id })
@@ -61,6 +63,7 @@ export default function Incomes() {
     setSelectedIncomeType(null)
     setSelectedCustomerBranchIncomesOption(null)
     setIncomeFormData({})
+    setUseToday(false)
   }
 
   const handleCustomerBranchIncomesSelectChange = (option) => {
@@ -75,7 +78,7 @@ export default function Incomes() {
 
     e.preventDefault()
 
-    const createdAt = isToday(dateFromYYYYMMDD(currentDate)) ? new Date().toISOString() : new Date(dateFromYYYYMMDD(currentDate)).toISOString()
+    const createdAt = useToday || today ? new Date().toISOString() : dateFromYYYYMMDD.toISOString()
     let income = null
 
     try {
@@ -181,19 +184,29 @@ export default function Incomes() {
             />
           </div>
         </div>
-        <form onSubmit={addIncomeSubmit} className="grid grid-cols-3 gap-2 mt-2">
-          <BranchAndCustomerSelect defaultLabel={'Sucursal o Cliente'} options={branchAndCustomerSelectOptions} selectedOption={selectedCustomerBranchIncomesOption} handleSelectChange={handleCustomerBranchIncomesSelectChange}></BranchAndCustomerSelect>
-          <Select
-            styles={customSelectStyles}
-            menuPortalTarget={document.body}
-            value={selectedIncomeType}
-            onChange={handleTypesSelectChange}
-            options={getArrayForSelects(incomeTypes, (type) => { return type.name })}
-            placeholder={'Tipo'}
-            isSearchable={true}
-          />
-          <input type="number" name="amount" id="income-amount" placeholder='$0.00' step={0.10} className='border border-black p-2 rounded-lg' required onInput={incomesButtonControl} onChange={handleIncomesInputsChange} />
-          <button type='submit' id='incomeButton' disabled className='bg-button text-white p-3 rounded-lg col-span-3 mt-4'>Agregar</button>
+        <form onSubmit={addIncomeSubmit} className="">
+          <div>
+            {!today &&
+              <RegisterDateSwitch
+                useToday={useToday}
+                setUseToday={setUseToday}
+              />
+            }
+          </div>
+          <div className='grid grid-cols-3 gap-2 mt-2'>
+            <BranchAndCustomerSelect defaultLabel={'Sucursal o Cliente'} options={branchAndCustomerSelectOptions} selectedOption={selectedCustomerBranchIncomesOption} handleSelectChange={handleCustomerBranchIncomesSelectChange}></BranchAndCustomerSelect>
+            <Select
+              styles={customSelectStyles}
+              menuPortalTarget={document.body}
+              value={selectedIncomeType}
+              onChange={handleTypesSelectChange}
+              options={getArrayForSelects(incomeTypes, (type) => { return type.name })}
+              placeholder={'Tipo'}
+              isSearchable={true}
+            />
+            <input type="number" name="amount" id="income-amount" placeholder='$0.00' step={0.10} className='border border-black p-2 rounded-lg' required onInput={incomesButtonControl} onChange={handleIncomesInputsChange} />
+            <button type='submit' id='incomeButton' disabled className='bg-button text-white p-3 rounded-lg col-span-3 mt-4'>Agregar</button>
+          </div>
         </form>
       </div>
     </div>

@@ -2674,6 +2674,7 @@ export const updateAccountBalance = async (branchReport, changedEmployee) => {
 
 	let updatedDailyBalance = null
 	let dailyBalance = null
+	let changedEmployeeDailyBalance = null
 	let employee = null
 	const employeeId = branchReport.employee?._id ?? branchReport.employee
 	if (!employeeId) throw new Error("No hay empleado en el reporte");
@@ -2683,6 +2684,11 @@ export const updateAccountBalance = async (branchReport, changedEmployee) => {
 		const { currentWeekRange, isCurrentWeek, isInmediatePrevWeek } = isCurrentOrInmediateWeek(branchReport.createdAt, employeePayday)
 		dailyBalance = await fetchOrCreateDailyBalance({ companyId: branchReport.company, employeeId: employeeId, date: branchReport.createdAt })
 
+		if (changedEmployee?._id) {
+			changedEmployeeDailyBalance = await fetchOrCreateDailyBalance({ companyId: branchReport.company, employeeId: changedEmployee._id, date: branchReport.createdAt })
+			if (!changedEmployeeDailyBalance) throw new Error("No se encontró el balance del empleado cambiado");
+		}
+
 		if (!dailyBalance) throw new Error("No se encontró el balance del empleado");
 
 		const currentBalance = dailyBalance.accountBalance
@@ -2690,6 +2696,11 @@ export const updateAccountBalance = async (branchReport, changedEmployee) => {
 		const adjustmentBalance = changedEmployee ? -currentBalance : reportBalance - currentBalance
 
 		updatedDailyBalance = await EmployeeDailyBalance.findByIdAndUpdate(dailyBalance._id, { accountBalance: changedEmployee ? 0 : branchReport.balance }, { new: true })
+
+		if (changedEmployeeDailyBalance) {
+			await EmployeeDailyBalance.findByIdAndUpdate(changedEmployeeDailyBalance._id, { accountBalance: 0 }, { new: true })
+			await Employee.findByIdAndUpdate(changedEmployee._id, { $inc: { balance: -changedEmployeeDailyBalance.accountBalance } }, { new: true })
+		}
 
 		if (!updatedDailyBalance) throw new Error("No se actualizó el balance del empleado")
 
@@ -2699,8 +2710,6 @@ export const updateAccountBalance = async (branchReport, changedEmployee) => {
 		employee = await Employee.findByIdAndUpdate(employeeId, {
 			$inc: { balance: adjustmentBalance }
 		}, { new: true })
-
-		console.log(isCurrentWeek, isInmediatePrevWeek)
 
 		if (!(isCurrentWeek || isInmediatePrevWeek)) {
 

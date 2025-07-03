@@ -17,7 +17,6 @@ export default function BranchPrices({ prices, pricesDate, branch, onChange, onU
     }
   }
 
-  console.log(prices, productPairs)
   const renderPrices = () => (
     <table className="w-full text-sm table-fixed">
       <colgroup>

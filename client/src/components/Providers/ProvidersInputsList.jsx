@@ -59,8 +59,7 @@ export default function ProvidersInputsList({ inputs, totalWeight = 0, totalAmou
   };
 
   const renderInputItem = (input, index) => {
-    const { employee, product, pieces, weight, amount, branch, comment, createdAt } = input;
-
+    const { employee, product, pieces, weight, amount, customer, branch, comment, createdAt } = input;
     const tempInput = { ...input, index };
 
     return (
@@ -78,7 +77,15 @@ export default function ProvidersInputsList({ inputs, totalWeight = 0, totalAmou
                 <div id="list-element" className="col-span-12">
                   <div className="w-full text-red-800 mb-1">
                     <RowItem>
-                      <p className="text-md font-bold flex gap-1 items-center"><MdStorefront />{branch.branch}</p>
+                      {customer && customer.name &&
+                        <p className="text-md font-bold flex gap-1 items-center">
+                          {customer.name}
+                        </p>
+                      }
+                      {branch && branch.branch &&
+
+                        <p className="text-md font-bold flex gap-1 items-center"><MdStorefront />{branch.branch}</p>
+                      }
                       <button onClick={() => setSelectedEmployee(employee)} className="font-bold text-md flex gap-1 truncate items-center"><span><CgProfile /></span>{employee.name}</button>
                     </RowItem>
                   </div>
