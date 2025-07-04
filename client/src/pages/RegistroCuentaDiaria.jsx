@@ -46,7 +46,7 @@ export default function RegistroCuentaDiaria({ edit = true }) {
   const [loading, setLoading] = useState(false);
   const { activeEmployees: employees } = useEmployees({ companyId: company._id })
   const { branches } = useBranches({ companyId: company._id })
-  const { roles, isManager, isJustSeller, isSupervisor } = useRoles()
+  const { roles, isManager, isJustSeller, isSupervisor, isController } = useRoles()
   const { products } = useProducts({ companyId: company._id })
   const [selectedBranch, setSelectedBranch] = useState()
   const [selectBranch, setSelectBranch] = useState(false)
@@ -146,7 +146,7 @@ export default function RegistroCuentaDiaria({ edit = true }) {
   const onRegisterEmployees = async (selectedEmployee, selectedAssistants) => {
     let finalAssistants = [...selectedAssistants] || [];
     let finalEmployee = selectedEmployee || null
-    if ((selectedEmployee && currentUser._id !== selectedEmployee._id) || !selectedEmployee) {
+    if (((selectedEmployee && currentUser._id !== selectedEmployee._id) || !selectedEmployee) && !isController(currentUser.role)) {
       if (!selectedAssistants.some(assistant => assistant._id === currentUser._id)) {
         finalAssistants.push({
           value: currentUser._id,
@@ -251,7 +251,7 @@ export default function RegistroCuentaDiaria({ edit = true }) {
           </div>
           {(selectedBranch && showSelectReportEmployees) && (
             <Modal
-              content={<SelectReportEmployees currentReportEmployee={employee} branch={selectedBranch} employees={employees} onRegisterEmployees={onRegisterEmployees} inReport={true} />}
+              content={<SelectReportEmployees currentReportEmployee={employee} currentAssistants={assistants} branch={selectedBranch} employees={employees} onRegisterEmployees={onRegisterEmployees} inReport={true} />}
               closeModal={() => { setShowSelectReportEmployees(false) }}
               ableToClose={false}
               closeOnClickOutside={false}
@@ -289,10 +289,18 @@ export default function RegistroCuentaDiaria({ edit = true }) {
                 </div>
                 {branchReport?.assistant && (
                   <div className='flex gap-2 py-2 items-center'>
-                    <p className='flex-shrink-0'>Auxiliar:</p>
-                    <button onClick={() => setEmployeeInfo(branchReport.assistant)} className='font-bold text-md flex gap-1 truncate items-center w-full'>
-                      <span><CgProfile /></span> {getEmployeeFullName(branchReport.assistant)}
-                    </button>
+                    <p className='flex-shrink-0'>Auxiliares:</p>
+                    <div className='flex flex-wrap gap-2'>
+                      {branchReport.assistant.map((assistant) => (
+                        <button
+                          key={assistant._id}
+                          onClick={() => setEmployeeInfo(assistant)}
+                          className='font-bold text-md flex gap-1 truncate items-center bg-gray-200 px-2 py-1 rounded-lg hover:bg-gray-300 transition-colors'
+                        >
+                          <span><CgProfile /></span> {getEmployeeFullName(assistant)}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 )}
               </h2>

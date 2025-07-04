@@ -39,7 +39,7 @@ export default function FechaDePagina() {
               type="date"
               name="date"
               id="date"
-              onChange={(e) => setDate(dateFromYYYYMMDD(e.target.value))}
+              onChange={(e) => setDate(formatDateYYYYMMDD(dateFromYYYYMMDD(e.target.value)))}
               value={currentDate.split("T")[0]}
               style={{ minWidth: 0 }}
             />

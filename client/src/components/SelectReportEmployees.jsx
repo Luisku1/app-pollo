@@ -13,6 +13,7 @@ export const SelectReportEmployees = ({ employees, currentReportEmployee, branch
   const isCurrentUserSupervisor = isSupervisor(currentUser.role);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [selectedAssistants, setSelectedAssistants] = useState(currentAssistants || []);
+  const sameData = currentReportEmployee && selectedEmployee && currentReportEmployee._id === selectedEmployee._id && (currentReportEmployee.assistants || []).length === selectedAssistants.length && (currentReportEmployee.assistants || []).every(assistant => selectedAssistants.some(selAssistant => selAssistant._id === assistant._id));
 
   useEffect(() => {
 
@@ -21,17 +22,34 @@ export const SelectReportEmployees = ({ employees, currentReportEmployee, branch
       setSelectedEmployee({ ...currentReportEmployee, label: getEmployeeFullName(currentReportEmployee), value: currentReportEmployee._id });
       return;
     }
-
-    if (currentReportEmployee && selectedEmployee && currentReportEmployee._id !== selectedEmployee._id && !isSupervisor(currentUser.role)) return;
-
     if (currentReportEmployee && selectedEmployee && currentReportEmployee._id === selectedEmployee._id) return;
 
     if (!selectedEmployee && !currentReportEmployee) {
       setSelectedEmployee({ ...currentUser, label: getEmployeeFullName(currentUser), value: currentUser._id });
       return;
     }
+    if (currentReportEmployee && selectedEmployee && currentReportEmployee._id !== selectedEmployee._id && isSupervisor(currentUser.role)) {
+      setSelectedEmployee({ ...currentReportEmployee, label: getEmployeeFullName(currentReportEmployee), value: currentReportEmployee._id });
+      return;
+    };
+
 
   }, [selectedEmployee, currentReportEmployee, currentUser, employees]);
+
+  console.log(currentAssistants)
+
+  useEffect(() => {
+    if (!employees || employees.length === 0) return;
+    if (currentAssistants && currentAssistants.length > 0) {
+      const assistantsOptions = currentAssistants.map(assistant => ({
+        ...assistant,
+        label: getEmployeeFullName(assistant),
+        value: assistant._id
+      }));
+      setSelectedAssistants(assistantsOptions);
+    }
+  }, [currentAssistants, employees]);
+
   return (
     <div className='w-full mt-10'>
       <div>
@@ -39,7 +57,7 @@ export const SelectReportEmployees = ({ employees, currentReportEmployee, branch
       </div>
       <div className="mt-1 ">
         <div className='w-full'>
-          <p className='w-full font-semibold'>Encargado</p>
+          <p className='w-full font-semibold text-md'>Encargado</p>
           <div className='p-3'>
             <EmployeesSelect
               defaultLabel={'Sin Encargado'}
@@ -62,6 +80,7 @@ export const SelectReportEmployees = ({ employees, currentReportEmployee, branch
             }}
             styles={customSelectStyles}
             placeholder={'Selecciona auxiliares'}
+            value={selectedAssistants}
           />
         </div>
       </div>

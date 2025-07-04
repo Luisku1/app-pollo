@@ -15,7 +15,7 @@ export const SearchMenu = ({ modalMode }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [highlightedIndex, setHighlightedIndex] = useState(0);
   const navigate = useNavigate();
-  const { roles, isSupervisor, isManager } = useRoles();
+  const { roles, isSupervisor, isManager, isController } = useRoles();
   const { currentDate } = useDateNavigation();
   const optionRefs = useRef([]);
 
@@ -35,6 +35,7 @@ export const SearchMenu = ({ modalMode }) => {
 
   // --- menuOptions igual que en Header ---
   const menuOptions = [
+    { text: 'Resumen diario', link: '/', role: 'controller' },
     { text: 'Perfil', link: currentUser ? `/perfil/${currentUser._id}` : '/inicio-sesion' },
     { text: 'Crear formato', link: '/formato', date: true, dateRole: true },
     { text: 'Supervisión', link: '/supervision-diaria', role: 'supervisor', date: true },
@@ -58,7 +59,8 @@ export const SearchMenu = ({ modalMode }) => {
     const matchesSearch = normalize(option.text).includes(normalize(searchTerm));
     const matchesRole = !option.role ||
       (option.role === 'supervisor' && isSupervisor(currentUser?.role)) ||
-      (option.role === 'manager' && isManager(currentUser?.role));
+      (option.role === 'manager' && isManager(currentUser?.role)) ||
+      (option.role === 'controller' && isController(currentUser?.role));
     if (matchesSearch && matchesRole) {
       if (!isToday && option.date) {
         if (option.dateRole && !isManager(currentUser?.role)) {

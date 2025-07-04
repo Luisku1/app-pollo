@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Bar } from "react-chartjs-2";
 import "chart.js/auto";
@@ -11,7 +11,6 @@ const DailyResumePage = () => {
   const [page, setPage] = useState(1);
   const { company } = useSelector((state) => state.user);
   const companyId = company?._id;
-  const navigate = useNavigate();
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["dailyResume", companyId, page],
@@ -23,6 +22,14 @@ const DailyResumePage = () => {
 
   const handleNextPage = () => setPage((prev) => prev + 1);
   const handlePrevPage = () => setPage((prev) => Math.max(prev - 1, 1));
+
+  useEffect(() => {
+    if (data && data.length > 0) {
+      const firstDate = new Date(data[data.length - 1].date);
+      const lastDate = new Date(data[0].date);
+      document.title = `Resumen ${firstDate.toLocaleDateString()} - ${lastDate.toLocaleDateString()}`;
+    }
+  }, [data]);
 
   if (isLoading) return <div>Loading...</div>;
   if (isError) return <div>Error loading data</div>;
@@ -48,6 +55,7 @@ const DailyResumePage = () => {
       },
     ],
   };
+
 
   return (
     <div className="daily-resume-page p-4">
@@ -83,7 +91,7 @@ const DailyResumePage = () => {
               style={{ textDecoration: "none" }}
             >
               <h2 className="text-xl font-bold text-blue-800 mb-4">
-                {new Date(resume.date).toLocaleDateString()}
+                {new Date(resume.date).toLocaleDateString('es-mx', { weekday: 'long', year: 'numeric', month: '2-digit', day: '2-digit' })}
               </h2>
               <div className="flex flex-col gap-2">
                 <div className="flex justify-between items-center">

@@ -154,13 +154,17 @@ export const useBranchReport = ({ branchId = null, date = null }) => {
 
   const updateEmployees = async ({ employee, assistants }) => {
 
-    setBranchReport(prev => ({
-      ...prev,
-      employee: employee || null,
-      assistant: assistants || []
-    }))
+    setBranchReport(prev => {
+      const newReport = { ...prev }
+      if (employee) {
+        newReport.employee = { ...employee }
+      }
+      if (assistants) {
+        newReport.assistant = assistants.map(a => ({ ...a }))
+      }
+      return newReport
+    })
 
-    console.log(assistants)
     await updateReportEmployees({ reportId: branchReport._id, employeeId: employee?._id || null, assistants: assistants?.map(a => a._id) || [], branchId, date })
   }
 

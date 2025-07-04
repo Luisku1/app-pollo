@@ -69,7 +69,7 @@ export const useProvidersReports = ({ companyId = null, date = null, reports = [
   const paymentsArray = useMemo(() => providersReports.flatMap((report) => report.paymentsArray || []), [providersReports]);
 
   return {
-    providersReports: filteredProvidersReports,
+    providersReports: filteredProvidersReports || [],
     replaceReport,
     setReports: setProvidersReports,
     refetchProvidersReports,

@@ -354,7 +354,7 @@ export const setBalanceOnZero = async (req, res, next) => {
 export const updateBranchReportEmployees = async (req, res, next) => {
   const { reportId } = req.params
   const { employeeId, assistants, branchId } = req.body
-  const date = dateFromYYYYMMDD(req.body.date);
+  const date = req.body.date ? dateFromYYYYMMDD(req.body.date) : null;
 
   if (!employeeId && !assistants) return next(errorHandler(400, 'At least one employee or assistant is required'))
 

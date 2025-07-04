@@ -28,6 +28,9 @@ import { SelectReportEmployees } from "./SelectReportEmployees"
 import Modal from "./Modals/Modal"
 import { useEmployees } from "../hooks/Employees/useEmployees"
 import { updateReportEmployees } from "../services/BranchReports/updateReportsEmployee"
+import { areArraysEqual } from "../../../common/arraysOps";
+import { useDateNavigation } from "../hooks/useDateNavigation";
+import { formatDateYYYYMMDD } from "../../../common/dateOps";
 
 export default function BranchReportCard({
   reportData = {},
@@ -39,6 +42,7 @@ export default function BranchReportCard({
 
   const { currentUser, company } = useSelector((state) => state.user)
   const companyId = company?._id || company
+  const { setDate } = useDateNavigation();
   const { isController, isManager } = useRoles()
   const [selectedEmployee, setSelectedEmployee] = useState(null)
   const [toModifyReport, setToModifyReport] = useState(null)
@@ -47,6 +51,7 @@ export default function BranchReportCard({
   const { activeEmployees: employees } = useEmployees({ companyId })
   const navigate = useNavigate()
   const assistants = reportData.assistants || []
+  const [employeeInfo, setEmployeeInfo] = useState(null)
 
   // On set to zero, update both caches
   const handleSetReportOnZero = async (report) => {
@@ -104,9 +109,12 @@ export default function BranchReportCard({
     if (employeeChanged)
       newReport.employee = selectedEmployee
 
-    if (selfChange) selfChange({ ...reportData, employee: selectedEmployee, assistants: selectedAssistants });
+    if (updateBranchReportGroup && employeeId) updateBranchReportGroup(employeeId, newReport)
+    if (updateBranchReportSingle) updateBranchReportSingle(newReport)
 
-    await updateReportEmployees({reportId: reportData._id, employeeId: selectedEmployee._id, assistants: selectedAssistants });
+    if (selfChange) selfChange(newReport);
+
+    await updateReportEmployees({ reportId: reportData._id, employeeId: selectedEmployee._id, assistants: selectedAssistants });
   }
 
   // On reload, update both caches
@@ -136,8 +144,7 @@ export default function BranchReportCard({
   }
 
   const navToEditReport = (reportData) => {
-
-    navigate(`/formato/${reportData.branch._id}/${reportData.createdAt}`)
+    navigate(`/formato/${reportData.branch._id}/${formatDateYYYYMMDD(new Date(reportData.createdAt))}`)
   }
 
   const handleDownloadImage = async () => {
@@ -218,7 +225,7 @@ export default function BranchReportCard({
                 <SelectReportEmployees
                   branch={reportData.branch}
                   employees={employees}
-                  currentAssistants={reportData.assistants}
+                  currentAssistants={reportData.assistant}
                   currentReportEmployee={reportData.employee}
                   onRegisterEmployees={onRegisterEmployees}
                 />
@@ -226,6 +233,7 @@ export default function BranchReportCard({
               closeModal={() => setShowSelectReportEmployees(false)}
             />
           )}
+          <EmployeeInfo employee={employeeInfo} toggleInfo={() => { setEmployeeInfo(false) }} />
           {isManager(currentUser.role) && (
             <ChangeBranchPrices
               branch={reportData.branch._id}
@@ -264,10 +272,20 @@ export default function BranchReportCard({
                   <p className="font-bold text-lg text-gray-600">Encargado:</p>
                   <button onClick={() => setSelectedEmployee(reportData.employee)} className="font-bold text-lg flex gap-1 truncate items-center"><span><CgProfile /></span>{reportData?.employee?.name ?? 'Sin Encargado'}</button>
                 </div>
-                {reportData.assistant?.name && (
-                  <div>
-                    <p className="font-bold text-lg text-gray-600">Auxiliar:</p>
-                    <button onClick={() => setSelectedEmployee(reportData.assistant)} className="font-bold text-md flex gap-1 truncate items-center"><span><CgProfile /></span>{reportData.assistant.name}</button>
+                {reportData?.assistant && (
+                  <div className='flex gap-2 py-2 items-center'>
+                    <p className='flex-shrink-0'>Auxiliares:</p>
+                    <div className='flex flex-wrap gap-2'>
+                      {reportData.assistant.map((assistant) => (
+                        <button
+                          key={assistant._id}
+                          onClick={() => setEmployeeInfo(assistant)}
+                          className='font-bold text-md flex gap-1 truncate items-center bg-gray-200 px-2 py-1 rounded-lg hover:bg-gray-300 transition-colors'
+                        >
+                          <span><CgProfile /></span> {getEmployeeFullName(assistant)}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>

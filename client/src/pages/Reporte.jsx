@@ -139,7 +139,7 @@ export default function Reporte({ untitled = false }) {
   }
 
   const showSupervisorsMissingIncomes = (e) => {
-    e.preventDefault();
+    e?.preventDefault?.();
     if (missingIncomes === 0) return
 
     setCurrentView({ view: 'supervisors', props: {} });
@@ -351,7 +351,7 @@ export default function Reporte({ untitled = false }) {
 
   return (
     <main className="p-3 mx-auto mb-40 relative">
-      <div className="flex items-center mb-6">
+      {/* <div className="flex items-center mb-6">
         <button
           className="flex items-center gap-2 px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-800 font-semibold rounded-lg shadow transition"
           onClick={() => navigate(-1)}
@@ -359,7 +359,7 @@ export default function Reporte({ untitled = false }) {
           <IoArrowBack className="w-5 h-5" />
           {getBackText()}
         </button>
-      </div>
+      </div> */}
 
       {/* Shortcuts help always above overlay */}
       {showShortcutsHelp && shortcutsHelp}
@@ -507,9 +507,9 @@ export default function Reporte({ untitled = false }) {
                   onChange={(e) => setCurrentView({ view: e.target.value, props: {} })}
                 >
                   <option value="branches">{'Sucursales: ' + branchReports.length}</option>
-                  <option value="supervisors">{'Supervisores'}</option>
-                  <option value="customers">{'Clientes'}</option>
-                  <option value="providers">{'Proveedores'}</option>
+                  <option value="supervisors">{'Supervisores ' + supervisorsInfo.length}</option>
+                  <option value="customers">{'Clientes ' + customerReports.length}</option>
+                  <option value="providers">{'Proveedores ' + (providerReports?.length ?? 0)}</option>
                 </select>
               </div>
               <div className="flex justify-center items-center gap-2">
