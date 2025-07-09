@@ -4,7 +4,7 @@ import { useDateNavigation } from "../hooks/useDateNavigation";
 import { dateFromYYYYMMDD, formatDateYYYYMMDD } from "../../../common/dateOps";
 
 export default function FechaDePagina() {
-  const { currentDate, setDate, isDateAware } = useDateNavigation();
+  const { currentDate, setDate } = useDateNavigation();
 
   const prevDay = () => {
     const datePickerDate = dateFromYYYYMMDD(currentDate);
@@ -17,8 +17,6 @@ export default function FechaDePagina() {
     datePickerDate.setDate(datePickerDate.getDate() + 1);
     setDate(formatDateYYYYMMDD(new Date(datePickerDate)));
   };
-
-  if (!isDateAware) return null;
 
   if (!currentDate) return null;
 

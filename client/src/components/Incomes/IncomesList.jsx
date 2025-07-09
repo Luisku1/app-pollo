@@ -10,13 +10,15 @@ import ShowDetails from '../ShowDetails';
 import RowItem from '../RowItem';
 import ConfirmationButton from '../Buttons/ConfirmationButton';
 import { CgProfile } from 'react-icons/cg';
-import { MdPendingActions, MdStorefront } from 'react-icons/md';
+import { MdPendingActions } from 'react-icons/md';
 import DeleteButton from '../Buttons/DeleteButton';
 import Amount from './Amount';
 import { CiSquareInfo } from 'react-icons/ci';
 import EmployeeInfo from '../EmployeeInfo';
 import { MoneyBag } from '../Reutilizable/Labels';
 import EmployeeName from '../Names/EmployeeName';
+import BranchName from '../Names/BranchName';
+import CustomerName from '../Names/CustomerName';
 
 
 export default function IncomesList({ incomes = [], onDeleteIncome, statistics = null }) {
@@ -77,9 +79,7 @@ export default function IncomesList({ incomes = [], onDeleteIncome, statistics =
 
     const { branch, customer, employee, type, amount, partOfAPayment, _id, createdAt, employeePayment } = income;
     const tempIncome = { ...income, index };
-    const branchInfo = branch?.branch || branch?.label;
     const customerInfo = `${customer?.name || ''} ${customer?.lastName || ''}`.trim() || customer?.label;
-    const employeeName = employee ? `${employee.name}` : '';
     const typeName = partOfAPayment ? 'Pago' : type?.name ?? type?.label;
     const formattedAmount = currency({ amount });
     const isAuthorized = currentUser._id === employee?._id || isManager(currentUser.role) || !onDeleteIncome;
@@ -96,7 +96,8 @@ export default function IncomesList({ incomes = [], onDeleteIncome, statistics =
               <div className='col-span-12 items-center'>
                 <div className='w-full text-red-800 mb-1'>
                   <RowItem>
-                    <p className="text-md font-bold flex gap-1 items-center"><MdStorefront />{branchInfo || customerInfo}</p>
+                      <BranchName branch={branch} />
+                      <CustomerName customer={customer} />
                     <EmployeeName employee={employee} />
                   </RowItem>
                 </div>

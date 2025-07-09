@@ -2043,7 +2043,7 @@ export const newEmployeePaymentFunction = async ({ amount, detail, employee, sup
 export const getEmployeePayments = async (req, res, next) => {
 
 	const employeeId = req.params.employeeId
-	const date = dateFromYYYYMMDD(req.params.date)
+	const date = req.params.date ? dateFromYYYYMMDD(req.params.date) : new Date()
 	const { bottomDate, topDate } = getDayRange(date)
 	const bottomDateDay = (new Date(bottomDate)).getDay()
 
@@ -2693,7 +2693,7 @@ export const updateAccountBalance = async (branchReport, changedEmployee) => {
 
 		const currentBalance = dailyBalance.accountBalance
 		const reportBalance = branchReport.balance
-		const adjustmentBalance = changedEmployee ? -currentBalance : reportBalance - currentBalance
+		const adjustmentBalance = reportBalance - currentBalance
 
 		updatedDailyBalance = await EmployeeDailyBalance.findByIdAndUpdate(dailyBalance._id, { accountBalance: changedEmployee ? 0 : branchReport.balance }, { new: true })
 
@@ -2903,24 +2903,6 @@ export const createDailyBalance = async ({ companyId, employeeId, date }) => {
 
 		console.log('Error al crear el balance del empleado', error)
 		throw new Error("No se pudo crear el balance del empleado")
-	}
-}
-
-export const updateDailyBalancesBalance = async (branchReport, changedEmployee = false) => {
-
-	try {
-		let dailyBalance = await fetchOrCreateDailyBalance({ companyId: branchReport.company, employeeId: branchReport.employee, date: branchReport.createdAt })
-
-		const updatedDailyBalance = await EmployeeDailyBalance.findByIdAndUpdate(dailyBalance._id, { accountBalance: changedEmployee ? 0 : branchReport.balance }, { new: true })
-
-		if (!updatedDailyBalance) throw new Error("No se actualizó el balance del empleado")
-
-		return updatedDailyBalance
-
-	} catch (error) {
-
-		console.log("Error al actualizar el balance del empleado", error)
-		throw new Error("No se pudo actualizar el balance del empleado");
 	}
 }
 

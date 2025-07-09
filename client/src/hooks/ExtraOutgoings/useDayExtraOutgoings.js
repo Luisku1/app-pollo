@@ -9,7 +9,6 @@ export const useDayExtraOutgoings = ({ companyId = null, date = null, initialExt
   const { addExtraOutgoing } = useAddExtraOutgoing()
   const { deleteExtraOutgoing } = useDeleteExtraOutgoing()
   const [error, setError] = useState(null)
-  const queryClient = useQueryClient();
 
   const sanitizeExtraOutgoings = (outgoings) => {
     return outgoings.map((outgoing) => {
@@ -48,7 +47,7 @@ export const useDayExtraOutgoings = ({ companyId = null, date = null, initialExt
   }, [extraOutgoingsData])
 
   useEffect(() => {
-    if (initialExtraOutgoings) setExtraOutgoings(initialExtraOutgoings)
+    if (initialExtraOutgoings.length > 0) setExtraOutgoings(initialExtraOutgoings)
   }, [initialExtraOutgoings])
 
   const pushExtraOutgoing = (extraOutgoing) => {

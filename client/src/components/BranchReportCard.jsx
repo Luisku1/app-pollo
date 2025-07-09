@@ -272,11 +272,11 @@ export default function BranchReportCard({
                   <p className="font-bold text-lg text-gray-600">Encargado:</p>
                   <button onClick={() => setSelectedEmployee(reportData.employee)} className="font-bold text-lg flex gap-1 truncate items-center"><span><CgProfile /></span>{reportData?.employee?.name ?? 'Sin Encargado'}</button>
                 </div>
-                {reportData?.assistant && (
+                {assistants && assistants.length > 0 && (
                   <div className='flex gap-2 py-2 items-center'>
                     <p className='flex-shrink-0'>Auxiliares:</p>
                     <div className='flex flex-wrap gap-2'>
-                      {reportData.assistant.map((assistant) => (
+                      {assistants.map((assistant) => (
                         <button
                           key={assistant._id}
                           onClick={() => setEmployeeInfo(assistant)}

@@ -149,8 +149,6 @@ export default function EntradaInicial() {
           </h2>
         </div>
         <MenuSucursal
-          date={date}
-          branchAndCustomerSelectOptions={branchAndCustomerSelectOptions}
           onAddProviderInput={onAddProviderInput}
           selectedProduct={selectedProduct}>
         </MenuSucursal>

@@ -12,7 +12,7 @@ import EmployeeInfo from "../EmployeeInfo"
 import { CiSquareInfo } from "react-icons/ci"
 
 /* eslint-disable react/prop-types */
-export default function ExtraOutgoingsList({ extraOutgoings, totalExtraOutgoings = 0, onDelete = null }) {
+export default function ExtraOutgoingsList({ extraOutgoings, onDelete = null }) {
   const { currentUser } = useSelector((state) => state.user)
   const { isManager } = useRoles()
   const [selectedOutgoing, setSelectedOutgoing] = useState(null)
@@ -30,6 +30,10 @@ export default function ExtraOutgoingsList({ extraOutgoings, totalExtraOutgoings
       { key: 'payment.employee', label: 'Deudor', format: (data) => data.employeePayment ? getEmployeeFullName(data.employeePayment.employee) : '' }
     ] : [])
   ]
+
+  const totalExtraOutgoings = useMemo(() => {
+    return extraOutgoings.reduce((total, outgoing) => total + (outgoing.amount || 0), 0)
+  }, [extraOutgoings])
 
   const renderTotal = () => {
     return (

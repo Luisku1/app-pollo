@@ -38,7 +38,7 @@ import { dateFromYYYYMMDD } from "../../../common/dateOps.js";
 import ShowListModal from "../components/Modals/ShowListModal.jsx";
 import OutgoingsList from "../components/Outgoings/OutgoingsList.jsx";
 
-export default function Reporte({ untitled = false }) {
+export default function Reporte() {
 
   const { company } = useSelector((state) => state.user)
   const { currentDate } = useDateNavigation();
@@ -287,9 +287,8 @@ export default function Reporte({ untitled = false }) {
   }, [])
 
   useEffect(() => {
-    if (untitled) return
     document.title = 'Reporte (' + dateFromYYYYMMDD(currentDate).toLocaleDateString() + ')'
-  }, [currentDate, untitled])
+  }, [currentDate])
 
   // Mostrar ayuda de atajos solo en pantallas grandes (desktop)
   const [showShortcutsHelp, setShowShortcutsHelp] = useState(false);
@@ -507,9 +506,9 @@ export default function Reporte({ untitled = false }) {
                   onChange={(e) => setCurrentView({ view: e.target.value, props: {} })}
                 >
                   <option value="branches">{'Sucursales: ' + branchReports.length}</option>
-                  <option value="supervisors">{'Supervisores ' + supervisorsInfo.length}</option>
-                  <option value="customers">{'Clientes ' + customerReports.length}</option>
-                  <option value="providers">{'Proveedores ' + (providerReports?.length ?? 0)}</option>
+                  <option value="supervisors">{'Supervisores: ' + supervisorsInfo.length}</option>
+                  <option value="customers">{'Clientes: ' + customerReports.length}</option>
+                  <option value="providers">{'Proveedores: ' + (providerReports?.length ?? 0)}</option>
                 </select>
               </div>
               <div className="flex justify-center items-center gap-2">

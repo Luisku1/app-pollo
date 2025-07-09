@@ -111,7 +111,7 @@ export default function Salidas({ selectedProduct, setSelectedProduct }) {
     })
   }
 
-  useEffect(generarMonto, [outputFormData.price, outputFormData.weight, price])
+  useEffect(generarMonto, [outputFormData.price, outputFormData.weight, lastPrice])
 
   useEffect(outputButtonControl, [selectedProduct, selectedCustomerBranchOption, loading, priceIsLoading])
 

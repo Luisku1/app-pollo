@@ -14,6 +14,8 @@ import { useSelector } from "react-redux";
 import CreateProviderMovement from "./Providers/CreateProviderMovement";
 import CreateProviderPayment from "./Providers/CreateProviderPayment";
 import RegistroProveedor from "../pages/RegistroProveedor";
+import IncomesAndOutgoings from "./SupervisorSections/IncomesAndOutgoings";
+import EntradasYSalidas from "./EntradasYSalidas/EntradasYSalidas";
 
 
 export const RegistersMenu = () => {
@@ -26,12 +28,10 @@ export const RegistersMenu = () => {
   const searchInputRef = useRef(null);
   const isDesktop = window.innerWidth >= 1280; // Ajusta el ancho según tus necesidades
 
-  const [selectedProduct, setSelectedProduct] = useState(null);
-
   const menu = [
-    { title: "Dinero", onSelec: () => { return <Incomes /> } },
-    { title: "Entradas", onSelec: () => { return <Entradas selectedProduct={selectedProduct} setSelectedProduct={setSelectedProduct} /> } },
-    { title: "Salidas", onSelec: () => { return <Salidas selectedProduct={selectedProduct} setSelectedProduct={setSelectedProduct} /> } },
+    { title: "Dinero", onSelec: () => { return <IncomesAndOutgoings /> } },
+    { title: "Movimientos - Pollerías", onSelec: () => { return <EntradasYSalidas /> } },
+    { title: "Salidas", onSelec: () => { return <Salidas /> } },
     { title: "Entrada de Proveedor", onSelec: () => { return <EntradaInicial /> } },
     { title: "Pago a Proveedor", onSelec: () => { return <CreateProviderPayment /> } },
     { title: "Compra y devolución a proveedor", onSelec: () => { return <CreateProviderMovement /> } },

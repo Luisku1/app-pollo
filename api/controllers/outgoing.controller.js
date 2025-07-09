@@ -9,6 +9,50 @@ import { pushOrPullBranchReportRecord } from "./branch.report.controller.js"
 import { pushOrPullSupervisorReportRecord } from "./employee.controller.js"
 import { dateFromYYYYMMDD } from "../../common/dateOps.js"
 
+export const extraOutgoingsAggregate = () => {
+
+  return [
+    {
+      $lookup: {
+        from: 'employeepayments',
+        localField: '_id',
+        foreignField: 'extraOutgoing',
+        as: 'employeePayment',
+        pipeline: [
+          {
+            $lookup: {
+              from: 'employees',
+              localField: 'employee',
+              foreignField: '_id',
+              as: 'employee'
+            }
+          },
+          { $unwind: { path: '$employee', preserveNullAndEmptyArrays: true } }
+        ]
+      }
+    },
+    {
+      $lookup: {
+        from: 'employees',
+        localField: 'employee',
+        foreignField: '_id',
+        as: 'employee',
+        pipeline: [
+          {
+            $project: {
+              password: 0,
+            }
+          }
+        ]
+      }
+    },
+    { $unwind: { path: '$employeePayment', preserveNullAndEmptyArrays: true } },
+    {
+      $unwind: { path: '$employee', preserveNullAndEmptyArrays: true }
+    }
+  ]
+}
+
 export const newOutgoing = async (req, res, next) => {
 
   const { _id, amount, concept, company, branch, employee, createdAt } = req.body
@@ -237,7 +281,6 @@ export const getExtraOutgoings = async (req, res, next) => {
 
   const date = dateFromYYYYMMDD(req.params.date)
   const companyId = req.params.companyId
-
   const { bottomDate, topDate } = getDayRange(date)
 
   try {
@@ -249,38 +292,7 @@ export const getExtraOutgoings = async (req, res, next) => {
           "company": new Types.ObjectId(companyId)
         }
       },
-      {
-        $lookup: {
-          from: 'employeepayments',
-          localField: '_id',
-          foreignField: 'extraOutgoing',
-          as: 'employeePayment',
-          pipeline: [
-            {
-              $lookup: {
-                from: 'employees',
-                localField: 'employee',
-                foreignField: '_id',
-                as: 'employee'
-              }
-            },
-            { $unwind: { path: '$employee', preserveNullAndEmptyArrays: true } }
-          ]
-        }
-      },
-      {
-        $lookup: {
-          from: 'employees',
-          localField: 'employee',
-          foreignField: '_id',
-          as: 'employee'
-        }
-      },
-      { $unwind: { path: '$employeePayment', preserveNullAndEmptyArrays: true } },
-      {
-        $unwind: { path: '$employee', preserveNullAndEmptyArrays: true }
-      }
-
+      ...extraOutgoingsAggregate(),
     ]);
 
     if (extraOutgoings.length == 0) {

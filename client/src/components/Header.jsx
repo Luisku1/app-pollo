@@ -11,9 +11,9 @@ export default function Header() {
 
   const { company } = useSelector((state) => state.user);
 
-  const { branches } = useBranches({ companyId: company._id })
-  const { employees } = useEmployees({ companyId: company._id })
-  const { customers } = useCustomers({ companyId: company._id })
+  const { branches } = useBranches({ companyId: company?._id })
+  const { employees } = useEmployees({ companyId: company?._id })
+  const { customers } = useCustomers({ companyId: company?._id })
 
   return (
     <header className='bg-header shadow-md sticky top-0 z-[9999] flex flex-col items-center justify-center p-2'>

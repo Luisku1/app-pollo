@@ -6,11 +6,17 @@ import { fetchBasicDailyResume } from "../services/fetchBasicDailyResume";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { formatDateYYYYMMDD } from "../../../common/dateOps";
+import Modal from "../components/Modals/Modal";
+import IncomesList from "../components/Incomes/IncomesList";
+import ExtraOutgoingsList from "../components/Outgoings/ExtraOutgoingsList";
+import { formatInformationDate } from "../helpers/DatePickerFunctions";
 
 const DailyResumePage = () => {
   const [page, setPage] = useState(1);
   const { company } = useSelector((state) => state.user);
   const companyId = company?._id;
+  const [incomesToShow, setIncomesToShow] = useState(null);
+  const [outgoingsToShow, setOutgoingsToShow] = useState(null);
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["dailyResume", companyId, page],
@@ -47,15 +53,43 @@ const DailyResumePage = () => {
           (resume) => resume.totalIncomes - resume.totalExtraOutgoings
         ),
         backgroundColor: "rgba(75, 192, 192, 0.6)",
+        onClick: (index) => {
+          setIncomesToShow(chartOptions[index].incomesArray);
+        }
       },
       {
         label: "Ingresos Verificados",
         data: chartOptions?.map((resume) => resume.totalVerifiedIncomes),
         backgroundColor: "rgba(54, 162, 235, 0.6)",
+        onClick: (index) => {
+          setIncomesToShow(chartOptions[index].incomesArray);
+        }
+      },
+      {
+        label: "Gastos Extra",
+        data: chartOptions?.map((resume) => resume.totalExtraOutgoings),
+        backgroundColor: "rgba(255, 99, 132, 0.6)",
+        onClick: (index) => {
+          setOutgoingsToShow(chartOptions[index].extraOutgoingsArray);
+        }
       },
     ],
   };
 
+  console.log(incomesToShow, outgoingsToShow);
+
+  // Evento onClick para el gráfico
+  const handleBarClick = (_, elements) => {
+    if (elements && elements.length > 0) {
+      const chart = elements[0];
+      const index = chart.index;
+      const datasetIndex = chart.datasetIndex;
+      const dataset = chartData.datasets[datasetIndex];
+      if (dataset && typeof dataset.onClick === 'function') {
+        dataset.onClick(index);
+      }
+    }
+  }
 
   return (
     <div className="daily-resume-page p-4">
@@ -72,9 +106,41 @@ const DailyResumePage = () => {
           </span>
         </div>
       )}
+      {incomesToShow && incomesToShow.length > 0 &&
+        <Modal
+          closeModal={() => setIncomesToShow(null)}
+          closeOnClickOutside={true}
+          closeOnClickInside={false}
+          closeOnEsc={true}
+          title={`Ingresos (${formatInformationDate(incomesToShow[0]?.createdAt)})`}
+          content={<IncomesList incomes={incomesToShow} />}
+          isOpen={incomesToShow !== null}
+        />
+      }
+      {outgoingsToShow && outgoingsToShow.length > 0 &&
+        <Modal
+          closeModal={() => setOutgoingsToShow(null)}
+          closeOnClickOutside={true}
+          closeOnClickInside={false}
+          title={`Gastos (${formatInformationDate(outgoingsToShow[0]?.createdAt)})`}
+          closeOnEsc={true}
+          content={<ExtraOutgoingsList extraOutgoings={outgoingsToShow} />}
+          isOpen={outgoingsToShow !== null}
+        />
+      }
       {/* Gráfico */}
       <div className="chart-container mb-8">
-        <Bar data={chartData} options={{ responsive: true }} />
+        <Bar
+          data={chartData}
+          options={{
+            responsive: true,
+            onClick: handleBarClick,
+            plugins: {
+              legend: { position: 'top' },
+              title: { display: false },
+            },
+          }}
+        />
       </div>
 
       {/* Cards */}

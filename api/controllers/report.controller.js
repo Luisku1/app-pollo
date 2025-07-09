@@ -10,10 +10,11 @@ import { getDayRange } from "../utils/formatDate.js"
 import Outgoing from "../models/accounts/outgoings/outgoing.model.js"
 import Stock from "../models/accounts/stock.model.js"
 import { branchLookup, employeeLookup, unwindBranch, unwindEmployee } from "./branch.report.controller.js"
-import { lookupSupervisorReportIncomes } from "./income.controller.js"
+import { incomesAggregate, lookupSupervisorReportIncomes } from "./income.controller.js"
 import SupervisorReport from "../models/accounts/supervisor.report.model.js"
 import { employeeAggregate } from "./employee.controller.js"
 import { dateFromYYYYMMDD } from "../../common/dateOps.js"
+import { extraOutgoingsAggregate } from "./outgoing.controller.js"
 
 export const getBranchReports = async (req, res, next) => {
 
@@ -692,8 +693,9 @@ export const getDaysReportsData = async (req, res, next) => {
 export const fetchBasicDailyResume = async (companyId, page = 1) => {
   try {
     const limit = 7; // Número de días por página
-    const skip = (page - 1) * limit; // Calcular el desplazamiento para la paginación
+    const skip = (page - 1) * limit;
 
+    // Agrupar por día y traer los extraOutgoings de ese día con $lookup/$expr
     const resumes = await SupervisorReport.aggregate([
       {
         $match: {
@@ -736,18 +738,91 @@ export const fetchBasicDailyResume = async (companyId, page = 1) => {
           },
         },
       },
+      // Lookup extraOutgoings for each day
       {
-        $sort: { "_id.year": -1, "_id.month": -1, "_id.day": -1 }, // Ordenar por fecha descendente
+        $lookup: {
+          from: "extraoutgoings",
+          let: {
+            day: "$_id.day",
+            month: "$_id.month",
+            year: "$_id.year",
+            companyId: new Types.ObjectId(companyId)
+          },
+          pipeline: [
+            {
+              $addFields: {
+                createdAtLocal: {
+                  $dateSubtract: {
+                    startDate: "$createdAt",
+                    unit: "hour",
+                    amount: 6
+                  }
+                }
+              }
+            },
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: [{ $dayOfMonth: "$createdAtLocal" }, "$$day"] },
+                    { $eq: [{ $month: "$createdAtLocal" }, "$$month"] },
+                    { $eq: [{ $year: "$createdAtLocal" }, "$$year"] },
+                    { $eq: ["$company", "$$companyId"] }
+                  ]
+                }
+              }
+            },
+            ...extraOutgoingsAggregate()
+          ],
+          as: "extraOutgoingsArray"
+        }
       },
       {
-        $skip: skip, // Saltar los registros según la página
+        $lookup: {
+          from: "incomecollecteds",
+          let: {
+            day: "$_id.day",
+            month: "$_id.month",
+            year: "$_id.year",
+            companyId: new Types.ObjectId(companyId)
+          },
+          pipeline: [
+            {
+              $addFields: {
+                createdAtLocal: {
+                  $dateSubtract: {
+                    startDate: "$createdAt",
+                    unit: "hour",
+                    amount: 6
+                  }
+                }
+              }
+            },
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: [{ $dayOfMonth: "$createdAtLocal" }, "$$day"] },
+                    { $eq: [{ $month: "$createdAtLocal" }, "$$month"] },
+                    { $eq: [{ $year: "$createdAtLocal" }, "$$year"] },
+                    { $eq: ["$company", "$$companyId"] }
+                  ]
+                }
+              }
+            },
+            ...incomesAggregate()
+          ],
+          as: "incomesArray"
+        }
       },
       {
-        $limit: limit, // Limitar a 10 días por página
+        $sort: { "_id.year": -1, "_id.month": -1, "_id.day": -1 },
       },
+      { $skip: skip },
+      { $limit: limit },
+      // Project para devolver solo los campos requeridos
       {
         $project: {
-          _id: 0,
           date: "$anyCreatedAt",
           totalIncomes: 1,
           totalExtraOutgoings: 1,
@@ -755,8 +830,10 @@ export const fetchBasicDailyResume = async (companyId, page = 1) => {
           totalVerifiedDeposits: 1,
           totalVerifiedIncomes: 1,
           verificationPercentage: 1,
-        },
-      },
+          extraOutgoingsArray: 1,
+          incomesArray: 1,
+        }
+      }
     ]);
 
     return resumes;

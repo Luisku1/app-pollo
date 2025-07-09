@@ -15,6 +15,9 @@ import DeleteButton from "../../Buttons/DeleteButton";
 import { CiSquareInfo } from "react-icons/ci";
 import EmployeeInfo from "../../EmployeeInfo";
 import { MoneyBag } from "../../Reutilizable/Labels";
+import CustomerName from "../../Names/CustomerName";
+import BranchName from "../../Names/BranchName";
+import EmployeeName from "../../Names/EmployeeName";
 
 export default function ListaEntradas({ inputs, onDelete = null }) {
   const { currentUser } = useSelector((state) => state.user);
@@ -101,10 +104,6 @@ export default function ListaEntradas({ inputs, onDelete = null }) {
       createdAt,
     } = input;
     const tempInput = { ...input, index };
-    const customerInfo =
-      `${customer?.name || ""} ${customer?.lastName || ""}`.trim() ||
-      customer?.label;
-    const branchInfo = branch?.branch || "";
 
     return (
       isAuthorized(employee) && (
@@ -116,11 +115,15 @@ export default function ListaEntradas({ inputs, onDelete = null }) {
                   <div className="col-span-12">
                     <div className="w-full text-red-800 mb-1">
                       <RowItem>
-                        <p className="text-md font-bold flex gap-1 items-center">
-                          <MdStorefront />
-                          {customerInfo || branchInfo}
-                        </p>
-                        <button onClick={() => setSelectedEmployee(employee)} className="font-bold text-md flex gap-1 items-center w-full"><span><CgProfile /></span>{employee.name}</button>
+                        {customer &&
+                          <CustomerName customer={customer} />
+                        }
+                        {branch &&
+                          <BranchName branch={branch} />
+                        }
+                        {employee &&
+                          <EmployeeName employee={employee} />
+                        }
                       </RowItem>
                     </div>
                     <div className="w-full text-sm font-semibold">

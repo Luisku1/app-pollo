@@ -25,6 +25,7 @@ export default function PayrollResume({ employeePayroll, updateSupervisorReportG
 
   const supervisorBalance = supervisorReports.reduce((acc, report) => acc + ((report.balance ?? 0) > 0 ? showPositives ? report.balance : 0 : report.balance), 0)
   const accountBalance = branchReports.reduce((acc, report) => acc + ((report.balance ?? 0) > 0 ? showPositives ? report.balance : 0 : report.balance), 0)
+  console.log(branchReports.reduce((acc, report) => acc + (report.balance ?? 0), 0), branchReports)
   const salary = employee?.salary ?? 0
   const totalToPay = accountBalance + supervisorBalance + lateDiscount + missingWorkDiscount - employeePaymentsAmount + adjustments + salary
 

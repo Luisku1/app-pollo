@@ -6,6 +6,11 @@ export const BRANCHES_QUERY_KEY = (companyId) => ['branches', companyId]
 export const useBranches = ({ companyId }) => {
   const queryKey = BRANCHES_QUERY_KEY(companyId)
 
+  const setFormula = (branchId, formula) => {
+
+  }
+
+
   const {
     data: branches,
     isLoading: loading,

@@ -172,6 +172,31 @@ export const newTransferredIncomeFunction = async (actualIncome, prevIncome) => 
   }
 }
 
+export const incomesAggregate = () => {
+  return [
+    ...typeAggregate(),
+    ...employeeAggregate('employee'),
+    {
+      $lookup: {
+        from: 'branches',
+        localField: 'branch',
+        foreignField: '_id',
+        as: 'branch'
+      }
+    },
+    {
+      $lookup: {
+        from: 'customers',
+        localField: 'customer',
+        foreignField: '_id',
+        as: 'customer'
+      }
+    },
+    { $unwind: { path: '$branch', preserveNullAndEmptyArrays: true } },
+    { $unwind: { path: '$customer', preserveNullAndEmptyArrays: true } }
+  ]
+}
+
 export const lookupSupervisorReportIncomes = (type, arrayName, dayRange) => ({
 
   $lookup: {

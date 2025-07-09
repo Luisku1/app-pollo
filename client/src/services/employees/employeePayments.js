@@ -1,4 +1,4 @@
-export const getEmployeePayments = async ({ employeeId, date = (new Date().toISOString()) }) => {
+export const getEmployeePayments = async ({ employeeId, date }) => {
 
   const res = await fetch('/api/employee/get-employee-payments/' + employeeId + '/' + date)
   const data = await res.json()

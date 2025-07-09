@@ -1,28 +1,48 @@
 import { useEffect, useState } from "react"
 import { useSelector } from 'react-redux'
-import { useParams, useNavigate } from 'react-router-dom';
-import FechaDePagina from "../components/FechaDePagina";
-import { formatDate } from "../helpers/DatePickerFunctions";
 import { useEmployeesPayroll } from "../hooks/Employees/useEmployeesPayroll";
 import { currency } from "../helpers/Functions";
 import { useRoles } from "../context/RolesContext";
 import Modal from "../components/Modals/Modal";
-import { useDate } from '../context/DateContext';
 import EmployeePayroll from "../components/Payroll/EmployeePayroll";
 import { useDateNavigation } from "../hooks/useDateNavigation";
 
 export default function Nomina() {
 
-  const { currentDate } = useDateNavigation();
+  const { currentDate, dateFromYYYYMMDD } = useDateNavigation();
   const { company, currentUser } = useSelector((state) => state.user)
   const [selectedEmployeePayroll, setSelectedEmployeePayroll] = useState(null)
-  const { employeesPayroll, updateBranchReport, updateSupervisorReport } = useEmployeesPayroll({ companyId: company._id, date: currentDate, setSelectedEmployeePayroll })
+  const { employeesPayroll, updateBranchReport, updateSupervisorReport, loading } = useEmployeesPayroll({ companyId: company._id, date: currentDate, setSelectedEmployeePayroll })
   const { roles, isManager } = useRoles()
 
   useEffect(() => {
 
     document.title = 'Nómina (' + new Date(currentDate).toLocaleDateString() + ')'
   })
+
+  if (loading) {
+    return (
+      <div className="fixed left-0 right-0 top-16 bottom-0 z-30 flex flex-col items-center justify-center bg-white bg-opacity-80 backdrop-blur-sm transition-all animate-fade-in">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-20 h-20 border-8 border-gray-200 border-t-gray-500 rounded-full animate-spin shadow-lg"></div>
+          <span className="text-xl font-bold text-gray-700 animate-pulse">Cargando...</span>
+        </div>
+      </div>
+    )
+  }
+
+  if (!employeesPayroll || employeesPayroll.length === 0) {
+    return (
+      <main className="p-3 w-full mx-auto">
+        <div className="">
+          <div className="text-center text-gray-500 mt-10">
+            <h2 className="text-2xl font-semibold">No hay nómina registrada para el {dateFromYYYYMMDD.toLocaleDateString('es-Mx', { weekday: 'long' })}</h2>
+            <p className="mt-4">Verifica tu lista de empleados.</p>
+          </div>
+        </div>
+      </main>
+    )
+  }
 
   return (
     <main className="p-3 mx-auto">

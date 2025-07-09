@@ -6,18 +6,38 @@ import Select from 'react-select'
 import { customSelectStyles } from '../../helpers/Constants'
 import { useBranchCustomerProductPrice } from '../../hooks/Prices/useBranchCustomerProductPrice'
 import { ToastDanger } from '../../helpers/toastify'
-import { formatDate, isToday } from '../../helpers/DatePickerFunctions'
 import { useDateNavigation } from '../../hooks/useDateNavigation'
+import { useBranches } from '../../hooks/Branches/useBranches'
+import { useCustomers } from '../../hooks/Customers/useCustomers'
+import { getArrayForSelects } from '../../helpers/Functions'
 
-export default function MenuSucursal({ branchAndCustomerSelectOptions, selectedProduct, onAddProviderInput }) {
+export default function MenuSucursal({ selectedProduct, onAddProviderInput }) {
 
-  const { currentDate: date, dateFromYYYYMMDD, today } = useDateNavigation();
+  const { currentDate: date, dateFromYYYYMMDD, today, registerDate } = useDateNavigation();
   const { currentUser, company } = useSelector((state) => state.user)
   const [selectedBranchCustomerOption, setSelectedBranchCustomerOption] = useState(null)
   const [selectedGroup, setSelectedGroup] = useState('')
   const { price: lastPrice } = useBranchCustomerProductPrice({ branchCustomerId: selectedBranchCustomerOption ? selectedBranchCustomerOption.value : null, productId: selectedProduct ? selectedProduct._id : null, date, group: selectedGroup == '' ? null : selectedGroup })
   const [providerInputFormData, setProviderInputFormData] = useState({})
   const [amount, setAmount] = useState(0)
+
+  const {
+    branches
+  } = useBranches({ companyId: company._id })
+  const {
+    customers
+  } = useCustomers({ companyId: company._id })
+
+  const branchAndCustomerSelectOptions = [
+    {
+      label: 'Sucursales',
+      options: getArrayForSelects(branches, (branch) => branch.branch)
+    },
+    {
+      label: 'Clientes',
+      options: getArrayForSelects(customers, (customer) => customer.name)
+    }
+  ]
 
   const generarMonto = () => {
     const priceInput = document.getElementById('provider-input-price')

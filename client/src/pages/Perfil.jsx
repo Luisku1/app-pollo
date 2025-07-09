@@ -18,6 +18,7 @@ import { useEmployeeDailyBalance } from '../hooks/Employees/useEmployeeDailyBala
 import PhoneLinks from "../components/PhoneLinks";
 import { useEmployeePayroll } from '../hooks/Employees/useEmployeePayroll'
 import PayrollResume from "../components/Payroll/PayrollResume";
+import { formatDateYYYYMMDD, getDayRange } from "../../../common/dateOps";
 
 export default function Perfil() {
 
@@ -26,7 +27,7 @@ export default function Perfil() {
   const [employee, setEmployee] = useState(null)
   const [editEmployee, setEditEmployee] = useState(false)
   const { employeeDailyBalance, handleDailyBalanceInputs, loading } = useEmployeeDailyBalance(employeeId)
-  const { payments, total } = useEmployeesPayments({ employeeId, date: formatDate(new Date()) })
+  const { payments, total } = useEmployeesPayments({ employeeId, date: formatDateYYYYMMDD(new Date(getDayRange(new Date()).topDate)) })
   const { roles, isManager } = useRoles()
   const { isLoading } = useLoading(loading)
   const { signOut } = useSignOut()

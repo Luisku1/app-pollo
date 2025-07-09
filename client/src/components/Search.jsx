@@ -5,7 +5,7 @@ import Modal from "./Modals/Modal";
 import { useNavigate } from "react-router-dom";
 import { formatDate, formatInformationDate } from '../helpers/DatePickerFunctions';
 import { useRoles } from '../context/RolesContext';
-import { today } from "../../../common/dateOps";
+import { dateFromYYYYMMDD, formatDateYYYYMMDD, today } from "../../../common/dateOps";
 import { useDateNavigation } from "../hooks/useDateNavigation";
 
 
@@ -16,10 +16,9 @@ export const SearchMenu = ({ modalMode }) => {
   const [highlightedIndex, setHighlightedIndex] = useState(0);
   const navigate = useNavigate();
   const { roles, isSupervisor, isManager, isController } = useRoles();
-  const { currentDate } = useDateNavigation();
+  const { currentDate, dateFromYYYYMMDD: dateYYYYMMDD } = useDateNavigation();
   const optionRefs = useRef([]);
 
-  if (!currentUser) return null;
 
   useEffect(() => {
     if (showModal) {
@@ -68,19 +67,19 @@ export const SearchMenu = ({ modalMode }) => {
         }
         return [
           option,
-          { ...option, text: `${option.text} (${formatInformationDate(currentDate)})`, link: `${option.link}/${currentDate}` }
+          { ...option, text: `${option.text} (${formatInformationDate(dateYYYYMMDD)})`, link: `${option.link}/${currentDate}` }
         ];
       } else {
         if (isToday && option.date) {
-          let yesterdayDate = new Date(currentDate);
+          let yesterdayDate = new Date(dateYYYYMMDD);
           yesterdayDate.setDate(yesterdayDate.getDate() - 1);
-          yesterdayDate = formatDate(yesterdayDate);
+          yesterdayDate = formatDateYYYYMMDD(yesterdayDate);
           if (option.dateRole && !isManager(currentUser?.role)) {
             return option;
           }
           return [
             option,
-            { ...option, text: `${option.text} (${formatInformationDate(yesterdayDate)})`, link: `${option.link}/${yesterdayDate}` }
+            { ...option, text: `${option.text} (${formatInformationDate(dateFromYYYYMMDD(yesterdayDate))})`, link: `${option.link}/${yesterdayDate}` }
           ];
         }
       }
@@ -148,6 +147,8 @@ export const SearchMenu = ({ modalMode }) => {
       });
     }
   }, [highlightedIndex, showModal, filteredOptions]);
+
+  if (!currentUser) return null;
 
   return (
     <>

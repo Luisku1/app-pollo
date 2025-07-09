@@ -2,6 +2,8 @@
 import { useState } from "react";
 import Entradas from "./Entradas/Entradas";
 import Salidas from "./Salidas/Salidas";
+import { useBranches } from "../../hooks/Branches/useBranches";
+import { useCustomers } from "../../hooks/Customers/useCustomers";
 
 export default function EntradasYSalidas({ products, branchAndCustomerSelectOptions, date }) {
 
@@ -25,8 +27,8 @@ export default function EntradasYSalidas({ products, branchAndCustomerSelectOpti
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="bg-outputs border rounded-lg border-black">
+    <div className="">
+      <div className="bg-outputs border rounded-lg border-black mb-4">
         <Salidas selectedProduct={outputSelectedProduct} setSelectedProduct={selectProduct} setSelectedProductToNull={setOutputSelectedProductToNull} products={products} branchAndCustomerSelectOptions={branchAndCustomerSelectOptions} date={date}></Salidas>
       </div>
       <div className="bg-inputs border rounded-lg border-black">

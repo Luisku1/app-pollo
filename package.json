@@ -24,6 +24,7 @@
     "html-to-image": "^1.11.13",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.507.0",
+    "mathjs": "^14.5.3",
     "mongodb": "^6.3.0",
     "mongoose": "^7.6.3",
     "mongoose-double": "^0.0.1",

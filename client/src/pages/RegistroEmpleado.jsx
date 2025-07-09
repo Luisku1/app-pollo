@@ -110,140 +110,140 @@ export default function RegistroEmpleadoNuevo({ employee, setEmployee }) {
   }, [employee, isEditing]);
 
   return (
-    <div className="p-3 max-w-lg mx-auto">
-      <h1 className="text-3xl text-center font-semibold my-7 w-full">
+    <main className="p-4 sm:p-8 max-w-xl mx-auto bg-white rounded-2xl shadow-lg border text-base border-gray-200 animate-fade-in">
+      <h1 className="text-3xl text-center font-bold my-6 text-blue-800 tracking-tight">
         {isEditing ? (
           <span className="w-full">
             Actualización de cuenta
             <br />
-            <span className='text-employee-name'>
-
-              {`[${employee.name} ${employee.lastName}]`}
-            </span>
+            <span className="text-employee-name">{`[${employee.name} ${employee.lastName}]`}</span>
           </span>
         ) : (
           "Registro de Empleado"
         )}
       </h1>
-
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4 text-base">
-        {" "}
-        {/* Mantener el tamaño de la fuente */}
-        <input
-          type="text"
-          name="name"
-          id="name"
-          value={formData.name || ""}
-          placeholder="Nombres"
-          className="border p-2 rounded-lg text-sm" // Controlar padding y tamaño de fuente
-          onChange={handleChange}
-        />
-        <input
-          type="text"
-          name="lastName"
-          id="lastName"
-          value={formData.lastName || ""}
-          placeholder="Apellidos"
-          className="border p-2 rounded-lg text-sm" // Controlar padding y tamaño de fuente
-          onChange={handleChange}
-        />
-        <input
-          type="tel"
-          name="phoneNumber"
-          id="phoneNumber"
-          placeholder="Número de teléfono"
-          className="border p-2 rounded-lg text-sm" // Controlar padding y tamaño de fuente
-          onChange={handleChange}
-          value={formData.phoneNumber || ""}
-        />
-        <div className="flex items-center justify-between">
-          <p>Rol del empleado:</p>
-          <select
-            name="role"
-            id="role"
-            className="border p-2 rounded-lg text-sm"
-            value={formData.role || (isEditing ? employee.role._id : '')}
-            onChange={handleChange}
-          >
-            {roles &&
-              Object.values(roles).length > 0 &&
-              Object.values(roles).map((role) => (
-                <option
-                  key={role._id}
-                  value={role._id}
-                >
-                  {role.name}
-                </option>
-              ))}
-          </select>
-        </div>
-        <div className="flex items-center justify-between">
-          <p>Salario:</p>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+        <div className="flex flex-col gap-1">
+          <label htmlFor="name" className="font-semibold text-gray-700">Nombres</label>
           <input
-            type="number"
-            step={100}
-            placeholder="$0.00"
-            name="salary"
-            id="salary"
-            className="border p-2 rounded-lg text-sm"
+            type="text"
+            name="name"
+            id="name"
+            value={formData.name || ""}
+            placeholder="Nombres"
+            className="border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-300 focus:outline-none text-base transition"
             onChange={handleChange}
-            value={formData.salary || ""}
+            autoFocus
           />
         </div>
-        <div className="flex items-center justify-between">
-          <p>Día de pago:</p>
-          <select
-            name="payDay"
-            id="payDay"
-            className="border p-2 rounded-lg text-sm"
-            value={formData.payDay || (isEditing ? employee?.payDay : day)}
-            onChange={handleChange}
-          >
-            {weekDays &&
-              weekDays.length > 0 &&
-              weekDays.map((element, index) => (
-                <option
-                  key={index}
-                  value={index}
-                >
-                  {element}
-                </option>
-              ))}
-          </select>
-        </div>
-        <div className="flex items-center justify-between">
-          <p>Saldo {"(Deuda)"}:</p>
+        <div className="flex flex-col gap-1">
+          <label htmlFor="lastName" className="font-semibold text-gray-700">Apellidos</label>
           <input
-            type="number"
-            step={0.01}
-            name="balance"
-            id="balance"
-            className="border p-2 rounded-lg text-sm"
+            type="text"
+            name="lastName"
+            id="lastName"
+            value={formData.lastName || ""}
+            placeholder="Apellidos"
+            className="border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-300 focus:outline-none text-base transition"
             onChange={handleChange}
-            value={formData.balance || 0}
           />
         </div>
-        <input
-          type="password"
-          name="password"
-          id="password"
-          placeholder="Contraseña"
-          className="border p-2 rounded-lg text-sm"
-          onChange={handleChange}
-        />
+        <div className="flex flex-col gap-1">
+          <label htmlFor="phoneNumber" className="font-semibold text-gray-700">Número de teléfono</label>
+          <input
+            type="tel"
+            name="phoneNumber"
+            id="phoneNumber"
+            placeholder="Ej: 55-1243-4567"
+            className="border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-300 focus:outline-none text-base transition"
+            onChange={handleChange}
+            value={formData.phoneNumber || ""}
+          />
+        </div>
+        <div className="flex flex-col gap-1 sm:flex-row sm:gap-4">
+          <div className="flex-1 flex flex-col gap-1">
+            <label htmlFor="role" className="font-semibold text-gray-700">Rol del empleado</label>
+            <select
+              name="role"
+              id="role"
+              className="border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-300 focus:outline-none text-base transition"
+              value={formData.role || (isEditing ? employee.role._id : '')}
+              onChange={handleChange}
+            >
+              {roles &&
+                Object.values(roles).length > 0 &&
+                Object.values(roles).map((role) => (
+                  <option key={role._id} value={role._id}>{role.name}</option>
+                ))}
+            </select>
+          </div>
+          <div className="flex-1 flex flex-col gap-1">
+            <label htmlFor="salary" className="font-semibold text-gray-700">Salario</label>
+            <input
+              type="number"
+              step={100}
+              placeholder="$0.00"
+              name="salary"
+              id="salary"
+              className="border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-300 focus:outline-none text-base transition"
+              onChange={handleChange}
+              value={formData.salary || ""}
+            />
+          </div>
+        </div>
+        <div className="flex flex-col gap-1 sm:flex-row sm:gap-4">
+          <div className="flex-1 flex flex-col gap-1">
+            <label htmlFor="payDay" className="font-semibold text-gray-700">Día de pago</label>
+            <select
+              name="payDay"
+              id="payDay"
+              className="border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-300 focus:outline-none text-base transition"
+              value={formData.payDay || (isEditing ? employee?.payDay : day)}
+              onChange={handleChange}
+            >
+              {weekDays &&
+                weekDays.length > 0 &&
+                weekDays.map((element, index) => (
+                  <option key={index} value={index}>{element}</option>
+                ))}
+            </select>
+          </div>
+          <div className="flex-1 flex flex-col gap-1">
+            <label htmlFor="balance" className="font-semibold text-gray-700">Saldo (Deuda)</label>
+            <input
+              type="number"
+              step={0.01}
+              name="balance"
+              id="balance"
+              className="border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-300 focus:outline-none text-base transition"
+              onChange={handleChange}
+              value={formData.balance || 0}
+            />
+          </div>
+        </div>
+        <div className="flex flex-col gap-1">
+          <label htmlFor="password" className="font-semibold text-gray-700">Contraseña</label>
+          <input
+            type="password"
+            name="password"
+            id="password"
+            placeholder="Contraseña"
+            className="border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-300 focus:outline-none text-base transition"
+            onChange={handleChange}
+          />
+        </div>
         <button
           disabled={loading}
-          className="bg-button text-white p-2 rounded-lg uppercase hover:opacity-95 disabled:opacity-80"
+          className="bg-blue-600 text-white p-3 rounded-lg uppercase font-semibold hover:bg-blue-700 transition disabled:opacity-70 mt-2 shadow-sm"
         >
           {loading
-            ? "Cargando..."
+            ? <span className="flex items-center justify-center gap-2"><span className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></span>Cargando...</span>
             : !employee
             ? "Registrar"
             : "Actualizar Información"}
         </button>
       </form>
-
-      {error && <p className="text-red-500 mt-5 text-base">{error}</p>}
-    </div>
+      {error && <p className="text-red-500 mt-5 text-center font-medium animate-shake">{error}</p>}
+    </main>
   );
 }

@@ -134,7 +134,7 @@ export default function RegistroCuentaDiaria({ edit = true }) {
 
       setShowSelectReportEmployees(true)
     }
-    navigate('/formato/' + branch._id + '/' + formatDateYYYYMMDD(new Date(currentDate)))
+    navigate('/formato/' + branch._id + '/' + currentDate)
   }
 
   const SectionHeader = (props) => {
@@ -158,7 +158,7 @@ export default function RegistroCuentaDiaria({ edit = true }) {
 
     setShowSelectReportEmployees(false);
 
-    if (!(finalAssistants.length > 0 && assistants.length === 0) || (areArraysEqual(finalAssistants, assistants) && selectedEmployee?._id === branchReport?.employee?._id)) {
+    if (((assistants.length === 0 && finalAssistants.length === 0) || (areArraysEqual(finalAssistants, assistants))) && selectedEmployee?._id === branchReport?.employee?._id) {
       ToastInfo('No se han realizado cambios en los empleados del reporte');
       return;
     }
@@ -184,12 +184,12 @@ export default function RegistroCuentaDiaria({ edit = true }) {
 
   useEffect(() => {
 
-    if (selectedBranch != null && currentDate != null && edit) {
+    if (selectedBranch != null && dateFromYYYYMMDD != null && edit) {
 
       document.title = (selectedBranch?.branch ?? 'Formato') + ' ' + '(' + (dateFromYYYYMMDD.toLocaleDateString()) + ')'
     }
 
-  }, [selectedBranch, currentDate, edit])
+  }, [selectedBranch, dateFromYYYYMMDD, edit])
 
   const handleShowEmployeeInfo = () => {
     if (!branchReport?.employee) {
@@ -276,7 +276,7 @@ export default function RegistroCuentaDiaria({ edit = true }) {
               </div>
             </h1>
           </div>
-          {branchReport && branchId !== null && employee !== null && (employee._id !== currentUser._id && isSupervisor(currentUser.role)) && (
+          {branchReport && branchId !== null && employee !== null && ((employee._id !== currentUser._id && isSupervisor(currentUser.role)) || employee._id === currentUser._id) && (
             <div>
               <h2 className='w-full px-2 rounded-lg border-black mx-2 mt-2 bg-white'>
                 <div className='flex gap-2 py-2 items-center'>

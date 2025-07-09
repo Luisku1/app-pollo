@@ -8,7 +8,7 @@ import { changePricesDate, fetchBranchReport, fetchOrCreateBranchReport } from "
 import ProviderInput from "../models/providers/provider.input.model.js";
 import Input from "../models/accounts/input.model.js";
 import Output from "../models/accounts/output.model.js";
-import { dateFromYYYYMMDD } from "../../common/dateOps.js";
+import { dateFromYYYYMMDD, formatDateYYYYMMDD, isYYYYMMDD } from "../../common/dateOps.js";
 
 export const newPrice = async (req, res, next) => {
 
@@ -220,6 +220,7 @@ export const getAllBranchPrices = async (req, res, next) => {
             branch: "$_id",
             branchName: '$branch',
             branchPosition: '$position',
+            residualPrices: '$residualPrices',
             product: "$prices.product",
             company: '$company'
           },
@@ -245,7 +246,7 @@ export const getAllBranchPrices = async (req, res, next) => {
             }
           },
           date: { $first: "$prices.createdAt" } // También obtenemos la fecha del precio más reciente
-        }
+        },
       },
       {
         $lookup: {
@@ -256,13 +257,37 @@ export const getAllBranchPrices = async (req, res, next) => {
         }
       },
       { $unwind: "$product" },
+      // Lookup para fórmula
+      {
+        $lookup: {
+          from: "branchproductformulas",
+          let: { branchId: "$_id.branch", productId: "$product._id" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ["$branchId", "$$branchId"] },
+                    { $eq: ["$productId", "$$productId"] }
+                  ]
+                }
+              }
+            },
+            { $project: { formula: 1, _id: 1 } }
+          ],
+          as: "formulaData"
+        }
+      },
+      { $addFields: { formula: { $arrayElemAt: ["$formulaData", 0] } } },
+      { $project: { formulaData: 0 } },
       { $sort: { "product.createdAt": 1 } },
       {
         $group: {
           _id: {
             branchId: "$_id.branch",
             branchName: '$_id.branchName',
-            branchPosition: '$_id.branchPosition'
+            branchPosition: '$_id.branchPosition',
+            residualPrices: '$_id.residualPrices'
           },
           company: { $first: '$_id.company' },
           prices: {
@@ -271,7 +296,8 @@ export const getAllBranchPrices = async (req, res, next) => {
               product: "$product.name",
               latestPrice: "$latestPrice",
               latestResidualPrice: "$latestResidualPrice",
-              date: "$date"
+              date: "$date",
+              formula: "$formula"
             }
           }
         }
@@ -284,20 +310,20 @@ export const getAllBranchPrices = async (req, res, next) => {
       res.status(200).json({ data: productsPrice })
 
     } else {
-
       next(errorHandler(404, 'Error ocurred'))
     }
 
 
   } catch (error) {
-
+    console.log(error)
     next(error)
   }
 }
 
 export const getBranchProductPrice = async (req, res, next) => {
 
-  const { branchId, productId, date } = req.params
+  const { branchId, productId } = req.params
+  const date = isYYYYMMDD(req.params.date) ? dateFromYYYYMMDD(req.params.date).toISOString() : req.params.date;
   let finalDate
 
   if (!branchId || !productId || !date) {
@@ -336,89 +362,49 @@ export const getBranchProductPrice = async (req, res, next) => {
 
 }
 
-export const getCustomerProductPrice = async (req, res, next) => {
 
-  const { customerId, productId, date } = req.params
+export const getCustomerProductPrice = async (req, res, next) => {
+  const { customerId, productId } = req.params;
+  // Fecha límite para buscar
+  const date = dateFromYYYYMMDD(formatDateYYYYMMDD((new Date(req.params.date)) ?? new Date())).toISOString();
 
   try {
-
+    // Buscar el último registro de ProviderInput, Input y Output para ese cliente y producto
     const [customerLastProviderInput, customerLastInput, customerLastOutput] = await Promise.all([
       ProviderInput.findOne({
-        $and: [
-          {
-            customer: customerId
-          },
-          {
-            product: productId
-          },
-          {
-            createdAt: { $lte: new Date(date) }
-          }
-        ]
+        customer: customerId,
+        product: productId,
+        createdAt: { $lte: date }
       }).sort({ createdAt: -1 }),
-
       Input.findOne({
-        $and: [
-          {
-            customer: customerId
-          },
-          {
-            product: productId
-          },
-          {
-            createdAt: { $lte: new Date(date) }
-          }
-        ]
+        customer: customerId,
+        product: productId,
+        createdAt: { $lte: date }
       }).sort({ createdAt: -1 }),
-
       Output.findOne({
-        $and: [
-          {
-            customer: customerId
-          },
-          {
-            product: productId
-          },
-          {
-            createdAt: { $lte: new Date(date) }
-          }
-        ]
+        customer: customerId,
+        product: productId,
+        createdAt: { $lte: date }
       }).sort({ createdAt: -1 })
-    ])
+    ]);
 
     // Manejo de casos donde no se encuentran registros
     if (!customerLastProviderInput && !customerLastInput && !customerLastOutput) {
       return res.status(404).json({ price: 0.0 });
     }
 
-    // Obtiene los precios de ambos registros
-    const providerPrice = customerLastProviderInput ? customerLastProviderInput.price : 0.0;
-    const inputPrice = customerLastInput ? customerLastInput.price : 0.0;
-    const outputPrice = customerLastOutput ? customerLastOutput.price : 0.0
+    // Encuentra el registro más reciente entre los tres
+    const all = [customerLastProviderInput, customerLastInput, customerLastOutput].filter(Boolean);
+    const latest = all.reduce((acc, curr) => {
+      if (!acc) return curr;
+      return curr.createdAt > acc.createdAt ? curr : acc;
+    }, null);
 
-    // Devuelve el precio más reciente
-    if (customerLastInput && customerLastProviderInput && outputPrice) {
-      if (customerLastInput.createdAt > customerLastProviderInput.createdAt && customerLastInput.createdAt > customerLastOutput.createdAt) {
-        return res.status(200).json({ price: inputPrice });
-      } else if (customerLastProviderInput.createdAt > customerLastInput.createdAt && customerLastProviderInput.createdAt > customerLastOutput.createdAt) {
-        return res.status(200).json({ price: providerPrice });
-      } else if (customerLastOutput.createdAt > customerLastInput.createdAt && customerLastOutput.createdAt > customerLastProviderInput.createdAt) {
-        return res.status(200).json({ price: outputPrice })
-      } else if (customerLastInput == customerLastOutput && customerLastOutput == customerLastProviderInput) {
-
-        return res.status(200).json({ price: Math.max(inputPrice, providerPrice, customerLastOutput) });
-      }
-    }
-
-    // Si solo hay un registro, devuelve su precio
-    return res.status(200).json({ price: providerPrice || inputPrice || outputPrice });
-
-
+    return res.status(200).json({ price: latest.price });
   } catch (error) {
-
-    next(error)
+    next(error);
   }
-}
+};
 
 export const getProductPrice = async (productId, branchId, topDate = new Date(), residualPrice = false) => {
 
@@ -536,7 +522,8 @@ export const pricesAggregate = async (branchId, topDate, sortOrder = null, resid
         $group: {
           _id: {
             branchId: "$_id.branch",
-            branchName: '$_id.branchName'
+            branchName: '$_id.branchName',
+            residualPrices: '$_id.residualPrices'
           },
           company: { $first: '$_id.company' },
           prices: {

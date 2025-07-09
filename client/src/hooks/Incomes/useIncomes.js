@@ -10,7 +10,7 @@ import { getId } from "../../helpers/Functions";
 import { formatDate, formatDateYYYYMMDD } from "../../../../common/dateOps";
 
 
-export const useIncomes = ({ companyId = null, date = null, initialIncomes = null }) => {
+export const useIncomes = ({ companyId = null, date = null, useToday, initialIncomes = null }) => {
   const { addIncome, loading: addLoading } = useAddIncome();
   const { deleteIncome, loading: deleteLoading } = useDeleteIncome();
   const [error, setError] = useState(null);
@@ -59,54 +59,59 @@ export const useIncomes = ({ companyId = null, date = null, initialIncomes = nul
         return [income, ...prev];
       }
     });
-    // También actualiza el estado local para mantener consistencia visual inmediata
-    setIncomes((prevIncomes) => {
-      if (income?.length > 0) {
-        return [...income, ...prevIncomes];
-      } else {
-        return [income, ...prevIncomes];
-      }
-    });
+    if (!useToday) {
+      setIncomes((prevIncomes) => {
+        if (income?.length > 0) {
+          return [...income, ...prevIncomes];
+        } else {
+          return [income, ...prevIncomes];
+        }
+      });
+    }
   };
 
   const spliceIncome = (index) => {
-    setIncomes((prevIncomes) => {
-      const cacheDate = formatDateYYYYMMDD(new Date(prevIncomes[index].createdAt));
-      // Actualiza el caché de React Query para eliminar el income eliminado
-      queryClient.setQueryData(["incomes", companyId, cacheDate], (prev = []) => {
-        if (prev.length === 1) {
-          return [];
-        }
-        if (prev.length > 1) {
-          return prev.filter((_, i) => i !== index);
-        }
-        return [];
-      });
-    });
-    // También actualiza el estado local para mantener consistencia visual inmediata
-    setIncomes((prevIncomes) => {
-      if (prevIncomes.length === 1) {
+
+    const cacheDate = formatDateYYYYMMDD(new Date(incomes[index].createdAt));
+    // Actualiza el caché de React Query para eliminar el income eliminado
+    queryClient.setQueryData(["incomes", companyId, cacheDate], (prev = []) => {
+      if (prev.length === 1) {
         return [];
       }
-      if (prevIncomes.length > 1) {
-        return prevIncomes.filter((_, i) => i !== index);
+      if (prev.length > 1) {
+        return prev.filter((_, i) => i !== index);
       }
       return [];
     });
+
+
+    if (!useToday) {
+
+      setIncomes((prevIncomes) => {
+        if (prevIncomes.length === 1) {
+          return [];
+        }
+        if (prevIncomes.length > 1) {
+          return prevIncomes.filter((_, i) => i !== index);
+        }
+        return [];
+      });
+    }
   };
 
   const spliceIncomeById = (incomeId) => {
-    if (incomeId.length > 0) {
-      setIncomes((prevIncomes) => {
-        const filteredIncomes = prevIncomes.filter((income) => !incomeId.includes(income._id));
-        return filteredIncomes;
+    setIncomes((prevIncomes) => {
+      let idsToRemove = Array.isArray(incomeId) ? incomeId : [incomeId];
+      // Actualiza el caché de React Query para cada income eliminado
+      idsToRemove.forEach(id => {
+        const incomeToRemove = prevIncomes.find((income) => income._id === id);
+        if (incomeToRemove) {
+          const cacheDate = formatDateYYYYMMDD(new Date(incomeToRemove.createdAt));
+          queryClient.setQueryData(["incomes", companyId, cacheDate], (prev = []) => prev.filter((income) => income._id !== id));
+        }
       });
-    } else {
-      setIncomes((prevIncomes) => {
-        const filteredIncomes = prevIncomes.filter((income) => income._id !== incomeId);
-        return filteredIncomes;
-      });
-    }
+      return prevIncomes.filter((income) => !idsToRemove.includes(income._id));
+    });
   };
 
   const updateLastIncomeId = (incomeId) => {

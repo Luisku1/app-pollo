@@ -5,7 +5,7 @@ import { PiNumberZeroBold } from "react-icons/pi"
 import { formatInformationDate, isToday } from "../helpers/DatePickerFunctions"
 import { useSelector } from "react-redux"
 import { useState } from "react"
-import { ToastDanger } from "../helpers/toastify"
+import { ToastDanger, ToastSuccess } from "../helpers/toastify"
 import { TbReload } from "react-icons/tb"
 import { blockedButton } from "../helpers/Constants"
 import { FaSpinner } from "react-icons/fa"
@@ -21,6 +21,7 @@ import RegistrarDineroReportado from "./RegistrarDineroReportado.jsx"
 import EmployeeInfo from "./EmployeeInfo.jsx"
 import { toPng } from "html-to-image";
 import { AiOutlineDownload, AiOutlineCopy } from "react-icons/ai";
+import EmployeeName from "./Names/EmployeeName.jsx"
 
 export default function SupervisorReportCard({
   supervisorReport,
@@ -140,7 +141,7 @@ export default function SupervisorReportCard({
           />
         )}
         <div className="flex justify-between items-center px-2 pt-1 mb-2">
-          <button onClick={() => setSelectedEmployee(supervisorReport.supervisor)} className="font-bold text-md flex gap-1 items-center"><span><CgProfile /></span>{getEmployeeFullName(supervisorReport.supervisor)}</button>
+          <EmployeeName employee={supervisorReport.supervisor} />
           <div className="flex items-center gap-1">
             <p className="text-lg font-semibold text-red-500">
               {formatInformationDate(new Date(supervisorReport.createdAt))}

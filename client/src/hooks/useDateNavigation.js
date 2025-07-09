@@ -50,9 +50,17 @@ export function useDateNavigation() {
   const isDateAware = matchDateAwareRoute(location.pathname);
   const { date: urlDate, branchId } = extractParamsFromPath(location.pathname);
 
+  const [isToday, setIsToday] = useState(false);
   const [currentDate, setCurrentDate] = useState(() =>
-    urlDate ? formatDateYYYYMMDD(new Date(urlDate)) : formatDateYYYYMMDD(new Date())
+    urlDate ? urlDate : formatDateYYYYMMDD(new Date())
   );
+
+  useEffect(() => {
+    if (currentDate) {
+      const todayDate = formatDateYYYYMMDD(new Date());
+      setIsToday(currentDate === todayDate);
+    }
+  }, [currentDate]);
 
   useEffect(() => {
     if (urlDate) {
@@ -64,7 +72,10 @@ export function useDateNavigation() {
   }, [urlDate]);
 
   const setDate = (newDate) => {
-    if (!isDateAware) return;
+    if (!isDateAware) {
+      setCurrentDate(newDate);
+      return;
+    };
     const newPath = getDateAwareLink(newDate);
     if (newDate !== currentDate) {
       setCurrentDate(newDate);
@@ -83,22 +94,14 @@ export function useDateNavigation() {
     }
   };
   // Estado para controlar si se registra para hoy o para la fecha seleccionada
-  const [registerDateMode, setRegisterDateMode] = useState(); // 'current' | 'today'
   const dateFromYYYYMMDDFormat = dateFromYYYYMMDD(currentDate);
-  // Fecha efectiva para registro
-  const registerDate = registerDateMode === 'today' ? new Date().toISOString() : dateFromYYYYMMDDFormat.toISOString();
-
-  console.log(registerDate, registerDateMode);
 
   return {
     isDateAware,
     currentDate,
     dateFromYYYYMMDD: dateFromYYYYMMDDFormat,
-    today: today(currentDate),
+    today: isToday,
     setDate,
-    registerDate,
-    registerDateMode,
-    setRegisterDateMode,
     getDateAwareLink,
     branchId,
   };

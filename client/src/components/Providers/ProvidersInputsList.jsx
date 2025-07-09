@@ -15,6 +15,9 @@ import ConfirmationButton from "../Buttons/ConfirmationButton";
 import DeleteButton from "../Buttons/DeleteButton";
 import { CiSquareInfo } from "react-icons/ci";
 import EmployeeInfo from "../EmployeeInfo";
+import CustomerName from "../Names/CustomerName";
+import BranchName from "../Names/BranchName";
+import EmployeeName from "../Names/EmployeeName";
 
 export default function ProvidersInputsList({ inputs, totalWeight = 0, totalAmount = 0, onDelete = null }) {
 
@@ -77,16 +80,15 @@ export default function ProvidersInputsList({ inputs, totalWeight = 0, totalAmou
                 <div id="list-element" className="col-span-12">
                   <div className="w-full text-red-800 mb-1">
                     <RowItem>
-                      {customer && customer.name &&
-                        <p className="text-md font-bold flex gap-1 items-center">
-                          {customer.name}
-                        </p>
+                      {customer &&
+                        <CustomerName customer={customer} />
                       }
-                      {branch && branch.branch &&
-
-                        <p className="text-md font-bold flex gap-1 items-center"><MdStorefront />{branch.branch}</p>
+                      {branch &&
+                        <BranchName branch={branch} />
                       }
-                      <button onClick={() => setSelectedEmployee(employee)} className="font-bold text-md flex gap-1 truncate items-center"><span><CgProfile /></span>{employee.name}</button>
+                      {employee &&
+                        <EmployeeName employee={employee} />
+                      }
                     </RowItem>
                   </div>
                   <div className="w-full text-sm font-semibold">

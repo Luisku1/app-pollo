@@ -60,6 +60,30 @@ export const newBranch = async (req, res, next) => {
 	}
 }
 
+export const updateBranch = async (req, res, next) => {
+
+	const branchId = req.params.branchId
+	const { branch, phoneNumber, location, p, rentAmount, zone, rentDay, company, position } = req.body
+
+	try {
+
+		const updatedBranch = await Branch.findByIdAndUpdate(branchId, { branch, phoneNumber, location, p, rentAmount, zone, rentDay, company, position }, { new: true })
+
+		if (updatedBranch) {
+
+			res.status(200).json({ branch: updatedBranch })
+
+		} else {
+
+			next(errorHandler(404, 'Branch not found'))
+		}
+
+	} catch (error) {
+
+		next(error)
+	}
+}
+
 export const getBranch = async (req, res, next) => {
 
 	const branchId = req.params.branchId

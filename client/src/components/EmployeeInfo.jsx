@@ -65,7 +65,7 @@ export default function EmployeeInfo({ employee, toggleInfo, isShown, handleEmpl
           ) : (
             <span className="text-gray-700">{`${employee.name} ${employee.lastName}`}</span>
           )}
-          {isManager(currentUser.role) && (
+          {isManager(currentUser.role) && handleEmployeeUpdate && (
             <button className="" onClick={toggleEditEmployee}>
               <FaEdit className="text-blue-500" />
             </button>
