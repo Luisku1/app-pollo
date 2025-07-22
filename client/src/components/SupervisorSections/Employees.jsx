@@ -3,7 +3,7 @@
 import CreateRests from '../CreateRest'
 import Penalties from "../Penalties"
 
-export default function Employees({ }) {
+export default function Employees() {
 
   return (
     <div className=''>

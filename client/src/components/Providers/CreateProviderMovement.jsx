@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import SectionHeader from "../SectionHeader"
 import { useSelector } from "react-redux"
 import { useProducts } from "../../hooks/Products/useProducts"

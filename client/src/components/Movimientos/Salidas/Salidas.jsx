@@ -9,12 +9,13 @@ import { customSelectStyles } from "../../../helpers/Constants"
 import BranchAndCustomerSelect from "../../Select/BranchAndCustomerSelect"
 import { ToastDanger } from "../../../helpers/toastify"
 import { useBranchCustomerProductPrice } from "../../../hooks/Prices/useBranchCustomerProductPrice"
-import { getArrayForSelects, getElementForSelect, priceShouldNotBeZero } from "../../../helpers/Functions"
+import { currency, getArrayForSelects, getElementForSelect, priceShouldNotBeZero } from "../../../helpers/Functions"
 import ShowListModal from "../../Modals/ShowListModal"
 import { useCustomers } from "../../../hooks/Customers/useCustomers"
 import { useBranches } from "../../../hooks/Branches/useBranches"
 import { useProducts } from "../../../hooks/Products/useProducts"
 import { useDateNavigation } from "../../../hooks/useDateNavigation"
+import { calculateAmount } from "../../../../../common/calculateAmount";
 
 export default function Salidas({ selectedProduct, setSelectedProduct }) {
 
@@ -60,12 +61,13 @@ export default function Salidas({ selectedProduct, setSelectedProduct }) {
 
   const generarMonto = () => {
     const weightInput = document.getElementById('output-weight');
-    const priceInput = document.getElementById('output-price');
-
-    const priceValue = parseFloat(priceInput.value != '' ? priceInput.value : lastPrice);
-    const weight = parseFloat(weightInput.value != '' ? weightInput.value : '0.0');
-
-    setAmount((priceValue * weight).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' }))
+    const piecesInput = document.getElementById('output-pieces');
+    const byPieces = internalSelectedProduct?.byPieces === true;
+    const price = outputFormData.price !== undefined && outputFormData.price !== '' ? parseFloat(outputFormData.price) : parseFloat(lastPrice) || 0;
+    const weight = weightInput?.value !== '' ? parseFloat(weightInput.value) : 0;
+    const pieces = piecesInput?.value !== '' ? parseFloat(piecesInput.value) : 0;
+    const monto = calculateAmount(price, byPieces, weight, pieces);
+    setAmount(currency(monto));
   }
 
   useEffect(() => {
@@ -73,6 +75,21 @@ export default function Salidas({ selectedProduct, setSelectedProduct }) {
       setInternalSelectedProduct(selectedProduct)
     }
   }, [selectedProduct])
+
+  const resetData = () => {
+    setOutputFormData({});
+    setSelectedProduct(null);
+    setSelectedCustomerBranchOption(null);
+    setAmount('$0.00');
+    const piecesInput = document.getElementById('output-pieces');
+    const weightInput = document.getElementById('output-weight');
+    const priceInput = document.getElementById('output-price');
+    const commentInput = document.getElementById('output-comment');
+    if (piecesInput) piecesInput.value = '';
+    if (weightInput) weightInput.value = '';
+    if (priceInput) priceInput.value = '';
+    if (commentInput) commentInput.value = '';
+  };
 
   const outputButtonControl = () => {
 
@@ -104,6 +121,15 @@ export default function Salidas({ selectedProduct, setSelectedProduct }) {
     }
   }
 
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (e.target.form) {
+        e.target.form.requestSubmit();
+      }
+    }
+  };
+
   const handleOutputInputsChange = (e) => {
     setOutputFormData({
       ...outputFormData,
@@ -125,7 +151,7 @@ export default function Salidas({ selectedProduct, setSelectedProduct }) {
 
     e.preventDefault()
 
-    if (priceInput.value != '' ? priceInput.value == 0 : price == 0) {
+    if (priceInput.value != '' ? priceInput.value == 0 : lastPrice == 0) {
 
       priceShouldNotBeZero()
       return
@@ -133,7 +159,7 @@ export default function Salidas({ selectedProduct, setSelectedProduct }) {
 
     setLoading(true)
 
-    const finalPrice = priceInput.value != '' ? priceInput.value : price
+    const finalPrice = priceInput.value != '' ? priceInput.value : lastPrice
 
     try {
 
@@ -177,18 +203,14 @@ export default function Salidas({ selectedProduct, setSelectedProduct }) {
         }
       }
 
-      onAddOutput(output, group)
-
-      piecesInput.value = ''
-      weightInput.value = ''
-      priceInput.value = ''
-      setLoading(false)
+      onAddOutput(output, group);
+      resetData();
+      setLoading(false);
 
     } catch (error) {
-
-      ToastDanger(error.message)
-      setLoading(false)
-
+      ToastDanger(error.message);
+      resetData();
+      setLoading(false);
     }
   }
 
@@ -249,6 +271,7 @@ export default function Salidas({ selectedProduct, setSelectedProduct }) {
                 step={0.01}
                 type="number"
                 disabled={!changePrice}
+                onKeyDown={handleKeyDown}
               />
               <label htmlFor="output-price" className="-translate-y-full px-1 absolute top-1/4 left-2 transform rounded-sm bg-white text-black text-sm font-semibold">
                 Precio
@@ -271,13 +294,13 @@ export default function Salidas({ selectedProduct, setSelectedProduct }) {
           {/* Fin bloque precio */}
           <div className="grid grid-cols-3 gap-2">
             <div className="relative">
-              <input type="number" name="pieces" id="output-pieces" placeholder='0.00' step={0.01} className='border border-black p-3 rounded-lg w-full' required onInput={outputButtonControl} onChange={handleOutputInputsChange} />
+              <input type="number" name="pieces" id="output-pieces" placeholder='0.00' step={0.01} className='border border-black p-3 rounded-lg w-full' required onInput={outputButtonControl} onChange={handleOutputInputsChange} onKeyDown={handleKeyDown} />
               <label htmlFor="output-pieces" className="-translate-y-full px-1 absolute top-1/4 left-2 transform rounded-sm bg-white text-black text-sm font-semibold">
                 Piezas <span>*</span>
               </label>
             </div>
             <div className="relative">
-              <input type="number" name="weight" id="output-weight" placeholder='0.000 kg' step={0.001} className='border border-black p-3 rounded-lg w-full' required onInput={outputButtonControl} onChange={handleOutputInputsChange} />
+              <input type="number" name="weight" id="output-weight" placeholder='0.000 kg' step={0.001} className='border border-black p-3 rounded-lg w-full' required onInput={outputButtonControl} onChange={handleOutputInputsChange} onKeyDown={handleKeyDown} />
               <label htmlFor="output-weight" className="-translate-y-full px-1 absolute top-1/4 left-2 transform rounded-sm bg-white text-black text-sm font-semibold">
                 Kilos <span>*</span>
               </label>
@@ -292,7 +315,7 @@ export default function Salidas({ selectedProduct, setSelectedProduct }) {
           </div>
           {/* Comentario ocupa todo el espacio */}
           <div className='w-full'>
-            <input className='w-full text-sm border border-black rounded-lg p-3' name="comment" id="output-comment" placeholder='Comentario del producto (Opcional)' onChange={handleOutputInputsChange}></input>
+            <input className='w-full text-sm border border-black rounded-lg p-3' name="comment" id="output-comment" placeholder='Comentario del producto (Opcional)' onChange={handleOutputInputsChange} onKeyDown={handleKeyDown}></input>
           </div>
           {selectedGroup === 'Sucursales' && (
             <div className="flex items-center gap-4 mt-4">

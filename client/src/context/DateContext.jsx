@@ -1,24 +1,25 @@
 import { createContext, useContext, useState } from "react";
 import { formatDate } from "../helpers/DatePickerFunctions";
+import { formatDateYYYYMMDD } from "../../../common/dateOps";
 
 const DateContext = createContext();
 
 export const DateProvider = ({ children }) => {
   const [currentDate, setCurrentDate] = useState(
-    formatDate(new Date())
+    formatDateYYYYMMDD(new Date())
   );
 
   const handleDateChange = (date) => {
 
     if (!date) {
-      setCurrentDate(formatDate(new Date()));
+      setCurrentDate(formatDateYYYYMMDD(new Date()));
       return
     }
-    setCurrentDate(formatDate(date));
+    setCurrentDate((date));
   };
 
   return (
-    <DateContext.Provider value={{ currentDate, setCurrentDate: handleDateChange }}>
+    <DateContext.Provider value={{ currentDate, setDate: handleDateChange }}>
       {children}
     </DateContext.Provider>
   );

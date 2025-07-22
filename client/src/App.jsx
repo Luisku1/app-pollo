@@ -4,12 +4,13 @@ import { RolesProvider } from './context/RolesContext';
 import ModalProvider from './context/ModalProvider';
 import PrivateRoute from './components/PrivateRoute';
 import Header from './components/Header';
+import { io } from 'socket.io-client';
 
 
 import './index.css';
 import { useSelector } from 'react-redux';
 import { DateProvider } from './context/DateContext';
-import React, { Suspense } from 'react';
+import React, { Suspense, useEffect } from 'react';
 import DailyResumePage from './pages/DailyResume';
 
 // Importa los componentes de página de forma lazy
@@ -28,7 +29,6 @@ const Productos = React.lazy(() => import('./pages/Productos'));
 const Sucursales = React.lazy(() => import('./pages/Sucursales'));
 const Precios = React.lazy(() => import('./pages/Precios'));
 const Reporte = React.lazy(() => import('./pages/Reporte'));
-const EntradaInicial = React.lazy(() => import('./pages/EntradaInicial'));
 const Gastos = React.lazy(() => import('./pages/Gastos'));
 const Nomina = React.lazy(() => import('./pages/Nomina'));
 const Sobrante = React.lazy(() => import('./pages/Sobrante'));
@@ -37,8 +37,21 @@ const PreciosSucursal = React.lazy(() => import('./pages/PreciosSucursal'));
 const RegistroCliente = React.lazy(() => import('./pages/RegistroCliente'));
 const RegistroProveedor = React.lazy(() => import('./pages/RegistroProveedor'));
 
+const socket = io('http://localhost:3000');
+
 export default function App() {
   const currentUser = useSelector((state) => state.user);
+
+  useEffect(() => {
+    // Conectar al socket cuando el componente se monta
+    socket.connect();
+
+    // Desconectar al socket cuando el componente se desmonta
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
+
   return (
     <RolesProvider>
       <DateProvider>

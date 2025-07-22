@@ -1,9 +1,10 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { addInputFetch } from "../../services/Inputs/addInput"
 
 export const useAddInput = () => {
-  const { mutateAsync, isPending } = useMutation({
-    mutation: async ({ input, group }) => {
+  const queryClient = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: async ({ input, group }) => {
       return await addInputFetch({
         input: {
           ...input,
@@ -16,16 +17,19 @@ export const useAddInput = () => {
         group,
       });
     },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['netDifference'] });
+    }
   });
 
   const addInput = async (input, group) => {
     try {
-      await mutateAsync({ input, group });
+      await mutation.mutateAsync({ input, group });
     } catch (error) {
       console.error('Error adding input:', error);
       throw error;
     }
   };
 
-  return { addInput, isLoading: isPending };
+  return { addInput, isLoading: mutation.isPending };
 };

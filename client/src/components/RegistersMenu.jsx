@@ -1,10 +1,7 @@
 import { IoIosAddCircle } from "react-icons/io";
 import { useState, useEffect, useRef } from "react";
-import Incomes from "./Incomes/Incomes";
 import Modal from "./Modals/Modal";
 import EntradaInicial from "../pages/EntradaInicial";
-import Entradas from "./EntradasYSalidas/Entradas/Entradas";
-import Salidas from "./EntradasYSalidas/Salidas/Salidas";
 import ExtraOutgoings from "./Outgoings/ExtraOutgoings";
 import RegistroCuentaDiaria from "../pages/RegistroCuentaDiaria";
 import CreateRest from "./CreateRest";
@@ -15,10 +12,10 @@ import CreateProviderMovement from "./Providers/CreateProviderMovement";
 import CreateProviderPayment from "./Providers/CreateProviderPayment";
 import RegistroProveedor from "../pages/RegistroProveedor";
 import IncomesAndOutgoings from "./SupervisorSections/IncomesAndOutgoings";
-import EntradasYSalidas from "./EntradasYSalidas/EntradasYSalidas";
+import EntradasYSalidas from "./Movimientos/EntradasYSalidas";
 
 
-export const RegistersMenu = () => {
+export const RegistersMenu = ({ desktopButton }) => {
   const { currentUser } = useSelector((state) => state.user)
   const [showing, setShowing] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
@@ -30,8 +27,7 @@ export const RegistersMenu = () => {
 
   const menu = [
     { title: "Dinero", onSelec: () => { return <IncomesAndOutgoings /> } },
-    { title: "Movimientos - Pollerías", onSelec: () => { return <EntradasYSalidas /> } },
-    { title: "Salidas", onSelec: () => { return <Salidas /> } },
+    { title: "Movimientos Internos", onSelec: () => { return <EntradasYSalidas /> } },
     { title: "Entrada de Proveedor", onSelec: () => { return <EntradaInicial /> } },
     { title: "Pago a Proveedor", onSelec: () => { return <CreateProviderPayment /> } },
     { title: "Compra y devolución a proveedor", onSelec: () => { return <CreateProviderMovement /> } },
@@ -106,12 +102,19 @@ export const RegistersMenu = () => {
 
   return (
     <div className="w-fit">
-      <button
-        onClick={toggleMenu}
-        className="fixed bottom-4 right-4 bg-header text-white p-3 rounded-full shadow-lg hover:bg-black transition duration-300 ease-in-out z-50 opacity-60"
-      >
-        <IoIosAddCircle className="text-3xl" />
-      </button>
+      {/* Desktop button (if provided) */}
+      {desktopButton && (
+        <span onClick={toggleMenu}>{desktopButton}</span>
+      )}
+      {/* Mobile floating button */}
+      {!desktopButton && (
+        <button
+          onClick={toggleMenu}
+          className="fixed bottom-4 right-4 bg-header text-white p-3 rounded-full shadow-lg hover:bg-black transition duration-300 ease-in-out z-50 opacity-60"
+        >
+          <IoIosAddCircle className="text-3xl" />
+        </button>
+      )}
 
       {isOpen && (
         <Modal
@@ -152,19 +155,19 @@ export const RegistersMenu = () => {
               </ul>
               {isDesktop && (
                 <p className="text-xs text-gray-400 mt-2">Navega con ↑ ↓ y selecciona con Enter</p>
-
               )}
             </div>
           }
         />
       )}
-
       {showing &&
         <Modal
           content={showing}
           ableToClose={true}
           fit={true}
           shape="rounded-lg border-2 border-gray-300"
+          closeOnEsc={true}
+          width="w-full"
           closeOnClickOutside={true}
           closeModal={() => { setShowing(null); setIsOpen(true); setSearchTerm(""); setHighlightedIndex(0); }}
         />

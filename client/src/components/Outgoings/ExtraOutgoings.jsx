@@ -10,21 +10,24 @@ import { useSelector } from 'react-redux'
 import ExtraOutgoingsList from './ExtraOutgoingsList'
 import Payments from './Payments'
 import { useDateNavigation } from '../../hooks/useDateNavigation'
+import RegisterDateSwitch from '../RegisterDateSwitch'
 
-export default function ExtraOutgoings() {
+export default function ExtraOutgoings({ useToday: useTodayProp, showDateSwitch = true }) {
 
   const { currentUser, company } = useSelector((state) => state.user)
   const { isManager } = useRoles()
   const { currentDate: date, today, dateFromYYYYMMDD } = useDateNavigation();
   const [extraOutgoingFormData, setExtraOutgoingFormData] = useState({})
   const { extraOutgoings, spliceExtraOutgoingById, totalExtraOutgoings, onAddExtraOutgoing, onDeleteExtraOutgoing } = useDayExtraOutgoings({ companyId: company._id, date })
+  const [useToday, setUseToday] = useState(false);
+  const effectiveUseToday = useTodayProp !== undefined ? useTodayProp : useToday;
 
   // Tab state: 'gasto' or 'pago'
   const [activeTab, setActiveTab] = useState('gasto')
   const containerRef = useRef(null);
 
   useEffect(() => {
-    if (containerRef.current) {
+    if (containerRef.current && activeTab !== 'gasto') {
       containerRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }, [activeTab]);
@@ -32,7 +35,7 @@ export default function ExtraOutgoings() {
   const addExtraOutgoingSubmit = async (e) => {
     const conceptInput = document.getElementById('extraOutgoingConcept')
     const amountInput = document.getElementById('extraOutgoingAmount')
-    const createdAt = today ? new Date().toISOString() : dateFromYYYYMMDD.toISOString()
+    const createdAt = effectiveUseToday || today ? new Date().toISOString() : dateFromYYYYMMDD.toISOString()
     e.preventDefault()
     try {
       const { amount, concept } = extraOutgoingFormData
@@ -69,9 +72,9 @@ export default function ExtraOutgoings() {
   }
 
   return (
-    <div ref={containerRef} className="p-4 sm:p-8 mt-4 rounded-2xl bg-white shadow-lg max-w-2xl mx-auto animate-fade-in">
-      <SectionHeader label={'Gastos'} />
-      <div className="border bg-white p-4 mt-4 rounded-xl shadow-sm">
+    <div ref={containerRef} className="p-1 sm:p-8 mt-4 rounded-2xl bg-white shadow-lg max-w-2xl mx-auto animate-fade-in">
+      <SectionHeader label={'Gastos fuera de cuentas'} />
+      <div className="border bg-white p-1 mt-4 rounded-xl shadow-sm">
         {/* Tab Selector */}
         <div className="flex gap-2 mb-6">
           <button
@@ -95,7 +98,7 @@ export default function ExtraOutgoings() {
         {activeTab === 'gasto' && (
           <>
             <div className='grid grid-cols-1 sm:grid-cols-2 mb-4 gap-2'>
-              <SectionHeader label={'Gastos externos'} />
+              <SectionHeader label={'Gasto Normal'} />
               <div className='flex items-center gap-4 justify-self-end sm:justify-self-end sm:mr-8'>
                 <ShowListModal
                   title={'Gastos'}
@@ -110,6 +113,12 @@ export default function ExtraOutgoings() {
                 />
               </div>
             </div>
+            {!today && showDateSwitch &&
+              <RegisterDateSwitch
+                useToday={effectiveUseToday}
+                setUseToday={setUseToday}
+              />
+            }
             <form id='extra-outgoing-form' onSubmit={addExtraOutgoingSubmit} className="flex flex-col sm:flex-row gap-3 items-center mt-2">
               <div className="flex-1 w-full">
                 <input type="text" name="concept" id="extraOutgoingConcept" placeholder='Concepto' className='border border-gray-300 p-3 rounded-lg w-full focus:ring-2 focus:ring-blue-300 focus:outline-none text-base transition' required onInput={extraOutgoingsButtonControl} onChange={handleExtraOutgoingInputsChange} />
@@ -123,7 +132,7 @@ export default function ExtraOutgoings() {
         )}
         {activeTab === 'pago' && (
           <div className="mt-2">
-            <Payments spliceExtraOutgoingById={spliceExtraOutgoingById} pushExtraOutgoing pushIncome spliceIncomeById />
+            <Payments showDateSwitch={false} useToday={effectiveUseToday} spliceExtraOutgoingById={spliceExtraOutgoingById} />
           </div>
         )}
       </div>

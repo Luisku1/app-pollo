@@ -14,6 +14,7 @@ import ConfirmationButton from '../Buttons/ConfirmationButton'
 import { CiSquareInfo } from 'react-icons/ci'
 import EmployeeInfo from '../EmployeeInfo'
 import { BranchName } from '../Reutilizable/Labels'
+import EmployeeName from '../Names/EmployeeName'
 
 export default function StockList({ stock = [], showBranch = false, onDelete = null, modifyBalance = null }) {
   const { currentUser } = useSelector((state) => state.user)
@@ -48,6 +49,7 @@ export default function StockList({ stock = [], showBranch = false, onDelete = n
 
   const renderStockItem = ({ stock, index }) => {
     const { product, pieces, weight, amount, employee, createdAt, price } = stock
+    console.log(stock)
     const tempStock = { ...stock, index }
     const isAuthorized = currentUser._id === stock.employee?._id || isManager(currentUser.role)
     const shouldRender = isAuthorized || isManager(currentUser.role)
@@ -78,7 +80,7 @@ export default function StockList({ stock = [], showBranch = false, onDelete = n
                 </RowItem>
               </div>
               <RowItem>
-                <button onClick={() => setSelectedEmployee(employee)} className="font-bold text-md flex gap-1 items-center w-full"><span><CgProfile /></span>{employee?.name}</button>
+                <EmployeeName employee={employee} />
               </RowItem>
             </div>
           </div>

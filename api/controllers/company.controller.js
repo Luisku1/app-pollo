@@ -1,5 +1,4 @@
 import Company from '../models/company.model.js'
-import Employee from '../models/employees/employee.model.js'
 import { errorHandler } from '../utils/error.js'
 
 export const newCompany = async (req, res, next) => {
@@ -31,8 +30,7 @@ export const getCompanyById = async (req, res, next) => {
 
   try {
 
-    const company = await Company.findOne({ _id: companyId }).populate({
-
+    const company = await Company.findById(companyId).populate({
       path: 'owner',
       model: 'Employee'
     })

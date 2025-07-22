@@ -98,13 +98,13 @@ export default function InicioSesion() {
 
       } else {
 
-        await fecthCompanyById(data.company)
+        await fecthCompanyById(data.defaultCompany)
       }
 
       dispatch(signInSuccess(data))
 
 
-      if (!data.company) {
+      if (!data.defaultCompany) {
 
         navigate('/registro-empresa')
         return

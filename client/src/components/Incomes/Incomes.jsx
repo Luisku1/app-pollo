@@ -19,10 +19,9 @@ import { useBranches } from '../../hooks/Branches/useBranches'
 import { useCustomers } from '../../hooks/Customers/useCustomers'
 import { useEmployees } from '../../hooks/Employees/useEmployees'
 import { useDateNavigation } from '../../hooks/useDateNavigation'
-import { dateFromYYYYMMDD } from '../../../../common/dateOps'
 import RegisterDateSwitch from '../RegisterDateSwitch'
 
-export default function Incomes() {
+export default function Incomes({ showDateSwitch = true, useToday: useTodayProp }) {
 
   const { currentUser, company } = useSelector((state) => state.user)
   const [incomeFormData, setIncomeFormData] = useState({})
@@ -35,7 +34,8 @@ export default function Incomes() {
   const [selectedIncomeType, setSelectedIncomeType] = useState(null)
   const { currentDate, today, dateFromYYYYMMDD } = useDateNavigation()
   const { incomes, incomesTotal, onAddIncome, onDeleteIncome } = useIncomes({ companyId, date: currentDate })
-  const  [useToday, setUseToday]  = useState(false);
+  const [useToday, setUseToday] = useState(false);
+  const effectiveUseToday = useTodayProp !== undefined ? useTodayProp : useToday;
   const { branches } = useBranches({ companyId: company._id })
   const { employees } = useEmployees({ companyId: company._id })
   const { customers } = useCustomers({ companyId: company._id })
@@ -78,7 +78,7 @@ export default function Incomes() {
 
     e.preventDefault()
 
-    const createdAt = useToday || today ? new Date().toISOString() : dateFromYYYYMMDD.toISOString()
+    const createdAt = effectiveUseToday || today ? new Date().toISOString() : dateFromYYYYMMDD.toISOString()
     let income = null
 
     try {
@@ -186,9 +186,9 @@ export default function Incomes() {
         </div>
         <form onSubmit={addIncomeSubmit} className="">
           <div>
-            {!today &&
+            {!today && showDateSwitch &&
               <RegisterDateSwitch
-                useToday={useToday}
+                useToday={effectiveUseToday}
                 setUseToday={setUseToday}
               />
             }

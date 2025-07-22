@@ -9,14 +9,14 @@ import { dateFromYYYYMMDD, formatDateYYYYMMDD, today } from "../../../common/dat
 import { useDateNavigation } from "../hooks/useDateNavigation";
 
 
-export const SearchMenu = ({ modalMode }) => {
+export const SearchMenu = ({ modalMode, desktopButton }) => {
   const { currentUser } = useSelector((state) => state.user);
   const [showModal, setShowModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [highlightedIndex, setHighlightedIndex] = useState(0);
   const navigate = useNavigate();
   const { roles, isSupervisor, isManager, isController } = useRoles();
-  const { currentDate, dateFromYYYYMMDD: dateYYYYMMDD } = useDateNavigation();
+  const { currentDate, dateFromYYYYMMDD: dateYYYYMMDD, today: isToday } = useDateNavigation();
   const optionRefs = useRef([]);
 
 
@@ -51,8 +51,6 @@ export const SearchMenu = ({ modalMode }) => {
     { text: 'Empresa', link: '/empresas', role: 'manager' },
   ];
 
-  const isToday = today(currentDate);
-  // --- Filtrado igual que en Header ---
   const filteredOptions = menuOptions.flatMap(option => {
     const normalize = (str) => str.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
     const matchesSearch = normalize(option.text).includes(normalize(searchTerm));
@@ -152,13 +150,20 @@ export const SearchMenu = ({ modalMode }) => {
 
   return (
     <>
-      <button
-        onClick={() => setShowModal(true)}
-        className="fixed bottom-4 left-4 bg-header text-white p-3 rounded-full shadow-lg hover:bg-black transition duration-300 ease-in-out z-50"
-        title="Buscar página"
-      >
-        <MdSearch className="text-3xl" />
-      </button>
+      {/* Desktop button (if provided) */}
+      {desktopButton && (
+        <span onClick={() => setShowModal(true)}>{desktopButton}</span>
+      )}
+      {/* Mobile floating button */}
+      {!desktopButton && (
+        <button
+          onClick={() => setShowModal(true)}
+          className="fixed bottom-4 opacity-60 left-4 bg-header text-white p-3 rounded-full shadow-lg hover:bg-black transition duration-300 ease-in-out z-50"
+          title="Buscar página"
+        >
+          <MdSearch className="text-3xl" />
+        </button>
+      )}
       {modalMode && showModal && (
         <Modal
           closeModal={() => setShowModal(false)}

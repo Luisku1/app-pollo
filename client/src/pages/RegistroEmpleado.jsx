@@ -4,8 +4,9 @@ import { useSelector } from 'react-redux'
 import { weekDays } from '../helpers/Constants'
 import { ToastSuccess } from '../helpers/toastify'
 import { useRoles } from '../context/RolesContext'
-import { Prev } from 'react-bootstrap/esm/PageItem'
+import Select from 'react-select'
 import { useUpdateEmployee } from '../hooks/Employees/useUpdateEmployee'
+import { getArrayForSelects, getElementForSelect } from '../helpers/Functions'
 
 export default function RegistroEmpleadoNuevo({ employee, setEmployee }) {
 
@@ -77,11 +78,15 @@ export default function RegistroEmpleadoNuevo({ employee, setEmployee }) {
   };
 
   const handleSubmit = async (e) => {
-    const role = document.getElementById("role");
+
+    const role = formData.role || employee?.role;
     const payDay = document.getElementById("payDay");
+
+    console.log(role)
 
     e.preventDefault();
     setLoading(true);
+
 
     const data = {
       ...formData,
@@ -163,19 +168,12 @@ export default function RegistroEmpleadoNuevo({ employee, setEmployee }) {
         <div className="flex flex-col gap-1 sm:flex-row sm:gap-4">
           <div className="flex-1 flex flex-col gap-1">
             <label htmlFor="role" className="font-semibold text-gray-700">Rol del empleado</label>
-            <select
-              name="role"
-              id="role"
-              className="border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-300 focus:outline-none text-base transition"
-              value={formData.role || (isEditing ? employee.role._id : '')}
-              onChange={handleChange}
-            >
-              {roles &&
-                Object.values(roles).length > 0 &&
-                Object.values(roles).map((role) => (
-                  <option key={role._id} value={role._id}>{role.name}</option>
-                ))}
-            </select>
+            <Select
+              options={getArrayForSelects(Object.values(roles), (role) => role.name)}
+              value={getElementForSelect(formData.role || employee?.role, (role) => role.name)}
+              onChange={(selectedOption) => setFormData({ ...formData, role: selectedOption })}
+              id='role'
+            />
           </div>
           <div className="flex-1 flex flex-col gap-1">
             <label htmlFor="salary" className="font-semibold text-gray-700">Salario</label>
@@ -239,8 +237,8 @@ export default function RegistroEmpleadoNuevo({ employee, setEmployee }) {
           {loading
             ? <span className="flex items-center justify-center gap-2"><span className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></span>Cargando...</span>
             : !employee
-            ? "Registrar"
-            : "Actualizar Información"}
+              ? "Registrar"
+              : "Actualizar Información"}
         </button>
       </form>
       {error && <p className="text-red-500 mt-5 text-center font-medium animate-shake">{error}</p>}

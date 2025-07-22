@@ -34,14 +34,39 @@ export default function PayrollResume({ employeePayroll, updateSupervisorReportG
       <Modal
         closeModal={() => setBranchReportCard(null)}
         content={
-          <BranchReportCard
-            reportData={branchReportCard}
-            updateBranchReportGroup={updateBranchReportGroup}
-            updateBranchReportSingle={updateBranchReportSingle}
-            employeeId={employeeId}
-            selfChange={setBranchReportCard}
-          />
+          <div>
+            {branchReportCard && branchReportCard.length > 1 ?
+              <div className="">
+                {branchReportCard.map((branchReport, i) => (
+                  <div key={branchReport._id} className={`${i > 0 ? 'mt-2' : ''}`}>
+                    <BranchReportCard
+                      reportData={branchReport}
+                      updateBranchReportGroup={updateBranchReportGroup}
+                      updateBranchReportSingle={updateBranchReportSingle}
+                      employeeId={employeeId}
+                      selfChange={(newReport) => {
+                        setBranchReportCard((prev) => {
+                          if (employeeId !== newReport.employee._id) return prev.filter(r => r._id !== newReport._id)
+                          return prev.map(r => r._id === newReport._id ? newReport : r)
+                        })
+                      }}
+                    />
+                  </div>
+                ))
+                }
+              </div>
+              :
+              <BranchReportCard
+                reportData={branchReportCard}
+                updateBranchReportGroup={updateBranchReportGroup}
+                updateBranchReportSingle={updateBranchReportSingle}
+                employeeId={employeeId}
+                selfChange={setBranchReportCard}
+              />
+            }
+          </div>
         }
+        width="11/12"
         isShown={!!branchReportCard}
         fit={true}
       />
@@ -137,14 +162,27 @@ export default function PayrollResume({ employeePayroll, updateSupervisorReportG
         const date = new Date(weekEnd);
         date.setDate(date.getDate() - (i + 1));
         const dailyBalance = employeeDailyBalances.find((balance) => formatDate(balance.createdAt) === formatDate(date)) || null;
-        const branchReport = branchReports.find((report) => formatDate(report.createdAt) === formatDate(date)) || null;
-        const supervisorReport = supervisorReports.find((report) => formatDate(report.createdAt) === formatDate(date)) || null;
+        let branchReport = branchReports.filter((report) => formatDate(report.createdAt) === formatDate(date)) || null;
+        const supervisorReport = supervisorReports.filter((report) => formatDate(report.createdAt) === formatDate(date)) || null;
         const { lateDiscount = false, restDay = false, dayDiscount = true } = dailyBalance || {};
-        let branchBalance = branchReport?.balance || 0;
+        let branchBalance = 0;
         let supervisorBalance = supervisorReport?.balance || 0;
 
         branchBalance = branchBalance > 0 ? showPositives ? branchBalance : 0 : branchBalance;
         supervisorBalance = supervisorBalance > 0 ? showPositives ? supervisorBalance : 0 : supervisorBalance;
+
+        if (branchReport && branchReport.length > 1) {
+          branchReport = branchReport.map((report) => ({
+            ...report,
+            externalIndex: index
+          }))
+          branchBalance = branchReport.reduce((acc, report) => acc + (report.balance ?? 0), 0)
+        } else if (branchReport && branchReport.length === 1) {
+          branchReport = { ...branchReport[0], externalIndex: index }
+          branchBalance = branchReport.balance ?? 0;
+        } else {
+          branchReport = null;
+        }
 
         return (
           <div
@@ -152,7 +190,7 @@ export default function PayrollResume({ employeePayroll, updateSupervisorReportG
             key={date.toDateString()}
           >
             <p className="text-sm col-span-5 truncate">{date.toLocaleDateString('es-mx', { weekday: 'long', month: '2-digit', day: '2-digit' })}</p>
-            <button onClick={() => { setBranchReportCard({ ...branchReport, externalIndex: index }) }} disabled={branchReport == null} className={`border border-black text-center col-span-2 ${branchBalance < 0 ? 'bg-pastel-pink' : ''}`}>
+            <button onClick={() => { setBranchReportCard(branchReport) }} disabled={branchReport == null} className={`border border-black text-center col-span-2 ${branchBalance < 0 ? 'bg-pastel-pink' : ''}`}>
               {currency({ amount: branchBalance })}
             </button>
             <button onClick={() => { setSupervisorReportCard({ ...supervisorReport, externalIndex: index }) }} disabled={supervisorReport == null} className={`border border-black text-center col-span-2 ${supervisorBalance < 0 ? 'bg-pastel-pink' : ''}`}>

@@ -12,17 +12,20 @@ import { useEmployees } from "../../hooks/Employees/useEmployees";
 import { useDateNavigation } from "../../hooks/useDateNavigation";
 import { customSelectStyles } from "../../helpers/Constants";
 import { useBranches } from "../../hooks/Branches/useBranches";
+import RegisterDateSwitch from "../RegisterDateSwitch";
 
-export default function Payments({ spliceExtraOutgoingById, pushExtraOutgoing, spliceIncomeById, pushIncome }) {
+export default function Payments({ spliceExtraOutgoingById, showDateSwitch = true, useToday: useTodayProp }) {
 
   const { currentUser, company } = useSelector((state) => state.user)
-  const { currentDate: date } = useDateNavigation();
+  const { currentDate: date, dateFromYYYYMMDD, today } = useDateNavigation();
   const { branches } = useBranches({ companyId: company._id, date })
   const { payments, total: totalEmployeesPayments, onAddEmployeePayment, onDeleteEmployeePayment } = useEmployeesPayments({ companyId: company._id, date })
   const { activeEmployees: employees } = useEmployees({ companyId: company._id })
   const [selectedBranch, setSelectedBranch] = useState(null)
   const [selectedEmployee, setSelectedEmployee] = useState(null)
   const [isDirectFromBranch, setIsDirectFromBranch] = useState(false);
+  const [useTodayLocal, setUseTodayLocal] = useState(false);
+  const effectiveUseToday = useTodayProp !== undefined ? useTodayProp : useTodayLocal;
 
   const paymentsButtonControl = () => {
 
@@ -51,7 +54,7 @@ export default function Payments({ spliceExtraOutgoingById, pushExtraOutgoing, s
 
     const amount = document.getElementById('paymentAmount')
     const detail = document.getElementById('paymentDetail')
-    const createdAt = isToday(date) ? new Date().toISOString() : new Date(date).toISOString()
+    const createdAt = effectiveUseToday || today ? new Date().toISOString() : dateFromYYYYMMDD.toISOString()
 
     e.preventDefault()
 
@@ -109,12 +112,15 @@ export default function Payments({ spliceExtraOutgoingById, pushExtraOutgoing, s
           <ShowListModal
             title={'Pagos a empleados'}
             ListComponent={EmployeePaymentsList}
-            ListComponentProps={{ payments, total: totalEmployeesPayments, onDelete: onDeleteEmployeePayment, spliceIncome: spliceIncomeById, spliceExtraOutgoing: spliceExtraOutgoingById }}
+            ListComponentProps={{ payments, total: totalEmployeesPayments, onDelete: onDeleteEmployeePayment, spliceExtraOutgoing: spliceExtraOutgoingById }}
             clickableComponent={<p className="font-bold text-lg text-center">{currency({ amount: totalEmployeesPayments })}</p>}
           />
         </div>
       </div>
       <form onSubmit={addEmployeePaymentSubmit} className="flex flex-col gap-5 bg-white rounded-xl shadow-sm p-4">
+        {!today && showDateSwitch && (
+          <RegisterDateSwitch useToday={effectiveUseToday} setUseToday={setUseTodayLocal} />
+        )}
         <div>
           <label className="font-semibold text-gray-700 mb-1 block">¿A quién le pagas?</label>
           <EmployeesSelect defaultLabel={'Selecciona un empleado'} employees={employees} handleEmployeeSelectChange={handleEmployeeSelectChange} selectedEmployee={selectedEmployee} />

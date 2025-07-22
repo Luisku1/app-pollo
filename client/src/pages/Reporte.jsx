@@ -19,9 +19,9 @@ import BranchReportTable from '../components/BranchReportTable';
 import { useCustomersReports } from "../hooks/CustomerReports/useCustomerReports.js";
 import SupervisorReportTable from '../components/SupervisorReportTable';
 import CustomerReportTable from "../components/CustomerReportTable.jsx";
-import ListaSalidas from "../components/EntradasYSalidas/Salidas/ListaSalidas.jsx";
+import ListaSalidas from "../components/Movimientos/Salidas/ListaSalidas.jsx";
 import IncomesList from "../components/Incomes/IncomesList.jsx";
-import ListaEntradas from "../components/EntradasYSalidas/Entradas/ListaEntradas.jsx";
+import ListaEntradas from "../components/Movimientos/Entradas/ListaEntradas.jsx";
 import ProviderReportTable from '../components/ProviderReportTable';
 import { useProvidersReports } from "../hooks/Providers/useProvidersReports.js";
 import ProvidersInputsList from "../components/Providers/ProvidersInputsList.jsx";
@@ -302,6 +302,24 @@ export default function Reporte() {
     return () => window.removeEventListener('resize', checkShowShortcuts);
   }, []);
 
+  useEffect(() => {
+
+    const negativesKey = (e) => {
+
+      if (e.key === '-' && e.ctrlKey ) {
+        e.preventDefault();
+        setOnlyNegativeBalances(v => !v);
+      }
+    }
+
+    window.addEventListener('keydown', negativesKey);
+
+    return () => {
+      window.removeEventListener('keydown', negativesKey);
+    }
+
+  }, [])
+
   // Ayuda visual para shortcuts de tablas
   const shortcutsHelp = (
     <div className="fixed bottom-20 right-4 z-50 bg-white border border-gray-400 rounded-lg shadow-lg p-3 text-xs text-gray-700 opacity-80 select-none pointer-events-none">
@@ -312,30 +330,6 @@ export default function Reporte() {
       <div><b>Ctrl+Shift+4</b>: Proveedores</div>
     </div>
   );
-
-  const renderStatistics = () => {
-    return (
-      <div className='w-full'>
-        {(verifiedIncomes || verifiedIncomes === 0) && (netIncomes || netIncomes === 0) && (
-          <div>
-            <p className='text-lg'>Ingresos totales confirmados</p>
-            <div className='flex gap-2'>
-              <p className='text-lg'>
-                <span className={`${verifiedIncomes < netIncomes ? 'text-red-600' : 'text-green-600'}`}>
-                  {currency({ amount: verifiedIncomes })}
-                </span>
-                /
-                <span className='text-green-600'>{currency({ amount: netIncomes })}</span>
-              </p>
-              {verifiedIncomes < netIncomes && (
-                <p className='text-red-500'>{`(${currency({ amount: verifiedIncomes - netIncomes })})`}</p>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  };
 
   if (isAnyLoading) {
     return (

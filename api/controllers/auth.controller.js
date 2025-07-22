@@ -7,88 +7,109 @@ import EmployeeDailyBalance from '../models/employees/employee.daily.balance.js'
 import { newCompanyFunction } from './company.controller.js'
 import { addDailyBalanceInWeeklyBalance } from './employee.controller.js'
 
-export const signUp = async (req, res, next) => {
-
-  let role = req.body.role
-
-  const { name, lastName, password, salary, payDay, company, phoneNumber, balance } = req.body
+export const registerEmployee = async (req, res, next) => {
+  let role = req.body.role;
+  const { name, lastName, password, salary, payDay, company, phoneNumber, balance, administrativeAccount } = req.body;
 
   if (!password) {
-
-    next(errorHandler(404, 'The password path is required'))
-    return
+    next(errorHandler(404, 'The password path is required'));
+    return;
   }
 
-  const hashedPassword = bcryptjs.hashSync(password, 10)
-
-  let newEmployee
+  const hashedPassword = bcryptjs.hashSync(password, 10);
 
   try {
+    // companies y defaultCompany
+    const companies = [company];
+    const defaultCompany = company;
 
-    if (balance) {
+    // companyData para el nuevo modelo
+    const companyData = [{
+      company,
+      salary,
+      payDay,
+      balance,
+      administrativeAccount: administrativeAccount ?? false
+    }];
 
-      newEmployee = new Employee({ name, lastName, password: hashedPassword, phoneNumber, role, salary, payDay, company, balance })
+    const newEmployeeData = {
+      name,
+      lastName,
+      password: hashedPassword,
+      phoneNumber,
+      role,
+      companies,
+      defaultCompany,
+      companyData
+    };
 
-    } else {
+    const newEmployee = new Employee(newEmployeeData);
 
-      newEmployee = new Employee({ name, lastName, password: hashedPassword, phoneNumber, role, salary, payDay, company })
-    }
+    const employeeDailyBalance = new EmployeeDailyBalance({
+      employee: newEmployee._id,
+      company: defaultCompany,
+      createdAt: (new Date().toISOString())
+    });
 
-    const employeeDailyBalance = new EmployeeDailyBalance({ employee: newEmployee._id, company: newEmployee.company, createdAt: (new Date().toISOString()) })
-    await newEmployee.save()
-    await employeeDailyBalance.save()
-
-    await addDailyBalanceInWeeklyBalance(employeeDailyBalance)
+    await newEmployee.save();
+    await employeeDailyBalance.save();
+    await addDailyBalanceInWeeklyBalance(employeeDailyBalance);
 
     if (employeeDailyBalance && newEmployee) {
-
-      res.status(201).json('New employee created successfully')
-
+      res.status(201).json('New employee created successfully');
     } else {
-
-      res.status(404).json('An error ocurred')
+      res.status(404).json('An error ocurred');
     }
 
-
   } catch (error) {
-
-    next(error)
+    next(error);
   }
 }
 
 export const ownerSignUp = async (req, res, next) => {
-
-  const { name, lastName, phoneNumber, company: paramsCompany, password } = req.body
+  const { name, lastName, phoneNumber, company: paramsCompany, password } = req.body;
 
   try {
     if (!password) {
-
-      next(errorHandler(404, 'The password path is required'))
-      return
+      next(errorHandler(404, 'The password path is required'));
+      return;
     }
 
-    const hashedPassword = bcryptjs.hashSync(password, 10)
-    const role = await Role.findOne({ name: 'Gerente' }).select('_id')
-    const newEmployee = await Employee({ name, lastName, password: hashedPassword, role: role._id, phoneNumber })
-    const company = await newCompanyFunction({ name: paramsCompany, ownerId: newEmployee._id })
+    const hashedPassword = bcryptjs.hashSync(password, 10);
+    const role = await Role.findOne({ name: 'Gerente' }).select('_id');
+    const newEmployee = new Employee({
+      name,
+      lastName,
+      password: hashedPassword,
+      role: role._id,
+      phoneNumber,
+      companies: [],
+      companyData: []
+    });
+    const company = await newCompanyFunction({ name: paramsCompany, ownerId: newEmployee._id });
 
-    newEmployee.company = company._id
-    const employeeDailyBalance = new EmployeeDailyBalance({ employee: newEmployee._id, company: newEmployee.company, createdAt: (new Date().toISOString()) })
-    await newEmployee.save()
-    await employeeDailyBalance.save()
+    newEmployee.companies = [company._id];
+    newEmployee.defaultCompany = company._id;
+    newEmployee.companyData = [{
+      company: company._id,
+      salary: 0,
+      payDay: undefined,
+      balance: 0.0,
+      administrativeAccount: true
+    }];
 
-    if(employeeDailyBalance && newEmployee) {
+    const employeeDailyBalance = new EmployeeDailyBalance({ employee: newEmployee._id, company: newEmployee.defaultCompany, createdAt: (new Date().toISOString()) });
+    await newEmployee.save();
+    await employeeDailyBalance.save();
 
-      res.status(201).json('New employee created succesfully')
-
+    if (employeeDailyBalance && newEmployee) {
+      res.status(201).json('New employee created succesfully');
     } else {
-
-      res.status(404).json('An error ocurred')
+      res.status(404).json('An error ocurred');
     }
 
   } catch (error) {
-
-    next(error)
+    next(error);
   }
 }
 

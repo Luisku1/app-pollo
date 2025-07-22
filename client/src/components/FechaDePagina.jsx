@@ -4,19 +4,8 @@ import { useDateNavigation } from "../hooks/useDateNavigation";
 import { dateFromYYYYMMDD, formatDateYYYYMMDD } from "../../../common/dateOps";
 
 export default function FechaDePagina() {
-  const { currentDate, setDate } = useDateNavigation();
 
-  const prevDay = () => {
-    const datePickerDate = dateFromYYYYMMDD(currentDate);
-    datePickerDate.setDate(datePickerDate.getDate() - 1);
-    setDate(formatDateYYYYMMDD(new Date(datePickerDate)));
-  };
-
-  const nextDay = () => {
-    const datePickerDate = dateFromYYYYMMDD(currentDate);
-    datePickerDate.setDate(datePickerDate.getDate() + 1);
-    setDate(formatDateYYYYMMDD(new Date(datePickerDate)));
-  };
+  const { currentDate, setDate, prevDay, nextDay, dateFromYYYYMMDD: dateYYYYMMDD } = useDateNavigation();
 
   if (!currentDate) return null;
 

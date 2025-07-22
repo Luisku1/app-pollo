@@ -46,7 +46,7 @@ const useProvidersMovements = ({ companyId, date = null, productId, providerId }
 
   useEffect(() => {
     if (!productId || !providerId) {
-      setPrice(0);
+      setPrice(0.0);
     }
   }, [productId, providerId]);
 

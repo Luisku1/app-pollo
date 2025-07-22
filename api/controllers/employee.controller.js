@@ -39,7 +39,8 @@ export const employeePaymentIncomeAggregate = (localField, as = 'employeePayment
 }
 
 
-export const employeeAggregate = (localField, as = 'employee') => {
+// Modificado para que el aggregate regrese los datos de companyData según el companyId
+export const employeeAggregate = (localField, as = 'employee', companyIdField = 'company') => {
 	return [
 		{
 			$lookup: {
@@ -58,6 +59,26 @@ export const employeeAggregate = (localField, as = 'employee') => {
 					},
 					{
 						$unwind: { path: '$role', preserveNullAndEmptyArrays: true }
+					},
+					// Selecciona el companyData correspondiente al companyId
+					{
+						$addFields: {
+							companyData: {
+								$filter: {
+									input: '$companyData',
+									as: 'cd',
+									cond: { $eq: ['$$cd.company', `$${companyIdField}`] }
+								}
+							}
+						}
+					},
+					{
+						$addFields: {
+							salary: { $arrayElemAt: ['$companyData.salary', 0] },
+							payDay: { $arrayElemAt: ['$companyData.payDay', 0] },
+							balance: { $arrayElemAt: ['$companyData.balance', 0] },
+							administrativeAccount: { $arrayElemAt: ['$companyData.administrativeAccount', 0] }
+						}
 					},
 					{
 						$project: {
@@ -1114,6 +1135,13 @@ export const getEmployeeDayInfo = async (req, res, next) => {
 				data: employeeDayInfo,
 				success: true
 			})
+
+		} else {
+
+			res.status(404).json({
+				message: 'No se encontró información del día del empleado',
+				success: false
+			})
 		}
 
 	} catch (error) {
@@ -1146,7 +1174,7 @@ export const getSignedUser = async (req, res, next) => {
 
 export const updateEmployee = async (req, res, next) => {
 
-	const { employeeId } = req.params
+	const { employeeId, companyId } = req.params
 	let updateData = req.body
 	let updatedEmployee = null
 	let prevEmployee = null
@@ -1601,30 +1629,7 @@ export const fetchEmployeesPayroll = async ({ companyId, date }) => {
 					]
 				}
 			},
-			{
-				$lookup: {
-					from: 'employees',
-					localField: 'employee',
-					foreignField: '_id',
-					as: 'employee',
-					pipeline: [
-						{
-							$lookup: {
-								from: 'roles',
-								localField: 'role',
-								foreignField: '_id',
-								as: 'role'
-							}
-						},
-						{
-							$unwind: { path: '$role' }
-						},
-					]
-				}
-			},
-			{
-				$unwind: { path: '$employee' }
-			},
+			...employeeAggregate('employee', undefined, companyId),
 			{
 				$addFields: {
 					accountBalance: { $sum: '$employeeDailyBalances.accountBalance' },
@@ -1887,21 +1892,9 @@ export const getEmployeesDailyBalances = async (req, res, next) => {
 	try {
 
 		let employeesDailyBalances = await EmployeeDailyBalance.find({
-
-			$and: [
-				{
-					createdAt: { $gte: bottomDate }
-				},
-				{
-					createdAt: { $lt: topDate }
-				},
-				{
-					employee: { $in: employees.map(employee => employee._id) }
-				},
-				{
-					company: companyId
-				}
-			]
+			createdAt: { $gte: bottomDate, $lt: topDate },
+			employee: { $in: employees.map(employee => employee._id) },
+			company: companyId
 		}).populate({ path: 'employee', select: 'name lastName' })
 
 		if (employeesDailyBalances.length > 0) {

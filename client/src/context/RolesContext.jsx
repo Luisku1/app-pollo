@@ -29,8 +29,10 @@ export const RolesProvider = ({ children }) => {
         setError(error);
         setLoading(false);
       });
+
   }, []);
 
+  console.log(roles)
   return (
     <RolesContext.Provider value={{ roles, isController, isSeller, isManager, isSupervisor, isJustSeller, loading, error }}>
       {children}

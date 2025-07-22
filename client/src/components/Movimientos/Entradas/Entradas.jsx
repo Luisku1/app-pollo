@@ -6,7 +6,7 @@ import Select from 'react-select'
 import { useSelector } from 'react-redux'
 import { customSelectStyles } from '../../../helpers/Constants'
 import BranchAndCustomerSelect from '../../Select/BranchAndCustomerSelect'
-import { ToastDanger } from '../../../helpers/toastify'
+import { ToastDanger, ToastSuccess } from '../../../helpers/toastify'
 import { useBranchCustomerProductPrice } from '../../../hooks/Prices/useBranchCustomerProductPrice'
 import { getArrayForSelects, getElementForSelect, priceShouldNotBeZero } from '../../../helpers/Functions'
 import ShowListModal from '../../Modals/ShowListModal'
@@ -15,6 +15,7 @@ import { useBranches } from '../../../hooks/Branches/useBranches'
 import { useCustomers } from '../../../hooks/Customers/useCustomers'
 import { useProducts } from '../../../hooks/Products/useProducts'
 import { useDateNavigation } from '../../../hooks/useDateNavigation'
+import { calculateAmount } from '../../../../../common/calculateAmount'
 
 export default function Entradas({ selectedProduct, setSelectedProduct }) {
 
@@ -63,7 +64,6 @@ export default function Entradas({ selectedProduct, setSelectedProduct }) {
   const [isRegisteredInSurplus, setIsRegisteredInSurplus] = useState(false)
   const [changePrice, setChangePrice] = useState(false)
 
-  // Estado interno para el producto seleccionado
 
   // Sincroniza el estado interno cuando cambia el del padre
   useEffect(() => {
@@ -71,11 +71,14 @@ export default function Entradas({ selectedProduct, setSelectedProduct }) {
   }, [selectedProduct]);
 
   const generarMonto = () => {
-    const weightInput = document.getElementById('input-weight')
-    const price = inputFormData.price != '' ? parseFloat(inputFormData.price) : parseFloat(lastPrice) || 0;
-    const priceValue = price;
-    const weight = parseFloat(weightInput.value != '' ? weightInput.value : '0.0')
-    setAmount((priceValue * weight).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' }))
+    const weightInput = document.getElementById('input-weight');
+    const piecesInput = document.getElementById('input-pieces');
+    const byPieces = internalSelectedProduct?.byPieces === true;
+    const price = inputFormData.price !== '' ? parseFloat(inputFormData.price) : parseFloat(lastPrice) || 0;
+    const weight = weightInput?.value !== '' ? parseFloat(weightInput.value) : 0;
+    const pieces = piecesInput?.value !== '' ? parseFloat(piecesInput.value) : 0;
+    const monto = calculateAmount(price, byPieces, weight, pieces);
+    setAmount(monto.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' }));
   }
 
 
@@ -126,7 +129,6 @@ export default function Entradas({ selectedProduct, setSelectedProduct }) {
       comment: ''
     })
     setSelectedProduct(null)
-    setSelectedCustomerBranchOption(null)
   }
 
   useEffect(inputButtonControl, [selectedProduct, selectedCustomerBranchOption, loading, priceIsLoading])
@@ -155,13 +157,13 @@ export default function Entradas({ selectedProduct, setSelectedProduct }) {
     }
 
     setLoading(true)
+    let input = {}
 
     try {
 
       const { weight, pieces } = inputFormData
 
       const group = selectedGroup == 'Sucursales' ? 'branch' : 'customer'
-      let input = {}
 
       if (group == 'branch') {
 
@@ -199,15 +201,15 @@ export default function Entradas({ selectedProduct, setSelectedProduct }) {
 
 
       ToastSuccess(`Se guardó la entrada de ${input.product.label}`)
+      resetData()
 
       await onAddInput(input, group)
-      resetData()
       setLoading(false)
 
     } catch (error) {
 
-      ToastDanger(`No se guardó la entrada de ${input.product.label}`)
       console.log(error)
+      ToastDanger(`No se guardó la entrada de ${input.product.label}`)
       resetData();
       setLoading(false)
 
@@ -248,6 +250,18 @@ export default function Entradas({ selectedProduct, setSelectedProduct }) {
     }
     generarMonto();
   }
+
+  // Permite enviar el formulario con Enter en los campos relevantes
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      // Evita el submit por defecto en inputs, lo delega al form
+      e.preventDefault();
+      const button = document.getElementById('input-button');
+      if (button && !button.disabled) {
+        button.click();
+      }
+    }
+  };
 
   return (
     <div>
@@ -292,6 +306,7 @@ export default function Entradas({ selectedProduct, setSelectedProduct }) {
                 onChange={handleInputInputsChange}
                 disabled={!changePrice}
                 onInput={generarMonto}
+                onKeyDown={handleKeyDown}
               />
               <label htmlFor="input-price" className="-translate-y-full px-1 absolute top-1/4 left-2 transform rounded-sm bg-white text-black text-sm font-semibold">
                 Precio
@@ -314,13 +329,37 @@ export default function Entradas({ selectedProduct, setSelectedProduct }) {
           {/* Fin bloque precio */}
           <div className="grid grid-cols-3 gap-2">
             <div className='relative'>
-              <input type="number" name="pieces" id="input-pieces" placeholder='0.00' step={0.01} className='w-full border border-black p-3 rounded-lg' required onInput={inputButtonControl} onChange={handleInputInputsChange} />
+              <input
+                type="number"
+                name="pieces"
+                id="input-pieces"
+                placeholder='0.00'
+                step={0.01}
+                className='w-full border border-black p-3 rounded-lg'
+                required
+                onInput={inputButtonControl}
+                onChange={handleInputInputsChange}
+                value={inputFormData.pieces}
+                onKeyDown={handleKeyDown}
+              />
               <label htmlFor="input-pieces" className="-translate-y-full px-1 absolute top-1/4 left-2 transform rounded-sm bg-white text-black text-sm font-semibold">
                 Piezas <span>*</span>
               </label>
             </div>
             <div className='relative'>
-              <input type="number" name="weight" id="input-weight" placeholder='0.000 kg' step={0.001} className='w-full border border-black p-3 rounded-lg' required onInput={inputButtonControl} onChange={handleInputInputsChange} />
+              <input
+                type="number"
+                name="weight"
+                id="input-weight"
+                placeholder='0.000 kg'
+                step={0.001}
+                className='w-full border border-black p-3 rounded-lg'
+                required
+                onInput={inputButtonControl}
+                onChange={handleInputInputsChange}
+                value={inputFormData.weight}
+                onKeyDown={handleKeyDown}
+              />
               <label htmlFor="input-weight" className="-translate-y-full px-1 absolute top-1/4 left-2 transform rounded-sm bg-white text-black text-sm font-semibold">
                 Kilos <span>*</span>
               </label>
@@ -335,7 +374,15 @@ export default function Entradas({ selectedProduct, setSelectedProduct }) {
           </div>
           {/* Comentario ocupa todo el espacio */}
           <div className='w-full'>
-            <input className='w-full text-sm border border-black rounded-lg p-3' name="comment" id="input-comment" placeholder='Comentario del producto (Opcional)' onChange={handleInputInputsChange}></input>
+            <input
+              className='w-full text-sm border border-black rounded-lg p-3'
+              name="comment"
+              id="input-comment"
+              placeholder='Comentario del producto (Opcional)'
+              onChange={handleInputInputsChange}
+              value={inputFormData.comment}
+              onKeyDown={handleKeyDown}
+            />
           </div>
           {selectedGroup === 'Sucursales' && (
             <div className="flex items-center gap-4 mt-4 w-full">

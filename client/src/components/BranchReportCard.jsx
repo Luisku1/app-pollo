@@ -15,8 +15,8 @@ import ShowListModal from "./Modals/ShowListModal"
 import IncomesList from "./Incomes/IncomesList"
 import StockList from "./Stock/StockList"
 import OutgoingsList from "./Outgoings/OutgoingsList"
-import ListaSalidas from "./EntradasYSalidas/Salidas/ListaSalidas"
-import ListaEntradas from "./EntradasYSalidas/Entradas/ListaEntradas"
+import ListaSalidas from "./Movimientos/Salidas/ListaSalidas"
+import ListaEntradas from "./Movimientos/Entradas/ListaEntradas"
 import { MdPriceChange } from "react-icons/md";
 import ChangeBranchPrices from "./Prices/ChangeBranchPrices"
 import EmployeeInfo from "./EmployeeInfo"
@@ -29,8 +29,8 @@ import Modal from "./Modals/Modal"
 import { useEmployees } from "../hooks/Employees/useEmployees"
 import { updateReportEmployees } from "../services/BranchReports/updateReportsEmployee"
 import { areArraysEqual } from "../../../common/arraysOps";
-import { useDateNavigation } from "../hooks/useDateNavigation";
 import { formatDateYYYYMMDD } from "../../../common/dateOps";
+import EmployeeName from "./Names/EmployeeName";
 
 export default function BranchReportCard({
   reportData = {},
@@ -42,16 +42,13 @@ export default function BranchReportCard({
 
   const { currentUser, company } = useSelector((state) => state.user)
   const companyId = company?._id || company
-  const { setDate } = useDateNavigation();
   const { isController, isManager } = useRoles()
-  const [selectedEmployee, setSelectedEmployee] = useState(null)
   const [toModifyReport, setToModifyReport] = useState(null)
   const [loading, setLoading] = useState(false)
   const [showSelectReportEmployees, setShowSelectReportEmployees] = useState(false)
   const { activeEmployees: employees } = useEmployees({ companyId })
   const navigate = useNavigate()
   const assistants = reportData.assistants || []
-  const [employeeInfo, setEmployeeInfo] = useState(null)
 
   // On set to zero, update both caches
   const handleSetReportOnZero = async (report) => {
@@ -110,6 +107,7 @@ export default function BranchReportCard({
       newReport.employee = selectedEmployee
 
     if (updateBranchReportGroup && employeeId) updateBranchReportGroup(employeeId, newReport)
+
     if (updateBranchReportSingle) updateBranchReportSingle(newReport)
 
     if (selfChange) selfChange(newReport);
@@ -192,14 +190,22 @@ export default function BranchReportCard({
     }
   };
 
+  console.log('reportData', reportData)
+
+
   return (
     <div
       id={`report-container-${reportData._id}`}
-      className={`w-full p-1 border border-black rounded-lg shadow-md transition-all duration-200 ${reportData.balance < 0 ? 'bg-pastel-pink' : reportData.onZero ? 'bg-yellow-100' : 'bg-white'}`}
+      className={`w-full border border-black shadow-md transition-all duration-200 bg-white rounded-lg`} // fondo neutro, barra arriba
       key={reportData._id}>
-      <div id={`report-card-${reportData._id}`} className={`${reportData.balance < 0 ? 'bg-pastel-pink' : reportData.onZero ? 'bg-yellow-100' : 'bg-white'}`}>
+      {/* Franja de estado visual arriba */}
+      <div
+        className={`w-full h-2 rounded-t-lg
+          ${reportData.balance < 0 ? 'bg-red-500' : reportData.onZero ? 'bg-yellow-100' : 'bg-green-200'}`}
+      />
+      <div id={`report-card-${reportData._id}`} className={`bg-white rounded-b-lg p-2`}>
 
-        <div className="flex justify-between items-center px-2 pt-1 mb-4">
+        <div className="flex justify-between items-center px-2 mb-2">
           <p className="text-lg font-semibold text-red-500">{reportData.branch.branch}</p>
           <div className="flex items-center gap-1">
             <p className="text-lg font-semibold text-red-500">
@@ -233,7 +239,6 @@ export default function BranchReportCard({
               closeModal={() => setShowSelectReportEmployees(false)}
             />
           )}
-          <EmployeeInfo employee={employeeInfo} toggleInfo={() => { setEmployeeInfo(false) }} />
           {isManager(currentUser.role) && (
             <ChangeBranchPrices
               branch={reportData.branch._id}
@@ -257,7 +262,6 @@ export default function BranchReportCard({
           >
             <MdPersonAdd />
           </button>
-          <EmployeeInfo employee={selectedEmployee} toggleInfo={() => setSelectedEmployee(null)} />
         </div>
         <div className="relative">
           {loading && toModifyReport == reportData._id && (
@@ -265,25 +269,22 @@ export default function BranchReportCard({
               <FaSpinner className="text-4xl animate-spin" />
             </div>
           )}
-          <div id={`card-info-${reportData._id}`} className={`${reportData.balance < 0 ? 'bg-pastel-pink' : reportData.onZero ? 'bg-yellow-100' : 'bg-white'} ${loading && toModifyReport == reportData._id ? 'blur-sm' : ''} px-3`}>
-            <div className="space-y-4">
+          <div id={`card-info-${reportData._id}`} className={`${loading && toModifyReport == reportData._id ? 'blur-sm' : ''} px-3`}>
+            <div className="space-y-2">
               <div className="grid grid-cols-2 gap-4 text-sm text-left">
-                <div className="flex gap-2 flex-wrap">
-                  <p className="font-bold text-lg text-gray-600">Encargado:</p>
-                  <button onClick={() => setSelectedEmployee(reportData.employee)} className="font-bold text-lg flex gap-1 truncate items-center"><span><CgProfile /></span>{reportData?.employee?.name ?? 'Sin Encargado'}</button>
+                <div className="flex gap-2 flex-wrap items-center">
+                  {reportData.employee ? (
+                    <EmployeeName employee={reportData.employee} />
+                  ) :
+                    <p className="text-gray-500">Personal no asignado</p>
+                  }
                 </div>
                 {assistants && assistants.length > 0 && (
                   <div className='flex gap-2 py-2 items-center'>
                     <p className='flex-shrink-0'>Auxiliares:</p>
                     <div className='flex flex-wrap gap-2'>
                       {assistants.map((assistant) => (
-                        <button
-                          key={assistant._id}
-                          onClick={() => setEmployeeInfo(assistant)}
-                          className='font-bold text-md flex gap-1 truncate items-center bg-gray-200 px-2 py-1 rounded-lg hover:bg-gray-300 transition-colors'
-                        >
-                          <span><CgProfile /></span> {getEmployeeFullName(assistant)}
-                        </button>
+                        <EmployeeName employee={assistant} assistant={true} />
                       ))}
                     </div>
                   </div>
@@ -363,27 +364,25 @@ export default function BranchReportCard({
                 </div>
               </div>
             </div>
-            {/* Faltante */}
+            {/* Faltante compacto y menos invasivo */}
             {(!isToday(reportData.createdAt) || isManager(currentUser.role) || reportData.balance < 0) && (
-              <div className="mt-4 border-t-2 border-black pt-4">
-                <div className="flex justify-between items-center">
-                  <p className="font-semibold text-gray-600 text-lg">Faltante:</p>
-                  <p
-                    className={`text-lg font-bold ${reportData.balance < 0
-                      ? 'text-red-700' // Si el balance es negativo, mostrar en rojo
-                      // Si es manager, mostrar en gris oscuro
-                      : 'text-green-600' // Si no es manager, mostrar en verde si el balance es positivo
-                      }`}
-                  >
-                    {isManager(currentUser.role) || reportData.balance < 0 // Mostrar siempre si es manager o el balance es negativo
-                      ? parseFloat(reportData.balance).toLocaleString('es-MX', {
-                        style: 'currency',
-                        currency: 'MXN',
-                      })
-                      : (reportData.balance > 0 ? '$0.00' : '$0.00') // Para el resto de los usuarios, mostrar $0.00 solo si el balance es positivo
-                    }
-                  </p>
-                </div>
+              <div className="flex justify-end items-center">
+                <span
+                  className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold shadow-sm transition
+                    ${reportData.balance < 0
+                      ? 'bg-red-100 text-red-700 border border-red-200'
+                      : 'bg-gray-100 text-gray-600 border border-gray-200'}
+                  `}
+                  title={reportData.balance < 0 ? 'Faltante detectado en el balance' : 'Balance del reporte'}
+                >
+                  {reportData.balance < 0 ? 'Faltante' : 'Balance'}:&nbsp;
+                  {isManager(currentUser.role) || reportData.balance < 0
+                    ? parseFloat(reportData.balance).toLocaleString('es-MX', {
+                      style: 'currency',
+                      currency: 'MXN',
+                    })
+                    : '$0.00'}
+                </span>
               </div>
             )}
           </div>

@@ -1,3 +1,12 @@
+  // Permite enviar el formulario con Enter en los campos relevantes
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (e.target.form) {
+        e.target.form.requestSubmit();
+      }
+    }
+  };
 /* eslint-disable react/prop-types */
 import { useEffect, useState } from 'react'
 import BranchAndCustomerSelect from '../Select/BranchAndCustomerSelect'
@@ -5,11 +14,12 @@ import { useSelector } from 'react-redux'
 import Select from 'react-select'
 import { customSelectStyles } from '../../helpers/Constants'
 import { useBranchCustomerProductPrice } from '../../hooks/Prices/useBranchCustomerProductPrice'
-import { ToastDanger } from '../../helpers/toastify'
+import { ToastDanger, ToastInfo } from '../../helpers/toastify'
 import { useDateNavigation } from '../../hooks/useDateNavigation'
 import { useBranches } from '../../hooks/Branches/useBranches'
 import { useCustomers } from '../../hooks/Customers/useCustomers'
 import { getArrayForSelects } from '../../helpers/Functions'
+import { calculateAmount } from '../../../../common/calculateAmount'
 
 export default function MenuSucursal({ selectedProduct, onAddProviderInput }) {
 
@@ -40,22 +50,21 @@ export default function MenuSucursal({ selectedProduct, onAddProviderInput }) {
   ]
 
   const generarMonto = () => {
-    const priceInput = document.getElementById('provider-input-price')
-    const piecesInput = document.getElementById('provider-input-pieces')
-    const weightInput = document.getElementById('provider-input-weight')
-    const weightValue = weightInput.value != '' ? parseFloat(weightInput.value) : 0
-    const piecesValue = piecesInput.value != '' ? parseFloat(piecesInput.value) : 0
-    const unit = selectedProduct?.byPieces === true ? piecesValue : weightValue
-
-    if (parseFloat(priceInput.value) == 0) {
-      ToastDanger('El precio no puede ser $0.00')
-      priceInput.value = ''
-      return
+    const priceInput = document.getElementById('provider-input-price');
+    const piecesInput = document.getElementById('provider-input-pieces');
+    const weightInput = document.getElementById('provider-input-weight');
+    const byPieces = selectedProduct?.byPieces === true;
+    const price = providerInputFormData.price !== undefined && providerInputFormData.price !== '' ? parseFloat(providerInputFormData.price) : parseFloat(priceInput?.placeholder) || 0;
+    const weight = weightInput?.value !== '' ? parseFloat(weightInput.value) : 0;
+    const pieces = piecesInput?.value !== '' ? parseFloat(piecesInput.value) : 0;
+    if (price === 0) {
+      ToastInfo('Recuerda verificar tu precio antes del registro');
+      priceInput.value = '';
+      setAmount(0);
+      return;
     }
-
-    const price = parseFloat(priceInput.value == '' ? priceInput.placeholder : priceInput.value)
-
-    setAmount((price * unit).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' }))
+    const monto = calculateAmount(price, byPieces, weight, pieces);
+    setAmount(monto.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' }));
   }
 
   useEffect(generarMonto, [providerInputFormData.price, providerInputFormData.weight, lastPrice])
@@ -98,13 +107,19 @@ export default function MenuSucursal({ selectedProduct, onAddProviderInput }) {
 
   useEffect(providerInputButtonControl, [selectedBranchCustomerOption, selectedProduct])
 
-  const resetInputs = () => {
-    setProviderInputFormData({})
-    setAmount(0)
-    document.getElementById('provider-input-pieces').value = ''
-    document.getElementById('provider-input-weight').value = ''
-    document.getElementById('provider-input-comment').value = ''
-  }
+  const resetData = () => {
+    setProviderInputFormData({});
+    setAmount(0);
+    setSelectedBranchCustomerOption(null);
+    const piecesInput = document.getElementById('provider-input-pieces');
+    const weightInput = document.getElementById('provider-input-weight');
+    const priceInput = document.getElementById('provider-input-price');
+    const commentInput = document.getElementById('provider-input-comment');
+    if (piecesInput) piecesInput.value = '';
+    if (weightInput) weightInput.value = '';
+    if (priceInput) priceInput.value = '';
+    if (commentInput) commentInput.value = '';
+  };
 
   const submitProviderInput = async (e) => {
 
@@ -159,11 +174,11 @@ export default function MenuSucursal({ selectedProduct, onAddProviderInput }) {
       }
 
       onAddProviderInput(providerInput, group)
-      resetInputs()
+      resetData();
       inputButton.disabled = false
 
     } catch (error) {
-      resetInputs()
+      resetData();
       console.log(error)
     }
   }
@@ -178,27 +193,27 @@ export default function MenuSucursal({ selectedProduct, onAddProviderInput }) {
       <BranchAndCustomerSelect options={branchAndCustomerSelectOptions} defaultLabel={'Sucursal o Cliente'} selectedOption={selectedBranchCustomerOption} handleSelectChange={handleBranchCustomerSelectChange}></BranchAndCustomerSelect>
       <div className='grid grid-cols-3 gap-2'>
         <div className='relative'>
-          <input type="number" name="pieces" id="provider-input-pieces" placeholder='0.00' step={0.01} className='border border-black p-3 rounded-lg w-full' required onInput={providerInputButtonControl} onChange={handleProviderInputInputsChange} />
+          <input type="number" name="pieces" id="provider-input-pieces" placeholder='0.00' step={0.01} className='border border-black p-3 rounded-lg w-full' required onInput={providerInputButtonControl} onChange={handleProviderInputInputsChange} onKeyDown={handleKeyDown} />
           <label htmlFor="compact-input" className="-translate-y-full px-1 absolute top-1/4 left-2 transform rounded-sm bg-white text-black text-sm font-semibold">
             Piezas <span>*</span>
           </label>
         </div>
         <div className='relative'>
-          <input type="number" name="weight" id="provider-input-weight" placeholder='0.000 kg' step={0.001} className='border border-black p-3 rounded-lg w-full' required onInput={providerInputButtonControl} onChange={handleProviderInputInputsChange} />
+          <input type="number" name="weight" id="provider-input-weight" placeholder='0.000 kg' step={0.001} className='border border-black p-3 rounded-lg w-full' required onInput={providerInputButtonControl} onChange={handleProviderInputInputsChange} onKeyDown={handleKeyDown} />
           <label htmlFor="compact-input" className="-translate-y-full px-1 absolute top-1/4 left-2 transform rounded-sm bg-white text-black text-sm font-semibold">
             Kilos <span>*</span>
           </label>
         </div>
         <div className="relative">
           <span className="absolute text-red-700 font-semibold left-3 top-3">$</span>
-          <input className='pl-6 w-full rounded-lg p-3 text-red-700 font-semibold border border-red-600' name='price' placeholder={lastPrice.toFixed(2)} onChange={() => { generarMonto() }} id='provider-input-price' step={0.01} type="number" />
+          <input className='pl-6 w-full rounded-lg p-3 text-red-700 font-semibold border border-red-600' name='price' placeholder={lastPrice.toFixed(2)} onChange={() => { generarMonto() }} id='provider-input-price' step={0.01} type="number" onKeyDown={handleKeyDown} />
           <label htmlFor="compact-input" className="-translate-y-full px-1 absolute top-1/4 left-2 transform rounded-sm bg-white text-black text-sm font-semibold">
             Precio
           </label>
         </div>
       </div>
       <div className='grid grid-cols-4 gap-1'>
-        <input className='col-span-3 text-sm border border-black rounded-lg p-3' name="comment" id="provider-input-comment" placeholder='Comentario del producto (Opcional)' onChange={handleProviderInputInputsChange}></input>
+        <input className='col-span-3 text-sm border border-black rounded-lg p-3' name="comment" id="provider-input-comment" placeholder='Comentario del producto (Opcional)' onChange={handleProviderInputInputsChange} onKeyDown={handleKeyDown}></input>
         <div className='relative'>
           <p type="text" name="amount" id="input-amount" className='text-green-700 w-full border border-black rounded-md p-3' >{amount}</p>
           <label htmlFor="compact-input" className=" -translate-y-full px-1 absolute top-1/4 left-2 rounded-sm bg-white text-green-700 text-sm font-bold">

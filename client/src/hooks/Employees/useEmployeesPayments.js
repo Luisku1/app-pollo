@@ -22,8 +22,6 @@ export const useEmployeesPayments = ({ companyId = null, date = null, employeeId
   const [error, setError] = useState(null)
   const queryClient = useQueryClient()
 
-  console.log(date)
-
   const pushEmployeePayment = (employeePayment) => {
 
     setPayments((prevEmployeesPayments) => [employeePayment, ...prevEmployeesPayments])
