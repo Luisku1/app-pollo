@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { MdSearch } from "react-icons/md";
 import { useSelector } from "react-redux";
 import Modal from "./Modals/Modal";
@@ -9,28 +9,17 @@ import { dateFromYYYYMMDD, formatDateYYYYMMDD, today } from "../../../common/dat
 import { useDateNavigation } from "../hooks/useDateNavigation";
 
 
+
 export const SearchMenu = ({ modalMode, desktopButton }) => {
   const { currentUser } = useSelector((state) => state.user);
   const [showModal, setShowModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [highlightedIndex, setHighlightedIndex] = useState(0);
+
   const navigate = useNavigate();
   const { roles, isSupervisor, isManager, isController } = useRoles();
   const { currentDate, dateFromYYYYMMDD: dateYYYYMMDD, today: isToday } = useDateNavigation();
   const optionRefs = useRef([]);
-
-
-  useEffect(() => {
-    if (showModal) {
-      document.body.classList.add('no-scroll'); // Add class to prevent body scroll
-    } else {
-      document.body.classList.remove('no-scroll'); // Remove class to allow body scroll
-    }
-
-    return () => {
-      document.body.classList.remove('no-scroll'); // Cleanup on unmount
-    };
-  }, [showModal]);
 
   // --- menuOptions igual que en Header ---
   const menuOptions = [
@@ -51,40 +40,68 @@ export const SearchMenu = ({ modalMode, desktopButton }) => {
     { text: 'Empresa', link: '/empresas', role: 'manager' },
   ];
 
-  const filteredOptions = menuOptions.flatMap(option => {
-    const normalize = (str) => str.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
-    const matchesSearch = normalize(option.text).includes(normalize(searchTerm));
-    const matchesRole = !option.role ||
-      (option.role === 'supervisor' && isSupervisor(currentUser?.role)) ||
-      (option.role === 'manager' && isManager(currentUser?.role)) ||
-      (option.role === 'controller' && isController(currentUser?.role));
-    if (matchesSearch && matchesRole) {
-      if (!isToday && option.date) {
-        if (option.dateRole && !isManager(currentUser?.role)) {
-          return option;
-        }
-        return [
-          option,
-          { ...option, text: `${option.text} (${formatInformationDate(dateYYYYMMDD)})`, link: `${option.link}/${currentDate}` }
-        ];
-      } else {
-        if (isToday && option.date) {
-          let yesterdayDate = new Date(dateYYYYMMDD);
-          yesterdayDate.setDate(yesterdayDate.getDate() - 1);
-          yesterdayDate = formatDateYYYYMMDD(yesterdayDate);
+
+  useEffect(() => {
+    if (showModal) {
+      document.body.classList.add('no-scroll'); // Add class to prevent body scroll
+    } else {
+      document.body.classList.remove('no-scroll'); // Remove class to allow body scroll
+    }
+
+    return () => {
+      document.body.classList.remove('no-scroll'); // Cleanup on unmount
+    };
+  }, [showModal]);
+
+
+  const filteredOptions = useMemo(() => {
+    return menuOptions.flatMap(option => {
+      const normalize = (str) => str.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
+      const matchesSearch = normalize(option.text).includes(normalize(searchTerm));
+      const matchesRole = !option.role ||
+        (option.role === 'supervisor' && isSupervisor(currentUser?.role)) ||
+        (option.role === 'manager' && isManager(currentUser?.role)) ||
+        (option.role === 'controller' && isController(currentUser?.role));
+      if (matchesSearch && matchesRole) {
+        if (!isToday && option.date) {
           if (option.dateRole && !isManager(currentUser?.role)) {
             return option;
           }
           return [
             option,
-            { ...option, text: `${option.text} (${formatInformationDate(dateFromYYYYMMDD(yesterdayDate))})`, link: `${option.link}/${yesterdayDate}` }
+            { ...option, text: `${option.text} (${formatInformationDate(dateYYYYMMDD)})`, link: `${option.link}/${currentDate}` }
           ];
+        } else {
+          if (isToday && option.date) {
+            let yesterdayDate = new Date(dateYYYYMMDD);
+            yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+            yesterdayDate = formatDateYYYYMMDD(yesterdayDate);
+            if (option.dateRole && !isManager(currentUser?.role)) {
+              return option;
+            }
+            return [
+              option,
+              { ...option, text: `${option.text} (${formatInformationDate(dateFromYYYYMMDD(yesterdayDate))})`, link: `${option.link}/${yesterdayDate}` }
+            ];
+          }
         }
+        return option;
       }
-      return option;
+      return [];
+    });
+
+  }, [searchTerm, currentUser, currentDate, isToday, dateYYYYMMDD, isSupervisor, isManager, isController]);
+
+
+  useEffect(() => {
+    setHighlightedIndex(0);
+  }, [searchTerm]);
+
+  useEffect(() => {
+    if (highlightedIndex >= filteredOptions.length) {
+      setHighlightedIndex(0);
     }
-    return [];
-  });
+  }, [filteredOptions]);
 
   useEffect(() => {
 
@@ -106,20 +123,36 @@ export const SearchMenu = ({ modalMode, desktopButton }) => {
         } else if (e.key === 'ArrowUp') {
           e.preventDefault();
           setHighlightedIndex((prev) => (prev - 1 + filteredOptions.length) % filteredOptions.length);
-        } else if (e.key === 'Enter' && highlightedIndex >= 0) {
-          e.preventDefault();
-          const selectedOption = filteredOptions[highlightedIndex];
-          if (selectedOption) {
-            if (e.ctrlKey) {
+        }
+        else if (e.ctrlKey) {
+          // Solo ejecuta si el modal está abierto y hay opción seleccionada
+          if (!showModal) return;
+          if (e.key === 'Enter') {
+            const selectedOption = filteredOptions[highlightedIndex];
+            console.log(highlightedIndex)
+            // Evita doble ejecución y navegación SPA
+            e.preventDefault();
+            e.stopPropagation();
+            if (selectedOption && selectedOption.link) {
               const newTab = window.open(selectedOption.link, '_blank');
+              console.log(selectedOption.link, newTab);
               newTab?.focus();
               setShowModal(false);
               setSearchTerm('');
-            } else {
-              setShowModal(false);
-              setSearchTerm('');
-              navigate(selectedOption.link); // SPA navigation
             }
+            return;
+          }
+          // Enter normal: navega en SPA
+
+        } else if (e.key === 'Enter') {
+
+          const selectedOption = filteredOptions[highlightedIndex];
+
+          if (selectedOption && selectedOption.link) {
+            e.preventDefault();
+            setShowModal(false);
+            setSearchTerm('');
+            navigate(selectedOption.link);
           }
         }
       }
@@ -180,7 +213,7 @@ export const SearchMenu = ({ modalMode, desktopButton }) => {
                 placeholder="Buscar página..."
                 className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-400 text-lg"
                 value={searchTerm}
-                onChange={e => { setSearchTerm(e.target.value); setHighlightedIndex(0); }}
+                onChange={e => { e.stopPropagation(); e.preventDefault(); setSearchTerm(e.target.value); }}
               />
               <ul className="w-full mt-2" style={{ maxHeight: 300, overflowY: 'auto' }}>
                 {filteredOptions.length === 0 && (
@@ -191,7 +224,6 @@ export const SearchMenu = ({ modalMode, desktopButton }) => {
                     key={option.text + option.link}
                     ref={el => optionRefs.current[idx] = el}
                     className={`px-4 py-2 rounded cursor-pointer ${idx === highlightedIndex ? 'bg-orange-100 text-orange-700' : 'hover:bg-gray-100'}`}
-                    onMouseEnter={() => setHighlightedIndex(idx)}
                     onClick={() => {
                       navigate(option.link);
                       setShowModal(false);

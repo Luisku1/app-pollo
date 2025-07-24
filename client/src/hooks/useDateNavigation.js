@@ -61,9 +61,6 @@ export function useDateNavigation() {
   // Si no es date-aware, inicializa con la fecha del datePicker (si existe en localStorage), si no, con hoy
   const getInitialDate = () => {
     if (urlDate) return urlDate;
-    const fromNoDateAware = window.localStorage.getItem('fromNoDateAware');
-
-    console.log('fromNoDateAware', fromNoDateAware);
 
     // En caso de !isdateAware, intenta recuperar la fecha persistida para no date-aware
     // Si hay una fecha persistida, úsala

@@ -76,8 +76,6 @@ const DailyResumePage = () => {
     ],
   };
 
-  console.log(incomesToShow, outgoingsToShow);
-
   // Evento onClick para el gráfico
   const handleBarClick = (_, elements) => {
     if (elements && elements.length > 0) {
