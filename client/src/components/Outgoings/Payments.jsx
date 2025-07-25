@@ -70,7 +70,7 @@ export default function Payments({ spliceExtraOutgoingById, showDateSwitch = tru
         createdAt
       }
 
-      onAddEmployeePayment(employeePayment, pushIncome, spliceIncomeById, pushExtraOutgoing, spliceExtraOutgoingById)
+      onAddEmployeePayment(employeePayment)
 
       setIsDirectFromBranch(false)
       setSelectedEmployee(null)

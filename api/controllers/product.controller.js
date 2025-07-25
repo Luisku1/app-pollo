@@ -59,6 +59,28 @@ export const newProduct = async (req, res, next) => {
 	}
 }
 
+export const updateProduct = async (req, res, next) => {
+	const productId = req.params.productId
+	const { name, byPieces } = req.body
+
+	try {
+
+		const updatedProduct = await Product.findByIdAndUpdate(productId, {
+			name,
+			byPieces
+		}, { new: true })
+
+		if (updatedProduct) {
+			res.status(200).json({ product: updatedProduct })
+		} else {
+			next(errorHandler(404, 'Product not found'))
+		}
+
+	} catch (error) {
+		next(error)
+	}
+}
+
 export const deleteProduct = async (req, res, next) => {
 
 	const productId = req.params.productId

@@ -71,13 +71,13 @@ export const useEmployeesPayments = ({ companyId = null, date = null, employeeId
       // --- ACTUALIZACIÓN OPTIMISTA DE incomes y branchReports SI HAY branch ---
       if (employeePayment.branch) {
         // Incomes
-        prevIncomes = queryClient.getQueryData(['incomes', employeePayment.company, formatDate(date)]);
-        queryClient.setQueryData(['incomes', employeePayment.company, formatDate(date)], (old = []) => {
+        prevIncomes = queryClient.getQueryData(['incomes', employeePayment.company, date]);
+        queryClient.setQueryData(['incomes', employeePayment.company, date], (old = []) => {
           if (old.find(i => getId(i) === getId(income))) return old;
           return [income, ...old];
         });
         // branchReports
-        prevBranchReports = queryClient.getQueryData(['branchReports', employeePayment.company, formatDate(date)]);
+        prevBranchReports = queryClient.getQueryData(['branchReports', employeePayment.company, date]);
         optimisticUpdateReport({
           queryClient,
           queryKey: ['branchReports', employeePayment.company, formatDate(date)],
@@ -86,7 +86,7 @@ export const useEmployeesPayments = ({ companyId = null, date = null, employeeId
           item: income
         });
         // supervisorsReportInfo: income a cashArray y cash
-        prevSupervisorsReportsCash = queryClient.getQueryData(['supervisorsReportInfo', employeePayment.company, formatDate(date)]);
+        prevSupervisorsReportsCash = queryClient.getQueryData(['supervisorsReportInfo', employeePayment.company, date]);
         optimisticUpdateReport({
           queryClient,
           queryKey: ['supervisorsReportInfo', employeePayment.company, formatDate(date)],
@@ -96,13 +96,13 @@ export const useEmployeesPayments = ({ companyId = null, date = null, employeeId
         });
       }
       // --- ACTUALIZACIÓN OPTIMISTA DE extraOutgoings ---
-      prevExtraOutgoings = queryClient.getQueryData(['extraOutgoings', employeePayment.company, formatDate(date)]);
+      prevExtraOutgoings = queryClient.getQueryData(['extraOutgoings', employeePayment.company, date]);
       queryClient.setQueryData(['extraOutgoings', employeePayment.company, formatDate(date)], (old = []) => {
         if (old.find(e => getId(e) === getId(extraOutgoing))) return old;
         return [extraOutgoing, ...old];
       });
       // --- supervisorsReportInfo: extraOutgoing a extraOutgoingsArray y extraOutgoings ---
-      prevSupervisorsReportsExtra = queryClient.getQueryData(['supervisorsReportInfo', employeePayment.company, formatDate(date)]);
+      prevSupervisorsReportsExtra = queryClient.getQueryData(['supervisorsReportInfo', employeePayment.company, date]);
       optimisticUpdateReport({
         queryClient,
         queryKey: ['supervisorsReportInfo', employeePayment.company, formatDate(date)],
@@ -115,22 +115,22 @@ export const useEmployeesPayments = ({ companyId = null, date = null, employeeId
     } catch (error) {
       // Rollback de todos los caches
       if (employeePayment.branch) {
-        if (prevIncomes) queryClient.setQueryData(['incomes', employeePayment.company, formatDate(date)], prevIncomes);
+        if (prevIncomes) queryClient.setQueryData(['incomes', employeePayment.company, date], prevIncomes);
         if (prevBranchReports) rollbackReport({
           queryClient,
-          queryKey: ['branchReports', employeePayment.company, formatDate(date)],
+          queryKey: ['branchReports', employeePayment.company, date],
           prevReports: prevBranchReports
         });
         if (prevSupervisorsReportsCash) rollbackReport({
           queryClient,
-          queryKey: ['supervisorsReportInfo', employeePayment.company, formatDate(date)],
+          queryKey: ['supervisorsReportInfo', employeePayment.company, date],
           prevReports: prevSupervisorsReportsCash
         });
       }
-      if (prevExtraOutgoings) queryClient.setQueryData(['extraOutgoings', employeePayment.company, formatDate(date)], prevExtraOutgoings);
+      if (prevExtraOutgoings) queryClient.setQueryData(['extraOutgoings', employeePayment.company, date], prevExtraOutgoings);
       if (prevSupervisorsReportsExtra) rollbackReport({
         queryClient,
-        queryKey: ['supervisorsReportInfo', employeePayment.company, formatDate(date)],
+        queryKey: ['supervisorsReportInfo', employeePayment.company, date],
         prevReports: prevSupervisorsReportsExtra
       });
       spliceEmployeePaymentByIndex(payments.findIndex((payment) => payment._id === tempId))

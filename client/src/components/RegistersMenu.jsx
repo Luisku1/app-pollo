@@ -35,7 +35,7 @@ export const RegistersMenu = ({ desktopButton }) => {
     { title: "Pago a empleados", onSelec: () => { <EmployeePayments /> } },
     { title: "Formato", onSelec: () => { return <RegistroCuentaDiaria /> } },
     { title: "Descansos", onSelec: () => { return <CreateRest /> } },
-    { title: "Retardos y faltas", onSelec: () => { <Penalties /> } },
+    { title: "Retardos y faltas", onSelec: () => <Penalties /> },
     { title: "Registrar proveedor", onSelec: () => { return <RegistroProveedor /> } },
   ]
 
@@ -75,7 +75,6 @@ export const RegistersMenu = ({ desktopButton }) => {
   useEffect(() => {
     if (isOpen && optionRefs.current[highlightedIndex]) {
       optionRefs.current[highlightedIndex].scrollIntoView({
-        behavior: 'smooth',
         block: 'nearest',
       });
     }
@@ -133,7 +132,7 @@ export const RegistersMenu = ({ desktopButton }) => {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Buscar..."
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-400 transition duration-300 ease-in-out"
+                className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-400 "
               />
               <ul className="w-full mt-2 px-2" style={{ maxHeight: 320, minHeight: 220, overflowY: 'auto', overflowX: 'hidden' }}>
                 {filteredMenu.length === 0 ? (
@@ -143,8 +142,8 @@ export const RegistersMenu = ({ desktopButton }) => {
                     <li
                       key={item.title}
                       ref={el => optionRefs.current[idx] = el}
-                      className={`w-full px-4 py-3 rounded-lg cursor-pointer mb-2 shadow transition-all text-lg font-medium border border-gray-200 whitespace-normal break-words
-                        ${idx === highlightedIndex ? 'bg-orange-100 text-orange-700 border-orange-300 scale-105' : 'bg-white hover:bg-gray-100'}`}
+                      className={`w-full py-2 rounded-lg cursor-pointer mb-2 text-lg font-medium border border-gray-200
+                        ${idx === highlightedIndex ? 'bg-orange-100 text-orange-700 border-orange-300 ' : 'bg-white hover:bg-gray-100'}`}
                       onMouseEnter={() => setHighlightedIndex(idx)}
                       onClick={() => handleSelect(item.onSelec)}
                     >

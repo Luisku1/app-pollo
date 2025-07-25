@@ -31,7 +31,8 @@ export const newPrice = async (req, res, next) => {
 export const changeBranchPrices = async (req, res, next) => {
 
   const branchId = req.params.branchId
-  const { date, pricesDate, residuals = false } = req.body
+  const date = isYYYYMMDD(req.body.date) ? dateFromYYYYMMDD(req.body.date) : req.body.date
+  const { pricesDate, residuals = false } = req.body
 
   if (!date || !branchId || !pricesDate) {
 

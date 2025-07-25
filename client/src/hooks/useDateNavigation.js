@@ -85,7 +85,6 @@ export function useDateNavigation() {
 
   useEffect(() => {
     if (urlDate) {
-      console.log('URL date:', urlDate);
       const formatted = formatDateYYYYMMDD(dateFromYYYYMMDD(urlDate));
       if (formatted !== currentDate) {
         setCurrentDate(formatted);
