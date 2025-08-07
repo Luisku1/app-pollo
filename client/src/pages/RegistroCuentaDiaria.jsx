@@ -276,7 +276,7 @@ export default function RegistroCuentaDiaria({ edit = true }) {
               </div>
             </h1>
           </div>
-          {branchReport && branchId !== null && employee !== null && ((employee._id !== currentUser._id && isSupervisor(currentUser.role)) || employee._id === currentUser._id) && (
+          {((branchReport && branchId !== null && employee !== null && ((employee._id !== currentUser._id && isSupervisor(currentUser.role)) || employee._id === currentUser._id)) || isManager(currentUser.role)) && (
             <div>
               <h2 className='w-full px-2 rounded-lg border-black mx-2 mt-2 bg-white'>
                 <div className='flex gap-2 py-2 items-center'>

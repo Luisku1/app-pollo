@@ -22,7 +22,7 @@ import ChangeBranchPrices from "./Prices/ChangeBranchPrices"
 import EmployeeInfo from "./EmployeeInfo"
 import { CgProfile } from "react-icons/cg"
 import { toPng } from "html-to-image";
-import { AiOutlineDownload, AiOutlineCopy } from "react-icons/ai";
+import { AiOutlineDownload, AiOutlineCopy, AiOutlineLink } from "react-icons/ai";
 import { recalculateBranchReport } from "../services/BranchReports/updateBranchReport"
 import { SelectReportEmployees } from "./SelectReportEmployees"
 import Modal from "./Modals/Modal"
@@ -163,27 +163,37 @@ export default function BranchReportCard({
   };
 
 
+  // Copiar solo el link
+  const handleCopyLink = async () => {
+    try {
+      const text = `${window.location.origin}/formato/${reportData.createdAt}/${reportData.branch._id}`;
+      await navigator.clipboard.writeText(text);
+      ToastSuccess("Link copiado al portapapeles");
+    } catch (error) {
+      ToastDanger("Hubo un error al copiar el link");
+    }
+  };
+
+  // Copiar solo la imagen
   const handleCopyImage = async () => {
     try {
-      const node = document.getElementById(`report-card-${reportData._id}`);
+      const node = document.getElementById(`report-container-${reportData._id}`);
       const toolsDiv = document.querySelector(`#report-card-${reportData._id} [name='tools']`);
-      toolsDiv.style.display = "none"; // Hide tools
+      toolsDiv.style.display = "none";
       const clonedNode = node.cloneNode(true);
       clonedNode.style.paddingBottom = "10px";
       clonedNode.style.width = "400px";
       document.body.appendChild(clonedNode);
       const dataUrl = await toPng(clonedNode);
       document.body.removeChild(clonedNode);
-      toolsDiv.style.display = ""; // Restore tools
+      toolsDiv.style.display = "";
       const blob = await (await fetch(dataUrl)).blob();
-      const text = `Link de la cuenta: ${window.location.origin}/formato/${reportData.createdAt}/${reportData.branch._id}`;
       await navigator.clipboard.write([
         new ClipboardItem({
-          "image/png": blob,
-          "text/plain": new Blob([text], { type: "text/plain" }),
-        }),
-      ]); -
-        ToastSuccess("Imagen copiada al portapapeles");
+          "image/png": blob
+        })
+      ]);
+      ToastSuccess("Imagen copiada al portapapeles");
     } catch (error) {
       console.error("Error copying image:", error);
       ToastDanger("Hubo un error al copiar la imagen");
@@ -252,7 +262,10 @@ export default function BranchReportCard({
           <button className="border h-fit border-black rounded-lg" onClick={handleDownloadImage}>
             <AiOutlineDownload />
           </button>
-          <button className="border h-fit border-black rounded-lg" onClick={handleCopyImage}>
+          <button className="border h-fit border-black rounded-lg" onClick={handleCopyLink} title="Copiar link">
+            <AiOutlineLink />
+          </button>
+          <button className="border h-fit border-black rounded-lg" onClick={handleCopyImage} title="Copiar imagen">
             <AiOutlineCopy />
           </button>
           <button

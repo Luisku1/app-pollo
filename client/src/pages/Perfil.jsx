@@ -200,13 +200,7 @@ export default function Perfil() {
                   <p>No hay nómina para esta semana.</p>
                 )}
               </div>
-              {employeeId == currentUser._id &&
-                <div className='mt-8 grid grid-1'>
-                  <button className='shadow-lg rounded-full p-2 flex-col-reverse justify-self-end border bg-red-700'>
-                    <span onClick={handleSignOut} className='text-white cursor-pointer font-semibold text-lg'>Cerrar Sesión</span>
-                  </button>
-                </div>
-              }
+              {/* Botón de cerrar sesión movido a MobileHeaderMenu */}
             </div >
             : ''}
         </div>

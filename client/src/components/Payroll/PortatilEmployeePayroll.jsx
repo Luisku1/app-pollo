@@ -1,5 +1,6 @@
 
 import { useEmployeePayroll } from "../../hooks/Employees/useEmployeePayroll";
+import PhoneLinks from "../PhoneLinks";
 import EmployeePayroll from "./EmployeePayroll";
 
 export default function PortatilEmployeePayroll({ employee }) {
@@ -20,6 +21,15 @@ export default function PortatilEmployeePayroll({ employee }) {
 
   if (payrollError) {
     return <p>Error al cargar la nómina: {payrollError}</p>;
+  }
+
+  if (!employeePayroll) {
+    return <p className="font-semibold">No hay nómina disponible para este empleado.
+      <br />
+      Por favor, reporta este problema.
+      <br />
+      <PhoneLinks phoneNumber={'55-4220-4979'} />
+    </p>;
   }
 
   return (

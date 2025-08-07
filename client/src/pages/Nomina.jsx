@@ -77,7 +77,10 @@ export default function Nomina() {
                   <p
                     className="justify-self-start w-fit text-xl font-semibold my-4 shadow-sm text-employee-name rounded-lg text-left"
                   >
-                    {`${employee.name} ${employee.lastName}`}
+                    {employee &&
+                      <>
+                        {`${employee.name} ${employee.lastName}`}
+                      </>}
                   </p>
                   <p className={`flex justify-end my-auto border-gray-300 p-2 ${totalToPay < 0 ? 'text-red-500' : ''} font-bold border border-black shadow-sm rounded-lg w-fit`}>
                     {currency(totalToPay)}

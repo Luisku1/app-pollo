@@ -68,15 +68,6 @@ export default function Modal({
       }
     };
 
-    const handlePopState = () => {
-      if (ableToClose) {
-        closeModal();
-        removeLastModal();
-      } else {
-        history.pushState(null, "", window.location.href); // Evita que regrese a la página anterior
-      }
-    };
-
     const handleResize = () => {
       if (adjustForKeyboard) {
         const viewportHeight = window.innerHeight;
@@ -93,14 +84,12 @@ export default function Modal({
 
     // Agregar eventos y estado falso al montar
     document.addEventListener("keydown", handleKeyDown);
-    window.addEventListener("popstate", handlePopState);
     history.pushState(null, "", window.location.href);
 
     // Limpiar eventos al desmontar
     return () => {
       document.body.style.overflow = "auto";
       document.removeEventListener("keydown", handleKeyDown);
-      window.removeEventListener("popstate", handlePopState);
       if (adjustForKeyboard) {
         window.removeEventListener("resize", handleResize);
       }

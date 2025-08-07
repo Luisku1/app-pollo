@@ -12,7 +12,7 @@ export const SearchMenu = ({ modalMode, desktopButton }) => {
   const { currentUser } = useSelector(state => state.user);
   const [showModal, setShowModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [highlightedIndex, setHighlightedIndex] = useState(0);
+  const [highlightedIndex, setHighlightedIndex] = useState(null);
 
   const navigate = useNavigate();
   const { roles, isSupervisor, isManager, isController } = useRoles();
@@ -24,6 +24,7 @@ export const SearchMenu = ({ modalMode, desktopButton }) => {
     { text: 'Perfil', link: currentUser ? `/perfil/${currentUser._id}` : '/inicio-sesion' },
     { text: 'Crear formato', link: '/formato', date: true, dateRole: true },
     { text: 'Supervisión', link: '/supervision-diaria', role: 'supervisor', date: true },
+    { text: 'Gráficos', link: '/graficos', role: 'supervisor' },
     { text: 'Registro Empleado', link: '/registro-empleado', role: 'supervisor', dateRole: true },
     { text: 'Registro Cliente', link: '/registro-cliente', role: 'supervisor' },
     { text: 'Sucursales', link: '/sucursales', role: 'supervisor' },
@@ -72,14 +73,17 @@ export const SearchMenu = ({ modalMode, desktopButton }) => {
     if (!option || !option.link) return;
     setShowModal(false);
     setSearchTerm("");
-    if (openInNewTab) {
-      const newTab = window.open(option.link, '_blank');
-      newTab?.focus();
-    } else {
-      navigate(option.link);
-    }
+    requestAnimationFrame(() => {
+      if (openInNewTab) {
+        const newTab = window.open(option.link, '_blank');
+        newTab?.focus();
+      } else {
+        navigate(option.link);
+      }
+    });
   }, [navigate]);
 
+  // Keydown para navegación y atajos, excepto Enter
   const handleKeyDown = useCallback((e) => {
     if (!currentUser) return;
 
@@ -96,21 +100,44 @@ export const SearchMenu = ({ modalMode, desktopButton }) => {
       } else if (e.key === 'ArrowUp') {
         e.preventDefault();
         setHighlightedIndex(prev => (prev - 1 + filteredOptions.length) % filteredOptions.length);
-      } else if (e.key === 'Enter') {
-        e.preventDefault();
-        handleOptionSelect(filteredOptions[highlightedIndex], e.ctrlKey);
       }
     }
-  }, [showModal, currentUser, filteredOptions, highlightedIndex, handleOptionSelect]);
+  }, [showModal, currentUser, filteredOptions.length]);
 
+
+  // Keydown para navegación y atajos (sin Enter)
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
 
+  // Keydown SOLO para Enter (más controlado)
   useEffect(() => {
-    setHighlightedIndex(0);
-  }, [searchTerm]);
+    if (!showModal || !currentUser) return;
+
+    const handleEnter = (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        handleOptionSelect(filteredOptions[highlightedIndex], e.ctrlKey);
+      }
+    };
+
+    window.addEventListener('keydown', handleEnter);
+    return () => window.removeEventListener('keydown', handleEnter);
+  }, [showModal, currentUser, filteredOptions, highlightedIndex, handleOptionSelect]);
+
+  useEffect(() => {
+    if (filteredOptions.length > 0) {
+      setHighlightedIndex(0);
+    }
+  }, [searchTerm, filteredOptions.length]);
+
+  useEffect(() => {
+    // Si el índice anterior ya no es válido con el nuevo filtro, reinícialo
+    if (highlightedIndex >= filteredOptions.length) {
+      setHighlightedIndex(0);
+    }
+  }, [filteredOptions, highlightedIndex]);
 
   useEffect(() => {
     if (showModal && optionRefs.current[highlightedIndex]) {
@@ -158,12 +185,23 @@ export const SearchMenu = ({ modalMode, desktopButton }) => {
                 )}
                 {filteredOptions.map((option, idx) => (
                   <li
-                    key={option.text + option.link}
+                    key={option.text + idx}
                     ref={el => optionRefs.current[idx] = el}
                     className={`px-4 py-2 rounded cursor-pointer ${idx === highlightedIndex ? 'bg-orange-100 text-orange-700' : 'hover:bg-gray-100'}`}
-                    onClick={() => handleOptionSelect(option)}
                   >
-                    {option.text}
+                    <a
+                      href={option.link}
+                      tabIndex={-1}
+                      className="block w-full h-full"
+                      onClick={e => {
+                        // Si es Ctrl+Click o botón central, deja el comportamiento por defecto (nueva pestaña)
+                        if (e.ctrlKey || e.metaKey || e.button === 1) return;
+                        e.preventDefault();
+                        handleOptionSelect(option);
+                      }}
+                    >
+                      {option.text}
+                    </a>
                   </li>
                 ))}
               </ul>

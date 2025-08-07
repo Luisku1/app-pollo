@@ -134,7 +134,7 @@ export const updateReportsAndBalancesAccounts = async ({ branchReport, updateIns
 
   } catch (error) {
 
-    const hasDifferences = updatedFields.some(field => branchReport[field] !== updatedBranchReport[field])
+    const hasDifferences = updatedFields.some(field => branchReport?.[field] !== updatedBranchReport?.[field])
 
     if (!updatedEmployeeDailyBalance && updatedBranchReport
       && hasDifferences) {
@@ -163,6 +163,8 @@ export const pushOrPullBranchReportRecord = async ({
   const adjustedBalanceInc = affectsBalancePositively === null ? 0 : affectsBalancePositively ? record.amount : -record.amount
   const balanceAdjustment = operation === '$addToSet' ? adjustedBalanceInc : -adjustedBalanceInc
   const amountAdjustment = operation === '$addToSet' ? record.amount : -record.amount
+
+  console.log('167', amountAdjustment, record)
 
   const updateInstructions = {
     [operation]: { [arrayField]: record._id },

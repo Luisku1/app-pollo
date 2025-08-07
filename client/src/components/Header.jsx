@@ -20,7 +20,7 @@ export default function Header() {
   const { isSupervisor } = useRoles();
   const { currentDate } = useDateNavigation();
 
-  const { employeesDailyBalances } = useEmployeesDailyBalances({ companyId: company._id, date: currentDate });
+  const { employeesDailyBalances } = useEmployeesDailyBalances({ companyId: company?._id, date: currentDate });
   const { branches } = useBranches({ companyId: company?._id })
   const { employees } = useEmployees({ companyId: company?._id })
   const { customers } = useCustomers({ companyId: company?._id })

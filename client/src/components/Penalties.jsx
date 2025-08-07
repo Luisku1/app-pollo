@@ -6,38 +6,57 @@ import { useSelector } from "react-redux"
 import { Link } from "react-router-dom"
 import { useDateNavigation } from "../hooks/useDateNavigation"
 
+
 export default function Penalties() {
-  const { currentDate } = useDateNavigation()
-  const { company } = useSelector((state) => state.user)
-  const companyId = company?._id
+  const { currentDate, today, dateFromYYYYMMDD } = useDateNavigation();
+  const { company } = useSelector((state) => state.user);
+  const companyId = company?._id;
+
+  // Nuevo: estado para alternar entre penalties de currentDate y de hoy
+  const [showToday, setShowToday] = useState(today);
+
+  // Query para currentDate
   const {
-    employeesDailyBalances,
-    loading,
-    error,
+    employeesDailyBalances: balancesCurrent,
+    loading: loadingCurrent,
+    error: errorCurrent,
     filterText,
     setFilterText
   } = useEmployeesDailyBalances({ companyId, date: currentDate });
 
-  const [checkboxStates, setCheckboxStates] = useState({})
-  const searchBarRef = useRef(null)
+  // Query para hoy (solo si !today)
+  const todayString = new Date().toISOString().slice(0, 10);
+  const {
+    employeesDailyBalances: balancesToday,
+    loading: loadingToday,
+    error: errorToday
+  } = useEmployeesDailyBalances({ companyId, date: todayString });
+
+  // Selecciona la lista a mostrar
+  const employeesDailyBalances = showToday ? balancesToday : balancesCurrent;
+  const loading = showToday ? loadingToday : loadingCurrent;
+  const error = showToday ? errorToday : errorCurrent;
+
+  const [checkboxStates, setCheckboxStates] = useState({});
+  const searchBarRef = useRef(null);
 
   useEffect(() => {
     if (searchBarRef.current) {
-      searchBarRef.current.focus()
+      searchBarRef.current.focus();
     }
-  }, [])
+  }, []);
 
   useEffect(() => {
-    const initialCheckboxStates = {}
-    employeesDailyBalances.forEach(dailyBalance => {
+    const initialCheckboxStates = {};
+    (employeesDailyBalances || []).forEach(dailyBalance => {
       initialCheckboxStates[dailyBalance._id] = {
         lateDiscount: dailyBalance.lateDiscount,
         restDay: dailyBalance.restDay,
         dayDiscount: dailyBalance.dayDiscount
-      }
-    })
-    setCheckboxStates(initialCheckboxStates)
-  }, [employeesDailyBalances])
+      };
+    });
+    setCheckboxStates(initialCheckboxStates);
+  }, [employeesDailyBalances]);
 
   const handleDailyBalanceInputs = async (e, dailyBalanceId) => {
     const { id, checked } = e.target
@@ -80,9 +99,26 @@ export default function Penalties() {
     }
   }
 
+  console.log(today)
   return (
     <div>
-      {employeesDailyBalances && employeesDailyBalances.length > 0 ?
+      {!today && (
+        <div className="flex gap-2 mb-2">
+          <button
+            className={`px-3 py-1 rounded ${!showToday ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
+            onClick={() => setShowToday(false)}
+          >
+            Ver del día seleccionado
+          </button>
+          <button
+            className={`px-3 py-1 rounded ${showToday ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
+            onClick={() => setShowToday(true)}
+          >
+            Ver de hoy
+          </button>
+        </div>
+      )}
+      {employeesDailyBalances && employeesDailyBalances.length > 0 ? (
         <div className='border bg-white shadow-lg p-3 mt-4'>
           <SectionHeader label={'Empleados'} />
           <div id="filterBySupervisor" className="w-full sticky border border-black rounded-md border-opacity-50 top-16 bg-white z-30">
@@ -109,7 +145,7 @@ export default function Penalties() {
             </div>
           ))}
         </div>
-        : ''}
-    </div >
-  )
+      ) : ''}
+    </div>
+  );
 }

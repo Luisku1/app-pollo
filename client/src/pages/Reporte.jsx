@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types */
 import { IoArrowBack, IoReload } from "react-icons/io5";
-import { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect, useState } from "react";
+import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { useSelector } from "react-redux"
 import { useLocation, useNavigate, } from "react-router-dom"
 import { FaMinus } from "react-icons/fa";
@@ -37,6 +38,108 @@ import ProviderMovementsCard from "../components/statistics/ProviderMovementsCar
 import { dateFromYYYYMMDD } from "../../../common/dateOps.js";
 import ShowListModal from "../components/Modals/ShowListModal.jsx";
 import OutgoingsList from "../components/Outgoings/OutgoingsList.jsx";
+
+
+
+// --- Componente TableTabsMenu ---
+
+function TableTabsMenu({ currentView, setCurrentView, branchReports, supervisorsInfo, customerReports, providerReports }) {
+  const tabs = [
+    { key: 'branches', label: `Sucursales: ${branchReports?.length ?? 0}` },
+    { key: 'supervisors', label: `Supervisores: ${supervisorsInfo?.length ?? 0}` },
+    { key: 'customers', label: `Clientes: ${customerReports?.length ?? 0}` },
+    { key: 'providers', label: `Proveedores: ${(providerReports?.length ?? 0)}` },
+  ];
+  const scrollRef = React.useRef();
+  const btnRefs = React.useRef([]);
+  const [showTabShortcuts, setShowTabShortcuts] = React.useState(false);
+
+  // Mostrar overlays de shortcuts al presionar Alt
+  React.useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Si solo se presiona Alt, bloquea el comportamiento por defecto para evitar perder el foco
+      if (e.key === 'Alt' && !e.ctrlKey && !e.shiftKey && !e.metaKey) {
+        e.preventDefault();
+        e.stopPropagation();
+        setShowTabShortcuts(true);
+      } else if (e.altKey) {
+        setShowTabShortcuts(true);
+      }
+    };
+    const handleKeyUp = (e) => {
+      if (!e.altKey) setShowTabShortcuts(false);
+    };
+    window.addEventListener('keydown', handleKeyDown, true);
+    window.addEventListener('keyup', handleKeyUp, true);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown, true);
+      window.removeEventListener('keyup', handleKeyUp, true);
+    };
+  }, []);
+
+  // Flechas para mover el scroll
+  const scrollLeft = () => {
+    if (scrollRef.current) scrollRef.current.scrollBy({ left: -120, behavior: 'smooth' });
+  };
+  const scrollRight = () => {
+    if (scrollRef.current) scrollRef.current.scrollBy({ left: 120, behavior: 'smooth' });
+  };
+
+  const handleTabClick = (idx, tab) => {
+    setCurrentView({ view: tab.key, props: {} });
+    // Scroll al botón seleccionado
+    if (btnRefs.current[idx]) {
+      btnRefs.current[idx].scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    }
+  };
+
+  return (
+    <div className="flex items-center gap-1">
+      <button onClick={scrollLeft} className="p-2 rounded-full bg-white border border-gray-300 shadow-sm hover:bg-gray-100 disabled:opacity-40" title="Anterior" tabIndex={-1}>
+        <FaChevronLeft className="w-4 h-4" />
+      </button>
+      <div
+        ref={scrollRef}
+        className="flex gap-1 overflow-x-auto no-scrollbar max-w-[70vw] md:max-w-[420px]"
+        style={{ scrollBehavior: 'smooth', position: 'relative' }}
+      >
+        {tabs.map((tab, idx) => (
+          <div key={tab.key} style={{ position: 'relative', display: 'inline-block' }}>
+            <button
+              ref={el => btnRefs.current[idx] = el}
+              className={`px-4 py-2 rounded-lg font-semibold shadow-sm border transition whitespace-nowrap ${currentView.view === tab.key ? 'bg-blue-600 text-white border-blue-700' : 'bg-white text-gray-800 border-gray-300 hover:bg-blue-100'}`}
+              onClick={() => handleTabClick(idx, tab)}
+            >
+              {tab.label}
+            </button>
+            {showTabShortcuts && (
+              <span
+                style={{
+                  position: 'absolute',
+                  top: 2,
+                  left: 6,
+                  zIndex: 10,
+                  background: 'rgba(255,255,255,0.95)',
+                  color: '#2563eb',
+                  fontWeight: 'bold',
+                  borderRadius: '6px',
+                  fontSize: '0.85rem',
+                  padding: '0 6px',
+                  boxShadow: '0 1px 4px rgba(0,0,0,0.08)'
+                }}
+              >
+                {idx + 1}
+              </span>
+            )}
+          </div>
+        ))}
+      </div>
+      <button onClick={scrollRight} className="p-2 rounded-full bg-white border border-gray-300 shadow-sm hover:bg-gray-100 disabled:opacity-40" title="Siguiente" tabIndex={-1}>
+        <FaChevronRight className="w-4 h-4" />
+      </button>
+    </div>
+  );
+}
 
 export default function Reporte() {
 
@@ -306,7 +409,7 @@ export default function Reporte() {
 
     const negativesKey = (e) => {
 
-      if (e.key === '-' && e.ctrlKey ) {
+      if (e.key === '-' && e.ctrlKey) {
         e.preventDefault();
         setOnlyNegativeBalances(v => !v);
       }
@@ -491,21 +594,17 @@ export default function Reporte() {
       {(branchReports || supervisorsInfo) && roles && roles.manager ?
         <div className="mt-3">
           <div className="">
-            <div className="flex justify-evenly">
-              {/* Reemplazo de los párrafos por un select con las opciones correspondientes */}
-              <div className="justify-self-start font-bold text-lg">
-                <select
-                  className="px-4 py-2 rounded-lg border font-semibold shadow-sm bg-white text-black border-gray-300 hover:bg-gray-100"
-                  value={currentView.view}
-                  onChange={(e) => setCurrentView({ view: e.target.value, props: {} })}
-                >
-                  <option value="branches">{'Sucursales: ' + branchReports.length}</option>
-                  <option value="supervisors">{'Supervisores: ' + supervisorsInfo.length}</option>
-                  <option value="customers">{'Clientes: ' + customerReports.length}</option>
-                  <option value="providers">{'Proveedores: ' + (providerReports?.length ?? 0)}</option>
-                </select>
-              </div>
-              <div className="flex justify-center items-center gap-2">
+            <div className="flex items-center gap-2 mb-2">
+              {/* Menú de tablas elegante con scroll y flechas */}
+              <TableTabsMenu
+                currentView={currentView}
+                setCurrentView={setCurrentView}
+                branchReports={branchReports}
+                supervisorsInfo={supervisorsInfo}
+                customerReports={customerReports}
+                providerReports={providerReports}
+              />
+              <div className="flex justify-center items-center gap-2 ml-2">
                 {/* Botón para filtrar solo balances negativos */}
                 <button
                   className={`transition px-4 py-2 rounded-lg border font-semibold shadow-sm ${onlyNegativeBalances ? 'bg-red-600 text-white border-red-700' : 'bg-white text-gray-800 border-gray-300 hover:bg-gray-100'}`}

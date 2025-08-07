@@ -58,6 +58,7 @@ const providerMovementsSchema = mongoose.Schema(
 );
 
 providerMovementsSchema.index({ createdAt: -1, provider: 1 });
+providerMovementsSchema.index({ company: 1, createdAt: -1 });
 providerMovementsSchema.index({ company: 1, createdAt: -1, provider: 1 });
 
 const ProviderMovements = mongoose.model("ProviderMovements", providerMovementsSchema);

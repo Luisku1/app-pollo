@@ -86,6 +86,8 @@ export const ownerSignUp = async (req, res, next) => {
       companies: [],
       companyData: []
     });
+
+    console.log('1')
     const company = await newCompanyFunction({ name: paramsCompany, ownerId: newEmployee._id });
 
     newEmployee.companies = [company._id];
@@ -98,7 +100,9 @@ export const ownerSignUp = async (req, res, next) => {
       administrativeAccount: true
     }];
 
+    console.log('2')
     const employeeDailyBalance = new EmployeeDailyBalance({ employee: newEmployee._id, company: newEmployee.defaultCompany, createdAt: (new Date().toISOString()) });
+    console.log('3')
     await newEmployee.save();
     await employeeDailyBalance.save();
 
@@ -114,39 +118,32 @@ export const ownerSignUp = async (req, res, next) => {
 }
 
 export const signIn = async (req, res, next) => {
-
-  const { phoneNumber, password } = req.body
-
+  const { phoneNumber, password } = req.body;
   try {
-
+    // Busca el usuario y popula el campo companies
     let validUser = await Employee.findOne({ phoneNumber })
+      .populate({ path: 'companies', select: '-__v' });
 
     if (!validUser) {
-
-      return next(errorHandler(404, 'Número de teléfono o contraseña incorrectos.'))
+      return next(errorHandler(404, 'Número de teléfono o contraseña incorrectos.'));
     }
 
-    if(!validUser.active) {
-
-      return next(errorHandler(404, 'Tu perfil no se encuentra activo. Pide a algún gerente reactivarlo.'))
+    if (!validUser.active) {
+      return next(errorHandler(404, 'Tu perfil no se encuentra activo. Pide a algún gerente reactivarlo.'));
     }
 
-    const validPassword = bcryptjs.compareSync(password, validUser.password)
+    const validPassword = bcryptjs.compareSync(password, validUser.password);
+    if (!validPassword) return next(errorHandler(401, 'Contraseña equivocada.'));
 
-    if (!validPassword) return next(errorHandler(401, 'Contraseña equivocada.'))
-
-    const token = jwt.sign({ id: validUser._id }, process.env.JWT_SECRET)
-
-    const { password: pass, ...rest } = validUser._doc
+    const token = jwt.sign({ id: validUser._id }, process.env.JWT_SECRET);
+    const { password: pass, ...rest } = validUser._doc;
 
     res
       .cookie('access_token', token, { httpOnly: true })
       .status(200)
-      .json(rest)
-
+      .json(rest);
   } catch (error) {
-
-    next(error)
+    next(error);
   }
 }
 

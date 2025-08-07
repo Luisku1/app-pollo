@@ -8,8 +8,8 @@ export const addProviderMovementFetch = async (purchaseData) => {
   }
 
   try {
-    const response = await fetch('/api/provider/purchase', config)
-    const data =  await response.json()
+    const response = await fetch('/api/provider/create-provider-movement', config)
+    const data = await response.json()
     if (data.success === false) {
 
       throw new Error('Error adding provider purchase')

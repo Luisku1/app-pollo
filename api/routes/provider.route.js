@@ -5,7 +5,7 @@ import { getPayments, getProviderPayments, getProviderProductLastPrice } from '.
 const router = express.Router()
 
 router.post('/create', newProvider)
-router.post('/create-providers-movement', newMovement)
+router.post('/create-provider-movement', newMovement)
 router.post('/new-payment', newPayment)
 router.put('/update', updateProvider)
 router.get('/get-providers/:companyId', getProviders)

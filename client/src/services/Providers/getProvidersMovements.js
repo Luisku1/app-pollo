@@ -10,5 +10,5 @@ export const getProvidersMovements = async ({ companyId, date }) => {
     throw new Error(data.message);
   }
 
-  return data.movements;
+  return data.data;
 }

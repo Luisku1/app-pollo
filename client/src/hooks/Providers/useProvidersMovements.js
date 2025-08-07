@@ -22,8 +22,8 @@ const useProvidersMovements = ({ companyId, date = null, productId, providerId }
     queryFn: () => getProvidersMovements({ companyId, date }),
     enabled: !!companyId && !!date,
     select: (data) => ({
-      movements: data?.movements || [],
-      totalAmount: data?.totalAmount || 0
+      movements: data || [],
+      totalAmount: data.reduce((acc, movement) => acc + movement.amount, 0) || 0
     })
   });
 
@@ -38,6 +38,7 @@ const useProvidersMovements = ({ companyId, date = null, productId, providerId }
   });
 
   const [price, setPrice] = useState(lastPrice || 0);
+
   useEffect(() => {
     if (lastPrice !== undefined) {
       setPrice(lastPrice);

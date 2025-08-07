@@ -32,6 +32,7 @@ export default function Incomes({ showDateSwitch = true, useToday: useTodayProp 
   const [branchAndCustomerSelectOptions, setBranchAndCustomerSelectOptions] = useState([])
   const [selectedIncomeGroup, setSelectedIncomeGroup] = useState('')
   const [selectedIncomeType, setSelectedIncomeType] = useState(null)
+  const [isButtonEnabled, setIsButtonEnabled] = useState(false);
   const { currentDate, today, dateFromYYYYMMDD } = useDateNavigation()
   const { incomes, incomesTotal, onAddIncome, onDeleteIncome } = useIncomes({ companyId, date: currentDate })
   const [useToday, setUseToday] = useState(false);
@@ -59,7 +60,6 @@ export default function Incomes({ showDateSwitch = true, useToday: useTodayProp 
 
 
   const resetInputs = () => {
-    document.getElementById('income-amount').value = ''
     setSelectedIncomeType(null)
     setSelectedCustomerBranchIncomesOption(null)
     setIncomeFormData({})
@@ -67,11 +67,9 @@ export default function Incomes({ showDateSwitch = true, useToday: useTodayProp 
   }
 
   const handleCustomerBranchIncomesSelectChange = (option) => {
-
     const group = branchAndCustomerSelectOptions.find(g => g.options.some(opt => opt.value === option.value));
     setSelectedIncomeGroup(group.label == 'Sucursales' ? 'branch' : group.label == 'Clientes' ? 'customer' : 'prevOwner');
-    setSelectedCustomerBranchIncomesOption(option)
-    incomesButtonControl()
+    setSelectedCustomerBranchIncomesOption(option);
   }
 
   const addIncomeSubmit = async (e) => {
@@ -126,42 +124,24 @@ export default function Incomes({ showDateSwitch = true, useToday: useTodayProp 
     }
   }
 
-  const incomesButtonControl = () => {
-
-    const amountInput = document.getElementById('income-amount')
-    const button = document.getElementById('incomeButton')
-
-    let filledInputs = true
-
-    if (amountInput.value == '') {
-
-      filledInputs = false
-    }
-
-    if (filledInputs && selectedCustomerBranchIncomesOption != null && selectedIncomeType != null) {
-
-      button.disabled = false
-
-    } else {
-
-      button.disabled = true
-    }
-  }
+  // Habilita el botón solo si todos los campos requeridos están llenos
+  useEffect(() => {
+    const filled =
+      incomeFormData.amount && incomeFormData.amount !== '' &&
+      selectedCustomerBranchIncomesOption != null &&
+      selectedIncomeType != null;
+    setIsButtonEnabled(filled);
+  }, [incomeFormData, selectedCustomerBranchIncomesOption, selectedIncomeType]);
 
   const handleIncomesInputsChange = (e) => {
-
     setIncomeFormData({
-
       ...incomeFormData,
       [e.target.name]: e.target.value,
-
-    })
+    });
   }
 
   const handleTypesSelectChange = (option) => {
-
-    setSelectedIncomeType(option)
-    incomesButtonControl()
+    setSelectedIncomeType(option);
   }
 
   return (
@@ -204,8 +184,8 @@ export default function Incomes({ showDateSwitch = true, useToday: useTodayProp 
               placeholder={'Tipo'}
               isSearchable={true}
             />
-            <input type="number" name="amount" id="income-amount" placeholder='$0.00' step={0.10} className='border border-black p-2 rounded-lg' required onInput={incomesButtonControl} onChange={handleIncomesInputsChange} />
-            <button type='submit' id='incomeButton' disabled className='bg-button text-white p-3 rounded-lg col-span-3 mt-4'>Agregar</button>
+            <input type="number" name="amount" id="income-amount" placeholder='$0.00' step={0.10} className='border border-black p-2 rounded-lg' required onChange={handleIncomesInputsChange} value={incomeFormData.amount || ''} />
+            <button type='submit' id='incomeButton' disabled={!isButtonEnabled} className='bg-button text-white p-3 rounded-lg col-span-3 mt-4'>Agregar</button>
           </div>
         </form>
       </div>

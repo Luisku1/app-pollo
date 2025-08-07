@@ -1094,7 +1094,7 @@ export const getBranchProviderInputsAvg = async (req, res, next) => {
 
 export const createBranchProviderInput = async (req, res, next) => {
 
-  const { _id, weight, product, price, amount, employee, branch, company, comment, pieces, specialPrice, createdAt } = req.body
+  const { _id, weight, product, price, amount, employee, branch, company, comment, pieces, provider, specialPrice, createdAt } = req.body
 
   try {
     const newProviderInput = await createBranchProviderInputAndUpdateBranchReport({ _id, weight, product, price, employee, branch, company, comment, pieces, amount, specialPrice, createdAt })
@@ -1107,13 +1107,13 @@ export const createBranchProviderInput = async (req, res, next) => {
   }
 }
 
-export const createBranchProviderInputAndUpdateBranchReport = async ({ _id, weight, product, price, employee, branch, company, comment, pieces, amount, specialPrice, createdAt }) => {
+export const createBranchProviderInputAndUpdateBranchReport = async ({ _id, weight, product, price, employee, branch, company, comment, pieces, amount, specialPrice, createdAt, provider }) => {
 
   let providerInput = null
 
   try {
 
-    const providerInputData = { weight, product, price, employee, branch, company, comment, pieces, amount, specialPrice, createdAt: today(createdAt) ? new Date() : createdAt }
+    const providerInputData = { weight, provider, product, price, employee, branch, company, comment, pieces, amount, specialPrice, createdAt: today(createdAt) ? new Date() : createdAt }
 
     if (_id) providerInputData._id = _id
 
@@ -1146,13 +1146,13 @@ export const createBranchProviderInputAndUpdateBranchReport = async ({ _id, weig
 
 export const createCustomerProviderInput = async (req, res, next) => {
 
-  const { _id, weight, product, price, amount, employee, customer, company, comment, pieces, createdAt } = req.body
+  const { _id, weight, product, price, amount, employee, customer, company, comment, pieces, provider, createdAt } = req.body
 
   let providerInput = null
 
   try {
 
-    const providerInputData = { weight, product, price, amount, employee, customer, company, comment, pieces, createdAt }
+    const providerInputData = { weight, product, price, amount, employee, customer, provider, company, comment, pieces, createdAt }
 
     if (_id) providerInputData._id = _id
 

@@ -12,8 +12,8 @@ import ProviderMovementsList from "./ProviderMovementsList"
 import { useDateNavigation } from "../../hooks/useDateNavigation"
 
 export default function CreateProviderMovement() {
-  const { company } = useSelector((state) => state.user)
-  const { currentDate: date } = useDateNavigation()
+  const { company, currentUser } = useSelector((state) => state.user)
+  const { currentDate: date, today, dateFromYYYYMMDD } = useDateNavigation()
   const { products } = useProducts({ companyId: company._id })
   const { providers } = useProviders(company._id)
 
@@ -34,7 +34,7 @@ export default function CreateProviderMovement() {
   // Generar monto automáticamente
   const generarMonto = () => {
     const weight = parseFloat(movementFormData.weight || 0);
-    const priceValue = movementFormData.price != '' ? movementFormData.price : lastPrice;
+    const priceValue = (movementFormData.price != '' ? movementFormData.price : lastPrice) || 0;
     setAmount((priceValue * weight).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' }));
   };
 
@@ -57,6 +57,21 @@ export default function CreateProviderMovement() {
     e.preventDefault()
     if (!selectedProduct || !selectedProvider) return
     const { weight, price, pieces, comment } = movementFormData
+    if (!weight || !price || !pieces) {
+      alert('Por favor, completa todos los campos requeridos.')
+      return
+    }
+    if (isNaN(weight) || isNaN(price) || isNaN(pieces)) {
+      alert('Por favor, ingresa valores numéricos válidos.')
+      return
+    }
+    if (weight <= 0 || price <= 0 || pieces <= 0) {
+      alert('Los valores deben ser mayores a cero.')
+      return
+    }
+
+    const createdAt = today ? new Date().toISOString() : dateFromYYYYMMDD.toISOString();
+
     const purchase = {
       product: selectedProduct.value,
       provider: selectedProvider.value,
@@ -67,8 +82,9 @@ export default function CreateProviderMovement() {
       pieces: parseFloat(pieces),
       comment: comment || '',
       employee: currentUser._id,
-      createdAt: new Date(date).toISOString()
+      createdAt: createdAt
     }
+    console.log(purchase)
     await onAddMovement(purchase)
     setMovementFormData({})
     setSelectedProduct(null)
@@ -76,7 +92,7 @@ export default function CreateProviderMovement() {
     setAmount('$0.00')
   }
 
-  useEffect(generarMonto, [movementFormData.price,movementFormData.weight, lastPrice])
+  useEffect(generarMonto, [movementFormData.price, movementFormData.weight, lastPrice])
 
   const onChangeCheck = (e) => {
 

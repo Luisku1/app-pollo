@@ -46,7 +46,7 @@ export default function NetDifferenceCard({ inHeader = false }) {
   function renderModalContent() {
     if (loading) return <div className="p-6 text-center">Cargando...</div>;
     if (error) return <div className="p-6 text-center text-red-600">Error al cargar datos</div>;
-    if (!data) return <div className="p-6 text-center">No hay diferencia en movimientos</div>;
+    if (!filteredByEmployee?.length > 0 && !filteredByProduct?.length > 0) return <div className="p-6 text-center">No hay diferencia en movimientos</div>;
     return (
       <div className="flex flex-col gap-6 p-2 md:p-6 max-h-[70vh] overflow-y-auto">
         <h3 className="text-lg font-bold mb-2 text-gray-700 text-center">Por empleado</h3>
@@ -165,7 +165,7 @@ export default function NetDifferenceCard({ inHeader = false }) {
       const icon = isZero ? <MdCheckCircle className="text-green-500" size={22} /> : <MdOutlineDifference className={totalDiff < 0 ? "text-red-500" : "text-green-600"} size={22} />;
       return (
         <button
-          className={`flex items-center gap-2 px-3 py-1 rounded-lg border shadow-sm font-bold text-sm transition min-w-[90px] ${isZero ? 'bg-green-50 border-green-200 text-green-700' : totalDiff < 0 ? 'bg-red-50 border-red-200 text-red-700' : 'bg-green-50 border-green-200 text-green-700'} hover:brightness-95`}
+          className={`flex items-center gap-2 px-3 py-1 rounded-lg border shadow-sm font-bold text-sm transition w-full min-w-[90px] ${isZero ? 'bg-green-50 border-green-200 text-green-700' : totalDiff < 0 ? 'bg-red-50 border-red-200 text-red-700' : 'bg-green-50 border-green-200 text-green-700'} hover:brightness-95`}
           onClick={() => setShowModal(true)}
           title="Ver diferencias netas de movimientos"
         >

@@ -1,10 +1,10 @@
-import { get, Types } from "mongoose"
+import { Types } from "mongoose"
 import bcryptjs from 'bcryptjs'
 import BranchReport from "../models/accounts/branch.report.model.js"
 import EmployeeDailyBalance from "../models/employees/employee.daily.balance.js"
 import Employee from "../models/employees/employee.model.js"
 import { errorHandler } from "../utils/error.js"
-import { formatDate, getDayRange, getWeekRange } from "../utils/formatDate.js"
+import { getDayRange, getWeekRange } from "../utils/formatDate.js"
 import { deleteExtraOutgoingFunction, newExtraOutgoingFunction } from "./outgoing.controller.js"
 import { deleteIncome, getIncomeTypeId, lookupSupervisorReportIncomes, newBranchIncomeFunction } from "./income.controller.js"
 import EmployeePayment from "../models/employees/employee.payment.model.js"
@@ -18,6 +18,12 @@ import { toCurrency } from "../../common/formatters.js"
 import CompanyPenalties from "../models/company.penalties.model.js"
 import { branchAggregate } from "./branch.controller.js"
 import { dateFromYYYYMMDD, formatDateYYYYMMDD } from "../../common/dateOps.js"
+import Input from '../models/accounts/input.model.js';
+import Output from '../models/accounts/output.model.js';
+import ProviderInput from '../models/providers/provider.input.model.js';
+import ProviderMovements from '../models/providers/provider.movement.model.js';
+import IncomeCollected from '../models/accounts/incomes/income.collected.model.js';
+import ProviderPayment from '../models/providers/payment.model.js';
 
 export const employeePaymentIncomeAggregate = (localField, as = 'employeePayment') => {
 	return [
@@ -40,7 +46,7 @@ export const employeePaymentIncomeAggregate = (localField, as = 'employeePayment
 
 
 // Modificado para que el aggregate regrese los datos de companyData según el companyId
-export const employeeAggregate = (localField, as = 'employee', companyIdField = 'company') => {
+export const employeeAggregate = (localField, as = 'employee', companyIdField = 'company', preserveNullAndEmptyArrays = true) => {
 	return [
 		{
 			$lookup: {
@@ -58,7 +64,7 @@ export const employeeAggregate = (localField, as = 'employee', companyIdField = 
 						}
 					},
 					{
-						$unwind: { path: '$role', preserveNullAndEmptyArrays: true }
+						$unwind: { path: '$role', preserveNullAndEmptyArrays }
 					},
 					// Selecciona el companyData correspondiente al companyId
 					{
@@ -78,6 +84,14 @@ export const employeeAggregate = (localField, as = 'employee', companyIdField = 
 							payDay: { $arrayElemAt: ['$companyData.payDay', 0] },
 							balance: { $arrayElemAt: ['$companyData.balance', 0] },
 							administrativeAccount: { $arrayElemAt: ['$companyData.administrativeAccount', 0] }
+						}
+					},
+					{
+						$lookup: {
+							from: 'companies',
+							localField: 'companies',
+							foreignField: '_id',
+							as: 'companies'
 						}
 					},
 					{
@@ -1150,6 +1164,28 @@ export const getEmployeeDayInfo = async (req, res, next) => {
 	}
 }
 
+export const getByPhoneNumber = async (req, res, next) => {
+
+	const phoneNumber = req.params.phoneNumber
+
+	try {
+
+		const employee = await Employee.findOne({ phoneNumber }).select('name lastName phoneNumber role')
+
+		if (!employee) return res.status(404).json({ message: 'No se encontró al empleado' })
+
+		res.status(200).json({
+			data: employee,
+			message: 'Empleado encontrado',
+			success: true
+		})
+
+	} catch (error) {
+
+		next(error)
+	}
+}
+
 export const getSignedUser = async (req, res, next) => {
 
 	const employeeId = req.params.employeeId
@@ -1629,7 +1665,7 @@ export const fetchEmployeesPayroll = async ({ companyId, date }) => {
 					]
 				}
 			},
-			...employeeAggregate('employee', undefined, companyId),
+			...employeeAggregate('employee', undefined, companyId, false),
 			{
 				$addFields: {
 					accountBalance: { $sum: '$employeeDailyBalances.accountBalance' },
@@ -2963,25 +2999,65 @@ export const changeEmployeeActiveStatus = async (req, res, next) => {
 }
 
 export const deleteEmployee = async (req, res, next) => {
-
-	const employeeId = req.params.employeeId
+	const employeeId = req.params.employeeId;
 
 	try {
+		// 1. Obtener datos del empleado
+		const employee = await Employee.findById(employeeId);
+		if (!employee) return next(errorHandler(404, 'Employee not found'));
+		const deletedEmployee = {
+			name: employee.name,
+			lastName: employee.lastName,
+			_id: employee._id
+		};
 
-		const deleted = await Employee.deleteOne({ _id: employeeId })
+
+		// 2. Actualizar referencias en modelos relacionados en paralelo
+		await Promise.all([
+			// Input
+			Input.updateMany({ employee: employeeId }, { $set: { deletedEmployee }, $unset: { employee: "" } }),
+			Input.updateMany({ owner: employeeId }, { $set: { deletedEmployee }, $unset: { owner: "" } }),
+			// Output
+			Output.updateMany({ employee: employeeId }, { $set: { deletedEmployee }, $unset: { employee: "" } }),
+			Output.updateMany({ prevOwner: employeeId }, { $set: { deletedEmployee }, $unset: { prevOwner: "" } }),
+			// ProviderInput
+			ProviderInput.updateMany({ employee: employeeId }, { $set: { deletedEmployee }, $unset: { employee: "" } }),
+			// ProviderMovements
+			ProviderMovements.updateMany({ employee: employeeId }, { $set: { deletedEmployee }, $unset: { employee: "" } }),
+			// IncomeCollected
+			IncomeCollected.updateMany({ employee: employeeId }, { $set: { deletedEmployee }, $unset: { employee: "" } }),
+			IncomeCollected.updateMany({ owner: employeeId }, { $set: { deletedEmployee }, $unset: { owner: "" } }),
+			IncomeCollected.updateMany({ prevOwner: employeeId }, { $set: { deletedEmployee }, $unset: { prevOwner: "" } }),
+			// EmployeePayment
+			EmployeePayment.updateMany({ employee: employeeId }, { $set: { deletedEmployee }, $unset: { employee: "" } }),
+			EmployeePayment.updateMany({ supervisor: employeeId }, { $set: { deletedEmployee }, $unset: { supervisor: "" } }),
+			// BranchReport
+			BranchReport.updateMany({ employee: employeeId }, { $set: { deletedEmployee }, $unset: { employee: "" } }),
+			BranchReport.updateMany({ assistant: employeeId }, { $set: { deletedEmployee }, $unset: { assistant: "" } }),
+			BranchReport.updateMany({ sender: employeeId }, { $set: { deletedEmployee }, $unset: { sender: "" } }),
+			// SupervisorReport
+			SupervisorReport.updateMany({ supervisor: employeeId }, { $set: { deletedEmployee }, $unset: { supervisor: "" } }),
+			// EmployeeRest
+			EmployeeRest.updateMany({ employee: employeeId }, { $set: { deletedEmployee }, $unset: { employee: "" } }),
+			EmployeeRest.updateMany({ replacement: employeeId }, { $set: { deletedEmployee }, $unset: { replacement: "" } }),
+			// EmployeeDailyBalance
+			EmployeeDailyBalance.updateMany({ employee: employeeId }, { $set: { deletedEmployee }, $unset: { employee: "" } }),
+			// EmployeeWeeklyBalance
+			EmployeeWeeklyBalance.updateMany({ employee: employeeId }, { $set: { deletedEmployee }, $unset: { employee: "" } }),
+			// ProviderPayment
+			ProviderPayment.updateMany({ employee: employeeId }, { $set: { deletedEmployee }, $unset: { employee: "" } }),
+		]);
+
+		// 3. Eliminar el empleado
+		const deleted = await Employee.deleteOne({ _id: employeeId });
 
 		if (deleted.acknowledged == 1) {
-
-			res.status(200).json('Employee deleted successfully')
-
+			res.status(200).json('Employee deleted successfully');
 		} else {
-
-			next(errorHandler(404, 'Employee not found'))
+			next(errorHandler(404, 'Employee not found'));
 		}
-
 	} catch (error) {
-
-		next(error)
+		next(error);
 	}
 }
 

@@ -340,8 +340,11 @@ export const getMovements = async (req, res, next) => {
     const movements = await ProviderMovements.aggregate([
       {
         $match: {
-          createdAt: { $gte: new Date(bottomDate), $lt: new Date(topDate) },
-          company: new Types.ObjectId(companyId),
+          "company": new Types.ObjectId(companyId),
+          "createdAt": {
+            $gte: new Date(bottomDate),
+            $lt: new Date(topDate),
+          },
         },
       },
       ...providerAggregate("provider"),
@@ -349,7 +352,10 @@ export const getMovements = async (req, res, next) => {
       ...employeeAggregate("employee"),
     ]);
 
-    res.status(200).json(movements);
+    console.log(movements);
+
+    res.status(200).json({ data: movements });
+
   } catch (error) {
     next(error);
   }

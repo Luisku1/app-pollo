@@ -1,12 +1,12 @@
-  // Permite enviar el formulario con Enter en los campos relevantes
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      if (e.target.form) {
-        e.target.form.requestSubmit();
-      }
+// Permite enviar el formulario con Enter en los campos relevantes
+const handleKeyDown = (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    if (e.target.form) {
+      e.target.form.requestSubmit();
     }
-  };
+  }
+};
 /* eslint-disable react/prop-types */
 import { useEffect, useState } from 'react'
 import BranchAndCustomerSelect from '../Select/BranchAndCustomerSelect'
@@ -20,6 +20,7 @@ import { useBranches } from '../../hooks/Branches/useBranches'
 import { useCustomers } from '../../hooks/Customers/useCustomers'
 import { getArrayForSelects } from '../../helpers/Functions'
 import { calculateAmount } from '../../../../common/calculateAmount'
+import { useProviders } from '../../hooks/Providers/useProviders';
 
 export default function MenuSucursal({ selectedProduct, onAddProviderInput }) {
 
@@ -34,6 +35,9 @@ export default function MenuSucursal({ selectedProduct, onAddProviderInput }) {
   const {
     branches
   } = useBranches({ companyId: company._id })
+  const {
+    providers
+  } = useProviders(company._id)
   const {
     customers
   } = useCustomers({ companyId: company._id })
@@ -64,13 +68,13 @@ export default function MenuSucursal({ selectedProduct, onAddProviderInput }) {
       return;
     }
     const monto = calculateAmount(price, byPieces, weight, pieces);
+    console.log('Price:', price, 'Weight:', weight, 'Pieces:', pieces, 'ByPieces:', byPieces, 'Amount:', monto);
     setAmount(monto.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' }));
   }
 
   useEffect(generarMonto, [providerInputFormData.price, providerInputFormData.weight, lastPrice])
 
   const handleProviderInputInputsChange = (e) => {
-    generarMonto()
     setProviderInputFormData({
       ...providerInputFormData,
       [e.target.name]: e.target.value,
@@ -133,7 +137,7 @@ export default function MenuSucursal({ selectedProduct, onAddProviderInput }) {
       const price = parseFloat(priceInput.value == '' ? priceInput.placeholder ?? 0 : priceInput.value ?? 0)
       inputButton.disabled = true
       const createdAt = today ? new Date().toISOString() : dateFromYYYYMMDD.toISOString()
-      const { weight, pieces } = providerInputFormData
+      const { weight, pieces, provider } = providerInputFormData
       const group = selectedGroup == 'Sucursales' ? 'branch' : 'customer'
 
       let providerInput = {}
@@ -149,6 +153,7 @@ export default function MenuSucursal({ selectedProduct, onAddProviderInput }) {
           branch: selectedBranchCustomerOption,
           product: selectedProduct,
           company: company._id,
+          provider: provider?.value || null,
           employee: currentUser,
           createdAt,
         }
@@ -162,6 +167,7 @@ export default function MenuSucursal({ selectedProduct, onAddProviderInput }) {
           specialPrice: priceInput.value == '' ? false : true,
           company: company._id,
           product: selectedProduct,
+          provider: provider?.value || null,
           employee: currentUser,
           customer: selectedBranchCustomerOption,
           createdAt,
@@ -186,7 +192,9 @@ export default function MenuSucursal({ selectedProduct, onAddProviderInput }) {
   return (
     <form onSubmit={submitProviderInput} className="flex flex-col space-y-2">
       <Select
-        options={[]}
+        options={getArrayForSelects(providers, (provider) => provider.name)}
+        onChange={(option) => setProviderInputFormData({ ...providerInputFormData, provider: option.value })}
+        value={getArrayForSelects(providers, (provider) => provider.name).find(option => option.value === providerInputFormData.provider)}
         styles={customSelectStyles}
         placeholder={'Proveedor'}
       />
