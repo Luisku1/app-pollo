@@ -2,10 +2,25 @@
 import { MdChevronLeft, MdChevronRight } from "react-icons/md";
 import { useDateNavigation } from "../hooks/useDateNavigation";
 import { dateFromYYYYMMDD, formatDateYYYYMMDD } from "../../../common/dateOps";
+import { useEffect } from "react";
 
 export default function FechaDePagina() {
-
   const { currentDate, setDate, prevDay, nextDay, dateFromYYYYMMDD: dateYYYYMMDD } = useDateNavigation();
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.ctrlKey && e.key === 'ArrowLeft') {
+        e.preventDefault();
+        prevDay();
+      }
+      if (e.ctrlKey && e.key === 'ArrowRight') {
+        e.preventDefault();
+        nextDay();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [prevDay, nextDay]);
 
   if (!currentDate) return null;
 
@@ -15,7 +30,7 @@ export default function FechaDePagina() {
         <button
           className="w-7 h-7 flex items-center justify-center text-gray-600 hover:text-black transition"
           onClick={prevDay}
-          title="Día anterior"
+          title="Día anterior (Ctrl + ←)"
         >
           <MdChevronLeft className="w-6 h-6" />
         </button>
@@ -40,7 +55,7 @@ export default function FechaDePagina() {
         <button
           className="w-7 h-7 flex items-center justify-center text-gray-600 hover:text-black transition"
           onClick={nextDay}
-          title="Día siguiente"
+          title="Día siguiente (Ctrl + →)"
         >
           <MdChevronRight className="w-6 h-6" />
         </button>

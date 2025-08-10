@@ -400,20 +400,23 @@ export const getBranchReports = async (req, res, next) => {
       }
     ]);
 
+    console.log(branchReportsAggregate)
+
     if (branchReportsAggregate.length > 0) {
 
-      const branchReports = branchReportsAggregate[0].branchReports ?? []
-      const { totalIncomes = 0, totalFinalStock = 0, totalOutgoings = 0, totalBalance = 0 } = branchReportsAggregate?.[0]?.globalTotals?.[0]
+      const branchReports = branchReportsAggregate?.[0].branchReports ?? []
+      const { totalIncomes = 0, totalFinalStock = 0, totalOutgoings = 0, totalBalance = 0 } = branchReportsAggregate?.[0]?.globalTotals?.[0] || {}
 
       res.status(200).json({ branchReports: branchReports, totalIncomes: totalIncomes, totalStock: totalFinalStock, totalOutgoings: totalOutgoings, totalBalance: totalBalance })
 
     } else {
 
-      next(errorHandler(200, 'No branch reports found'))
+      next(errorHandler(400, 'No se encontraron reportes de sucursales para la fecha proporcionada'))
     }
 
   } catch (error) {
 
+    console.log(error)
     next(error)
   }
 }
@@ -432,7 +435,7 @@ export const getSupervisorsInfo = async (req, res, next) => {
     if (supervisorReports !== null && supervisorReports !== undefined) {
 
       const reports = supervisorReports.reports
-      const { extraOutgoings = 0, extraOutgoingsArray = 0, deposits = 0, cash = 0, cashArray = 0, depositsArray = 0, verifiedCash = 0, verifiedDeposits = 0, terminalIncomesArray = 0, terminalIncomes = 0, balance = 0 } = supervisorReports?.globalTotals?.[0]
+      const { extraOutgoings = 0, extraOutgoingsArray = 0, deposits = 0, cash = 0, cashArray = 0, depositsArray = 0, verifiedCash = 0, verifiedDeposits = 0, terminalIncomesArray = 0, terminalIncomes = 0, balance = 0 } = supervisorReports?.globalTotals?.[0] || {}
 
       const netIncomes = cash + deposits + terminalIncomes - extraOutgoings
       const verifiedIncomes = verifiedCash + verifiedDeposits

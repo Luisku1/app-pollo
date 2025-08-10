@@ -17,7 +17,7 @@ export default function Nomina() {
 
   useEffect(() => {
 
-    document.title = 'Nómina (' + new Date(currentDate).toLocaleDateString() + ')'
+    document.title = 'Nómina (' + dateFromYYYYMMDD.toLocaleDateString('es-MX') + ')'
   })
 
   if (loading) {

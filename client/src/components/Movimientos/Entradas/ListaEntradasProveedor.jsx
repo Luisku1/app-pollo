@@ -52,11 +52,12 @@ export default function ListaEntradasProveedor({ inputs, totalWeight, onDeleteIn
   }
 
   const renderInputItem = ({ input, index }) => {
-    const { branch, customer, weight, employee, product, _id } = input
+    const { branch, customer, weight, product, _id } = input
+    const employee = input.employee || input.deletedEmployee;
     const branchInfo = branch?.branch || branch?.label
     const customerInfo = `${customer?.name || ''} ${customer?.lastName || ''}`.trim() || customer?.label
-    const employeeName = `${employee.name} ${employee.lastName}`
-    const isAuthorized = currentUser._id === employee._id || isManager(currentUser.role)
+    const employeeName = `${employee?.name ?? 'Ex empleado'}${employee?.lastName ? ' ' + employee.lastName : ''}`
+    const isAuthorized = currentUser._id === (employee?._id) || isManager(currentUser.role)
 
     return (
       isAuthorized && (

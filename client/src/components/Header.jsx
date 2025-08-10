@@ -27,25 +27,22 @@ export default function Header() {
 
   return (
     <header className='bg-header shadow-md sticky top-0 z-[9999] flex flex-col items-center justify-center p-2'>
-      {currentUser &&
-        <div className='w-full flex items-center justify-between gap-2'>
-          {/* Mobile: FechaDePagina y MobileHeaderMenu en el mismo renglón */}
-          <div className='flex items-center w-full xl:hidden'>
-            <div className='flex-1 flex justify-center items-center'>
+      {currentUser ? (
+        <>
+          {/* Medianas y pequeñas: sólo FechaDePagina y MobileHeaderMenu */}
+          <div className="w-full flex items-center justify-between gap-2 xl:hidden">
+            <div className="flex-1 flex justify-center items-center">
               <FechaDePagina />
             </div>
-            <div className='flex items-center'>
+            <div className="flex items-center">
               <MobileHeaderMenu currentUser={currentUser} />
             </div>
           </div>
-
-          {/* Desktop: Nueva organización */}
-          <div className='hidden xl:flex w-full items-center'>
-            {/* Izquierda: FechaDePagina alineada al centro de su lado */}
+          {/* xl+: layout completo */}
+          <div className="hidden xl:flex w-full items-center justify-between gap-2">
             <div className='flex-1 flex justify-center items-center'>
               <FechaDePagina />
             </div>
-            {/* Centro: Barra de búsqueda */}
             <div className='flex-1 flex justify-center items-center'>
               <SearchMenu modalMode={true} desktopButton={
                 <input
@@ -56,7 +53,6 @@ export default function Header() {
                 />
               } />
             </div>
-            {/* Derecha: RegistersMenu y NetDifferenceCard alineados al centro de su lado */}
             <div className='flex-1 flex justify-center items-center gap-2'>
               <RegistersMenu desktopButton={
                 <button
@@ -70,19 +66,15 @@ export default function Header() {
               {isSupervisor(currentUser?.role) && (
                 <NetDifferenceCard inHeader />
               )}
+              <MobileHeaderMenu currentUser={currentUser} />
             </div>
           </div>
-        </div>
-      }
-      {!currentUser &&
+        </>
+      ) : (
         <div className='flex-1 flex justify-center items-center'>
           <h1 className='text-2xl font-bold text-white'>Pio App</h1>
         </div>
-      }
-      <div className="flex xl:hidden w-full">
-        <SearchMenu modalMode={true} />
-        <RegistersMenu />
-      </div>
+      )}
     </header>
   );
 }

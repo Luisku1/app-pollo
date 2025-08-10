@@ -43,90 +43,101 @@ import OutgoingsList from "../components/Outgoings/OutgoingsList.jsx";
 
 // --- Componente TableTabsMenu ---
 
-function TableTabsMenu({ currentView, setCurrentView, branchReports, supervisorsInfo, customerReports, providerReports }) {
+function TableTabsMenu({
+  currentView,
+  setCurrentView,
+  branchReports,
+  supervisorsInfo,
+  customerReports,
+  providerReports
+}) {
   const tabs = [
     { key: 'branches', label: `Sucursales: ${branchReports?.length ?? 0}` },
     { key: 'supervisors', label: `Supervisores: ${supervisorsInfo?.length ?? 0}` },
     { key: 'customers', label: `Clientes: ${customerReports?.length ?? 0}` },
-    { key: 'providers', label: `Proveedores: ${(providerReports?.length ?? 0)}` },
+    { key: 'providers', label: `Proveedores: ${providerReports?.length ?? 0}` }
   ];
+
   const scrollRef = React.useRef();
   const btnRefs = React.useRef([]);
   const [showTabShortcuts, setShowTabShortcuts] = React.useState(false);
 
-  // Mostrar overlays de shortcuts al presionar Alt
-  React.useEffect(() => {
-    const handleKeyDown = (e) => {
-      // Si solo se presiona Alt, bloquea el comportamiento por defecto para evitar perder el foco
-      if (e.key === 'Alt' && !e.ctrlKey && !e.shiftKey && !e.metaKey) {
-        e.preventDefault();
-        e.stopPropagation();
-        setShowTabShortcuts(true);
-      } else if (e.altKey) {
-        setShowTabShortcuts(true);
-      }
-    };
-    const handleKeyUp = (e) => {
-      if (!e.altKey) setShowTabShortcuts(false);
-    };
-    window.addEventListener('keydown', handleKeyDown, true);
-    window.addEventListener('keyup', handleKeyUp, true);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown, true);
-      window.removeEventListener('keyup', handleKeyUp, true);
-    };
-  }, []);
+  // // Mostrar overlays de shortcuts al presionar Alt
+  // React.useEffect(() => {
+  //   const handleKeyDown = (e) => {
+  //     if (e.key === 'Alt' && !e.ctrlKey && !e.shiftKey && !e.metaKey) {
+  //       e.preventDefault();
+  //       e.stopPropagation();
+  //       setShowTabShortcuts(true);
+  //     } else if (e.altKey) {
+  //       setShowTabShortcuts(true);
+  //     }
+  //   };
+  //   const handleKeyUp = (e) => {
+  //     if (!e.altKey) setShowTabShortcuts(false);
+  //   };
+  //   window.addEventListener('keydown', handleKeyDown, true);
+  //   window.addEventListener('keyup', handleKeyUp, true);
+  //   return () => {
+  //     window.removeEventListener('keydown', handleKeyDown, true);
+  //     window.removeEventListener('keyup', handleKeyUp, true);
+  //   };
+  // }, []);
 
-  // Flechas para mover el scroll
+  // Scroll con flechas (solo escritorio)
   const scrollLeft = () => {
-    if (scrollRef.current) scrollRef.current.scrollBy({ left: -120, behavior: 'smooth' });
+    scrollRef.current?.scrollBy({ left: -120, behavior: 'smooth' });
   };
   const scrollRight = () => {
-    if (scrollRef.current) scrollRef.current.scrollBy({ left: 120, behavior: 'smooth' });
+    scrollRef.current?.scrollBy({ left: 120, behavior: 'smooth' });
   };
 
   const handleTabClick = (idx, tab) => {
     setCurrentView({ view: tab.key, props: {} });
-    // Scroll al botón seleccionado
-    if (btnRefs.current[idx]) {
-      btnRefs.current[idx].scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-    }
+    btnRefs.current[idx]?.scrollIntoView({
+      behavior: 'smooth',
+      inline: 'center',
+      block: 'nearest'
+    });
   };
+
+  const tabClass = (active) =>
+    `px-4 py-2 rounded-lg font-semibold shadow-sm border transition whitespace-nowrap ${active
+      ? 'bg-blue-600 text-white border-blue-700'
+      : 'bg-white text-gray-800 border-gray-300 hover:bg-blue-100'
+    }`;
 
   return (
     <div className="flex items-center gap-1">
-      <button onClick={scrollLeft} className="p-2 rounded-full bg-white border border-gray-300 shadow-sm hover:bg-gray-100 disabled:opacity-40" title="Anterior" tabIndex={-1}>
+      {/* Flecha izquierda SOLO en escritorio */}
+      <button
+        onClick={scrollLeft}
+        className="hidden sm:flex p-2 rounded-full bg-white border border-gray-300 shadow-sm hover:bg-gray-100 disabled:opacity-40"
+        title="Anterior"
+        tabIndex={-1}
+      >
         <FaChevronLeft className="w-4 h-4" />
       </button>
+
+      {/* Contenedor scroll */}
       <div
         ref={scrollRef}
-        className="flex gap-1 overflow-x-auto no-scrollbar max-w-[70vw] md:max-w-[420px]"
+        className="flex gap-1 overflow-x-auto no-scrollbar max-w-[50evw] sm:max-w-[420px]"
         style={{ scrollBehavior: 'smooth', position: 'relative' }}
       >
         {tabs.map((tab, idx) => (
-          <div key={tab.key} style={{ position: 'relative', display: 'inline-block' }}>
+          <div key={tab.key} className="relative inline-block">
             <button
-              ref={el => btnRefs.current[idx] = el}
-              className={`px-4 py-2 rounded-lg font-semibold shadow-sm border transition whitespace-nowrap ${currentView.view === tab.key ? 'bg-blue-600 text-white border-blue-700' : 'bg-white text-gray-800 border-gray-300 hover:bg-blue-100'}`}
+              ref={(el) => (btnRefs.current[idx] = el)}
+              className={tabClass(currentView.view === tab.key)}
               onClick={() => handleTabClick(idx, tab)}
             >
               {tab.label}
             </button>
             {showTabShortcuts && (
               <span
-                style={{
-                  position: 'absolute',
-                  top: 2,
-                  left: 6,
-                  zIndex: 10,
-                  background: 'rgba(255,255,255,0.95)',
-                  color: '#2563eb',
-                  fontWeight: 'bold',
-                  borderRadius: '6px',
-                  fontSize: '0.85rem',
-                  padding: '0 6px',
-                  boxShadow: '0 1px 4px rgba(0,0,0,0.08)'
-                }}
+                className="absolute top-1 left-1 z-10 bg-white/95 text-blue-600 font-bold rounded-md text-sm px-1 shadow-sm"
+                style={{ fontSize: '0.85rem', padding: '0 6px' }}
               >
                 {idx + 1}
               </span>
@@ -134,7 +145,14 @@ function TableTabsMenu({ currentView, setCurrentView, branchReports, supervisors
           </div>
         ))}
       </div>
-      <button onClick={scrollRight} className="p-2 rounded-full bg-white border border-gray-300 shadow-sm hover:bg-gray-100 disabled:opacity-40" title="Siguiente" tabIndex={-1}>
+
+      {/* Flecha derecha SOLO en escritorio */}
+      <button
+        onClick={scrollRight}
+        className="hidden sm:flex p-2 rounded-full bg-white border border-gray-300 shadow-sm hover:bg-gray-100 disabled:opacity-40"
+        title="Siguiente"
+        tabIndex={-1}
+      >
         <FaChevronRight className="w-4 h-4" />
       </button>
     </div>

@@ -23,8 +23,15 @@ const incomeCollectedSchema = mongoose.Schema({
     default: null
   },
 
+
+
   owner: {
     type: Schema.Types.ObjectId, ref: 'Employee',
+    default: null
+  },
+
+  deletedOwner: {
+    type: Object,
     default: null
   },
 
@@ -33,10 +40,21 @@ const incomeCollectedSchema = mongoose.Schema({
     default: null
   },
 
+  deletedPrevOwner: {
+    type: Object,
+    default: null
+  },
+
+  deletedEmployee: {
+    type: Object,
+    default: null
+  },
+
   prevOwnerIncome: {
     type: Schema.Types.ObjectId, ref: 'IncomeCollected',
     default: null
   },
+
 
   employee: {
     type: Schema.Types.ObjectId, ref: 'Employee',

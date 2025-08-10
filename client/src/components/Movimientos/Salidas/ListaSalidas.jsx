@@ -49,7 +49,8 @@ export default function ListaSalidas({ outputs = [], onDelete = null }) {
   }
 
   const renderOutputItem = (output, index) => {
-    const { employee, product, pieces, weight, amount, branch, comment, createdAt } = output
+    const employee = output.employee || output.deletedEmployee;
+    const { product, pieces, weight, amount, branch, comment, createdAt } = output
     const tempOutput = { ...output, index }
 
     return (
@@ -66,7 +67,7 @@ export default function ListaSalidas({ outputs = [], onDelete = null }) {
                     <div className="w-full text-red-800 mb-1">
                       <RowItem>
                         <p className="text-md font-bold flex gap-1 items-center"><MdStorefront />{branch.branch}</p>
-                        <EmployeeName employeeName={employee.name} onClick={() => setSelectedEmployee(employee)} />
+                        <EmployeeName employeeName={employee?.name ?? 'Ex empleado'} onClick={() => setSelectedEmployee(employee)} />
                       </RowItem>
                     </div>
                     <div className="w-full text-sm font-semibold">

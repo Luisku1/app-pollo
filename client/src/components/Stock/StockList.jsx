@@ -48,10 +48,10 @@ export default function StockList({ stock = [], showBranch = false, onDelete = n
   }
 
   const renderStockItem = ({ stock, index }) => {
-    const { product, pieces, weight, amount, employee, createdAt, price } = stock
-    console.log(stock)
+    const { product, pieces, weight, amount, createdAt, price } = stock
+    const employee = stock.employee || stock.deletedEmployee;
     const tempStock = { ...stock, index }
-    const isAuthorized = currentUser._id === stock.employee?._id || isManager(currentUser.role)
+    const isAuthorized = currentUser._id === (employee?._id) || isManager(currentUser.role)
     const shouldRender = isAuthorized || isManager(currentUser.role)
     const shouldShowDeleteButton = isAuthorized && onDelete
 

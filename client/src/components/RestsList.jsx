@@ -13,7 +13,9 @@ export default function RestsList({ rests, onDelete }) {
     <div>
       <EmployeeInfo employee={selectedEmployee} toggleInfo={() => setSelectedEmployee(null)} />
       {rests && rests.length != 0 && rests.map((rest, index) => {
-        const { _id, employee, replacement } = rest
+        const employee = rest.employee || rest.deletedEmployee;
+        const replacement = rest.replacement || rest.deletedEmployee;
+        const { _id } = rest;
         return (
           <div key={_id} className='grid grid-cols-12 mt-4 border border-black rounded-lg shadow-lg p-3 gap-2'>
             <div className="col-span-10 items-center">

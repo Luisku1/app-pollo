@@ -1,5 +1,6 @@
 
 import { useState, useRef, useEffect } from 'react';
+
 import { FiMenu, FiLayers } from 'react-icons/fi';
 import NetDifferenceCard from './statistics/NetDifferenceCard';
 import Modal from './Modals/Modal';
@@ -15,6 +16,28 @@ export default function MobileHeaderMenu() {
 
   const { currentUser, company } = useSelector((state) => state.user);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  // Modo comando local: Ctrl+. activa, Escape desactiva, Tab abre menú
+  const [commandMode, setCommandMode] = useState(false);
+  useEffect(() => {
+    function handleKeyDown(e) {
+      if (e.key === '.' && e.ctrlKey && !e.shiftKey && !e.altKey && !e.metaKey) {
+        if (!commandMode) setCommandMode(true);
+      } else if (e.key === 'Escape') {
+        setCommandMode(false);
+        if (showMobileMenu) setShowMobileMenu(false);
+      } else if (commandMode) {
+        if (e.key === 'Tab') {
+          e.preventDefault();
+          setShowMobileMenu(true);
+          setCommandMode(false);
+        }
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [commandMode, showMobileMenu]);
+
+  console.log(showMobileMenu)
   const menuRef = useRef(null);
   // Cerrar sesión
   const handleSignOut = async () => {
@@ -95,8 +118,9 @@ export default function MobileHeaderMenu() {
   // Cierra el menú al seleccionar una opción
   const handleOptionClick = () => setShowMobileMenu(false);
 
+  // Cambiar clases para que el menú esté disponible en todas las pantallas y se alinee correctamente
   return (
-    <div className="xl:hidden w-full flex justify-end pr-2">
+    <div className="w-full flex justify-end pr-2 xl:pr-0 xl:w-auto xl:static xl:justify-end">
       <div className="relative" ref={menuRef}>
         <button
           className="bg-white border border-gray-300 rounded-full px-3 py-2 shadow flex items-center gap-2"
@@ -104,6 +128,9 @@ export default function MobileHeaderMenu() {
           title="Menú rápido"
         >
           <FiMenu size={22} />
+          {commandMode && (
+            <span className="absolute -top-3 -right-3 bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded shadow-lg animate-pulse z-50">Tab</span>
+          )}
         </button>
         {showMobileMenu && (
           <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-lg z-50 flex flex-col py-2">
@@ -123,10 +150,6 @@ export default function MobileHeaderMenu() {
               </span>
             </button>
             <CompanySwitcher />
-            <div className="border-t my-2" />
-            <div>
-              <NetDifferenceCard inHeader />
-            </div>
             <div className="border-t my-2" />
             <button
               className="block px-4 py-2 text-red-700 hover:bg-red-100 text-left w-full font-semibold"

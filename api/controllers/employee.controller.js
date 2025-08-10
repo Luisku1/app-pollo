@@ -665,6 +665,35 @@ export const getEmployeeBranchReports = async (req, res, next) => {
 	}
 }
 
+export const recalculateLastThreeMonthEmployee = async (req, res, next) => {
+
+	const { companyId } = req.params
+	const startDate = new Date()
+	startDate.setMonth(startDate.getMonth() - 3)
+	const endDate = getDayRange(new Date()).topDate
+
+	try {
+		const employees = await Employee.find({ company: companyId, active: true })
+		const employeeIds = employees.map(employee => employee._id)
+
+		const reports = await Report.find({
+			employee: { $in: employeeIds },
+			createdAt: { $gte: startDate, $lte: endDate }
+		})
+
+		res.status(200).json({
+			message: 'Reports recalculated',
+			data: reports,
+			success: true
+		})
+
+	} catch (error) {
+		console.log(error)
+		next(error)
+	}
+
+}
+
 export const getEmployeeSupervisorReports = async (req, res, next) => {
 
 	const { employeeId } = req.params
@@ -3026,8 +3055,8 @@ export const deleteEmployee = async (req, res, next) => {
 			ProviderMovements.updateMany({ employee: employeeId }, { $set: { deletedEmployee }, $unset: { employee: "" } }),
 			// IncomeCollected
 			IncomeCollected.updateMany({ employee: employeeId }, { $set: { deletedEmployee }, $unset: { employee: "" } }),
-			IncomeCollected.updateMany({ owner: employeeId }, { $set: { deletedEmployee }, $unset: { owner: "" } }),
-			IncomeCollected.updateMany({ prevOwner: employeeId }, { $set: { deletedEmployee }, $unset: { prevOwner: "" } }),
+			IncomeCollected.updateMany({ owner: employeeId }, { $set: { deletedOwner: deletedEmployee }, $unset: { owner: "" } }),
+			IncomeCollected.updateMany({ prevOwner: employeeId }, { $set: { deletedPrevOwner: deletedEmployee }, $unset: { prevOwner: "" } }),
 			// EmployeePayment
 			EmployeePayment.updateMany({ employee: employeeId }, { $set: { deletedEmployee }, $unset: { employee: "" } }),
 			EmployeePayment.updateMany({ supervisor: employeeId }, { $set: { deletedEmployee }, $unset: { supervisor: "" } }),

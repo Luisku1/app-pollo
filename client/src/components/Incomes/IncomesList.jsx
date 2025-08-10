@@ -76,13 +76,21 @@ export default function IncomesList({ incomes = [], onDeleteIncome, statistics =
   };
 
   const renderCommonIncome = (income, index) => {
-
-    const { branch, customer, employee, type, amount, partOfAPayment, _id, createdAt, employeePayment } = income;
+    // Preferir deletedEmployee si no existe employee
+    const employee = income.employee || income.deletedEmployee;
+    const branch = income.branch;
+    const customer = income.customer;
+    const type = income.type;
+    const amount = income.amount;
+    const partOfAPayment = income.partOfAPayment;
+    const _id = income._id;
+    const createdAt = income.createdAt;
+    const employeePayment = income.employeePayment;
     const tempIncome = { ...income, index };
     const customerInfo = `${customer?.name || ''} ${customer?.lastName || ''}`.trim() || customer?.label;
     const typeName = partOfAPayment ? 'Pago' : type?.name ?? type?.label;
     const formattedAmount = currency({ amount });
-    const isAuthorized = currentUser._id === employee?._id || isManager(currentUser.role) || !onDeleteIncome;
+    const isAuthorized = currentUser._id === (employee?._id) || isManager(currentUser.role) || !onDeleteIncome;
 
     return (
       isAuthorized && (
@@ -96,8 +104,8 @@ export default function IncomesList({ incomes = [], onDeleteIncome, statistics =
               <div className='col-span-12 items-center'>
                 <div className='w-full text-red-800 mb-1'>
                   <RowItem>
-                      <BranchName branch={branch} />
-                      <CustomerName customer={customer} />
+                    <BranchName branch={branch} />
+                    <CustomerName customer={customer} />
                     <EmployeeName employee={employee} />
                   </RowItem>
                 </div>
@@ -142,13 +150,18 @@ export default function IncomesList({ incomes = [], onDeleteIncome, statistics =
   }
 
   const renderTransferredIncome = (income, index) => {
-
-    const { prevOwner, owner, employee, amount, _id, createdAt } = income;
+    // Preferir deletedX si no existe X
+    const prevOwner = income.prevOwner || income.deletedPrevOwner;
+    const owner = income.owner || income.deletedOwner;
+    const employee = income.employee || income.deletedEmployee;
+    const amount = income.amount;
+    const _id = income._id;
+    const createdAt = income.createdAt;
+    const tempIncome = { ...income, index };
     const prevOwnerName = getEmployeeName(prevOwner);
     const ownerName = getEmployeeFullName(owner);
     const employeeName = getEmployeeFullName(employee);
-    const tempIncome = { ...income, index };
-    const isAuthorized = currentUser._id === employee?._id || isManager(currentUser.role) || !onDeleteIncome;
+    const isAuthorized = currentUser._id === (employee?._id) || isManager(currentUser.role) || !onDeleteIncome;
 
     return (
       isAuthorized && (
@@ -166,7 +179,7 @@ export default function IncomesList({ incomes = [], onDeleteIncome, statistics =
                   <RowItem>
                     {prevOwner && !owner && (
                       <div>
-                        {(isManager(currentUser.role) || currentUser._id === employee._id) && (
+                        {(isManager(currentUser.role) || currentUser._id === (employee?._id)) && (
                           <div className='grid grid-cols-3 text-center'>
                             <button onClick={() => setSelectedEmployee(employee)} className="font-bold text-md flex gap-1 items-center w-full"><span><CgProfile /></span>{employeeName}</button>
                             <div className='flex-wrap justify-center gap-1 items-center text-center w-full'>
@@ -180,7 +193,7 @@ export default function IncomesList({ incomes = [], onDeleteIncome, statistics =
                     )}
                     {owner && !prevOwner && (
                       <div>
-                        {(currentUser._id === employee._id) && (
+                        {(currentUser._id === (employee?._id)) && (
                           <div className='grid grid-cols-3 text-center'>
                             <button onClick={() => setSelectedEmployee(employee)} className="font-bold text-md flex gap-1 items-center w-full"><span><CgProfile /></span>{employeeName}</button>
                             <div className='flex-wrap justify-center gap-1 items-center text-center w-full'>
@@ -190,7 +203,7 @@ export default function IncomesList({ incomes = [], onDeleteIncome, statistics =
                             <button onClick={() => setSelectedEmployee(prevOwner)} className="font-bold text-md flex gap-1 items-center w-full"><span><CgProfile /></span>{prevOwnerName}</button>
                           </div>
                         )}
-                        {(isManager(currentUser.role) && currentUser._id !== employee._id) && (
+                        {(isManager(currentUser.role) && currentUser._id !== (employee?._id)) && (
                           <div className='grid grid-cols-3 text-center'>
                             <button onClick={() => setSelectedEmployee(employee)} className="font-bold text-md flex gap-1 items-center w-full"><span><CgProfile /></span>{employeeName}</button>
                             <div className='flex-wrap justify-center gap-1 items-center text-center w-full'>
@@ -219,7 +232,7 @@ export default function IncomesList({ incomes = [], onDeleteIncome, statistics =
                 <CiSquareInfo className='w-full h-full text-blue-600' />
               </button>
               <div className='w-10 h-10 justify-self-center'>
-                {(deletable && (!owner && (currentUser._id == employee._id || isManager(currentUser.role)))) && (
+                {(deletable && (!owner && (currentUser._id == (employee?._id) || isManager(currentUser.role)))) && (
                   <DeleteButton
                     deleteFunction={() => onDeleteIncome(tempIncome)}
                   />

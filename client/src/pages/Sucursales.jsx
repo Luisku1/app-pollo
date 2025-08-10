@@ -2,9 +2,7 @@ import { useEffect, useState, useRef } from "react"
 import { filterBranchesByName } from "../utils/branchFilter";
 import { useSelector } from "react-redux"
 import { useNavigate } from "react-router-dom"
-import { MdClear, MdEdit } from "react-icons/md";
 import { FaTrash } from "react-icons/fa";
-import { CiSearch } from "react-icons/ci";
 import AddBranchButton from "../components/AddBranchButton";
 import { useRoles } from "../context/RolesContext";
 import { useExtraOutgoingsAvg } from "../hooks/ExtraOutgoings/useExtraOutgoingsAvg";

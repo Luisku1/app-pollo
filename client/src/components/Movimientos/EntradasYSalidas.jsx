@@ -1,11 +1,14 @@
 /* eslint-disable react/prop-types */
 import { useState } from "react";
+import RegisterDateSwitch from "../RegisterDateSwitch";
+import { useDateNavigation } from "../../hooks/useDateNavigation";
 import Entradas from "./Entradas/Entradas";
 import Salidas from "./Salidas/Salidas";
 import EntradaInicial from "../../pages/EntradaInicial";
 
-export default function EntradasYSalidas({ products, branchAndCustomerSelectOptions, date }) {
-
+export default function EntradasYSalidas({ products, branchAndCustomerSelectOptions }) {
+  const { dateFromYYYYMMDD, today } = useDateNavigation();
+  const [useToday, setUseToday] = useState(false);
   const [activeTab, setActiveTab] = useState('entradas_salidas');
   const [inputSelectedProduct, setInputSelectedProduct] = useState(null);
   const [outputSelectedProduct, setOutputSelectedProduct] = useState(null);
@@ -16,6 +19,9 @@ export default function EntradasYSalidas({ products, branchAndCustomerSelectOpti
     setInputSelectedProduct(option);
     setOutputSelectedProduct(option);
   };
+
+  // Determinar la fecha a usar
+  const fechaRegistro = useToday ? new Date() : dateFromYYYYMMDD;
 
   return (
     <div className="p-1 rounded-2xl bg-white shadow-lg max-w-2xl mx-auto animate-fade-in">
@@ -39,6 +45,12 @@ export default function EntradasYSalidas({ products, branchAndCustomerSelectOpti
             Proveedores
           </button>
         </div>
+        {/* Switch de fecha como en IncomesAndOutgoings */}
+        {!today && (
+          <div className="ml-4 mt-4">
+            <RegisterDateSwitch multiswitch={true} useToday={useToday} setUseToday={setUseToday} />
+          </div>
+        )}
         {/* Tab Content */}
         {activeTab === 'entradas_salidas' && (
           <div>
@@ -49,7 +61,7 @@ export default function EntradasYSalidas({ products, branchAndCustomerSelectOpti
                 setSelectedProductToNull={setOutputSelectedProductToNull}
                 products={products}
                 branchAndCustomerSelectOptions={branchAndCustomerSelectOptions}
-                date={date}
+                date={fechaRegistro}
               />
             </div>
             <div className="bg-inputs border rounded-lg border-black">
@@ -59,7 +71,7 @@ export default function EntradasYSalidas({ products, branchAndCustomerSelectOpti
                 setSelectedProductToNull={setInputSelectedProductToNull}
                 products={products}
                 branchAndCustomerSelectOptions={branchAndCustomerSelectOptions}
-                date={date}
+                date={fechaRegistro}
               />
             </div>
           </div>
