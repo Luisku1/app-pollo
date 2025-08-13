@@ -32,11 +32,6 @@ const employeeWeeklyBalanceSchema = mongoose.Schema({
     default: []
   },
 
-  lastWeekBalance: {
-    type: Number,
-    default: 0.0
-  },
-
   currentPayDay: {
     type: Number,
     default: 0

@@ -7,6 +7,51 @@ import { Types } from "mongoose"
 import Branch from "../models/branch.model.js"
 import { pushOrPullBranchReportRecord } from "./branch.report.controller.js"
 import { pushOrPullSupervisorReportRecord } from "./employee.controller.js"
+import { dateFromYYYYMMDD } from "../../common/dateOps.js"
+
+export const extraOutgoingsAggregate = () => {
+
+  return [
+    {
+      $lookup: {
+        from: 'employeepayments',
+        localField: '_id',
+        foreignField: 'extraOutgoing',
+        as: 'employeePayment',
+        pipeline: [
+          {
+            $lookup: {
+              from: 'employees',
+              localField: 'employee',
+              foreignField: '_id',
+              as: 'employee'
+            }
+          },
+          { $unwind: { path: '$employee', preserveNullAndEmptyArrays: true } }
+        ]
+      }
+    },
+    {
+      $lookup: {
+        from: 'employees',
+        localField: 'employee',
+        foreignField: '_id',
+        as: 'employee',
+        pipeline: [
+          {
+            $project: {
+              password: 0,
+            }
+          }
+        ]
+      }
+    },
+    { $unwind: { path: '$employeePayment', preserveNullAndEmptyArrays: true } },
+    {
+      $unwind: { path: '$employee', preserveNullAndEmptyArrays: true }
+    }
+  ]
+}
 
 export const newOutgoing = async (req, res, next) => {
 
@@ -67,7 +112,7 @@ export const newOutgoingAndUpdateBranchReport = async ({ _id, amount, concept, c
 export const getOutgoings = async (req, res, next) => {
 
   const companyId = req.params.companyId
-  const date = new Date(req.params.date)
+  const date = dateFromYYYYMMDD(req.params.date)
 
   const { bottomDate, topDate } = getDayRange(date)
 
@@ -174,7 +219,7 @@ export const newExtraOutgoingFunction = async ({ _id, amount, concept, company, 
 
 export const getBranchOutgoingsRequest = async (req, res, next) => {
 
-  const date = new Date(req.params.date)
+  const date = dateFromYYYYMMDD(req.params.date)
   const branchId = req.params.branchId
 
   try {
@@ -234,9 +279,8 @@ export const getBranchOutgoings = async ({ branchId, date }) => {
 
 export const getExtraOutgoings = async (req, res, next) => {
 
-  const date = new Date(req.params.date)
+  const date = dateFromYYYYMMDD(req.params.date)
   const companyId = req.params.companyId
-
   const { bottomDate, topDate } = getDayRange(date)
 
   try {
@@ -248,38 +292,7 @@ export const getExtraOutgoings = async (req, res, next) => {
           "company": new Types.ObjectId(companyId)
         }
       },
-      {
-        $lookup: {
-          from: 'employeepayments',
-          localField: '_id',
-          foreignField: 'extraOutgoing',
-          as: 'employeePayment',
-          pipeline: [
-            {
-              $lookup: {
-                from: 'employees',
-                localField: 'employee',
-                foreignField: '_id',
-                as: 'employee'
-              }
-            },
-            { $unwind: { path: '$employee', preserveNullAndEmptyArrays: true } }
-          ]
-        }
-      },
-      {
-        $lookup: {
-          from: 'employees',
-          localField: 'employee',
-          foreignField: '_id',
-          as: 'employee'
-        }
-      },
-      { $unwind: { path: '$employeePayment', preserveNullAndEmptyArrays: true } },
-      {
-        $unwind: { path: '$employee', preserveNullAndEmptyArrays: true }
-      }
-
+      ...extraOutgoingsAggregate(),
     ]);
 
     if (extraOutgoings.length == 0) {

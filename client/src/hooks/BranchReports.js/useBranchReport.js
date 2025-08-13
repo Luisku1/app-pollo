@@ -10,12 +10,12 @@ import { useProviderInputs } from "../ProviderInputs/useProviderInputs"
 import { useBranchPrices } from "../Prices/useBranchPrices"
 import { useMidDayStock } from "../Stock/useMidDayStock"
 import { Types } from "mongoose"
+import { updateReportEmployees } from "../../services/BranchReports/updateReportsEmployee"
 
-export const useBranchReport = ({ branchId = null, date = null, _branchReport = null }) => {
+export const useBranchReport = ({ branchId = null, date = null }) => {
   // State
-  const [branchReport, setBranchReport] = useState()
+  const [branchReport, setBranchReport] = useState({})
   const [loading, setLoading] = useState(false)
-  const [shouldFetchBranchReport, setShouldFetchBranchReport] = useState(false)
 
   // Hooks for each report section
   const {
@@ -82,18 +82,9 @@ export const useBranchReport = ({ branchId = null, date = null, _branchReport = 
 
   // Prices
   const { prices, onChangePrices } = useBranchPrices({
-    branchId: (branchId || _branchReport?.branch._id) || null,
-    date: (date || _branchReport?.createdAt) || null
+    branchId: (branchId) || null,
+    date: (date) || null
   })
-
-  // Update trigger
-  const onUpdateBranchReport = async () => {
-    try {
-      setShouldFetchBranchReport(true)
-    } catch (error) {
-      console.log(error)
-    }
-  }
 
   // Balance modifier
   const modifyBalance = (amount, operation) => {
@@ -121,8 +112,16 @@ export const useBranchReport = ({ branchId = null, date = null, _branchReport = 
     }))
     if (modifyBalance) modifyBalance(tempOutgoing.amount, 'add')
     try {
-      await addOutgoing(tempOutgoing)
-      // Si la API responde con el _id real, aquí podrías reemplazar el tempId
+      addOutgoing({
+        _id: tempOutgoing._id || null,
+        company: tempOutgoing.company,
+        employee: tempOutgoing?.employee?._id ? tempOutgoing.employee._id : outgoing.employee,
+        concept: tempOutgoing.concept,
+        amount: tempOutgoing.amount,
+        date: tempOutgoing.date,
+        branch: tempOutgoing?.branch?._id ? tempOutgoing.branch._id : tempOutgoing.branch,
+        createdAt: tempOutgoing.createdAt,
+      })
     } catch (error) {
       setBranchReport(prev => ({
         ...prev,
@@ -141,7 +140,7 @@ export const useBranchReport = ({ branchId = null, date = null, _branchReport = 
     }))
     if (modifyBalance) modifyBalance(outgoing.amount, 'subtract')
     try {
-      await deleteOutgoing(outgoing)
+      deleteOutgoing(outgoing)
     } catch (error) {
       setBranchReport(prev => ({
         ...prev,
@@ -152,50 +151,56 @@ export const useBranchReport = ({ branchId = null, date = null, _branchReport = 
     }
   }
 
-  // Set branch report from prop
-  useEffect(() => {
-    if (_branchReport) {
-      setBranchReport(_branchReport)
-    }
-  }, [_branchReport])
+  const updateEmployees = async ({ employee, assistants }) => {
 
-  // Fetch branch report from API
-  useEffect(() => {
-    if (!branchId || _branchReport) return
-    if ((!branchId || !date || _branchReport) && !shouldFetchBranchReport) return
-
-    setBranchReport({
-      initialStockArray: [],
-      finalStockArray: [],
-      outgoingsArray: [],
-      incomesArray: [],
-      outputsArray: [],
-      inputsArray: [],
-      providerInputsArray: [],
+    setBranchReport(prev => {
+      const newReport = { ...prev }
+      if (employee) {
+        newReport.employee = { ...employee }
+      }
+      if (assistants) {
+        newReport.assistant = assistants.map(a => ({ ...a }))
+      }
+      return newReport
     })
 
-    setShouldFetchBranchReport(false)
+    await updateReportEmployees({ reportId: branchReport._id, employeeId: employee?._id || null, assistants: assistants?.map(a => a._id) || [], branchId, date })
+  }
 
-    const fetchBranchReport = async () => {
-      setLoading(true)
-      try {
-        const response = await getBranchReport({ branchId, date })
-        setBranchReport(response)
-      } catch (error) {
-        console.log(error)
-      } finally {
-        setLoading(false)
-      }
+  // Fetch branch report from API SOLO cuando branchId y date cambian y NO hay _branchReport
+  useEffect(() => {
+    if (!branchId || !date) return;
+    setLoading(true);
+    getBranchReport({ branchId, date })
+      .then(setBranchReport)
+      .catch(() => {
+        setBranchReport({})
+      })
+      .finally(() => setLoading(false));
+  }, [branchId, date]);
+
+  // Si necesitas forzar un refetch, puedes exponer una función refreshBranchReport:
+  const refreshBranchReport = async () => {
+    if (!branchId || !date) return;
+    setLoading(true);
+    try {
+      const response = await getBranchReport({ branchId, date });
+      setBranchReport(response);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
     }
-
-    fetchBranchReport()
-  }, [branchId, date, _branchReport, shouldFetchBranchReport])
+  };
 
   // Return API
   return {
     branchReport,
+    employee: branchReport?.employee || null,
+    assistants: branchReport?.assistant || [],
+    updateReportEmployees: updateEmployees,
     setBranchReport,
-    onUpdateBranchReport,
+    onUpdateBranchReport: refreshBranchReport,
     outgoings,
     outgoingsTotal,
     onAddOutgoing,

@@ -3,10 +3,12 @@ import SupervisorReport from "../models/accounts/supervisor.report.model.js"
 import { getDayRange } from "../utils/formatDate.js"
 import { getEmployeeWorkedDays } from "./employee.controller.js"
 import { lookupSupervisorReportIncomes } from "./income.controller.js"
+import { dateFromYYYYMMDD } from "../../common/dateOps.js"
 
 export const getSupervisorReport = async (req, res, next) => {
 
-  const { supervisorId, date } = req.params
+  const date = dateFromYYYYMMDD(req.params.date)
+  const supervisorId = req.params.supervisorId
   const { bottomDate, topDate } = getDayRange(date)
 
   try {

@@ -52,7 +52,8 @@ export default function EmployeePaymentsList({ payments, onDelete = null, splice
   }
 
   const renderEmployeePayment = (payment, index) => {
-    const { employee, amount, supervisor, income, createdAt } = payment
+    const employee = payment.employee || payment.deletedEmployee;
+    const { amount, supervisor, income, createdAt } = payment
     const tempPayment = { ...payment, index }
 
     return (

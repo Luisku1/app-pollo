@@ -1,18 +1,21 @@
 /* eslint-disable react/prop-types */
-import { useEffect, useContext, useState } from "react";
+import { useEffect, useContext, useState, useRef } from "react";
 import { MdCancel } from "react-icons/md";
 import { FaSpinner } from "react-icons/fa";
 import SectionHeader from "../SectionHeader";
 import { ModalContext } from "../../context/ModalContext";
 import { v4 as uuidv4 } from "uuid";
+import { AiOutlineCopy } from "react-icons/ai";
+import { ToastSuccess } from "../../helpers/toastify";
+import { toPng } from "html-to-image";
 
 export default function Modal({
   content,
   title,
   closeModal,
-  ref,
   ableToClose = true,
   extraInformation,
+  ableToCopy = false,
   closeOnEsc = true,
   closeOnClickOutside = true,
   closeOnClickInside = false,
@@ -22,11 +25,29 @@ export default function Modal({
   loading = false,
   adjustForKeyboard = false,
   isShown = true,
-  modalId: propModalId, // Permite pasar un id opcional
+  modalId, // Permite pasar un id opcional
 }) {
   const { modals, addModal, removeLastModal, count, setCount } = useContext(ModalContext);
-  // Genera un id único si no se pasa uno
-  const [modalId] = useState(propModalId || uuidv4());
+
+  const modalRef = useRef(null);
+  const handleCopyModalImage = async () => {
+    try {
+      const node = modalRef?.current;
+      if (!node) return;
+      const dataUrl = await toPng(node, { cacheBust: true, pixelRatio: 2 });
+      const blob = await (await fetch(dataUrl)).blob();
+      await navigator.clipboard.write([
+        new ClipboardItem({
+          "image/png": blob,
+        }),
+      ]);
+      // Puedes mostrar un toast aquí si tienes uno
+      ToastSuccess("Imagen copiada al portapapeles");
+    } catch (error) {
+      // ToastDanger("Hubo un error al copiar la imagen");
+      console.error("Error copying modal image:", error);
+    }
+  };
 
   useEffect(() => {
 
@@ -40,19 +61,10 @@ export default function Modal({
       // Solo la última modal debe cerrar con Escape
       if (
         ((event.key === "Escape" && ableToClose) || (closeOnEsc && event.key === "Escape")) &&
-        modals[modals.length - 1]?.id === modalId
+        (modals[modals.length - 1]?.id === modalId || modals.length === 1)
       ) {
         closeModal();
         removeLastModal();
-      }
-    };
-
-    const handlePopState = () => {
-      if (ableToClose) {
-        closeModal();
-        removeLastModal();
-      } else {
-        history.pushState(null, "", window.location.href); // Evita que regrese a la página anterior
       }
     };
 
@@ -72,14 +84,12 @@ export default function Modal({
 
     // Agregar eventos y estado falso al montar
     document.addEventListener("keydown", handleKeyDown);
-    window.addEventListener("popstate", handlePopState);
     history.pushState(null, "", window.location.href);
 
     // Limpiar eventos al desmontar
     return () => {
       document.body.style.overflow = "auto";
       document.removeEventListener("keydown", handleKeyDown);
-      window.removeEventListener("popstate", handlePopState);
       if (adjustForKeyboard) {
         window.removeEventListener("resize", handleResize);
       }
@@ -92,6 +102,7 @@ export default function Modal({
   if (!isShown) {
     return null;
   }
+
   const renderModal = () => {
     const zIndex = 1000 + count;
     return (
@@ -100,7 +111,6 @@ export default function Modal({
         style={adjustForKeyboard ? { alignItems: "flex-start" } : {}}
         onClick={(e) => {
           if (
-            (e.target === e.currentTarget && ableToClose) ||
             (closeOnClickOutside && e.target === e.currentTarget)
           ) {
             closeModal();
@@ -109,7 +119,7 @@ export default function Modal({
         }}
       >
         <div
-          ref={ref}
+          ref={modalRef}
           className={`bg-white shadow-lg h-auto max-h-[90vh] max-w-lg w-${width} overflow-y-auto relative overscroll-contain ${shape} rounded-lg border-2 border-gray-300'
           `}
           style={adjustForKeyboard ? { position: "absolute", top: "5/6" } : {}}
@@ -127,7 +137,18 @@ export default function Modal({
               <FaSpinner className="text-4xl animate-spin" />
             </div>
           )}
-
+          {ableToCopy &&
+            <div className="flex justify-end pr-4 pt-2">
+              <button
+                className="flex items-center gap-1 px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded text-gray-700 text-sm"
+                onClick={() => { handleCopyModalImage() }}
+                title="Copiar modal como imagen"
+              >
+                <AiOutlineCopy className="w-5 h-5" />
+                Copiar imagen
+              </button>
+            </div>
+          }
           {ableToClose && (
             <button
               className="sticky top-0 right-0 text-gray-600 hover:text-gray-800 z-30"

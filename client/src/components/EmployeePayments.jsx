@@ -2,20 +2,20 @@
 import { useEffect, useMemo, useState } from 'react';
 import { getEmployeePayments } from '../services/employees/employeePayments';
 import ShowListModal from './Modals/ShowListModal';
-import TarjetaCuenta from './TarjetaCuenta';
 import EmployeePaymentsList from './EmployeePaymentsList';
+import { useDateNavigation } from '../hooks/useDateNavigation';
 
-const EmployeePayments = ({ employeeId, employee, toggleComponent, date = null }) => {
+const EmployeePayments = ({ employeeId, employee, toggleComponent }) => {
   const [payments, setPayments] = useState([]);
   const [showModal, setShowModal] = useState(true);
   const [loading, setLoading] = useState(false);
-  const paymentsDate = date || new Date().toISOString();
+  const { currentDate: date } = useDateNavigation();
 
   useEffect(() => {
     const fetchPayments = async () => {
       try {
         setLoading(true);
-        const data = await getEmployeePayments({ employeeId, date: paymentsDate });
+        const data = await getEmployeePayments({ employeeId, date });
         setLoading(false);
         setPayments(data.employeePayments);
       } catch (err) {

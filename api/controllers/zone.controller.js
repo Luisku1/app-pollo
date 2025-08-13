@@ -23,9 +23,9 @@ export const getZones = async (req, res, next) => {
 
 	try {
 
-		const zones = await Zone.find({company: company})
+		const zones = await Zone.find({ company: company })
 
-		res.status(200).json({zones: zones})
+		res.status(200).json({ zones: zones })
 
 	} catch (error) {
 

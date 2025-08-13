@@ -12,11 +12,17 @@ export const RolesProvider = ({ children }) => {
   const [error, setError] = useState(null);
 
   const isSudo = (roleId) => roles && roles["sudo"]?._id === roleId;
-  const isController = (roleId) => roles && roles["controller"]?._id === roleId || isSudo(roleId);
-  const isManager = (roleId) => roles && roles["manager"]?._id === roleId || isController(roleId);
-  const isSupervisor = (roleId) => roles && roles["supervisor"]?._id === roleId || isManager(roleId);
-  const isSeller = (roleId) => roles && roles["seller"]?._id === roleId || isSupervisor(roleId);
+  const isController = (roleId) => (roles && roles["controller"]?._id === roleId) || isSudo(roleId);
+  const isManager = (roleId) => (roles && roles["manager"]?._id === roleId) || isController(roleId);
+  const isSupervisor = (roleId) => (roles && roles["supervisor"]?._id === roleId) || isManager(roleId);
+  const isSeller = (roleId) => (roles && roles["seller"]?._id === roleId) || isSupervisor(roleId);
   const isJustSeller = (roleId) => roles && roles["seller"]?._id === roleId;
+
+  const getRoleName = (_role) => {
+    const roleId = _role?._id || _role;
+    const role = Object.values(roles || {}).find((r) => r._id === roleId);
+    return role ? role.name : "Desconocido";
+  };
 
   useEffect(() => {
     setLoading(true);
@@ -29,12 +35,11 @@ export const RolesProvider = ({ children }) => {
         setError(error);
         setLoading(false);
       });
+
   }, []);
 
-  console.log("RolesContext roles:", roles);
-
   return (
-    <RolesContext.Provider value={{ roles, isController, isSeller, isManager, isSupervisor, isJustSeller, loading, error }}>
+    <RolesContext.Provider value={{ roles, isController, isSeller, isManager, getRoleName, isSupervisor, isJustSeller, loading, error }}>
       {children}
     </RolesContext.Provider>
   );

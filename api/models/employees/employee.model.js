@@ -25,6 +25,15 @@ const employeeSchema = new mongoose.Schema({
     type: Number,
   },
 
+  companyData: [{
+    company: { type: Schema.Types.ObjectId, ref: 'Company', required: true },
+    salary: { type: Number },
+    payDay: { type: Number },
+    balance: { type: Number, default: 0.0 },
+    administrativeAccount: { type: Boolean, default: false },
+    role: { type: Schema.Types.ObjectId, ref: 'Role', required: true }
+  }],
+
   balance: {
     type: Number,
     default: 0.0
@@ -45,22 +54,25 @@ const employeeSchema = new mongoose.Schema({
     default: false
   },
 
+  companies: [{
+    type: Schema.Types.ObjectId, ref: 'Company'
+  }],
+
+  defaultCompany: {
+    type: Schema.Types.ObjectId, ref: 'Company'
+  },
+
   hiredBy: {
     type: Schema.Types.ObjectId, ref: 'Employee',
   },
 
   company: {
     type: Schema.Types.ObjectId, ref: 'Company',
-  },
-
-  role: {
-    type: Schema.Types.ObjectId, ref: 'Role',
-    required: true
   }
 
 }, { timestamps: { createdAt: true, updatedAt: true } })
 
-employeeSchema.index({ phoneNumber: 1, company: 1 }, { unique: true })
+employeeSchema.index({ phoneNumber: 1 }, { unique: true })
 
 const Employee = mongoose.model('Employee', employeeSchema)
 

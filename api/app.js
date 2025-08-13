@@ -21,10 +21,15 @@ import reportRouter from './routes/report.route.js'
 import customerRouter from './routes/customer.route.js'
 import providerRouter from './routes/provider.route.js'
 import refactorRouter from './routes/refactor.route.js'
+import { Server } from 'socket.io'
+import http from 'http'
 import path from 'path'
 
 const app = express()
-
+const server = http.createServer(app)
+const io = new Server(server, {
+  cors: { origin: '*' }
+})
 const PORT = 3000
 
 dotenv.config({ path: '../.env' })
@@ -42,7 +47,21 @@ const __dirname = path.resolve()
 app.use(express.json())
 app.use(cookieParser())
 
-app.listen(PORT, () => {
+
+io.on('connection', (socket) => {
+  console.log('Usuario conectado:', socket.id)
+
+  // Ejemplo: emitir actualización de perfil
+  socket.on('refreshProfile', (userId) => {
+    io.to(socket.id).emit('profileUpdated', { userId })
+  })
+
+  socket.on('disconnect', () => {
+    console.log('Usuario desconectado:', socket.id)
+  })
+})
+
+server.listen(PORT, () => {
 	console.log('Server is running on port ' + PORT + '!');
 })
 
@@ -85,3 +104,5 @@ app.use((err, req, res, next) => {
 		message,
 	})
 })
+
+export { io }

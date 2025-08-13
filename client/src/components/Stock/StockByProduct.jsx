@@ -49,7 +49,7 @@ export default function StockByProduct({ stock }) {
         isShown={stockToShow && stockToShow.length > 0}
         closeModal={() => { setStockToShow([]) }}
         title={`Concentrados de ${stockToShow?.[0]?.product.name}`}
-        content={<StockList showBranch={true} stock={stockToShow}/>}
+        content={<StockList showBranch={true} stock={stockToShow} />}
       />
       <div className="grid grid-cols-1 max-w-lg items-center mx-auto">
         {stockByProductArray && stockByProductArray.length > 0 && stockByProductArray.map((stock) => {
@@ -57,7 +57,7 @@ export default function StockByProduct({ stock }) {
           return (
             <div key={stock.product._id} className="rounded-lg mb-1">
               <button className="p-2 shadow-sm rounded-md w-full hover:bg-slate-100 active:bg-gray-300 border" onClick={() => { setStockToShow(stock.stockItems) }}>
-                <p className="font-bold text-red-800 mb-1 text-left">{stock.product.name}</p>
+                <p className="font-bold text-blue-700 mb-1 text-left">{stock.product.name}</p>
                 <RowItem>
                   <p className="text-center">{stock.pieces} pz</p>
                   {Amount({ amount: averagePrice, className: 'items-center' })}

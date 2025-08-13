@@ -12,7 +12,7 @@ import EmployeeInfo from "../EmployeeInfo"
 import { CiSquareInfo } from "react-icons/ci"
 
 /* eslint-disable react/prop-types */
-export default function ExtraOutgoingsList({ extraOutgoings, totalExtraOutgoings = 0, onDelete = null }) {
+export default function ExtraOutgoingsList({ extraOutgoings, onDelete = null }) {
   const { currentUser } = useSelector((state) => state.user)
   const { isManager } = useRoles()
   const [selectedOutgoing, setSelectedOutgoing] = useState(null)
@@ -31,6 +31,10 @@ export default function ExtraOutgoingsList({ extraOutgoings, totalExtraOutgoings
     ] : [])
   ]
 
+  const totalExtraOutgoings = useMemo(() => {
+    return extraOutgoings.reduce((total, outgoing) => total + (outgoing.amount || 0), 0)
+  }, [extraOutgoings])
+
   const renderTotal = () => {
     return (
       <div className='justify-self-end'>
@@ -42,7 +46,8 @@ export default function ExtraOutgoingsList({ extraOutgoings, totalExtraOutgoings
   }
 
   const renderOutgoingItem = (outgoing, index) => {
-    const { employee, concept, amount, partOfAPayment, employeePayment } = outgoing
+    const employee = outgoing.employee || outgoing.deletedEmployee;
+    const { concept, amount, partOfAPayment, employeePayment } = outgoing
     const tempOutgoing = { ...outgoing, index }
 
     return (
@@ -54,7 +59,7 @@ export default function ExtraOutgoingsList({ extraOutgoings, totalExtraOutgoings
                 <div className='col-span-12'>
                   <div className="w-full text-red-800 mb-2">
                     <RowItem>
-                      <button onClick={() => setSelectedEmployee(employee)} className="text-red-800 font-bold text-md flex gap-1 items-center w-full"><span><CgProfile /></span>{employee.name}</button>
+                      <button onClick={() => setSelectedEmployee(employee)} className="text-red-800 font-bold text-md flex gap-1 items-center w-full"><span><CgProfile /></span>{employee?.name ?? 'Ex empleado'}</button>
                       <div className="text-sm text-black flex justify-self-end">
                         {formatDateAndTime(outgoing.createdAt)}
                       </div>
@@ -133,6 +138,15 @@ export default function ExtraOutgoingsList({ extraOutgoings, totalExtraOutgoings
   const shouldOpenModal = useMemo(() => {
     return selectedOutgoing !== null && selectedOutgoing !== undefined && extraOutgoings.length > 0 && extraOutgoings.find((outgoing) => outgoing._id === selectedOutgoing._id) !== undefined
   }, [selectedOutgoing, extraOutgoings])
+
+
+  if (!extraOutgoings || extraOutgoings.length === 0) {
+    return (
+      <div className="w-full flex flex-col items-center justify-center">
+        <p className="text-gray-500 text-lg">No hay gastos fuera de cuentas registrados.</p>
+      </div>
+    )
+  }
 
   return (
     <div>

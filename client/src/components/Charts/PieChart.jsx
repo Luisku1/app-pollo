@@ -10,7 +10,7 @@ import ExtraOutgoingsList from '../Outgoings/ExtraOutgoingsList';
 
 ChartJS.register(ArcElement, Tooltip, Legend, ChartDataLabels);
 
-export default function PieChart({ verifiedIncomes = null, netIncomes = null, chartInfo }) {
+export default function PieChart({ label = null, verifiedIncomes = null, netIncomes = null, chartInfo, large = false, hideLegend = false, hideLabels = false }) {
 
   const [showIncomes, setShowIncomes] = useState(false)
   const [showExtraOutgoings, setShowExtraOutgoings] = useState(false)
@@ -21,7 +21,7 @@ export default function PieChart({ verifiedIncomes = null, netIncomes = null, ch
     labels: [],
     datasets: [
       {
-        label: 'Ingresos',
+        label: label ? label : 'Ingresos',
         data: [],
         backgroundColor: [],
         hoverBackgroundColor: [],
@@ -38,7 +38,7 @@ export default function PieChart({ verifiedIncomes = null, netIncomes = null, ch
 
     const action = info?.action || null;
     if (action) {
-      action()
+      action(info)
       return
     }
     setList(info.data)
@@ -91,7 +91,7 @@ export default function PieChart({ verifiedIncomes = null, netIncomes = null, ch
       labels: updatedLabels,
       datasets: [
         {
-          label: 'Ingresos',
+          label: label ? label : 'Ingresos',
           data: updatedData,
           backgroundColor: updatedBackgroundColors,
           hoverBackgroundColor: updatedHoverBackgroundColors,
@@ -132,53 +132,38 @@ export default function PieChart({ verifiedIncomes = null, netIncomes = null, ch
     responsive: true,
     plugins: {
       legend: {
+        display: !hideLegend,
         position: 'bottom',
         labels: {
-          boxWidth: 16,
-          boxHeight: 16,
-          padding: 10,
-          font: {
-            size: 12,
-          },
-          // Permite el wrap de los labels
-          maxWidth: isMobile ? 150 : 250, // Ajusta según el tamaño de pantalla
-          textAlign: 'center',
+          boxWidth: 18,
+          font: { size: large ? 18 : 14 },
         },
-        // Custom plugin para forzar el wrap en Chart.js
-        // Si usas Chart.js >=4, puedes usar maxWidth en labels
       },
       datalabels: {
-        color: '#000',
-        formatter: (value, context) => {
-          return !value ? '' : currency({ amount: value });
-        },
-        font: {
-          weight: 'bold',
-          size: 12,
-        },
-      },
-      tooltip: {
-        callbacks: {
-          label: function (tooltipItem) {
-            const label = data.labels[tooltipItem.dataIndex] || '';
-            const value = data.datasets[0].data[tooltipItem.dataIndex] || 0;
-            return `${label}: ${currency({ amount: value })}`;
-          },
-        },
+        display: hideLabels ? false : large,
+        color: '#222',
+        font: { weight: 'bold', size: large ? 18 : 12 },
+        formatter: (value, ctx) => value > 0 ? currency(value) : '',
       },
     },
     onClick: (event, elements) => {
-      const index = elements[0].index;
-      handleChartClick(index);
+      if (elements.length > 0) {
+        const index = elements[0].index;
+        handleChartClick(index);
+      }
     },
   };
 
   return (
-    <div className={` items-center ${isMobile ? 'w-3/4' : 'w-2/4'} mx-auto`}>
-      <div className=''> {/* Incrementa aún más el tamaño del contenedor */}
-        <Pie data={data} options={options} style={{ width: '100%', height: '100%' }} />
+    <div className={`flex flex-col items-center ${large ? 'w-[420px] h-[420px]' : isMobile ? 'w-3/4' : 'w-2/4'} mx-auto`}>
+      <div className="w-full h-full flex items-center justify-center">
+        <Pie data={data} options={options} style={{ width: '100%', height: '100%', cursor: 'pointer' }} />
       </div>
-      {list.length > 0 && (
+      {/* Leyenda custom si hideLegend */}
+      {hideLegend && (
+        <div className="hidden" />
+      )}
+      {list?.length > 0 && (
         <ShowListModal
           title={listTitle}
           modalIsOpen={showIncomes}
@@ -188,7 +173,7 @@ export default function PieChart({ verifiedIncomes = null, netIncomes = null, ch
           toggleComponent={() => setShowIncomes((prev) => !prev)}
         />
       )}
-      {list.length > 0 && (
+      {list && list?.length > 0 && (
         <ShowListModal
           ListComponent={ExtraOutgoingsList}
           ListComponentProps={{ extraOutgoings: list, totalExtraOutgoings: list.reduce((acc, curr) => acc + curr.amount, 0) }}

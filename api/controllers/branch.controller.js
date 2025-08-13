@@ -3,6 +3,7 @@ import Price from '../models/accounts/price.model.js';
 import Branch from '../models/branch.model.js'
 import { errorHandler } from '../utils/error.js'
 import BranchReport from '../models/accounts/branch.report.model.js';
+import { dateFromYYYYMMDD } from '../../common/dateOps.js';
 
 export const branchAggregate = (localField = 'branch') => {
 	return [
@@ -20,17 +21,62 @@ export const branchAggregate = (localField = 'branch') => {
 	]
 }
 
+export const changeBranchrResidualPricesUse = async (req, res, next) => {
+	const branchId = req.body.branchId
+	try {
+		const branch = await Branch.findById(branchId)
+		if (!branch) {
+			return next(errorHandler(404, 'Branch not found'))
+		}
+		branch.residualPrices = !branch.residualPrices
+		await branch.save()
+		res.status(200).json({ success: true, message: 'Branch prices use updated successfully', data: branch.residualPrices })
+	} catch (error) {
+		console.error('Error updating branch prices use:', error)
+		next(error)
+	}
+}
+
 export const newBranch = async (req, res, next) => {
 
 	const { branch, phoneNumber, location, p, rentAmount, zone, rentDay, company, position } = req.body
 	const date = new Date().toISOString()
 
-	const newBranch = new Branch({ branch, phoneNumber, location, p, rentAmount, zone, rentDay, company, position, createdAt: date })
+	try {
+
+		const newBranch = await Branch.create({ branch, phoneNumber, location, p, rentAmount, zone, rentDay, company, position, createdAt: date })
+
+		// const pricesDate = await setInitialBranchPrices(newBranch._id, company)
+
+		// newBranch
+
+		if (!newBranch) throw new Error('No se pudo crear la sucursal')
+
+		res.status(201).json({ branch: newBranch })
+
+	} catch (error) {
+
+		next(error)
+	}
+}
+
+export const updateBranch = async (req, res, next) => {
+
+	const branchId = req.params.branchId
+	const { branch, phoneNumber, location, p, rentAmount, zone, rentDay, company, position } = req.body
 
 	try {
 
-		await newBranch.save()
-		res.status(201).json({ branch: newBranch })
+		const updatedBranch = await Branch.findByIdAndUpdate(branchId, { branch, phoneNumber, location, p, rentAmount, zone, rentDay, company, position }, { new: true })
+
+		if (updatedBranch) {
+
+			res.status(200).json({ branch: updatedBranch })
+
+		} else {
+
+			next(errorHandler(404, 'Branch not found'))
+		}
 
 	} catch (error) {
 
@@ -104,7 +150,7 @@ export const getBranchesLastPosition = async (req, res, next) => {
 
 export const getMonthBranchesIncomesQuery = async (req, res, next) => {
 
-	const date = new Date(req.params.date)
+	const date = dateFromYYYYMMDD(req.params.date)
 	const companyId = req.params.companyId
 
 	try {

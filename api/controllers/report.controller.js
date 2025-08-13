@@ -10,13 +10,15 @@ import { getDayRange } from "../utils/formatDate.js"
 import Outgoing from "../models/accounts/outgoings/outgoing.model.js"
 import Stock from "../models/accounts/stock.model.js"
 import { branchLookup, employeeLookup, unwindBranch, unwindEmployee } from "./branch.report.controller.js"
-import { lookupSupervisorReportIncomes } from "./income.controller.js"
+import { incomesAggregate, lookupSupervisorReportIncomes } from "./income.controller.js"
 import SupervisorReport from "../models/accounts/supervisor.report.model.js"
 import { employeeAggregate } from "./employee.controller.js"
+import { dateFromYYYYMMDD } from "../../common/dateOps.js"
+import { extraOutgoingsAggregate } from "./outgoing.controller.js"
 
 export const getBranchReports = async (req, res, next) => {
 
-  const date = new Date(req.params.date)
+  const date = dateFromYYYYMMDD(req.params.date)
   const companyId = req.params.companyId
 
   const { bottomDate, topDate } = getDayRange(date)
@@ -400,25 +402,26 @@ export const getBranchReports = async (req, res, next) => {
 
     if (branchReportsAggregate.length > 0) {
 
-      const branchReports = branchReportsAggregate[0].branchReports ?? []
-      const { totalIncomes = 0, totalFinalStock = 0, totalOutgoings = 0, totalBalance = 0 } = branchReportsAggregate?.[0]?.globalTotals?.[0]
+      const branchReports = branchReportsAggregate?.[0].branchReports ?? []
+      const { totalIncomes = 0, totalFinalStock = 0, totalOutgoings = 0, totalBalance = 0 } = branchReportsAggregate?.[0]?.globalTotals?.[0] || {}
 
       res.status(200).json({ branchReports: branchReports, totalIncomes: totalIncomes, totalStock: totalFinalStock, totalOutgoings: totalOutgoings, totalBalance: totalBalance })
 
     } else {
 
-      next(errorHandler(200, 'No branch reports found'))
+      next(errorHandler(400, 'No se encontraron reportes de sucursales para la fecha proporcionada'))
     }
 
   } catch (error) {
 
+    console.log(error)
     next(error)
   }
 }
 
 export const getSupervisorsInfo = async (req, res, next) => {
 
-  const date = new Date(req.params.date)
+  const date = dateFromYYYYMMDD(req.params.date)
   const companyId = req.params.companyId
 
   const { bottomDate, topDate } = getDayRange(date)
@@ -430,7 +433,7 @@ export const getSupervisorsInfo = async (req, res, next) => {
     if (supervisorReports !== null && supervisorReports !== undefined) {
 
       const reports = supervisorReports.reports
-      const { extraOutgoings = 0, extraOutgoingsArray = 0, deposits = 0, cash = 0, cashArray = 0, depositsArray = 0, verifiedCash = 0, verifiedDeposits = 0, terminalIncomesArray = 0, terminalIncomes = 0, balance = 0 } = supervisorReports?.globalTotals?.[0]
+      const { extraOutgoings = 0, extraOutgoingsArray = 0, deposits = 0, cash = 0, cashArray = 0, depositsArray = 0, verifiedCash = 0, verifiedDeposits = 0, terminalIncomesArray = 0, terminalIncomes = 0, balance = 0 } = supervisorReports?.globalTotals?.[0] || {}
 
       const netIncomes = cash + deposits + terminalIncomes - extraOutgoings
       const verifiedIncomes = verifiedCash + verifiedDeposits
@@ -667,14 +670,15 @@ export const supervisorsInfoQuery = async (companyId, topDate, bottomDate) => {
 export const getDaysReportsData = async (req, res, next) => {
 
   const companyId = req.params.companyId
+  const page = req.query.page ? parseInt(req.query.page) : 1
 
   try {
 
-    const reportsData = await ReportData.find({ company: companyId }).sort({ createdAt: -1 }).limit(30)
+    const reportsData = await fetchBasicDailyResume(companyId, page)
 
     if (reportsData.length > 0) {
 
-      res.status(200).json({ reportsData: reportsData })
+      res.status(200).json({ data: reportsData, page: page })
 
     } else {
 
@@ -687,112 +691,155 @@ export const getDaysReportsData = async (req, res, next) => {
   }
 }
 
-export const updateReportDatasInfo = async (req, res, next) => {
-
-  const companyId = req.params.companyId
-
+export const fetchBasicDailyResume = async (companyId, page = 1) => {
   try {
+    const limit = 7; // Número de días por página
+    const skip = (page - 1) * limit;
 
-    let date = new Date('2024-09-06T01:02:42.309+00:00')
-
-    while (!(date > (new Date()))) {
-
-      const { bottomDate, topDate } = getDayRange(date)
-      let outgoingsTotal = 0
-      let incomesTotal = 0
-      let stockTotal = 0
-
-      const reportData = await ReportData.findOne({
-        $and: [
-          {
-            createdAt: { $lt: topDate }
+    // Agrupar por día y traer los extraOutgoings de ese día con $lookup/$expr
+    const resumes = await SupervisorReport.aggregate([
+      {
+        $match: {
+          company: new Types.ObjectId(companyId),
+        },
+      },
+      {
+        $group: {
+          _id: {
+            day: { $dayOfMonth: "$createdAt" },
+            month: { $month: "$createdAt" },
+            year: { $year: "$createdAt" },
           },
-          {
-            createdAt: { $gte: bottomDate }
+          totalIncomes: { $sum: "$incomes" },
+          totalExtraOutgoings: { $sum: "$extraOutgoings" },
+          totalVerifiedCash: { $sum: "$verifiedCash" },
+          totalVerifiedDeposits: { $sum: "$verifiedDeposits" },
+          anyCreatedAt: { $first: "$createdAt" },
+        },
+      },
+      {
+        $addFields: {
+          totalVerifiedIncomes: { $add: ["$totalVerifiedCash", "$totalVerifiedDeposits"] },
+        },
+      },
+      {
+        $addFields: {
+          totalVerifiedIncomes: { $add: ["$totalVerifiedCash", "$totalVerifiedDeposits"] },
+          netIncomes: { $subtract: ["$totalIncomes", "$totalExtraOutgoings"] }
+        },
+      },
+      {
+        $addFields: {
+          verificationPercentage: {
+            $cond: {
+              if: { $gt: ["$netIncomes", 0] },
+              then: { $multiply: [{ $divide: ["$totalVerifiedIncomes", "$netIncomes"] }, 100] },
+              else: 0,
+            },
           },
-          {
-            company: companyId
-          }
-        ]
-      })
-
-
-      if (!reportData) {
-
-        date.setDate(date.getDate() + 1)
-
-      } else {
-
-
-        const outgoings = await Outgoing.find({
-          $and: [
+        },
+      },
+      // Lookup extraOutgoings for each day
+      {
+        $lookup: {
+          from: "extraoutgoings",
+          let: {
+            day: "$_id.day",
+            month: "$_id.month",
+            year: "$_id.year",
+            companyId: new Types.ObjectId(companyId)
+          },
+          pipeline: [
             {
-              createdAt: { $lt: topDate }
+              $addFields: {
+                createdAtLocal: {
+                  $dateSubtract: {
+                    startDate: "$createdAt",
+                    unit: "hour",
+                    amount: 6
+                  }
+                }
+              }
             },
             {
-              createdAt: { $gte: bottomDate }
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: [{ $dayOfMonth: "$createdAtLocal" }, "$$day"] },
+                    { $eq: [{ $month: "$createdAtLocal" }, "$$month"] },
+                    { $eq: [{ $year: "$createdAtLocal" }, "$$year"] },
+                    { $eq: ["$company", "$$companyId"] }
+                  ]
+                }
+              }
+            },
+            ...extraOutgoingsAggregate()
+          ],
+          as: "extraOutgoingsArray"
+        }
+      },
+      {
+        $lookup: {
+          from: "incomecollecteds",
+          let: {
+            day: "$_id.day",
+            month: "$_id.month",
+            year: "$_id.year",
+            companyId: new Types.ObjectId(companyId)
+          },
+          pipeline: [
+            {
+              $addFields: {
+                createdAtLocal: {
+                  $dateSubtract: {
+                    startDate: "$createdAt",
+                    unit: "hour",
+                    amount: 6
+                  }
+                }
+              }
             },
             {
-              company: companyId
-            }
-          ]
-        })
-
-        const incomes = await IncomeCollected.find({
-          $and: [
-            {
-              createdAt: { $lt: topDate }
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: [{ $dayOfMonth: "$createdAtLocal" }, "$$day"] },
+                    { $eq: [{ $month: "$createdAtLocal" }, "$$month"] },
+                    { $eq: [{ $year: "$createdAtLocal" }, "$$year"] },
+                    { $eq: ["$company", "$$companyId"] }
+                  ]
+                }
+              }
             },
-            {
-              createdAt: { $gte: bottomDate }
-            },
-            {
-              company: companyId
-            }
-          ]
-        })
-
-        const stock = await Stock.find({
-          $and: [
-            {
-              createdAt: { $lt: topDate }
-            },
-            {
-              createdAt: { $gte: bottomDate }
-            },
-            {
-              company: companyId
-            }
-          ]
-        })
-
-        outgoings.forEach(outgoing => {
-
-          outgoingsTotal += outgoing.amount
-        })
-
-        stock.forEach(stock => {
-
-          stockTotal += stock.amount
-        })
-
-        incomes.forEach(income => {
-
-          incomesTotal += income.amount
-        })
-
-        reportData.incomes = incomesTotal
-        reportData.stock = stockTotal
-        reportData.outgoings = outgoingsTotal
-
-        reportData.save()
-
-        date.setDate(date.getDate() + 1)
+            ...incomesAggregate()
+          ],
+          as: "incomesArray"
+        }
+      },
+      {
+        $sort: { "_id.year": -1, "_id.month": -1, "_id.day": -1 },
+      },
+      { $skip: skip },
+      { $limit: limit },
+      // Project para devolver solo los campos requeridos
+      {
+        $project: {
+          date: "$anyCreatedAt",
+          totalIncomes: 1,
+          totalExtraOutgoings: 1,
+          totalVerifiedCash: 1,
+          totalVerifiedDeposits: 1,
+          totalVerifiedIncomes: 1,
+          verificationPercentage: 1,
+          extraOutgoingsArray: 1,
+          incomesArray: 1,
+        }
       }
-    }
+    ]);
 
+    return resumes;
   } catch (error) {
-
-    next(error)
+    console.error(error);
+    throw error;
   }
-}
+};

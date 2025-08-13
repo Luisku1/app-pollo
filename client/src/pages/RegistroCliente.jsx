@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import { useSelector } from "react-redux"
+import { ToastSuccess } from "../helpers/toastify"
 
 export default function RegistroCliente() {
 
@@ -50,6 +51,7 @@ export default function RegistroCliente() {
         return
       }
 
+      ToastSuccess('Cliente registrado correctamente')
       form.reset()
 
       setLoading(false)

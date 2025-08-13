@@ -90,7 +90,7 @@ export default function CreateRest() {
             ListComponentProps={{ rests: pendingRests, onDelete: onDeleteEmployeeRest }}
             clickableComponent={
 
-              <p className='font-bold text-lg text-center p-1 border border-header rounded-md'>{`${pendingEmployeesRests.length} ${pendingEmployeesRests.length == 0 || pendingEmployeesRests.length > 1 ? 'Pendientes' : 'Pendiente'}`}</p>
+              <p className='font-bold text-lg text-center p-1 border border-header rounded-md'>{`${pendingRests.length} ${pendingRests.length == 0 || pendingRests.length > 1 ? 'Pendientes' : 'Pendiente'}`}</p>
             }
           />
         </div>

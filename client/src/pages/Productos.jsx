@@ -1,41 +1,22 @@
 import { useEffect, useState } from "react"
-import { FaTrash } from "react-icons/fa"
 import { useSelector } from "react-redux"
+import DeleteButton from "../components/Buttons/DeleteButton"
+import { MdEdit } from "react-icons/md"
+import { CreateUpdateProduct } from "../components/Products/CreateUpdateProduct"
+import Modal from "../components/Modals/Modal"
+import { useProducts } from "../hooks/Products/useProducts"
 
 export default function Productos() {
 
   const { company } = useSelector((state) => state.user)
-  const [products, setProducts] = useState([])
+  const { products } = useProducts({ companyId: company._id })
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
-  const [productFormData, setProductFormData] = useState({})
-  const [isOpen, setIsOpen] = useState(false)
-  const [buttonId, setButtonId] = useState(null)
+  const [productToEdit, setProductToEdit] = useState(null)
 
-  const handleProductInputsChange = (e) => {
 
-    setProductFormData({
-
-      ...productFormData,
-      [e.target.id]: e.target.value,
-
-    })
-
-  }
-
-  const productButtonControl = () => {
-
-    const nameInput = document.getElementById('name')
-    const button = document.getElementById('product-button')
-
-    if (nameInput.value == '') {
-
-      button.disabled = true
-
-    } else {
-
-      button.disabled = false
-    }
+  const onEditProduct = (product) => {
+    setProductToEdit(product)
   }
 
   const addProduct = async (e) => {
@@ -118,98 +99,52 @@ export default function Productos() {
 
   useEffect(() => {
 
-    const fetchProducts = async () => {
-
-      try {
-
-        const res = await fetch('/api/product/get-products/' + company._id)
-        const data = await res.json()
-
-        if (data.success === false) {
-
-          setError(data.message)
-          return
-        }
-
-        setProducts(data.products)
-        setError(null)
-
-      } catch (error) {
-
-        setError(error.message)
-      }
-
-    }
-
-    fetchProducts()
-  }, [company._id])
-
-  useEffect(() => {
-
     document.title = 'Productos'
   })
 
   return (
 
-    <main className="p-3 max-w-lg mx-auto">
-
-      <h1 className='text-3xl text-center font-semibold my-7'>
-
+    <main className="p-2 md:p-6 max-w-2xl mx-auto mb-32">
+      <h1 className="text-3xl md:text-4xl text-center font-bold mt-7 mb-6 text-gray-800">
         Productos
-
       </h1>
-
-      {error ? <p>{error}</p> : ''}
-
-      <form id='productForm' onSubmit={addProduct} className="bg-white shadow-md grid grid-cols-1 items-center justify-between rounded-lg gap-2">
-
-        <input type="text" name="name" id="name" placeholder='Nombre del producto' className='border border-black p-3 rounded-lg' required onInput={productButtonControl} onChange={handleProductInputsChange} />
-        <input type="number" name="price" id="price" placeholder="Precio inicial" className="border border-black p-3 rounded-lg" onChange={handleProductInputsChange} />
-        <button type='submit' id='product-button' disabled={loading} className='bg-button text-white p-3 rounded-lg'>Agregar</button>
-
-      </form>
-
-      <div className="grid my-4 grid-cols-2" id="list-element">
+      {error && <div className="bg-red-100 text-red-700 rounded-lg p-3 mb-4 text-center">{error}</div>}
+      <Modal
+        closeModal={() => setProductToEdit(null)}
+        content={
+          <CreateUpdateProduct
+            onSubmit={onEditProduct}
+            product={productToEdit}
+          />
+        }
+        fit={true}
+        width="11/12"
+        isShown={!!productToEdit}
+      />
+      <CreateUpdateProduct onSubmit={addProduct} />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4" id="list-element">
         {products && products.length > 0 && products.map((product, index) => (
-
-          <div className="m-1 p-3 bg-white text-center shadow-lg grid grid-cols-5 rounded-lg" key={product._id}>
-
-            <p className="col-span-3 text-center font-sans text-lg font-semibold ">
+          <div className="flex flex-col bg-white shadow-md border border-gray-200 rounded-xl p-4 gap-2 transition hover:shadow-lg" key={product._id}>
+            <div className="flex-1 text-center font-sans text-lg font-semibold text-gray-800 break-words">
               {product.name}
-            </p>
+            </div>
+            <div className="flex items-center justify-between">
 
-            <div>
-                <button id={product._id} onClick={() => { setIsOpen(isOpen ? false : true), setButtonId(product._id) }} disabled={loading} className=' col-span-2 bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3'>
-                  <span>
-                    <FaTrash className='text-red-700 m-auto' />
-                  </span>
-                </button>
-
-                {isOpen && product._id == buttonId ?
-                  <div className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center items-center'>
-                    <div className='bg-white p-5 rounded-lg flex flex-col justify-center items-center gap-5'>
-                      <div>
-                        <p className='text-3xl font-semibold'>¿Estás seguro de borrar este registro?</p>
-                      </div>
-                      <div className='flex gap-10'>
-                        <div>
-                          <button className='rounded-lg bg-red-500 text-white shadow-lg w-20 h-10' onClick={() => { deleteProduct(product._id, index), setIsOpen(isOpen ? false : true) }}>Si</button>
-                        </div>
-                        <div>
-                          <button className='rounded-lg border shadow-lg w-20 h-10' onClick={() => { setIsOpen(isOpen ? false : true) }}>No</button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  : ''}
-
+              <div className="w-10">
+                <DeleteButton
+                  deleteFunction={() => deleteProduct(product._id, index)}
+                  className=""
+                />
               </div>
-
+              <div className="w-10 rounded-lg border border-gray-300 p-2 flex items-center justify-center">
+                <button className="text-blue-500 hover:text-blue-700 transition" onClick={() => setProductToEdit(product)}>
+                  <MdEdit className="text-blue-500 text-2xl cursor-pointer rounded" />
+                </button>
+              </div>
+            </div>
           </div>
-
         ))}
       </div>
-
     </main>
   )
 }

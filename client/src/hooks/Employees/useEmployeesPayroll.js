@@ -22,20 +22,26 @@ export const useEmployeesPayroll = ({ companyId, date, setSelectedEmployeePayrol
     queryClient.setQueryData(queryKey, (old) => {
       if (!old) return old
       return old.map((payroll) => {
-        if (payroll.employee._id === employeeId) {
-          const newPayroll = {
-            ...payroll,
-            branchReports: payroll.branchReports.map((r) => r._id === report._id ? report : r),
+        let newPayroll = { ...payroll }
+        if (report.employee._id !== employeeId && payroll.employee._id === employeeId) {
+          newPayroll = {
+            ...newPayroll,
+            branchReports: newPayroll.branchReports.filter((r) => r._id !== report._id)
           }
-          if (setSelectedEmployeePayroll) {
-            setSelectedEmployeePayroll({
-              employeePayroll: newPayroll,
-              externalIndex: payroll._id,
-            })
-          }
-          return newPayroll
         }
-        return payroll
+        if (payroll.employee._id === employeeId && report.employee._id === employeeId) {
+          newPayroll = {
+            ...newPayroll,
+            branchReports: newPayroll.branchReports.map((r) => r._id === report._id ? report : r),
+          }
+        }
+        if (setSelectedEmployeePayroll) {
+          setSelectedEmployeePayroll({
+            employeePayroll: newPayroll,
+            externalIndex: payroll._id,
+          })
+        }
+        return newPayroll
       })
     })
   }

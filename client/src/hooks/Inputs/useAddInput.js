@@ -1,19 +1,11 @@
-import { useState } from "react"
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { addInputFetch } from "../../services/Inputs/addInput"
-import { ToastDanger, ToastSuccess } from "../../helpers/toastify"
 
 export const useAddInput = () => {
-
-  const [loading, setLoading] = useState(false)
-
-  const addInput = async (input, group) => {
-
-    setLoading(true)
-
-    try {
-      ToastSuccess(`Se guardó la entrada de ${input.product.label}`)
-
-      await addInputFetch({
+  const queryClient = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: async ({ input, group }) => {
+      return await addInputFetch({
         input: {
           ...input,
           _id: input._id || null,
@@ -21,16 +13,23 @@ export const useAddInput = () => {
           employee: input.employee._id,
           branch: input.branch?.value || null,
           customer: input.customer?.value || null,
-        }, group
-      })
-    } catch (error) {
-      console.log(error)
-      ToastDanger(`No se guardó la entrada de ${input.product.label}`)
-      throw error
-    } finally {
-      setLoading(false)
+        },
+        group,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['netDifference'] });
     }
-  }
+  });
 
-  return { addInput, loading }
-}
+  const addInput = async (input, group) => {
+    try {
+      await mutation.mutateAsync({ input, group });
+    } catch (error) {
+      console.error('Error adding input:', error);
+      throw error;
+    }
+  };
+
+  return { addInput, isLoading: mutation.isPending };
+};

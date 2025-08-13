@@ -3,6 +3,7 @@ import './ShowBalance.css'
 import { useSelector } from 'react-redux'
 import { useRoles } from '../context/RolesContext'
 import { currency } from '../helpers/Functions'
+import { IoArrowDownCircleOutline, IoArrowUpCircleOutline } from 'react-icons/io5'
 
 export default function ShowBalance({ balance }) {
 
@@ -15,7 +16,13 @@ export default function ShowBalance({ balance }) {
 
   return (
     <div className={`show-balance ${balanceClass} z-10`}>
-      <h2><span className="balance">{currency({ amount: balance })}</span></h2>
+      <div className="sb-wrapper">
+        <div className="sb-label">
+          {balance < 0 ? <IoArrowDownCircleOutline className="sb-icon" /> : <IoArrowUpCircleOutline className="sb-icon" />}
+          <span>Balance</span>
+        </div>
+        <div className="sb-amount">{currency({ amount: balance })}</div>
+      </div>
     </div>
   )
 }

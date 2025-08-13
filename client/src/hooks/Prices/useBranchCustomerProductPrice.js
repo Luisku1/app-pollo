@@ -9,7 +9,10 @@ export const useBranchCustomerProductPrice = ({ branchCustomerId, productId, dat
 
   useEffect(() => {
 
-    if (!branchCustomerId || !productId || !date || !group) return
+    if (!branchCustomerId || !productId || !date || !group) {
+      setPrice(0.0)
+      return
+    }
 
     setLoading(true)
 

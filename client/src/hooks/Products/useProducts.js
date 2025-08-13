@@ -16,6 +16,7 @@ export const useProducts = ({ companyId }) => {
     queryFn: () => getProductsFetch(companyId),
     enabled: !!companyId,
     staleTime: 1000 * 60 * 5, // 5 minutos, ajustable
+    retry: 2
   })
 
   return { products, error, loading, refetch }

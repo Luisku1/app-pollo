@@ -12,6 +12,16 @@ const productSchema = mongoose.Schema({
 		required: true,
 	},
 
+	byPieces: {
+		type: Boolean,
+		default: false
+	},
+
+	priceFormula: {
+		type: String,
+		default: ''
+	},
+
 	createdAt: {
 		type: Date,
 		required: true

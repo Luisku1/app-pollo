@@ -57,6 +57,10 @@ const outputSchema = mongoose.Schema({
     type: Schema.Types.ObjectId, ref: 'Employee',
   },
 
+  stock: {
+    type: Schema.Types.ObjectId, ref: 'Stock'
+  },
+
   input: {
     type: Schema.Types.ObjectId, ref: 'Input',
   },

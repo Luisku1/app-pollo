@@ -7,17 +7,12 @@ const providerReturnsSchema = mongoose.Schema({
     required: true
   },
 
-  price: {
-    type: Number,
-    required: true
-  },
-
   weight: {
     type: Number,
     required: true
   },
 
-  pieces: {
+  price: {
     type: Number,
     required: true
   },
@@ -31,28 +26,35 @@ const providerReturnsSchema = mongoose.Schema({
     default: false
   },
 
-  company: {
-    type: Schema.Types.ObjectId, ref: 'Company',
+  branche: {
+    type: String, ref: 'Branche',
     required: true
   },
 
   product: {
-    type: Schema.Types.ObjectId, ref: 'Product',
+    type: String, ref: 'Product',
     required: true
   },
 
   supervisor: {
-    type: Schema.Types.ObjectId, ref: 'Employee',
+    type: String, ref: 'Supervisor',
     required: true
   },
 
   provider: {
-    type: Schema.Types.ObjectId, ref: 'Provider',
+    type: String, ref: 'Provider',
     required: true
   },
 
+  isReturn: {
+    type: Boolean,
+    default: false
+  }
+
 }, { timestamps: true })
 
+providerReturnsSchema.index({ createdAt: -1, provider: 1 }, { unique: true })
+providerReturnsSchema.index({ company: 1, createdAt: -1, provider: 1 }, { unique: true })
 const ProviderReturns = mongoose.model('ProviderReturns', providerReturnsSchema)
 
 export default ProviderReturns

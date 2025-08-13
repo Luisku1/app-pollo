@@ -5,7 +5,7 @@ import { PiNumberZeroBold } from "react-icons/pi"
 import { formatInformationDate, isToday } from "../helpers/DatePickerFunctions"
 import { useSelector } from "react-redux"
 import { useState } from "react"
-import { ToastDanger } from "../helpers/toastify"
+import { ToastDanger, ToastSuccess } from "../helpers/toastify"
 import { TbReload } from "react-icons/tb"
 import { blockedButton } from "../helpers/Constants"
 import { FaSpinner } from "react-icons/fa"
@@ -21,6 +21,7 @@ import RegistrarDineroReportado from "./RegistrarDineroReportado.jsx"
 import EmployeeInfo from "./EmployeeInfo.jsx"
 import { toPng } from "html-to-image";
 import { AiOutlineDownload, AiOutlineCopy } from "react-icons/ai";
+import EmployeeName from "./Names/EmployeeName.jsx"
 
 export default function SupervisorReportCard({
   supervisorReport,
@@ -41,12 +42,11 @@ export default function SupervisorReportCard({
     try {
       setLoading(true)
       setToModifyReport(reportId)
-      await setSupervisorReportOnZero(reportId)
       const newReport = { ...supervisorReport, balance: 0 }
-      console.log(newReport, 'newReport')
       if (updateSupervisorReportGroup && employeeId) updateSupervisorReportGroup(employeeId, newReport)
       if (updateSupervisorReportSingle) updateSupervisorReportSingle(newReport)
       if (selfChange) selfChange(newReport)
+      await setSupervisorReportOnZero(reportId)
       setToModifyReport(null)
       setLoading(false)
     } catch (error) {
@@ -63,7 +63,6 @@ export default function SupervisorReportCard({
       setToModifyReport(supervisorReport._id)
       const updatedReport = await recalculateSupervisorReport(supervisorReport._id)
       if (updateSupervisorReportGroup && employeeId) updateSupervisorReportGroup(employeeId, updatedReport)
-        console.log(updatedReport, 'updatedReport')
       if (updateSupervisorReportSingle) updateSupervisorReportSingle(updatedReport)
       if (selfChange) selfChange({ ...supervisorReport, balance: updatedReport.balance })
       setToModifyReport(null)
@@ -121,12 +120,24 @@ export default function SupervisorReportCard({
     }
   };
 
+  // Barra superior de color según balance
+  const getBarColor = () => {
+    if (supervisorReport.balance < 0) return 'bg-red-500';
+    if (supervisorReport.onZero) return 'bg-yellow-500';
+    return 'bg-green-500';
+  };
+
   return (
     <div
       id={`supervisor-report-container-${supervisorReport._id}`}
-      className={`text-base w-full p-1 rounded-lg border border-black shadow-md transition-all duration-200 ${supervisorReport.balance < 0 ? 'bg-pastel-pink' : supervisorReport.onZero ? 'bg-yellow-100' : 'bg-white'}`}
-      key={supervisorReport._id}>
-      <div id={`supervisor-report-card-${supervisorReport._id}`} className={`${supervisorReport.balance < 0 ? 'bg-pastel-pink' : supervisorReport.onZero ? 'bg-yellow-100' : 'bg-white'}`}>
+      className={
+        `relative w-full max-w-xl mx-auto rounded-2xl shadow-lg border border-gray-200 bg-white transition-all duration-200`
+      }
+      key={supervisorReport._id}
+    >
+      {/* Barra superior de color */}
+      <div className={`h-2 w-full rounded-t-2xl ${getBarColor()}`}></div>
+      <div id={`supervisor-report-card-${supervisorReport._id}`} className="p-4">
         <EmployeeInfo employee={selectedEmployee} toggleInfo={() => setSelectedEmployee(null)} />
         {editingReport && (
           <Modal
@@ -141,101 +152,104 @@ export default function SupervisorReportCard({
             }
           />
         )}
-        <div className="flex justify-between items-center px-2 pt-1 mb-2">
-          <button onClick={() => setSelectedEmployee(supervisorReport.supervisor)} className="font-bold text-md flex gap-1 items-center"><span><CgProfile /></span>{getEmployeeFullName(supervisorReport.supervisor)}</button>
+        <div className="flex justify-between items-center mb-2">
+          <EmployeeName employee={supervisorReport.supervisor} />
           <div className="flex items-center gap-1">
-            <p className="text-lg font-semibold text-red-500">
+            <p className="text-base font-semibold text-red-500">
               {formatInformationDate(new Date(supervisorReport.createdAt))}
             </p>
           </div>
         </div>
-        <div name='tools' className="w-full flex flex-row-reverse text-3xl gap-3 pr-2">
-          <button className="border border-black rounded-lg" onClick={() => handleReloadReport()}>
+        {/* Balance visual destacado */}
+        <div className="flex items-center gap-3 mb-3">
+          <span className={`inline-block w-3 h-3 rounded-full ${supervisorReport.balance < 0 ? 'bg-red-500' : supervisorReport.onZero ? 'bg-yellow-400' : 'bg-green-500'}`}></span>
+          <span className={`font-bold text-lg ${supervisorReport.balance < 0 ? 'text-red-700' : supervisorReport.onZero ? 'text-yellow-700' : 'text-green-700'}`}>
+            {parseFloat(supervisorReport.balance).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}
+          </span>
+          <span className="text-gray-500 text-sm">Balance</span>
+        </div>
+        {/* Herramientas */}
+        <div name='tools' className="w-full flex flex-row-reverse text-2xl gap-2 pr-1 mb-2">
+          <button className="border border-gray-300 rounded-lg p-1 bg-white hover:bg-gray-100" onClick={() => handleReloadReport()} title="Recalcular">
             <TbReload />
           </button>
-          <button onClick={() => { setEditingReport(true) }} className="border border-black rounded-lg">
+          <button onClick={() => { setEditingReport(true) }} className="border border-gray-300 rounded-lg p-1 bg-white hover:bg-gray-100" title="Editar">
             <MdEdit />
           </button>
-          <button className={`border border-black rounded-lg ${!isController(currentUser.role) ? blockedButton : ''}`} disabled={!isController(currentUser.role)} onClick={() => handleSetReportOnZero(supervisorReport._id)}>
+          <button className={`border border-gray-300 rounded-lg p-1 bg-white hover:bg-gray-100 ${!isController(currentUser.role) ? blockedButton : ''}`} disabled={!isController(currentUser.role)} onClick={() => handleSetReportOnZero(supervisorReport._id)} title="Poner en cero">
             <PiNumberZeroBold />
           </button>
-          <button className="border border-black rounded-lg" onClick={handleDownloadImage}>
+          <button className="border border-gray-300 rounded-lg p-1 bg-white hover:bg-gray-100" onClick={handleDownloadImage} title="Descargar imagen">
             <AiOutlineDownload />
           </button>
-          <button className="border border-black rounded-lg" onClick={handleCopyImage}>
+          <button className="border border-gray-300 rounded-lg p-1 bg-white hover:bg-gray-100" onClick={handleCopyImage} title="Copiar imagen">
             <AiOutlineCopy />
           </button>
         </div>
+        {/* Loader */}
         <div className="relative">
           {loading && toModifyReport == supervisorReport._id && (
             <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-50 z-50">
               <FaSpinner className="text-4xl animate-spin" />
             </div>
           )}
-          <div className={`${loading && toModifyReport == supervisorReport._id ? 'blur-sm' : ''} px-3`}>
-            <div className="space-y-4 mt-2">
-              {/* Resumen financiero */}
-              <div className="overflow-x-auto">
-                <div className="grid grid-cols-2 gap-4 text-sm text-gray-600 text-left">
-                  {/* Primer grupo: Depósitos, Gastos, Efectivo */}
-                  <ShowListModal
-                    title={`Gastos de ${supervisorReport.supervisor.name}`}
-                    ListComponent={ExtraOutgoingsList}
-                    ListComponentProps={{ extraOutgoings: supervisorReport.extraOutgoingsArray ?? [], totalExtraOutgoings: supervisorReport.extraOutgoings }}
-                    className={'w-full h-full border border-black rounded-lg'}
-                    clickableComponent={
-                      <p className="font-semibold text-lg bg-green-400 rounded-lg bg-opacity-50 text-center text-gray-800">
-                        Gastos: {currency({ amount: supervisorReport.extraOutgoings })}
-                      </p>
-                    }
-                    data={supervisorReport.extraOutgoingsArray ?? []}
-                  />
-                  <ShowIncomesModal
-                    title={`Depósitos de ${supervisorReport.supervisor.name}`}
-                    clickableComponent={
-                      <p className="font-semibold text-lg bg-green-400 rounded-lg bg-opacity-50 text-center text-gray-800">
-                        Depósitos: {currency({ amount: supervisorReport.deposits + supervisorReport.terminalIncomes })}
-                      </p>
-                    }
-                    incomes={[...supervisorReport.terminalIncomesArray ?? [], ...supervisorReport.depositsArray ?? []]}
-                  />
-                  <ShowIncomesModal
-                    title={`Efectivo de ${supervisorReport.supervisor.name}`}
-                    clickableComponent={
-                      <p className="font-semibold text-lg bg-green-400 items-center rounded-lg bg-opacity-50 text-center text-gray-800">
-                        Efectivo bruto: {currency({ amount: supervisorReport.cash })}
-                      </p>
-                    }
-                    incomes={supervisorReport.cashArray ?? []}
-                  />
-                  {/* Segundo grupo: Efectivo neto */}
-                  <div className="flex flex-wrap gap-1 justify-center font-semibold text-lg bg-red-500 bg-opacity-40 rounded-lg text-center text-black items-center">
-                    <p>
-                      Efectivo final:
+          <div className={`${loading && toModifyReport == supervisorReport._id ? 'blur-sm' : ''}`}>
+            {/* Resumen financiero */}
+            <div className="space-y-2 mt-2">
+              <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
+                <ShowListModal
+                  title={`Gastos de ${supervisorReport.supervisor.name}`}
+                  ListComponent={ExtraOutgoingsList}
+                  ListComponentProps={{ extraOutgoings: supervisorReport.extraOutgoingsArray ?? [], totalExtraOutgoings: supervisorReport.extraOutgoings }}
+                  className={'w-full h-full border border-gray-200 rounded-lg'}
+                  clickableComponent={
+                    <p className="font-semibold text-base border border-black bg-green-100 rounded-lg bg-opacity-50 text-center text-gray-800">
+                      Gastos: {currency({ amount: supervisorReport.extraOutgoings })}
                     </p>
-                    <p>{(supervisorReport.cash - supervisorReport.extraOutgoings).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>
-                  </div>
+                  }
+                  data={supervisorReport.extraOutgoingsArray ?? []}
+                />
+                <ShowIncomesModal
+                  title={`Depósitos de ${supervisorReport.supervisor.name}`}
+                  clickableComponent={
+                    <p className="font-semibold text-base bg-green-100 rounded-lg bg-opacity-50 text-center text-gray-800">
+                      Depósitos: {currency({ amount: supervisorReport.deposits + supervisorReport.terminalIncomes })}
+                    </p>
+                  }
+                  incomes={[...supervisorReport.terminalIncomesArray ?? [], ...supervisorReport.depositsArray ?? []]}
+                />
+                <ShowIncomesModal
+                  title={`Efectivo de ${supervisorReport.supervisor.name}`}
+                  clickableComponent={
+                    <p className="font-semibold text-base bg-green-100 items-center rounded-lg bg-opacity-50 text-center text-gray-800">
+                      Efectivo bruto: {currency({ amount: supervisorReport.cash })}
+                    </p>
+                  }
+                  incomes={supervisorReport.cashArray ?? []}
+                />
+                <div className="flex flex-wrap gap-1 justify-center font-semibold border border-black text-base bg-red-200 bg-opacity-40 rounded-lg text-center text-black items-center">
+                  <p>Efectivo final:</p>
+                  <p>{(supervisorReport.cash - supervisorReport.extraOutgoings).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>
                 </div>
               </div>
             </div>
             {/* Faltante */}
             {(!isToday(supervisorReport.createdAt) || isManager(currentUser.role) || supervisorReport.balance < 0) && (
-              <div className="mt-4 border-t-2 border-black pt-4">
+              <div className="mt-3 border-t border-gray-300 pt-3">
                 <div className="flex justify-between items-center">
-                  <p className="font-semibold text-gray-600 text-lg">Faltante:</p>
+                  <p className="font-semibold text-gray-600 text-base">Faltante:</p>
                   <p
-                    className={`text-lg font-bold ${supervisorReport.balance < 0
-                      ? 'text-red-700' // Si el balance es negativo, mostrar en rojo
-                      // Si es manager, mostrar en gris oscuro
-                      : 'text-green-600' // Si no es manager, mostrar en verde si el balance es positivo
+                    className={`text-base font-bold ${supervisorReport.balance < 0
+                      ? 'text-red-700'
+                      : 'text-green-600'
                       }`}
                   >
-                    {isManager(currentUser.role) || supervisorReport.balance < 0 // Mostrar siempre si es manager o el balance es negativo
+                    {isManager(currentUser.role) || supervisorReport.balance < 0
                       ? parseFloat(supervisorReport.balance).toLocaleString('es-MX', {
                         style: 'currency',
                         currency: 'MXN',
                       })
-                      : (supervisorReport.balance > 0 ? '$0.00' : '$0.00') // Para el resto de los usuarios, mostrar $0.00 solo si el balance es positivo
+                      : (supervisorReport.balance > 0 ? '$0.00' : '$0.00')
                     }
                   </p>
                 </div>
@@ -245,5 +259,5 @@ export default function SupervisorReportCard({
         </div>
       </div>
     </div>
-  )
+  );
 }

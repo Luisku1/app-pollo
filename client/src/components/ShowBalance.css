@@ -1,23 +1,50 @@
 .show-balance {
   position: sticky;
-  top: 8rem; /* Adjust this value based on your header height */
-  padding: 5px; /* Make it more compact */
-  border-bottom: 1px solid #dee2e6;
-  z-index: 10; /* Ensure it stays below the modals */
-  text-align: center;
-  font-size: 1em; /* Adjust font size for compactness */
-  width: fit-content; /* Reduce the width */
-  margin: 0 auto; /* Center the component */
+  top: 5.5rem;
+  /* debajo del header */
+  z-index: 10;
+  /* debajo de modals */
+  margin: 0 auto;
+  width: fit-content;
 }
 
-.show-balance .balance {
-  color: #ffffff; /* Default text color */
+.sb-wrapper {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  padding: .5rem .75rem;
+  border-radius: .75rem;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+  backdrop-filter: saturate(120%);
 }
 
-.show-balance.positive {
-  background-color: rgba(40, 167, 69, 0.9); /* Green background for positive balance */
+.show-balance.positive .sb-wrapper {
+  background-color: rgba(40, 167, 69, 0.9);
+  border: 1px solid rgba(22, 114, 47, 0.9);
+  color: #fff;
 }
 
-.show-balance.negative {
-  background-color: rgba(220, 53, 69, 0.9); /* Red background for negative balance */
+.show-balance.negative .sb-wrapper {
+  background-color: rgba(220, 53, 69, 0.9);
+  border: 1px solid rgba(155, 7, 21, 0.9);
+  color: #fff;
+}
+
+.sb-label {
+  display: inline-flex;
+  align-items: center;
+  gap: .375rem;
+  font-weight: 700;
+  font-size: .9rem;
+  letter-spacing: .02em;
+}
+
+.sb-icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.sb-amount {
+  font-weight: 800;
+  font-size: 1.05rem;
 }

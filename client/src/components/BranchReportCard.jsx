@@ -2,6 +2,7 @@
 import { MdEdit } from "react-icons/md"
 import { useRoles } from "../context/RolesContext"
 import { PiNumberZeroBold } from "react-icons/pi"
+import { MdPersonAdd } from "react-icons/md";
 import { formatInformationDate, isToday } from "../helpers/DatePickerFunctions"
 import { useSelector } from "react-redux"
 import { useState } from "react"
@@ -9,21 +10,27 @@ import { useNavigate } from "react-router-dom"
 import { setBalanceOnZero } from "../services/BranchReports/setBalanceOnZero"
 import { ToastDanger, ToastSuccess } from "../helpers/toastify"
 import { TbReload } from "react-icons/tb"
-import { blockedButton } from "../helpers/Constants"
 import { FaSpinner } from "react-icons/fa"
 import ShowListModal from "./Modals/ShowListModal"
 import IncomesList from "./Incomes/IncomesList"
 import StockList from "./Stock/StockList"
 import OutgoingsList from "./Outgoings/OutgoingsList"
-import ListaSalidas from "./EntradasYSalidas/Salidas/ListaSalidas"
-import ListaEntradas from "./EntradasYSalidas/Entradas/ListaEntradas"
+import ListaSalidas from "./Movimientos/Salidas/ListaSalidas"
+import ListaEntradas from "./Movimientos/Entradas/ListaEntradas"
 import { MdPriceChange } from "react-icons/md";
 import ChangeBranchPrices from "./Prices/ChangeBranchPrices"
 import EmployeeInfo from "./EmployeeInfo"
 import { CgProfile } from "react-icons/cg"
 import { toPng } from "html-to-image";
-import { AiOutlineDownload, AiOutlineCopy } from "react-icons/ai";
+import { AiOutlineDownload, AiOutlineCopy, AiOutlineLink } from "react-icons/ai";
 import { recalculateBranchReport } from "../services/BranchReports/updateBranchReport"
+import { SelectReportEmployees } from "./SelectReportEmployees"
+import Modal from "./Modals/Modal"
+import { useEmployees } from "../hooks/Employees/useEmployees"
+import { updateReportEmployees } from "../services/BranchReports/updateReportsEmployee"
+import { areArraysEqual } from "../../../common/arraysOps";
+import { formatDateYYYYMMDD } from "../../../common/dateOps";
+import EmployeeName from "./Names/EmployeeName";
 
 export default function BranchReportCard({
   reportData = {},
@@ -33,12 +40,15 @@ export default function BranchReportCard({
   selfChange
 }) {
 
-  const { currentUser } = useSelector((state) => state.user)
+  const { currentUser, company } = useSelector((state) => state.user)
+  const companyId = company?._id || company
   const { isController, isManager } = useRoles()
-  const [selectedEmployee, setSelectedEmployee] = useState(null)
   const [toModifyReport, setToModifyReport] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [showSelectReportEmployees, setShowSelectReportEmployees] = useState(false)
+  const { activeEmployees: employees } = useEmployees({ companyId })
   const navigate = useNavigate()
+  const assistants = reportData.assistants || []
 
   // On set to zero, update both caches
   const handleSetReportOnZero = async (report) => {
@@ -60,6 +70,49 @@ export default function BranchReportCard({
       setLoading(false)
       ToastDanger('Hubo un error al establecer el balance en cero')
     }
+  }
+
+  const onPricesChange = (newReport) => {
+
+    updateBranchReportSingle && updateBranchReportSingle(newReport)
+    updateBranchReportGroup && employeeId && updateBranchReportGroup(employeeId, newReport)
+    selfChange && selfChange(newReport)
+  }
+
+  const onRegisterEmployees = async (selectedEmployee, selectedAssistants) => {
+
+    let employeeChanged = false;
+    let assistantsChanged = false;
+    setShowSelectReportEmployees(false);
+
+    if (selectedEmployee?._id !== reportData?.employee?._id) {
+      employeeChanged = true;
+    }
+    if ((selectedAssistants.length > 0 && assistants.length === 0) || (!areArraysEqual(selectedAssistants, assistants))) {
+      assistantsChanged = true;
+    }
+
+    if (!(assistantsChanged || employeeChanged)) {
+      ToastInfo('No se han realizado cambios en los empleados del reporte');
+      return;
+    }
+
+    let newReport = {
+      ...reportData
+    }
+
+    if (assistantsChanged)
+      newReport.assistant = selectedAssistants.map(assistant => assistant)
+    if (employeeChanged)
+      newReport.employee = selectedEmployee
+
+    if (updateBranchReportGroup && employeeId) updateBranchReportGroup(employeeId, newReport)
+
+    if (updateBranchReportSingle) updateBranchReportSingle(newReport)
+
+    if (selfChange) selfChange(newReport);
+
+    await updateReportEmployees({ reportId: reportData._id, employeeId: selectedEmployee._id, assistants: selectedAssistants });
   }
 
   // On reload, update both caches
@@ -89,8 +142,7 @@ export default function BranchReportCard({
   }
 
   const navToEditReport = (reportData) => {
-
-    navigate(`/formato/${reportData.createdAt}/${reportData.branch._id}`)
+    navigate(`/formato/${reportData.branch._id}/${formatDateYYYYMMDD(new Date(reportData.createdAt))}`)
   }
 
   const handleDownloadImage = async () => {
@@ -110,27 +162,38 @@ export default function BranchReportCard({
     }
   };
 
+
+  // Copiar solo el link
+  const handleCopyLink = async () => {
+    try {
+      const text = `${window.location.origin}/formato/${reportData.createdAt}/${reportData.branch._id}`;
+      await navigator.clipboard.writeText(text);
+      ToastSuccess("Link copiado al portapapeles");
+    } catch (error) {
+      ToastDanger("Hubo un error al copiar el link");
+    }
+  };
+
+  // Copiar solo la imagen
   const handleCopyImage = async () => {
     try {
-      const node = document.getElementById(`report-card-${reportData._id}`);
+      const node = document.getElementById(`report-container-${reportData._id}`);
       const toolsDiv = document.querySelector(`#report-card-${reportData._id} [name='tools']`);
-      toolsDiv.style.display = "none"; // Hide tools
+      toolsDiv.style.display = "none";
       const clonedNode = node.cloneNode(true);
       clonedNode.style.paddingBottom = "10px";
       clonedNode.style.width = "400px";
       document.body.appendChild(clonedNode);
       const dataUrl = await toPng(clonedNode);
       document.body.removeChild(clonedNode);
-      toolsDiv.style.display = ""; // Restore tools
+      toolsDiv.style.display = "";
       const blob = await (await fetch(dataUrl)).blob();
-      const text = `Link de la cuenta: ${window.location.origin}/formato/${reportData.createdAt}/${reportData.branch._id}`;
       await navigator.clipboard.write([
         new ClipboardItem({
-          "image/png": blob,
-          "text/plain": new Blob([text], { type: "text/plain" }),
-        }),
-      ]); -
-        ToastSuccess("Imagen copiada al portapapeles");
+          "image/png": blob
+        })
+      ]);
+      ToastSuccess("Imagen copiada al portapapeles");
     } catch (error) {
       console.error("Error copying image:", error);
       ToastDanger("Hubo un error al copiar la imagen");
@@ -140,11 +203,16 @@ export default function BranchReportCard({
   return (
     <div
       id={`report-container-${reportData._id}`}
-      className={`w-full p-1 border border-black rounded-lg shadow-md transition-all duration-200 ${reportData.balance < 0 ? 'bg-pastel-pink' : reportData.onZero ? 'bg-yellow-100' : 'bg-white'}`}
+      className={`w-full border border-black shadow-md transition-all duration-200 bg-white rounded-lg`} // fondo neutro, barra arriba
       key={reportData._id}>
-      <div id={`report-card-${reportData._id}`} className={`${reportData.balance < 0 ? 'bg-pastel-pink' : reportData.onZero ? 'bg-yellow-100' : 'bg-white'}`}>
+      {/* Franja de estado visual arriba */}
+      <div
+        className={`w-full h-2 rounded-t-lg
+          ${reportData.balance < 0 ? 'bg-red-500' : reportData.onZero ? 'bg-yellow-100' : 'bg-green-200'}`}
+      />
+      <div id={`report-card-${reportData._id}`} className={`bg-white rounded-b-lg p-2`}>
 
-        <div className="flex justify-between items-center px-2 pt-1 mb-4">
+        <div className="flex justify-between items-center px-2 mb-2">
           <p className="text-lg font-semibold text-red-500">{reportData.branch.branch}</p>
           <div className="flex items-center gap-1">
             <p className="text-lg font-semibold text-red-500">
@@ -164,11 +232,26 @@ export default function BranchReportCard({
               <PiNumberZeroBold />
             </button>
           }
+          {showSelectReportEmployees && (
+            <Modal
+              content={
+                <SelectReportEmployees
+                  branch={reportData.branch}
+                  employees={employees}
+                  currentAssistants={reportData.assistant}
+                  currentReportEmployee={reportData.employee}
+                  onRegisterEmployees={onRegisterEmployees}
+                />
+              }
+              closeModal={() => setShowSelectReportEmployees(false)}
+            />
+          )}
           {isManager(currentUser.role) && (
             <ChangeBranchPrices
               branch={reportData.branch._id}
               date={reportData.createdAt}
               pricesDate={reportData.pricesDate}
+              onUpdateBranchReport={onPricesChange}
             >
               <MdPriceChange />
             </ChangeBranchPrices>
@@ -176,10 +259,19 @@ export default function BranchReportCard({
           <button className="border h-fit border-black rounded-lg" onClick={handleDownloadImage}>
             <AiOutlineDownload />
           </button>
-          <button className="border h-fit border-black rounded-lg" onClick={handleCopyImage}>
+          <button className="border h-fit border-black rounded-lg" onClick={handleCopyLink} title="Copiar link">
+            <AiOutlineLink />
+          </button>
+          <button className="border h-fit border-black rounded-lg" onClick={handleCopyImage} title="Copiar imagen">
             <AiOutlineCopy />
           </button>
-          <EmployeeInfo employee={selectedEmployee} toggleInfo={() => setSelectedEmployee(null)} />
+          <button
+            className="border h-fit border-black rounded-lg flex items-center justify-center"
+            title="Asignar empleados"
+            onClick={() => setShowSelectReportEmployees(true)}
+          >
+            <MdPersonAdd />
+          </button>
         </div>
         <div className="relative">
           {loading && toModifyReport == reportData._id && (
@@ -187,17 +279,24 @@ export default function BranchReportCard({
               <FaSpinner className="text-4xl animate-spin" />
             </div>
           )}
-          <div id={`card-info-${reportData._id}`} className={`${reportData.balance < 0 ? 'bg-pastel-pink' : reportData.onZero ? 'bg-yellow-100' : 'bg-white'} ${loading && toModifyReport == reportData._id ? 'blur-sm' : ''} px-3`}>
-            <div className="space-y-4">
+          <div id={`card-info-${reportData._id}`} className={`${loading && toModifyReport == reportData._id ? 'blur-sm' : ''} px-3`}>
+            <div className="space-y-2">
               <div className="grid grid-cols-2 gap-4 text-sm text-left">
-                <div className="flex gap-2 flex-wrap">
-                  <p className="font-bold text-lg text-gray-600">Encargado:</p>
-                  <button onClick={() => setSelectedEmployee(reportData.employee)} className="font-bold text-lg flex gap-1 truncate items-center"><span><CgProfile /></span>{reportData?.employee?.name ?? 'Sin Encargado'}</button>
+                <div className="flex gap-2 flex-wrap items-center">
+                  {reportData.employee ? (
+                    <EmployeeName employee={reportData.employee} />
+                  ) :
+                    <p className="text-gray-500">Personal no asignado</p>
+                  }
                 </div>
-                {reportData.assistant?.name && (
-                  <div>
-                    <p className="font-bold text-lg text-gray-600">Auxiliar:</p>
-                    <button onClick={() => setSelectedEmployee(reportData.assistant)} className="font-bold text-md flex gap-1 truncate items-center"><span><CgProfile /></span>{reportData.assistant.name}</button>
+                {assistants && assistants.length > 0 && (
+                  <div className='flex gap-2 py-2 items-center'>
+                    <p className='flex-shrink-0'>Auxiliares:</p>
+                    <div className='flex flex-wrap gap-2'>
+                      {assistants.map((assistant) => (
+                        <EmployeeName employee={assistant} assistant={true} />
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
@@ -275,27 +374,25 @@ export default function BranchReportCard({
                 </div>
               </div>
             </div>
-            {/* Faltante */}
+            {/* Faltante compacto y menos invasivo */}
             {(!isToday(reportData.createdAt) || isManager(currentUser.role) || reportData.balance < 0) && (
-              <div className="mt-4 border-t-2 border-black pt-4">
-                <div className="flex justify-between items-center">
-                  <p className="font-semibold text-gray-600 text-lg">Faltante:</p>
-                  <p
-                    className={`text-lg font-bold ${reportData.balance < 0
-                      ? 'text-red-700' // Si el balance es negativo, mostrar en rojo
-                      // Si es manager, mostrar en gris oscuro
-                      : 'text-green-600' // Si no es manager, mostrar en verde si el balance es positivo
-                      }`}
-                  >
-                    {isManager(currentUser.role) || reportData.balance < 0 // Mostrar siempre si es manager o el balance es negativo
-                      ? parseFloat(reportData.balance).toLocaleString('es-MX', {
-                        style: 'currency',
-                        currency: 'MXN',
-                      })
-                      : (reportData.balance > 0 ? '$0.00' : '$0.00') // Para el resto de los usuarios, mostrar $0.00 solo si el balance es positivo
-                    }
-                  </p>
-                </div>
+              <div className="flex justify-end items-center">
+                <span
+                  className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold shadow-sm transition
+                    ${reportData.balance < 0
+                      ? 'bg-red-100 text-red-700 border border-red-200'
+                      : 'bg-gray-100 text-gray-600 border border-gray-200'}
+                  `}
+                  title={reportData.balance < 0 ? 'Faltante detectado en el balance' : 'Balance del reporte'}
+                >
+                  {reportData.balance < 0 ? 'Faltante' : 'Balance'}:&nbsp;
+                  {isManager(currentUser.role) || reportData.balance < 0
+                    ? parseFloat(reportData.balance).toLocaleString('es-MX', {
+                      style: 'currency',
+                      currency: 'MXN',
+                    })
+                    : '$0.00'}
+                </span>
               </div>
             )}
           </div>

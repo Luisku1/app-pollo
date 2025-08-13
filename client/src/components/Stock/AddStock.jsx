@@ -1,17 +1,18 @@
 /* eslint-disable react/prop-types */
 import { useEffect, useState } from "react"
 import { useSelector } from "react-redux"
-import { isToday } from "../../helpers/DatePickerFunctions"
 import Select from 'react-select'
 import SectionHeader from "../SectionHeader"
 import ShowListModal from "../Modals/ShowListModal"
 import StockList from "./StockList"
 import { getArrayForSelects, getElementForSelect } from "../../helpers/Functions"
 import { ToastInfo, ToastSuccess } from "../../helpers/toastify"
+import { useDateNavigation } from "../../hooks/useDateNavigation"
 
-export default function AddStock({ title, midDay, modifyBalance, stock, isReport = false, listButton, weight, amount, products, onAddStock, onDeleteStock, branch, employee, date, branchPrices }) {
+export default function AddStock({ title, midDay, modifyBalance, stock, isReport = false, listButton, weight, amount, products, onAddStock, onDeleteStock, branch, employee, branchPrices }) {
 
   const { company } = useSelector((state) => state.user)
+  const { today, dateFromYYYYMMDD } = useDateNavigation();
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [stockFormData, setStockFormData] = useState({ pieces: '', weight: '' })
   const [isButtonDisabled, setIsButtonDisabled] = useState(true)
@@ -57,7 +58,7 @@ export default function AddStock({ title, midDay, modifyBalance, stock, isReport
 
     const price = getProductPrice(selectedProduct.value)
     const amount = parseFloat(price * stockFormData.weight)
-    const createdAt = isToday(date) ? new Date().toISOString() : new Date(date).toISOString()
+    const createdAt = today ? new Date().toISOString() : dateFromYYYYMMDD.toISOString()
 
     try {
       const { pieces, weight } = stockFormData
@@ -133,7 +134,7 @@ export default function AddStock({ title, midDay, modifyBalance, stock, isReport
       <div className='grid grid-cols-1'>
         <SectionHeader label={title} />
       </div>
-      <form onSubmit={addStockItem} className="grid grid-cols-4">
+      <form onSubmit={addStockItem} className="grid grid-cols-1 sm:grid-cols-4 gap-2">
         <Select
           styles={customStockSelectStyles}
           options={getArrayForSelects(products, (product) => { return product.name })}
@@ -143,12 +144,12 @@ export default function AddStock({ title, midDay, modifyBalance, stock, isReport
           placeholder={'Productos'}
         />
         <div className=''>
-          <input type="number" name="pieces" id="pieces" placeholder='Piezas' step={0.1} className='w-full border border-black p-3 rounded-lg' required value={stockFormData.pieces} onChange={handleStockInputsChange} />
+          <input type="number" name="pieces" id="pieces" placeholder='Piezas' step={0.1} className='w-full border border-black p-3 rounded-lg [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none' required value={stockFormData.pieces} onChange={handleStockInputsChange} inputMode="decimal" />
         </div>
         <div className=''>
-          <input type="number" name="weight" id="weight" placeholder='0.00 kg' step={0.001} className='w-full border border-black p-3 rounded-lg' required value={stockFormData.weight} onChange={handleStockInputsChange} />
+          <input type="number" name="weight" id="weight" placeholder='0.00 kg' step={0.001} className='w-full border border-black p-3 rounded-lg [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none' required value={stockFormData.weight} onChange={handleStockInputsChange} inputMode="decimal" />
         </div>
-        <button type='submit' id='stock-button' disabled={isButtonDisabled} className='bg-button text-white p-3 rounded-lg'>Agregar</button>
+        <button type='submit' id='stock-button' disabled={isButtonDisabled} className='bg-button text-white p-3 rounded-lg min-h-[44px]'>Agregar</button>
       </form>
       <div className='w-full mt-2'>
         <ShowListModal

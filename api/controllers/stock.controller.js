@@ -2,9 +2,10 @@ import Stock from "../models/accounts/stock.model.js";
 import { errorHandler } from "../utils/error.js";
 import { getDayRange } from "../utils/formatDate.js";
 import { fetchOrCreateBranchReport } from "./branch.report.controller.js";
-import { getProductPrice, pricesAggregate } from "./price.controller.js";
+import { getProductPrice } from "./price.controller.js";
 import { pushOrPullBranchReportRecord } from './branch.report.controller.js'
 import { Types } from "mongoose";
+import Branch from "../models/branch.model.js";
 
 export const createStock = async (req, res, next) => {
 
@@ -27,7 +28,7 @@ export const createStock = async (req, res, next) => {
   }
 }
 
-export const createStockAndUpdateBranchReport = async (params) => {
+export const createStockAndUpdateBranchReport = async (params, movement = null) => {
   const {
     _id = null,
     isInitial = false,
@@ -50,6 +51,24 @@ export const createStockAndUpdateBranchReport = async (params) => {
   let stock = null
   let initialStock = null
 
+  if (movement) {
+
+    switch (movement) {
+      case 'output':
+        stockData[movement] = params._id;
+        stockData.amount = -amount;
+        stockData.weight = -weight;
+        stockData.pieces = -pieces;
+        break;
+      case 'input':
+        stockData[movement] = params._id;
+        break;
+      default:
+        throw new Error("Movimiento no reconocido");
+    }
+
+    stockData._id = undefined;
+  }
 
   try {
 
@@ -93,10 +112,11 @@ const createInitialStock = async (stock, stockData, price, branch, product, crea
   nextBranchReportDate.setDate(nextBranchReportDate.getDate() + 1);
   const { bottomDate } = getDayRange(nextBranchReportDate);
   const branchReport = await fetchOrCreateBranchReport({ branchId: branch, date: nextBranchReportDate });
+  const isResidual = Branch.findById(branch).residualPrices;
 
   if (!branchReport) throw new Error("No se logró obtener el reporte de la sucursal");
 
-  const nextReportPrice = await getProductPrice(product, branch, branchReport.pricesDate || bottomDate);
+  const nextReportPrice = await getProductPrice(product, branch, (isResidual ? branchReport.residualPricesDate : branchReport.pricesDate) || bottomDate, isResidual);
   const initialStockId = new Types.ObjectId().toHexString();
   const initialStock = { ...stock._doc, _id: initialStockId, isInitial: true, associatedStock: stock._id, createdAt: bottomDate };
 

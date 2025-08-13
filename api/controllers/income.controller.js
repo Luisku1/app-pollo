@@ -8,6 +8,7 @@ import { pushOrPullCustomerReportRecord } from "./customer.controller.js";
 import { employeeAggregate, pushOrPullSupervisorReportRecord } from "./employee.controller.js";
 import SupervisorReport from "../models/accounts/supervisor.report.model.js";
 import Employee from "../models/employees/employee.model.js";
+import { dateFromYYYYMMDD } from "../../common/dateOps.js";
 
 export const typeAggregate = (localField = 'type') => {
   return [
@@ -169,6 +170,31 @@ export const newTransferredIncomeFunction = async (actualIncome, prevIncome) => 
 
     throw error
   }
+}
+
+export const incomesAggregate = () => {
+  return [
+    ...typeAggregate(),
+    ...employeeAggregate('employee'),
+    {
+      $lookup: {
+        from: 'branches',
+        localField: 'branch',
+        foreignField: '_id',
+        as: 'branch'
+      }
+    },
+    {
+      $lookup: {
+        from: 'customers',
+        localField: 'customer',
+        foreignField: '_id',
+        as: 'customer'
+      }
+    },
+    { $unwind: { path: '$branch', preserveNullAndEmptyArrays: true } },
+    { $unwind: { path: '$customer', preserveNullAndEmptyArrays: true } }
+  ]
 }
 
 export const lookupSupervisorReportIncomes = (type, arrayName, dayRange) => ({
@@ -403,102 +429,8 @@ export const getIncomeTypeId = async ({ name }) => {
   return IncomeType.findOne({ name }, '_id')
 }
 
-export const getBranchIncomesRequest = async (req, res, next) => {
-
-  const date = new Date(req.params.date)
-  const branchId = req.params.branchId
-
-  try {
-
-    const branchIncomes = await getBranchIncomes({ branchId, date })
-
-    if (branchIncomes.length > 0) {
-
-      res.status(200).json({ branchIncomes: branchIncomes })
-
-    } else {
-
-      next(errorHandler(404, 'Not incomes found'))
-    }
-
-  } catch (error) {
-
-    next(error)
-  }
-
-}
-
-export const getBranchIncomes = async ({ branchId, date }) => {
-
-  const { bottomDate, topDate } = getDayRange(new Date(date))
-
-  return IncomeCollected.aggregate([
-    {
-      $match: {
-        "createdAt": { $gte: new Date(bottomDate), $lt: new Date(topDate) },
-        "company": new Types.ObjectId(companyId),
-        "branch": new Types.ObjectId(branchId)
-      }
-    },
-    {
-      $lookup: {
-        from: 'employeepayments',
-        localField: '_id',
-        foreignField: 'income',
-        as: 'employeePayment',
-        pipeline: [
-          {
-            $lookup: {
-              from: 'employees',
-              localField: 'employee',
-              foreignField: '_id',
-              as: 'employee'
-            }
-          },
-          { $unwind: { path: '$employee', preserveNullAndEmptyArrays: true } }
-        ]
-      }
-    },
-    ...employeeAggregate('employee'),
-    {
-      $lookup: {
-        from: 'branches',
-        localField: 'branch',
-        foreignField: '_id',
-        as: 'branch'
-      }
-    },
-    {
-      $lookup: {
-        from: 'incometypes',
-        localField: 'type',
-        foreignField: '_id',
-        as: 'type'
-      }
-    },
-    {
-      $lookup: {
-        from: 'customers',
-        localField: 'customer',
-        foreignField: '_id',
-        as: 'customer'
-      }
-    },
-    { $unwind: { path: '$employeePayment', preserveNullAndEmptyArrays: true } },
-    {
-      $unwind: { path: '$branch', preserveNullAndEmptyArrays: true }
-    },
-    {
-      $unwind: { path: '$type', preserveNullAndEmptyArrays: true }
-    },
-    {
-      $unwind: { path: '$customer', preserveNullAndEmptyArrays: true }
-    }
-  ]);
-}
-
 export const getIncomes = async (req, res, next) => {
-  const date = new Date(req.params.date);
+  const date = dateFromYYYYMMDD(req.params.date);
   const companyId = req.params.companyId;
 
   const { bottomDate, topDate } = getDayRange(date);
@@ -580,9 +512,10 @@ export const getIncomes = async (req, res, next) => {
 
       branchesIncomes.sort((prevIncome, nextIncome) => prevIncome.branch.position - nextIncome.branch.position);
 
-      res.status(200).json({ incomes: [...branchesIncomes, ...customersIncomes], total });
+      res.status(200).json({ incomes: [...branchesIncomes, ...customersIncomes] });
+
     } else {
-      next(errorHandler(404, 'No incomes found'));
+      res.status(404).json({ message: 'No incomes found', incomes: [] });
     }
   } catch (error) {
     next(error);

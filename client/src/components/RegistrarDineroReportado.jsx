@@ -40,7 +40,6 @@ export default function RegistrarDineroReportado({ supervisorReport, updateSuper
       }
 
       const newReport = recalculateSupervisorReport({ ...supervisorReport, [typeField]: amount })
-      console.log(newReport)
       if (selfChange) selfChange(newReport)
       if (updateSupervisorReportGroup && supervisorReport.supervisor?._id) updateSupervisorReportGroup(supervisorReport.supervisor._id, newReport)
       if (updateSupervisorReportSingle) updateSupervisorReportSingle(newReport)

@@ -13,6 +13,8 @@ import SupervisorReport from '../models/accounts/supervisor.report.model.js'
 import { supervisorsInfoQuery } from './report.controller.js'
 import { pricesAggregate } from './price.controller.js'
 import Branch from '../models/branch.model.js'
+import { dateFromYYYYMMDD } from '../../common/dateOps.js'
+import { areArraysEqual } from '../../common/arraysOps.js'
 
 export const branchLookup = {
   $lookup: {
@@ -87,13 +89,6 @@ export const assistantLookup = {
   }
 };
 
-export const unwindAssistant = {
-  $unwind: {
-    path: '$assistant',
-    preserveNullAndEmptyArrays: true,
-  }
-}
-
 export const senderLookup = {
   $lookup: {
     from: 'employees',
@@ -114,82 +109,6 @@ export const unwindSender = {
   $unwind: {
     path: '$sender',
     preserveNullAndEmptyArrays: true,
-  }
-}
-
-export const createBranchReport = async (req, res, next) => {
-
-  const companyId = req.params.companyId
-  const { initialStock, finalStock, inputs, providerInputs, outputs, outgoings, incomes, company, branch, employee, assistant, date } = req.body
-  const inputBalance = initialStock + inputs + providerInputs
-  const outputBalance = outgoings + outputs + incomes + finalStock
-  const balance = outputBalance - inputBalance
-  const createdAt = date
-
-  const { bottomDate, topDate } = getDayRange(createdAt)
-
-  try {
-
-    const originalBranchReport = await BranchReport.findOne({
-      createdAt: { $lt: topDate, $gte: bottomDate },
-      branch: branch
-    })
-
-    if (!originalBranchReport) {
-
-      await EmployeeDailyBalance.updateOne({
-
-        createdAt: { $lt: topDate, $gte: bottomDate },
-        employee: employee
-      }, { accountBalance: balance })
-
-      const reportData = await ReportData.findOne({
-
-        company: companyId,
-        createdAt: { $gte: bottomDate, $lt: topDate }
-      })
-
-      if (reportData) {
-
-        const newBranchReport = new BranchReport({ initialStock, providerInputs, finalStock, inputs, outputs, outgoings, incomes, company, branch, employee, assistant, balance, createdAt, reportData: reportData._id })
-
-        const updated = await ReportData.updateOne({ _id: reportData._id },
-          { $set: { incomes: (reportData.incomes + newBranchReport.incomes), stock: (reportData.stock + newBranchReport.finalStock), outgoings: (reportData.outgoings + newBranchReport.outgoings) } }
-        )
-
-        if (updated.acknowledged) {
-
-          await newBranchReport.save()
-          res.status(201).json({ branchReport: newBranchReport, message: 'Report data updated' })
-
-        } else {
-
-          await newBranchReport.save()
-          res.status(201).json({ branchReport: newBranchReport })
-        }
-
-      } else {
-
-        const newReportData = await new ReportData({ company: companyId, outgoings: outgoings, stock: finalStock, incomes: incomes })
-        const newBranchReport = new BranchReport({ initialStock, finalStock, providerInputs, inputs, outputs, outgoings, incomes, company, branch, employee, assistant, balance, createdAt, reportData: newReportData._id })
-
-        await newReportData.save()
-
-        await newBranchReport.save()
-
-        await BranchReport.updateOne({ _id: newBranchReport._id }, { $set: { 'reportData': newReportData._id } })
-
-        res.status(201).json({ branchReport: newBranchReport, reportData: newReportData })
-      }
-
-    } else {
-
-      next(errorHandler(404, 'Report already exists'))
-    }
-
-  } catch (error) {
-
-    next(error)
   }
 }
 
@@ -215,7 +134,7 @@ export const updateReportsAndBalancesAccounts = async ({ branchReport, updateIns
 
   } catch (error) {
 
-    const hasDifferences = updatedFields.some(field => branchReport[field] !== updatedBranchReport[field])
+    const hasDifferences = updatedFields.some(field => branchReport?.[field] !== updatedBranchReport?.[field])
 
     if (!updatedEmployeeDailyBalance && updatedBranchReport
       && hasDifferences) {
@@ -257,17 +176,17 @@ export const pushOrPullBranchReportRecord = async ({
   })
 }
 
-export const fetchOrCreateBranchReport = async ({ branchId, companyId = null, date }) => {
+export const fetchOrCreateBranchReport = async ({ branchId, companyId = null, date, pricesDate = null, residualPricesDate = null }) => {
 
   let branchReport = null
 
   try {
 
-    branchReport = await fetchBranchReport({ branchId, date })
+    branchReport = await fetchBranchReport({ branchId, date, pricesDate, residualPricesDate })
 
     if (!branchReport) {
 
-      branchReport = await createDefaultBranchReport({ branchId, date, companyId: companyId || await getBranchCompany(branchId) })
+      branchReport = await createDefaultBranchReport({ branchId, date, companyId: companyId || await getBranchCompany(branchId), pricesDate, residualPricesDate })
     }
 
     if (!branchReport) throw new Error("No se encontró ni se pudo crear el reporte");
@@ -275,6 +194,7 @@ export const fetchOrCreateBranchReport = async ({ branchId, companyId = null, da
     return branchReport
 
   } catch (error) {
+    console.log(error)
 
     throw error
   }
@@ -285,11 +205,11 @@ export const getBranchCompany = async (branchId) => {
   return (await Branch.findById(branchId)).company
 }
 
-export const createDefaultBranchReport = async ({ branchId, date, companyId }) => {
+export const createDefaultBranchReport = async ({ branchId, date, companyId, pricesDate = null, residualPricesDate = null }) => {
 
   const { bottomDate } = getDayRange(date)
 
-  const newBranchReport = await BranchReport.create({ branch: branchId, createdAt: bottomDate, company: companyId, pricesDate: bottomDate })
+  const newBranchReport = await BranchReport.create({ branch: branchId, createdAt: bottomDate, company: companyId, pricesDate: pricesDate || bottomDate, residualPricesDate: residualPricesDate || bottomDate })
 
   return newBranchReport
 }
@@ -325,9 +245,9 @@ export const recalculateBranchReport = async ({ branchReport: paramsBranchReport
     if (paramsBranchReport) {
 
       const reportDate = paramsBranchReport.createdAt
-      const reportBranchId = paramsBranchReport?.branch?._id ? paramsBranchReport.branch._id : paramsBranchReport.branch
+      const reportBranchId = paramsBranchReport?.branch?._id ?? paramsBranchReport?.branch
 
-      const { incomesArray, outgoingsArray, inputsArray, outputsArray, providerInputsArray, initialStockArray, finalStockArray, sender, createdAt, branch, employee, assistant, company, pricesDate, dateSent } = await fetchBranchReportInfo({ branchId: reportBranchId, date: reportDate })
+      const { incomesArray, outgoingsArray, inputsArray, outputsArray, providerInputsArray, initialStockArray, finalStockArray, sender, createdAt, branch, employee, assistant, company, pricesDate, dateSent } = await fetchBranchReportInfo({ branchId: reportBranchId, date: reportDate, reportId: paramsBranchReport._id })
 
       const incomes = incomesArray?.length > 0
         ? incomesArray.reduce((total, income) => total + income.amount, 0)
@@ -431,57 +351,60 @@ export const setBalanceOnZero = async (req, res, next) => {
   }
 }
 
-export const updateBranchReport = async (req, res, next) => {
+export const updateBranchReportEmployees = async (req, res, next) => {
+  const { reportId } = req.params
+  const { employeeId, assistants, branchId } = req.body
+  const date = req.body.date ? dateFromYYYYMMDD(req.body.date) : null;
 
-  const { branchReport, employee, assistant } = req.body
-  let updatedBranchReport = null
-  const actualEmployeeId = employee?.id ?? employee ?? null
-  const previousEmployeeId = branchReport?.employee?._id ?? branchReport.employee ?? null
-  const previousAssistantId = branchReport?.assistant?._id ? branchReport.assistant._id : branchReport.assistant
+  if (!employeeId && !assistants) return next(errorHandler(400, 'At least one employee or assistant is required'))
+
+  let branchReport = null
+  let reportToUpdate = null
+  let previousEmployeeId = null
+  let previousAssistants = null
 
   try {
 
-    if (!actualEmployeeId) throw new Error("Asegúrate de seleccionar un empleado");
+    if (!reportId && branchId && date) {
+      branchReport = await fetchOrCreateBranchReport({ branchId, date })
+    } else {
+      if (!reportId) return next(errorHandler(400, 'Report ID is required'))
+      branchReport = await fetchBranchReportById({ branchReportId: reportId, populate: true })
+    }
 
-    if (actualEmployeeId != previousEmployeeId) {
+    reportToUpdate = branchReport.toObject();
 
-      if (previousEmployeeId) {
+    if (!branchReport) throw new Error("Un error ha ocurrido al consultar o crear el reporte");
+    previousEmployeeId = branchReport.employee?._id || branchReport.employee || null
+    previousAssistants = branchReport.assistant || []
 
-        await updateEmployeeDailyBalances({ branchReport: branchReport, changedEmployee: true })
+    if (assistants && assistants.length > 0) {
+      if ((previousAssistants.length === 0 && assistants.length > 0) || !areArraysEqual(previousAssistants, assistants)) {
+        reportToUpdate.assistant = assistants.map(assistant => assistant._id || assistant)
       }
-
-      branchReport.employee = employee
-
-      await updateEmployeeDailyBalances({ branchReport: branchReport })
-
-      updatedBranchReport = await BranchReport.findByIdAndUpdate(branchReport._id, {
-        $set: { employee: actualEmployeeId, dateSent: new Date() }
-      })
     }
 
-    if (previousAssistantId != assistant) {
-
-      updatedBranchReport = await BranchReport.findByIdAndUpdate(branchReport._id, {
-        $set: { assistant: assistant, dateSent: new Date() }
-      })
+    if (employeeId && (previousEmployeeId && employeeId !== previousEmployeeId) || !previousEmployeeId) {
+      reportToUpdate.employee = employeeId
+      reportToUpdate.dateSent = (new Date()).toISOString()
+      await updateEmployeeDailyBalances({ branchReport: reportToUpdate, changedEmployee: previousEmployeeId ?? null })
     }
 
-    if (branchReport.dateSent) {
+    await BranchReport.findByIdAndUpdate(branchReport._id, {
+      employee: reportToUpdate.employee,
+      assistant: reportToUpdate.assistant,
+      dateSent: reportToUpdate.dateSent
+    }, { new: true })
 
-      updatedBranchReport = await BranchReport.findByIdAndUpdate(branchReport._id, {
-        $set: { employee: actualEmployeeId, assistant: assistant }
-      })
-    }
+    recalculateBranchReport({ branchReport: reportToUpdate })
 
-    if (updatedBranchReport) {
-
-      await recalculateBranchReport({ branchReport: updatedBranchReport })
-
-      res.status(200).json('Branch report updated successfully')
-    }
+    res.status(200).json({
+      message: 'Branch report employees updated successfully',
+      success: true,
+      data: reportToUpdate
+    })
 
   } catch (error) {
-
     console.log(error)
     next(error)
   }
@@ -490,7 +413,7 @@ export const updateBranchReport = async (req, res, next) => {
 export const getBranchReport = async (req, res, next) => {
 
   const branchId = req.params.branchId
-  const date = new Date(req.params.date)
+  const date = dateFromYYYYMMDD(req.params.date)
 
   try {
 
@@ -511,27 +434,39 @@ export const getBranchReport = async (req, res, next) => {
   }
 }
 
-export const changePricesDate = async (branchId, reportDate, pricesDate) => {
+export const changePricesDate = async (branchId, reportDate, pricesDate, residuals) => {
 
   let branchReport = null
   let updatedBranchReport = null
 
   try {
+
+    const reportExists = await fetchOrCreateBranchReport({ branchId, date: reportDate })
+
+    if (!reportExists) throw new Error("No se encontró el reporte para la fecha indicada");
     branchReport = await fetchBranchReportInfo({ branchId, date: reportDate })
 
-    if (!branchReport) throw new Error("No se encontró el reporte, asegúrate de registrar algo antes");
-
-    const newPricesBranchReport = await updateBranchReportPrices(branchReport, pricesDate)
-
-    updatedBranchReport = await BranchReport.findByIdAndUpdate(newPricesBranchReport._id, {
+    const newPricesBranchReport = await updateBranchReportPrices(branchReport, pricesDate, residuals)
+    const updateFields = {
       initialStock: newPricesBranchReport.initialStock,
       finalStock: newPricesBranchReport.finalStock,
       inputs: newPricesBranchReport.inputs,
       outputs: newPricesBranchReport.outputs,
       providerInputs: newPricesBranchReport.providerInputs,
       balance: newPricesBranchReport.balance,
-      pricesDate: pricesDate
-    }, { new: true })
+    };
+
+    if (residuals) {
+      updateFields.residualPricesDate = pricesDate;
+    } else {
+      updateFields.pricesDate = pricesDate;
+    }
+
+    updatedBranchReport = await BranchReport.findByIdAndUpdate(
+      newPricesBranchReport._id,
+      updateFields,
+      { new: true }
+    );
 
     if (!updatedBranchReport) throw new Error("No se pudo actualizar el reporte con las nuevas fechas de precios");
 
@@ -543,24 +478,33 @@ export const changePricesDate = async (branchId, reportDate, pricesDate) => {
 
       await BranchReport.findByIdAndUpdate(branchReport._id, branchReport)
     }
-
     throw error
   }
 }
 
-const updateBranchReportPrices = async (branchReport, pricesDate) => {
+const updateBranchReportPrices = async (branchReport, pricesDate, residuals = false) => {
 
   const session = await BranchReport.startSession();
   session.startTransaction();
+  let residualPrices = null
 
   try {
     const prices = await pricesAggregate(branchReport.branch._id, pricesDate);
+    const useResidual = Branch.findById(branchReport.branch._id).residualPrices;
+
+    if (residuals && !useResidual) {
+      throw new Error("No se pueden usar precios residuales si la sucursal no está configurada para ello");
+    }
+
+    if (residuals && useResidual) {
+      residualPrices = await pricesAggregate(branchReport.branch._id, branchReport.residualPricesDate, null, true);
+    }
 
     const outputsArray = await Promise.all(
       branchReport.outputsArray.map(async (output) => {
         if (output.specialPrice) return output
         const price = (prices.find((price) => price.productId.toString() === output.product._id.toString())).latestPrice;
-        if (price == output.price) return output
+        if (price == output.price && (price * output.weigth) === output.amount) return output
         const amount = output.weight * price;
         await Output.findByIdAndUpdate(output._id, { price: price, amount });
         return { ...output, price: price, amount };
@@ -573,7 +517,7 @@ const updateBranchReportPrices = async (branchReport, pricesDate) => {
       branchReport.inputsArray.map(async (input) => {
         if (input.specialPrice) return input
         const price = (prices.find((price) => price.productId.toString() === input.product._id.toString())).latestPrice;
-        if (price == input.price) return input
+        if (price == input.price && (price * input.weigth) === input.amount) return input
         const amount = input.weight * price;
         await Input.findByIdAndUpdate(input._id, { price: price, amount });
         return { ...input, price: price, amount };
@@ -586,7 +530,7 @@ const updateBranchReportPrices = async (branchReport, pricesDate) => {
       branchReport.providerInputsArray.map(async (providerInput) => {
         if (providerInput.specialPrice) return providerInput
         const price = (prices.find((price) => price.productId.toString() === providerInput.product._id.toString())).latestPrice;
-        if (price == providerInput.price) return providerInput
+        if (price == providerInput.price && (price * providerInput.weigth) === providerInput.amount) return providerInput
         const amount = providerInput.weight * price;
         await ProviderInput.findByIdAndUpdate(providerInput._id, { price: price, amount });
         return { ...providerInput, price: price, amount };
@@ -598,7 +542,7 @@ const updateBranchReportPrices = async (branchReport, pricesDate) => {
     const finalStockArray = await Promise.all(
       branchReport.finalStockArray.map(async (finalStock) => {
         const price = (prices.find((price) => price.productId.toString() === finalStock.product._id.toString())).latestPrice;
-        if (price == finalStock.price) return finalStock
+        if (price == finalStock.price && (price * finalStock.weigth) === finalStock.amount) return finalStock
         const amount = finalStock.weight * price;
         await Stock.findByIdAndUpdate(finalStock._id, { price: price, amount });
         return { ...finalStock, price: price, amount };
@@ -609,8 +553,13 @@ const updateBranchReportPrices = async (branchReport, pricesDate) => {
 
     const initialStockArray = await Promise.all(
       branchReport.initialStockArray.map(async (initialStock) => {
-        const price = (prices.find((price) => price.productId.toString() === initialStock.product._id.toString())).latestPrice;
-        if (price == initialStock.price) return initialStock
+        let price = null;
+        if (residualPrices) {
+          price = (residualPrices.find((price) => price.productId.toString() === initialStock.product._id.toString())).latestPrice;
+        } else {
+          price = (prices.find((price) => price.productId.toString() === initialStock.product._id.toString())).latestPrice;
+        }
+        if (price == initialStock.price && (price * initialStock.weigth) === initialStock.amount) return initialStock
         const amount = initialStock.weight * price;
         await Stock.findByIdAndUpdate(initialStock._id, { price: price, amount });
         return { ...initialStock, price: price, amount };
@@ -921,7 +870,6 @@ const fetchBranchReportInfo = async ({ branchId = null, date = null, reportId = 
       employeeLookup,
       unwindEmployee,
       assistantLookup,
-      unwindAssistant,
       senderLookup,
       unwindSender,
       {
@@ -962,7 +910,7 @@ const fetchBranchReportInfo = async ({ branchId = null, date = null, reportId = 
   }
 };
 
-export const fetchBranchReport = async ({ branchId, date, populate = false }) => {
+export const fetchBranchReport = async ({ branchId, date, populate = false, pricesDate = null, residualPricesDate = null }) => {
 
   const { bottomDate, topDate } = getDayRange(new Date(date))
 
@@ -979,6 +927,16 @@ export const fetchBranchReport = async ({ branchId, date, populate = false }) =>
         createdAt: { $lt: topDate, $gte: bottomDate },
         branch: new Types.ObjectId(branchId)
       })
+    }
+
+    if (branchReport && pricesDate) {
+      branchReport = { ...branchReport, pricesDate }
+      await BranchReport.findByIdAndUpdate(branchReport._id, { pricesDate })
+    }
+
+    if (branchReport && residualPricesDate) {
+      branchReport = { ...branchReport, residualPricesDate }
+      await BranchReport.findByIdAndUpdate(branchReport._id, { residualPricesDate })
     }
 
     return branchReport || null
@@ -1005,6 +963,7 @@ export const fetchBranchReportById = async ({ branchReportId, populate = false }
         .populate('outputsArray')
         .populate('outgoingsArray')
         .populate('incomesArray')
+        .populate('branch')
 
     } else {
 

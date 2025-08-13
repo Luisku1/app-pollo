@@ -1,13 +1,20 @@
 export const getDayExtraOutgoingsFetch = async ({ companyId, date }) => {
 
-  const res = await fetch('/api/outgoing/get-extra-outgoings/' + companyId + '/' + date)
-  const data = await res.json()
+  try {
 
-  if (data.success === false) {
+    const res = await fetch('/api/outgoing/get-extra-outgoings/' + companyId + '/' + date)
+    const data = await res.json()
 
-    throw new Error("No se encontraron gastos fuera de cuentas");
+    if (data.success === false) {
 
+      return { extraOutgoings: [], totalExtraOutgoings: 0 }
+
+    }
+
+    return { extraOutgoings: data.extraOutgoings, totalExtraOutgoings: data.totalExtraOutgoings }
+
+  } catch (error) {
+
+    throw new Error('Error fetching extra outgoings')
   }
-
-  return {extraOutgoings: data.extraOutgoings, totalExtraOutgoings: data.totalExtraOutgoings}
 }

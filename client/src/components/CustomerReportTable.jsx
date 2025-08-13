@@ -72,19 +72,15 @@ const CustomerReportTable = ({ customerReports, onRowClick, totals }) => {
 	}
 
 	return (
-		<div className="border rounded-lg overflow-x-auto mt-2">
-			<table className={' bg-white mx-auto w-full'}>
-				<thead className="border border-black">
-					<tr>
+		<div className="overflow-x-auto rounded-2xl shadow-md bg-white mt-2">
+			<table className="min-w-full text-sm">
+				<thead>
+					<tr className="bg-gray-100 uppercase text-xs text-gray-700">
 						{columns.map((col) => (
 							<th
 								key={col.field}
-								onClick={() => {
-									totals?.[col.field]?.onClick();
-								}}
-								className={`text-sm ${
-									totals?.[col.field]?.onClick ? 'cursor-pointer text' : ''
-								}`}
+								onClick={() => { totals?.[col.field]?.onClick && totals[col.field].onClick(); }}
+								className={`px-3 py-2 font-bold tracking-wide text-left ${totals?.[col.field]?.onClick ? 'cursor-pointer hover:underline' : ''}`}
 							>
 								{col.header}
 							</th>
@@ -95,37 +91,39 @@ const CustomerReportTable = ({ customerReports, onRowClick, totals }) => {
 					{customerReports.map((customerReport, index) => (
 						<tr
 							key={customerReport._id}
-							className={`border-x ${
-								index + 1 !== customerReports.length ? 'border-b ' : ''
-							} border-black border-opacity-40 ${
-								index % 2 === 0 ? 'bg-gray-200 bg-opacity-75' : ''
-							} cursor-pointer`}
+							className={`transition hover:bg-blue-50 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'} cursor-pointer`}
 							onClick={() => {
 								onRowClick(customerReport);
 							}}
 						>
 							{columns.map((col) => (
-								<td key={col.field} className="text-center text-sm">
+								<td key={col.field} className="px-3 py-2 text-center align-middle">
 									{col.column(customerReport[col.field], customerReport) ?? ''}
 								</td>
 							))}
 						</tr>
 					))}
 				</tbody>
-				<tfoot className="border-t border-black text-sm py-2">
-					<tr>
+				<tfoot>
+					<tr className="bg-blue-100 font-bold">
 						{columns.map((col) => {
-							const sampleValue = customerReports[0]?.[col.field]; // Infer type
+							const sampleValue = customerReports[0]?.[col.field];
 							const isNumericField = isNumeric(sampleValue);
+							const onClick = totals?.[col.field]?.onClick;
 							const totalValue = isNumericField
-								? totals?.[col.field] ?? 0
-								: totals?.[col.field] ?? '';
+								? totals?.[col.field]?.value ?? totals?.[col.field] ?? 0
+								: totals?.[col.field]?.value ?? totals?.[col.field] ?? '';
 							const text = totals?.[col.field]?.text ?? '';
 
 							return (
 								<td
 									key={col.field}
-									className={`text-center text-m font-semibold ${text}`}
+									className={`px-3 py-2 text-center text-m font-semibold ${text} ${onClick ? 'cursor-pointer hover:underline' : ''}`}
+									onClick={() => {
+										if (onClick) {
+											onClick();
+										}
+									}}
 								>
 									{totalValue}
 								</td>

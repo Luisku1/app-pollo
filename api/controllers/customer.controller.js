@@ -7,6 +7,7 @@ import { branchAggregate } from './branch.controller.js'
 import { employeeAggregate, employeePaymentIncomeAggregate } from './employee.controller.js'
 import { incomeAggregate, typeAggregate } from './income.controller.js'
 import { productAggregate } from './product.controller.js'
+import { dateFromYYYYMMDD } from '../../common/dateOps.js'
 
 export const customerAggregate = (localField = 'customer') => {
   return [
@@ -172,7 +173,8 @@ export const pushOrPullCustomerReportRecord = async ({
 }
 
 export const getCustomersReports = async (req, res, next) => {
-  const { companyId, date } = req.params
+  const companyId = req.params.companyId
+  const date = dateFromYYYYMMDD(req.params.date)
 
   try {
 

@@ -12,7 +12,7 @@ export default {
         'pastel-pink': '#FEEAF2',
         'header': '#333333',
         'menu': '#F4F4F4',
-        'button': '#7b4e5a',
+        'button': '#3B82F6',
         'options-bar': '#415D43',
         'supervisor-button': '#CBD5E1',
         'inputs': '#FCE8E6',

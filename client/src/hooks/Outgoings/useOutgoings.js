@@ -1,18 +1,27 @@
-import { useState } from "react"
-import { useAddOutgoing } from "./useAddOutgoing"
-import { useDeleteOutgoing } from "./useDeleteOutgoing"
+import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { addOutgoingFetch } from "../../services/Outgoings/addOutgoing";
+import { deleteOutgoingFetch } from "../../services/Outgoings/deleteOutgoing";
 
 export const useOutgoings = () => {
-  const { deleteOutgoing } = useDeleteOutgoing()
-  const { addOutgoing } = useAddOutgoing()
-  const [loading, setLoading] = useState(false)
+  const addOutgoingMutation = useMutation({
+    mutationFn: addOutgoingFetch
+  });
+
+  const deleteOutgoingMutation = useMutation({
+    mutationFn: (outgoing) => {
+      return deleteOutgoingFetch(outgoing._id);
+    },
+  });
+
+  const [loading, setLoading] = useState(false);
 
   // Ya no maneja estado local de outgoings ni mutaciones optimistas
 
   // Sólo expone funciones para la API
   return {
-    addOutgoing,
-    deleteOutgoing,
-    loading
-  }
-}
+    addOutgoing: addOutgoingMutation.mutateAsync,
+    deleteOutgoing: deleteOutgoingMutation.mutateAsync,
+    loading: deleteOutgoingMutation.isLoading || addOutgoingMutation.isLoading,
+  };
+};

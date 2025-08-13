@@ -4,12 +4,13 @@ import { getIncomesFetch } from "../../services/Incomes/getIncomes";
 import { useAddIncome } from "./useAddIncome";
 import { useDeleteIncome } from "./useDeleteIncome";
 import { Types } from "mongoose";
-import { recalculateBranchReport } from '../../../../common/recalculateReports';
 import { optimisticUpdateReport, rollbackReport } from "../../helpers/optimisticReportUpdate";
 import { addToArrayAndSum, removeFromArrayAndSum } from '../../helpers/reportActions';
+import { getId } from "../../helpers/Functions";
+import { formatDate, formatDateYYYYMMDD } from "../../../../common/dateOps";
 
 
-export const useIncomes = ({ companyId = null, date = null, initialIncomes = null }) => {
+export const useIncomes = ({ companyId = null, date = null, useToday, initialIncomes = null }) => {
   const { addIncome, loading: addLoading } = useAddIncome();
   const { deleteIncome, loading: deleteLoading } = useDeleteIncome();
   const [error, setError] = useState(null);
@@ -31,7 +32,11 @@ export const useIncomes = ({ companyId = null, date = null, initialIncomes = nul
 
   // Inicializa incomes desde React Query o initialIncomes
   useEffect(() => {
-    if (incomesData) setIncomes(incomesData);
+    if (!incomesData) {
+      setIncomes([]);
+      return;
+    }
+    if (incomesData.length >= 0) setIncomes(incomesData);
   }, [incomesData]);
 
   useEffect(() => {
@@ -42,32 +47,71 @@ export const useIncomes = ({ companyId = null, date = null, initialIncomes = nul
     setIncomes(initialArray);
   };
 
+  // Actualiza el caché de React Query directamente para evitar problemas de concurrencia
   const pushIncome = (income) => {
-    if (income?.length > 0)
-      setIncomes((prevIncomes) => [...income, ...prevIncomes]);
-    else
-      setIncomes((prevIncomes) => [income, ...prevIncomes]);
+
+    const cacheDate = formatDateYYYYMMDD(new Date(income.createdAt));
+
+    queryClient.setQueryData(["incomes", companyId, cacheDate], (prev = []) => {
+      if (income?.length > 0) {
+        return [...income, ...prev];
+      } else {
+        return [income, ...prev];
+      }
+    });
+    if (!useToday) {
+      setIncomes((prevIncomes) => {
+        if (income?.length > 0) {
+          return [...income, ...prevIncomes];
+        } else {
+          return [income, ...prevIncomes];
+        }
+      });
+    }
   };
 
   const spliceIncome = (index) => {
-    setIncomes((prevIncomes) => {
-      const newIncomes = prevIncomes.filter((_, i) => i !== index);
-      return newIncomes;
+
+    const cacheDate = formatDateYYYYMMDD(new Date(incomes[index].createdAt));
+    // Actualiza el caché de React Query para eliminar el income eliminado
+    queryClient.setQueryData(["incomes", companyId, cacheDate], (prev = []) => {
+      if (prev.length === 1) {
+        return [];
+      }
+      if (prev.length > 1) {
+        return prev.filter((_, i) => i !== index);
+      }
+      return [];
     });
+
+
+    if (!useToday) {
+
+      setIncomes((prevIncomes) => {
+        if (prevIncomes.length === 1) {
+          return [];
+        }
+        if (prevIncomes.length > 1) {
+          return prevIncomes.filter((_, i) => i !== index);
+        }
+        return [];
+      });
+    }
   };
 
   const spliceIncomeById = (incomeId) => {
-    if (incomeId.length > 0) {
-      setIncomes((prevIncomes) => {
-        const filteredIncomes = prevIncomes.filter((income) => !incomeId.includes(income._id));
-        return filteredIncomes;
+    setIncomes((prevIncomes) => {
+      let idsToRemove = Array.isArray(incomeId) ? incomeId : [incomeId];
+      // Actualiza el caché de React Query para cada income eliminado
+      idsToRemove.forEach(id => {
+        const incomeToRemove = prevIncomes.find((income) => income._id === id);
+        if (incomeToRemove) {
+          const cacheDate = formatDateYYYYMMDD(new Date(incomeToRemove.createdAt));
+          queryClient.setQueryData(["incomes", companyId, cacheDate], (prev = []) => prev.filter((income) => income._id !== id));
+        }
       });
-    } else {
-      setIncomes((prevIncomes) => {
-        const filteredIncomes = prevIncomes.filter((income) => income._id !== incomeId);
-        return filteredIncomes;
-      });
-    }
+      return prevIncomes.filter((income) => !idsToRemove.includes(income._id));
+    });
   };
 
   const updateLastIncomeId = (incomeId) => {
@@ -96,7 +140,7 @@ export const useIncomes = ({ companyId = null, date = null, initialIncomes = nul
         prevBranchReports = optimisticUpdateReport({
           queryClient,
           queryKey: ['branchReports', companyId, date],
-          matchFn: (report, item) => report.branch._id === item.branch,
+          matchFn: (report, item) => report.branch._id === item.branch._id,
           updateFn: (report, item) => addToArrayAndSum(report, 'incomesArray', 'incomes', item),
           item: tempIncome
         });
@@ -106,7 +150,7 @@ export const useIncomes = ({ companyId = null, date = null, initialIncomes = nul
         prevSupervisorsReports = optimisticUpdateReport({
           queryClient,
           queryKey: ['supervisorsReportInfo', companyId, date],
-          matchFn: (report, item) => report.supervisor && report.supervisor._id === item.employee,
+          matchFn: (report, item) => getId(report.supervisor) && getId(report.supervisor) === getId(item.employee),
           updateFn: (report, item) => {
             // Determinar el tipo de income
             let newReport = { ...report };
@@ -126,11 +170,12 @@ export const useIncomes = ({ companyId = null, date = null, initialIncomes = nul
           item: tempIncome
         });
       }
-      // --- FIN ACTUALIZACIÓN OPTIMISTA ---
+
 
       await addIncome(tempIncome, tempPrevOwnerIncome, group);
 
     } catch (error) {
+
       spliceIncome(incomes.findIndex((income) => income._id === tempId));
       if (prevOwnerIncome)
         spliceIncomeById([tempPrevOwnerIncome._id, tempIncome._id]);
@@ -171,7 +216,7 @@ export const useIncomes = ({ companyId = null, date = null, initialIncomes = nul
         prevBranchReports = optimisticUpdateReport({
           queryClient,
           queryKey: ['branchReports', companyId, date],
-          matchFn: (report, item) => report.branch._id === item.branch,
+          matchFn: (report, item) => report.branch._id === item.branch._id,
           updateFn: (report, item) => removeFromArrayAndSum(report, 'incomesArray', 'incomes', item),
           item: income
         });
@@ -181,7 +226,7 @@ export const useIncomes = ({ companyId = null, date = null, initialIncomes = nul
         prevSupervisorsReports = optimisticUpdateReport({
           queryClient,
           queryKey: ['supervisorsReportInfo', companyId, date],
-          matchFn: (report, item) => report.supervisor && report.supervisor._id === item.employee,
+          matchFn: (report, item) => getId(report.supervisor) && getId(report.supervisor) === getId(item.employee),
           updateFn: (report, item) => {
             let newReport = { ...report };
             const typeName = (item.type && item.type.name) ? item.type.name : null;

@@ -1,21 +1,22 @@
 import Price from '../models/accounts/price.model.js'
 import Branch from '../models/branch.model.js'
+import BranchProductFormula from '../models/branch.product.formula.model.js'
 import Product from '../models/product.model.js'
 import { errorHandler } from '../utils/error.js'
 import { getDayRange } from '../utils/formatDate.js'
 
-export const productAggregate = (localField = 'product') => {
+export const productAggregate = (localField, as = null) => {
 	return [
 		{
 			$lookup: {
 				from: 'products',
 				localField: localField,
 				foreignField: '_id',
-				as: localField
+				as: as || localField
 			}
 		},
 		{
-			$unwind: { path: `$${localField}`, preserveNullAndEmptyArrays: true }
+			$unwind: { path: `$${as || localField}`, preserveNullAndEmptyArrays: true }
 		}
 	]
 }
@@ -54,6 +55,28 @@ export const newProduct = async (req, res, next) => {
 
 	} catch (error) {
 
+		next(error)
+	}
+}
+
+export const updateProduct = async (req, res, next) => {
+	const productId = req.params.productId
+	const { name, byPieces } = req.body
+
+	try {
+
+		const updatedProduct = await Product.findByIdAndUpdate(productId, {
+			name,
+			byPieces
+		}, { new: true })
+
+		if (updatedProduct) {
+			res.status(200).json({ product: updatedProduct })
+		} else {
+			next(errorHandler(404, 'Product not found'))
+		}
+
+	} catch (error) {
 		next(error)
 	}
 }
@@ -100,6 +123,54 @@ export const getProducts = async (req, res, next) => {
 
 	} catch (error) {
 
+		next(error)
+	}
+}
+
+
+export const newProductFormula = async (req, res, next) => {
+
+	const { branchId, productId, formula } = req.body
+
+	try {
+
+		const newFormula = await BranchProductFormula.create({
+			branchId,
+			productId,
+			formula
+		})
+
+		res.status(201).json({ formula: newFormula })
+
+	} catch (error) {
+
+		if (error.code === 11000) {
+			return next(errorHandler(400, 'Formula already exists for this product in this branch'))
+		}
+
+		next(error)
+	}
+}
+
+export const updateProductFormula = async (req, res, next) => {
+
+	const { formulaId } = req.params
+	const { formula } = req.body
+
+	try {
+
+		const updatedFormula = await BranchProductFormula.findByIdAndUpdate(formulaId,
+			{ formula },
+			{ new: true }
+		)
+
+		if (updatedFormula) {
+			res.status(200).json({ formula: updatedFormula })
+		} else {
+			next(errorHandler(404, 'Formula not found'))
+		}
+
+	} catch (error) {
 		next(error)
 	}
 }

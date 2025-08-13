@@ -1,7 +1,7 @@
 import { FaRegCopy } from 'react-icons/fa';
 import { useState } from 'react';
 
-export default function PhoneLinks({ phoneNumber, name }) {
+export default function PhoneLinks({ phoneNumber }) {
   const [copied, setCopied] = useState(false);
   if (!phoneNumber) return <span>Sin número de teléfono</span>;
 

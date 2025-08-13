@@ -5,15 +5,17 @@ import ProviderInput from '../models/providers/provider.input.model.js'
 import { getDayRange, today } from '../utils/formatDate.js'
 import { Types } from 'mongoose'
 import { pushOrPullBranchReportRecord } from './branch.report.controller.js'
-import { pushOrPullCustomerReportRecord } from './customer.controller.js'
+import { customerAggregate, pushOrPullCustomerReportRecord } from './customer.controller.js'
 import { employeeAggregate } from './employee.controller.js'
 import { createStockAndUpdateBranchReport, deleteStockAndUpdateBranchReport } from './stock.controller.js'
 import { branchAggregate } from './branch.controller.js'
 import { productAggregate } from './product.controller.js'
+import { dateFromYYYYMMDD } from '../../common/dateOps.js'
 
 const inputLookups = () => {
   return [
     ...employeeAggregate('employee'),
+    ...customerAggregate('customer'),
     {
       $lookup: {
         from: 'products',
@@ -30,18 +32,16 @@ const inputLookups = () => {
         as: 'branch'
       }
     },
-    {
-      $unwind: '$product'
-    },
-    {
-      $unwind: '$branch'
-    }
+    { $unwind: { path: '$product', preserveNullAndEmptyArrays: false } },
+    { $unwind: { path: '$branch', preserveNullAndEmptyArrays: true } }
+
   ]
 }
 
 const outputLookups = () => {
   return [
     ...employeeAggregate('employee'),
+    ...customerAggregate('customer'),
     {
       $lookup: {
         from: 'products',
@@ -87,14 +87,15 @@ export const newBranchInputAndUpdateBranchReport = async ({ _id, weight, comment
 
   let input = null
   let stock = null
+  let updatedBranchReport = null
 
   try {
 
-    input = await Input.create({ _id, weight, comment, pieces, company, addInStock, product, employee, branch, amount, price, createdAt, specialPrice })
+    input = await Input.create({ _id, weight, comment, pieces, company, product, employee, branch, amount, price, createdAt, specialPrice })
 
     if (!input) throw new Error("No se logró crear la entrada a sucursal");
 
-    await pushOrPullBranchReportRecord({
+    updatedBranchReport = await pushOrPullBranchReportRecord({
       branchId: branch,
       date: createdAt,
       record: input,
@@ -104,8 +105,14 @@ export const newBranchInputAndUpdateBranchReport = async ({ _id, weight, comment
       operation: '$addToSet'
     })
 
-    if (input.addInStock) {
-      stock = await createStockAndUpdateBranchReport(input)
+    if (!updatedBranchReport) throw new Error("No se logró actualizar el reporte de sucursal");
+
+    if (addInStock) {
+      stock = await createStockAndUpdateBranchReport(input, 'input')
+
+      if (!stock) throw new Error("No se logró crear el stock asociado a la entrada");
+
+      Input.findByIdAndUpdate(input._id, { stock: stock._id }, { new: true })
     }
 
     return input
@@ -114,7 +121,20 @@ export const newBranchInputAndUpdateBranchReport = async ({ _id, weight, comment
 
     if (stock) {
 
-      await deleteStockAndUpdateBranchReport({ stock_id: stock._id, alsoDeleteInitial: true })
+      await deleteStockAndUpdateBranchReport({ stockId: stock._id, alsoDeleteInitial: true })
+    }
+
+    if (updatedBranchReport) {
+
+      await pushOrPullBranchReportRecord({
+        branchId: branch,
+        date: createdAt,
+        record: input,
+        affectsBalancePositively: false,
+        operation: '$pull',
+        arrayField: 'inputsArray',
+        amountField: 'inputs'
+      })
     }
 
     if (input) {
@@ -139,8 +159,9 @@ export const newCustomerInput = async (req, res, next) => {
       date: createdAt,
       record: input,
       affectsBalancePositively: false,
-      amountField: 'salesAmount',
-      arrayField: 'branchProducts'
+      operation: '$addToSet',
+      amountField: 'sales',
+      arrayField: 'branchSales'
     })
 
     res.status(200).json({ input })
@@ -152,122 +173,166 @@ export const newCustomerInput = async (req, res, next) => {
 }
 
 export const getNetDifference = async (req, res, next) => {
-
-  const date = new Date(req.params.date)
+  const date = dateFromYYYYMMDD(req.params.date)
   const companyId = req.params.companyId
-
   const { bottomDate, topDate } = getDayRange(date)
 
   try {
-
-    const outputs = await Output.find({
-      $and: [
-        {
-          createdAt: {
-
-            $gte: bottomDate
-          }
-        },
-        {
-          createdAt: {
-
-            $lt: topDate
-          }
-
-        },
-        {
-          company: companyId
-        }]
-    }).populate({ path: 'branch', select: 'p' }).populate({ path: 'product', select: 'name' }).populate({ path: 'employee', select: 'name lastName' })
-
-    const inputs = await Input.find({
-      $and: [{
-
-        createdAt: {
-
-          $gte: bottomDate
+    // Use $unionWith to combine Input and Output collections in a single pipeline
+    // Tag each document as 'input' or 'output' and normalize the sign
+    const pipeline = [
+      {
+        $match: {
+          createdAt: { $gte: new Date(bottomDate), $lt: new Date(topDate) },
+          company: new Types.ObjectId(companyId)
         }
       },
       {
-
-        createdAt: {
-
-          $lt: topDate
+        $project: {
+          employee: 1,
+          product: 1,
+          weight: 1,
+          branch: 1,
+          type: { $literal: 'input' }
         }
-
       },
       {
-        company: companyId
-      }]
-    }).populate({ path: 'branch', select: 'p' }).populate({ path: 'product', select: 'name' }).populate({ path: 'employee', select: 'name lastName' })
-
-    const employeesInputs = groupAndSumFunction(inputs)
-
-    const employeesOutputs = groupAndSumFunction(outputs)
-
-    const employeeNetDifference = {}
-
-    Object.keys(employeesOutputs).forEach(employeeOutputs => {
-
-      if (!employeeNetDifference[employeeOutputs]) {
-
-        employeeNetDifference[employeeOutputs] = {
-
-          employee: employeesOutputs[employeeOutputs].employee,
-          totalDifference: 0.00,
-          netDifference: {}
+        $unionWith: {
+          coll: 'outputs',
+          pipeline: [
+            {
+              $match: {
+                createdAt: { $gte: new Date(bottomDate), $lt: new Date(topDate) },
+                company: new Types.ObjectId(companyId)
+              }
+            },
+            {
+              $project: {
+                employee: 1,
+                product: 1,
+                weight: 1,
+                branch: 1,
+                type: { $literal: 'output' }
+              }
+            }
+          ]
         }
-      }
-
-      Object.keys(employeesOutputs[employeeOutputs].productsMovement).forEach((product => {
-
-        const difference = (employeesInputs[employeeOutputs] ? employeesInputs[employeeOutputs].productsMovement[product] ? employeesInputs[employeeOutputs].productsMovement[product].weight : 0 : 0) - (employeesOutputs[employeeOutputs].productsMovement[product].weight)
-
-        employeeNetDifference[employeeOutputs].totalDifference += difference
-
-        employeeNetDifference[employeeOutputs].netDifference[product] = {
-
-          name: employeesOutputs[employeeOutputs].productsMovement[product].name,
-          difference: difference
+      },
+      // Lookup employee and product details
+      {
+        $lookup: {
+          from: 'employees',
+          localField: 'employee',
+          foreignField: '_id',
+          as: 'employee'
         }
-      }))
-    })
-
-
-    Object.keys(employeesInputs).forEach(employeeInputs => {
-
-      if (!employeeNetDifference[employeeInputs]) {
-
-        employeeNetDifference[employeeInputs] = {
-
-          employee: employeesInputs[employeeInputs].employee,
-          totalDifference: 0.00,
-          netDifference: {}
+      },
+      { $unwind: { path: '$employee', preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: 'products',
+          localField: 'product',
+          foreignField: '_id',
+          as: 'product'
         }
-      }
-
-      Object.keys(employeesInputs[employeeInputs].productsMovement).forEach((product => {
-
-        if (!employeeNetDifference[employeeInputs].netDifference[product]) {
-
-          const difference = (employeesInputs[employeeInputs].productsMovement[product].weight) - (employeesOutputs[employeeInputs] ? employeesOutputs[employeeInputs].productsMovement[product] ? employeesOutputs[employeeInputs].productsMovement[product].weight : 0 : 0)
-
-          employeeNetDifference[employeeInputs].totalDifference += difference
-
-          employeeNetDifference[employeeInputs].netDifference[product] = {
-
-            name: employeesInputs[employeeInputs].productsMovement[product].name,
-            difference: difference
+      },
+      { $unwind: { path: '$product', preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: 'branches',
+          localField: 'branch',
+          foreignField: '_id',
+          as: 'branch'
+        }
+      },
+      { $unwind: { path: '$branch', preserveNullAndEmptyArrays: true } },
+      // Normalize weight by branch.p (if present)
+      {
+        $addFields: {
+          normWeight: {
+            $cond: [
+              { $ifNull: ['$branch.p', false] },
+              { $divide: ['$weight', '$branch.p'] },
+              '$weight'
+            ]
           }
         }
-      }))
-    })
+      },
+      // Assign sign: + for input, - for output
+      {
+        $addFields: {
+          signedWeight: {
+            $cond: [
+              { $eq: ['$type', 'input'] },
+              '$normWeight',
+              { $multiply: ['$normWeight', -1] }
+            ]
+          }
+        }
+      },
+      // Group by employee and product
+      {
+        $group: {
+          _id: {
+            employee: '$employee._id',
+            product: '$product._id'
+          },
+          employee: { $first: '$employee' },
+          product: { $first: '$product' },
+          totalDifference: { $sum: '$signedWeight' }
+        }
+      },
+      // Only keep nonzero differences
+      {
+        $match: { totalDifference: { $ne: 0 } }
+      }
+    ];
 
-    res.status(200).json({ netDifference: employeeNetDifference })
+    const results = await Input.aggregate(pipeline);
 
+    // Build byEmployee and byProduct structures
+    const byEmployee = {};
+    const byProduct = {};
+    for (const row of results) {
+      const empId = row.employee?._id?.toString();
+      const prodId = row.product?._id?.toString();
+      const employee = row.employee;
+      const product = row.product;
+      const productName = product?.name;
+      const diff = row.totalDifference;
+      // By employee
+      if (empId) {
+        if (!byEmployee[empId]) {
+          byEmployee[empId] = {
+            employee,
+            totalDifference: 0,
+            netDifference: {}
+          };
+        }
+        byEmployee[empId].totalDifference += diff;
+        if (!byEmployee[empId].netDifference[prodId]) {
+          byEmployee[empId].netDifference[prodId] = { name: productName, difference: 0 };
+        }
+        byEmployee[empId].netDifference[prodId].difference += diff;
+      }
+      // By product
+      if (prodId) {
+        if (!byProduct[prodId]) {
+          byProduct[prodId] = { name: productName, employees: {} };
+        }
+        if (!byProduct[prodId].employees[empId]) {
+          byProduct[prodId].employees[empId] = { employee, difference: 0 };
+        }
+        byProduct[prodId].employees[empId].difference += diff;
+      }
+    }
+
+    res.status(200).json({
+      byEmployee,
+      byProduct
+    });
   } catch (error) {
-
-    next(error)
+    next(error);
   }
 }
 
@@ -318,7 +383,7 @@ const groupAndSumFunction = (items) => {
 
 export const getBranchInputsRequest = async (req, res, next) => {
 
-  const date = new Date(req.params.date)
+  const date = dateFromYYYYMMDD(req.params.date)
   const branchId = req.params.branchId
 
   try {
@@ -373,7 +438,7 @@ export const getBranchInputs = async ({ branchId, date }) => {
 export const getBranchProviderInputsRequest = async (req, res, next) => {
 
   const branchId = req.params.branchId
-  const date = new Date(req.params.date)
+  const date = dateFromYYYYMMDD(req.params.date)
 
   try {
 
@@ -422,11 +487,10 @@ export const getBranchProviderInputs = async ({ branchId, date }) => {
 
 export const getInputs = async (req, res, next) => {
 
-  const date = new Date(req.params.date)
+  const date = dateFromYYYYMMDD(req.params.date)
   const companyId = req.params.companyId
 
   const { bottomDate, topDate } = getDayRange(date)
-
 
   try {
 
@@ -439,10 +503,15 @@ export const getInputs = async (req, res, next) => {
       },
       ...inputLookups()
     ])
+    console.log(inputs)
 
     if (inputs.length == 0) {
 
-      next(errorHandler(404, 'Not inputs found'))
+      res.status(404).json({
+        message: 'No inputs found',
+        data: [],
+        success: false
+      })
 
     } else {
 
@@ -450,7 +519,7 @@ export const getInputs = async (req, res, next) => {
       const branchInputs = []
       const customerInputs = []
 
-      inputs.forEach(input => {
+      inputs.forEach((input) => {
 
         if (input.branch === undefined) {
 
@@ -469,7 +538,11 @@ export const getInputs = async (req, res, next) => {
         return input.branch.position - nextInput.branch.position
       })
 
-      res.status(200).json({ inputs: [...branchInputs, ...customerInputs], totalWeight: totalWeight })
+      res.status(200).json({
+        data: [...branchInputs, ...customerInputs],
+        message: 'Inputs found',
+        success: true
+      })
     }
 
   } catch (error) {
@@ -537,11 +610,6 @@ export const deleteInput = async (req, res, next) => {
 
   } catch (error) {
 
-    if (deletedInput) {
-
-      await Input.create({ deletedInput })
-    }
-
     next(error);
   }
 }
@@ -568,29 +636,31 @@ export const deleteInputById = async (inputId) => {
         amountField: 'inputs'
       })
 
-      if (deletedInput.addInStock && deletedInput.stock_id) {
+      if (deletedInput.stock) {
 
-        await deleteStockAndUpdateBranchReport({ stock_id: deletedInput.stock_id, alsoDeleteInitial: true })
+        await deleteStockAndUpdateBranchReport({ stock_id: deletedInput.stock, alsoDeleteInitial: true })
       }
 
     } else {
 
       await pushOrPullCustomerReportRecord({
-        customerId: deleteInput.customer,
+        customerId: deletedInput.customer,
         date: deletedInput.createdAt,
         record: deletedInput,
         affectsBalancePositively: false,
         operation: '$pull',
-        arrayField: 'branchProducts',
-        amountField: 'salesAmount'
+        arrayField: 'branchSales',
+        amountField: 'sales'
       })
     }
 
   } catch (error) {
 
+    console.log(error)
+
     if (deletedInput) {
 
-      await Input.create({ deletedInput })
+      await Input.create(deletedInput)
     }
 
     throw error;
@@ -599,11 +669,11 @@ export const deleteInputById = async (inputId) => {
 
 export const newBranchOutput = async (req, res, next) => {
 
-  const { _id, weight, comment, amount, price, pieces, company, product, employee, branch: branch, specialPrice, createdAt } = req.body
+  const { _id, weight, comment, amount, price, pieces, company, product, employee, branch: branch, specialPrice, fromStock = null, createdAt } = req.body
 
   try {
 
-    const newOutput = await newBranchOutputAndUpdateBranchReport({ _id, weight, comment, pieces, company, product, employee, branch, amount, price, createdAt, specialPrice })
+    const newOutput = await newBranchOutputAndUpdateBranchReport({ _id, weight, comment, pieces, company, product, employee, branch, fromStock, amount, price, createdAt, specialPrice })
     res.status(200).json({ message: 'New output created', output: newOutput })
 
   } catch (error) {
@@ -612,9 +682,11 @@ export const newBranchOutput = async (req, res, next) => {
   }
 }
 
-export const newBranchOutputAndUpdateBranchReport = async ({ _id, weight, comment, pieces, company, product, employee, branch, amount, price, createdAt, specialPrice }) => {
+export const newBranchOutputAndUpdateBranchReport = async ({ _id, weight, comment, pieces, company, product, employee, branch, amount, price, createdAt, fromStock, specialPrice }) => {
 
   let output = null
+  let updatedBranchReport = null
+  let stock = null
 
   try {
 
@@ -622,7 +694,7 @@ export const newBranchOutputAndUpdateBranchReport = async ({ _id, weight, commen
 
     if (!output) throw new Error("No se logró crear el registro")
 
-    await pushOrPullBranchReportRecord({
+    updatedBranchReport = await pushOrPullBranchReportRecord({
       branchId: branch,
       date: createdAt,
       record: output,
@@ -632,9 +704,38 @@ export const newBranchOutputAndUpdateBranchReport = async ({ _id, weight, commen
       amountField: 'outputs'
     })
 
+    if (!updatedBranchReport) throw new Error("No se logró actualizar el reporte de sucursal");
+
+    if (fromStock) {
+
+      stock = await createStockAndUpdateBranchReport(output, 'output')
+
+      if (!stock) throw new Error("No se logró crear el stock asociado a la salida");
+
+      Output.findByIdAndUpdate(output._id, { stock: stock._id }, { new: true })
+    }
+
     return output
 
   } catch (error) {
+
+    if (updatedBranchReport) {
+
+      await pushOrPullBranchReportRecord({
+        branchId: branch,
+        date: createdAt,
+        record: output,
+        affectsBalancePositively: true,
+        operation: '$pull',
+        arrayField: 'outputsArray',
+        amountField: 'outputs'
+      })
+    }
+
+    if (stock) {
+
+      await deleteStockAndUpdateBranchReport({ stockId: stock._id, alsoDeleteInitial: true })
+    }
 
     if (output) {
 
@@ -674,7 +775,7 @@ export const newCustomerOutput = async (req, res, next) => {
 
 export const getBranchOutputsRequest = async (req, res, next) => {
 
-  const date = new Date(req.params.date)
+  const date = dateFromYYYYMMDD(req.params.date)
   const branchId = req.params.branchId
 
   try {
@@ -727,7 +828,7 @@ export const getBranchOutputs = async ({ branchId, date }) => {
 
 export const getOutputs = async (req, res, next) => {
 
-  const date = new Date(req.params.date)
+  const date = dateFromYYYYMMDD(req.params.date)
   const companyId = req.params.companyId
 
   const { bottomDate, topDate } = getDayRange(date)
@@ -755,7 +856,7 @@ export const getOutputs = async (req, res, next) => {
       const branchOutputs = []
       const customerOutputs = []
 
-      outputs.forEach(output => {
+      outputs.forEach((output) => {
 
         if (output.branch === undefined) {
 
@@ -894,7 +995,7 @@ export const getProviderProductInputs = async (req, res, next) => {
 
 export const getProviderInputs = async (req, res, next) => {
 
-  const date = new Date(req.params.date)
+  const date = dateFromYYYYMMDD(req.params.date)
   const companyId = req.params.companyId
   const { bottomDate, topDate } = getDayRange(date)
 
@@ -910,6 +1011,7 @@ export const getProviderInputs = async (req, res, next) => {
       ...productAggregate('product'),
       ...employeeAggregate('employee'),
       ...branchAggregate('branch'),
+      ...customerAggregate('customer'),
       {
         $group: {
           _id: "$product._id",
@@ -1003,7 +1105,7 @@ export const getBranchProviderInputsAvg = async (req, res, next) => {
 
 export const createBranchProviderInput = async (req, res, next) => {
 
-  const { _id, weight, product, price, amount, employee, branch, company, comment, pieces, specialPrice, createdAt } = req.body
+  const { _id, weight, product, price, amount, employee, branch, company, comment, pieces, provider, specialPrice, createdAt } = req.body
 
   try {
     const newProviderInput = await createBranchProviderInputAndUpdateBranchReport({ _id, weight, product, price, employee, branch, company, comment, pieces, amount, specialPrice, createdAt })
@@ -1016,13 +1118,13 @@ export const createBranchProviderInput = async (req, res, next) => {
   }
 }
 
-export const createBranchProviderInputAndUpdateBranchReport = async ({ _id, weight, product, price, employee, branch, company, comment, pieces, amount, specialPrice, createdAt }) => {
+export const createBranchProviderInputAndUpdateBranchReport = async ({ _id, weight, product, price, employee, branch, company, comment, pieces, amount, specialPrice, createdAt, provider }) => {
 
   let providerInput = null
 
   try {
 
-    const providerInputData = { weight, product, price, employee, branch, company, comment, pieces, amount, specialPrice, createdAt: today(createdAt) ? new Date() : createdAt }
+    const providerInputData = { weight, provider, product, price, employee, branch, company, comment, pieces, amount, specialPrice, createdAt: today(createdAt) ? new Date() : createdAt }
 
     if (_id) providerInputData._id = _id
 
@@ -1055,26 +1157,26 @@ export const createBranchProviderInputAndUpdateBranchReport = async ({ _id, weig
 
 export const createCustomerProviderInput = async (req, res, next) => {
 
-  const { _id, weight, product, price, amount, employee, customer, company, comment, pieces, createdAt } = req.body
+  const { _id, weight, product, price, amount, employee, customer, company, comment, pieces, provider, createdAt } = req.body
 
   let providerInput = null
 
   try {
 
-    const providerInputData = { weight, product, price, amount, employee, customer, company, comment, pieces, createdAt }
+    const providerInputData = { weight, product, price, amount, employee, customer, provider, company, comment, pieces, createdAt }
 
     if (_id) providerInputData._id = _id
 
     providerInput = await ProviderInput.create(providerInputData)
 
-    pushOrPullCustomerReportRecord({
+    await pushOrPullCustomerReportRecord({
       customerId: customer,
       date: createdAt,
       record: providerInput,
       affectsBalancePositively: false,
       operation: '$addToSet',
-      arrayField: 'providerInputsArray',
-      amountField: 'providerInputs'
+      arrayField: 'directSales',
+      amountField: 'sales'
     })
 
     res.status(200).json({ providerInput })
@@ -1114,11 +1216,11 @@ export const deleteProviderInput = async (req, res, next) => {
       await pushOrPullCustomerReportRecord({
         customerId: deletedProviderInput.customer,
         date: deletedProviderInput.createdAt,
-        record: deleteProviderInput,
+        record: deletedProviderInput,
         affectsBalancePositively: false,
         operation: '$pull',
-        arrayField: 'providerProducts',
-        amountField: 'salesAmount'
+        arrayField: 'directSales',
+        amountField: 'sales'
       })
     }
 
@@ -1161,6 +1263,11 @@ export const deleteOutput = async (req, res, next) => {
         arrayField: 'outputsArray',
         amountField: 'outputs'
       })
+      if (deleteOutput.stock) {
+
+        await deleteStockAndUpdateBranchReport({ stock_id: deleteOutput.stock, alsoDeleteInitial: true })
+      }
+
     } else {
       await pushOrPullCustomerReportRecord({
         customerId: deletedOutput.customer,

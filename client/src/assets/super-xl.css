@@ -1,0 +1,5 @@
+@media (min-width: 2400px) {
+  .super-xl\:grid-cols-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

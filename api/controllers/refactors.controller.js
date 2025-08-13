@@ -52,14 +52,13 @@ export const recalculateCurrentNumina = async (req, res, next) => {
           weekStart: 1,
           weekEnd: 1,
           currentPayDay: 1,
-          lastWeekBalance: 1,
+          previousWeekBalance: 1,
           previousWeekBalance: 1,
           employeeDailyBalances: 1
         }
       }
     ])
 
-    console.log(`weeklyBalances: ${weeklyBalances.length}`, weeklyBalances)
 
 
     for (const weeklyBalance of weeklyBalances) {

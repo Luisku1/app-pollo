@@ -1,6 +1,5 @@
 export const updateEmployeeFetch = async (employeeData) => {
 
-  console.log(employeeData)
   const employeeId = employeeData._id;
   const res = await fetch('/api/employee/' + employeeId, {
     method: 'PUT',

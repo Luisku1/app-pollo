@@ -12,6 +12,7 @@ import ConfirmationButton from "../Buttons/ConfirmationButton"
 import { CiSquareInfo } from "react-icons/ci"
 import EmployeeInfo from "../EmployeeInfo"
 import { MoneyBag } from "../Reutilizable/Labels"
+import EmployeeName from "../Names/EmployeeName"
 
 export default function OutgoingsList({ outgoings, onDelete, modifyBalance }) {
   const { currentUser } = useSelector((state) => state.user)
@@ -41,10 +42,11 @@ export default function OutgoingsList({ outgoings, onDelete, modifyBalance }) {
   }
 
   const renderOutgoingItem = ({ outgoing, index }) => {
-    const { _id, employee, concept, amount, createdAt } = outgoing
+    const employee = outgoing.employee || outgoing.deletedEmployee;
+    const { _id, concept, amount, createdAt } = outgoing
     const tempOutgoing = { ...outgoing, index }
-    const employeeName = `${employee ? employee?.name ?? '' : 'Ex empleado'}`
-    const isAuthorized = currentUser?._id == employee?._id || isManager(currentUser.role)
+    const employeeName = `${employee ? employee?.name ?? 'Ex empleado' : 'Ex empleado'}`
+    const isAuthorized = currentUser?._id == (employee?._id) || isManager(currentUser.role)
     const shouldRender = isAuthorized || isManager(currentUser.role)
 
     return (
@@ -57,7 +59,9 @@ export default function OutgoingsList({ outgoings, onDelete, modifyBalance }) {
             <div id='list-element' className='w-full'>
               <div className="mb-1">
                 <RowItem>
-                  <button onClick={() => setSelectedEmployee(employee)} className="font-bold text-md flex gap-1 truncate items-center"><span><CgProfile /></span>{employeeName}</button>
+                  {employee && (
+                    <EmployeeName employee={employee} />
+                  )}
                   <div className="text-sm text-black flex justify-self-end">
                     {formatDateAndTime(createdAt)}
                   </div>
@@ -116,6 +120,11 @@ export default function OutgoingsList({ outgoings, onDelete, modifyBalance }) {
     return (
       <div>
         {renderTotal()}
+        {isEmpty && (
+          <div>
+            <p>No hay gastos registrados.</p>
+          </div>
+        )}
         {!isEmpty && roles?.manager && outgoings.map((outgoing, index) => renderOutgoingItem({ outgoing, index }))}
       </div>
     )

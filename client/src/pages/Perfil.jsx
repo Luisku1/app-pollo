@@ -6,7 +6,6 @@ import { useEffect, useState } from 'react'
 import { weekDays } from '../helpers/Constants'
 import { useLoading } from '../hooks/loading'
 import { useSignOut } from '../hooks/Auth/useSignOut'
-import { formatDate } from '../helpers/DatePickerFunctions'
 import EmployeePaymentsList from '../components/EmployeePaymentsList'
 import { getEmployeeFullName, currency } from '../helpers/Functions'
 import { useRoles } from '../context/RolesContext'
@@ -18,16 +17,17 @@ import { useEmployeeDailyBalance } from '../hooks/Employees/useEmployeeDailyBala
 import PhoneLinks from "../components/PhoneLinks";
 import { useEmployeePayroll } from '../hooks/Employees/useEmployeePayroll'
 import PayrollResume from "../components/Payroll/PayrollResume";
+import { formatDateYYYYMMDD, getDayRange } from "../../../common/dateOps";
 
 export default function Perfil() {
 
-  const { currentUser } = useSelector((state) => state.user)
+  const { currentUser, company } = useSelector((state) => state.user)
   const { employeeId } = useParams()
   const [employee, setEmployee] = useState(null)
   const [editEmployee, setEditEmployee] = useState(false)
   const { employeeDailyBalance, handleDailyBalanceInputs, loading } = useEmployeeDailyBalance(employeeId)
-  const { payments, total } = useEmployeesPayments({ employeeId, date: formatDate(new Date()) })
-  const { roles, isManager } = useRoles()
+  const { payments, total } = useEmployeesPayments({ companyId: company._id, employeeId, date: formatDateYYYYMMDD(new Date(getDayRange(new Date()).topDate)) })
+  const { roles, isManager, getRoleName } = useRoles()
   const { isLoading } = useLoading(loading)
   const { signOut } = useSignOut()
   const dispatch = useDispatch()
@@ -66,7 +66,7 @@ export default function Perfil() {
 
       try {
 
-        const res = await fetch('/api/employee/get-employee/' + employeeId)
+        const res = await fetch('/api/employee/get-employee/' + employeeId + '/' + company._id)
         const data = await res.json()
 
         if (data.success === false) {
@@ -101,7 +101,6 @@ export default function Perfil() {
 
   return (
     <main className="p-3 max-w-lg mx-auto">
-
       {!isLoading && (
         <div>
           {employee && roles ?
@@ -138,11 +137,7 @@ export default function Perfil() {
                 </div>
                 : ''}
               <div className="p-3">
-                <div className="flex gap-2">
-                  <p className="text-lg">Balance: </p>
-                  <p className={employee.balance < 0 ? 'text-red-700 font-bold' : '' + 'text-lg font-bold'}>{parseFloat(employee.balance).toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
-                </div>
-                <p className="text-lg">{'Rol: ' + employee.role.name}</p>
+                <p className="text-lg">{'Rol: ' + getRoleName(employee.role)}</p>
                 {employee.salary ?
                   <p className="text-lg">{'Sueldo: ' + parseFloat(employee.salary).toLocaleString("es-Mx", { style: 'currency', currency: 'MXN' })}</p>
                   : ''}
@@ -201,13 +196,7 @@ export default function Perfil() {
                   <p>No hay nómina para esta semana.</p>
                 )}
               </div>
-              {employeeId == currentUser._id &&
-                <div className='mt-8 grid grid-1'>
-                  <button className='shadow-lg rounded-full p-2 flex-col-reverse justify-self-end border bg-red-700'>
-                    <span onClick={handleSignOut} className='text-white cursor-pointer font-semibold text-lg'>Cerrar Sesión</span>
-                  </button>
-                </div>
-              }
+              {/* Botón de cerrar sesión movido a MobileHeaderMenu */}
             </div >
             : ''}
         </div>

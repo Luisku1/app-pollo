@@ -4,7 +4,7 @@ import { customSelectStyles } from '../../helpers/Constants'
 import { getArrayForSelects, getElementForSelect, getEmployeeFullName } from '../../helpers/Functions'
 import { useRef } from 'react'
 
-export default function EmployeesSelect({ isEditing = true, defaultLabel, employees, selectedEmployee, handleEmployeeSelectChange }) {
+export default function EmployeesSelect({ isEditing = true, defaultLabel, employees, selectedEmployee, handleEmployeeSelectChange, isMultiSelect = false }) {
 
   const selectRef = useRef(null)
 
@@ -27,6 +27,7 @@ export default function EmployeesSelect({ isEditing = true, defaultLabel, employ
         placeholder={defaultLabel}
         isDisabled={!isEditing}
         isSearchable={true}
+        isMulti={isMultiSelect}
       />
     </div>
   )

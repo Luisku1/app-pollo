@@ -1,36 +1,24 @@
 /* eslint-disable react/prop-types */
-import { useSelector } from "react-redux";
-import { useIncomes } from "../../hooks/Incomes/useIncomes";
+import { useState } from "react";
 import Incomes from "../Incomes/Incomes";
 import ExtraOutgoings from "../Outgoings/ExtraOutgoings";
+import RegisterDateSwitch from "../RegisterDateSwitch";
+import { useDateNavigation } from "../../hooks/useDateNavigation";
 
-export default function IncomesAndOutgoings({ date, companyId, branchAndCustomerSelectOptions, employees, branches }) {
+export default function IncomesAndOutgoings() {
 
-  const { currentUser } = useSelector((state) => state.user)
+  const { today } = useDateNavigation();
+  const [useToday, setUseToday] = useState(false);
 
   return (
     <div>
-      <Incomes
-        incomes={incomes}
-        incomesTotal={incomesTotal}
-        onDeleteIncome={onDeleteIncome}
-        onAddIncome={onAddIncome}
-        branchAndCustomerSelectOptions={branchAndCustomerSelectOptions}
-        date={date}
-        companyId={companyId}
-        currentUser={currentUser}
-      />
-
-      <ExtraOutgoings
-        currentUser={currentUser}
-        companyId={companyId}
-        date={date}
-        pushIncome={pushIncome}
-        employees={employees}
-        branches={branches}
-        spliceIncomeById={spliceIncomeById}
-      />
-
+      {!today && (
+        <div className="ml-4 mt-4">
+          <RegisterDateSwitch multiswitch={true} useToday={useToday} setUseToday={setUseToday} />
+        </div>
+      )}
+      <Incomes showDateSwitch={false} useToday={useToday} />
+      <ExtraOutgoings showDateSwitch={false} useToday={useToday} />
     </div>
   )
 }

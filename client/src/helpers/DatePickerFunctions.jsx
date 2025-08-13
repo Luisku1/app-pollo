@@ -1,4 +1,4 @@
-import { MdOutlineAccessTimeFilled } from "react-icons/md";
+import { MdOutlineAccessTimeFilled, MdCalendarMonth } from "react-icons/md";
 
 export const formatDate = (date) => {
 
@@ -12,6 +12,13 @@ export const formatInformationDate = (date) => {
   const pivotDate = new Date(formatDate(date))
 
   return `${(isToday(pivotDate) ? 'Hoy. ' : '') + pivotDate.toLocaleDateString('es-mx', { weekday: 'long', year: 'numeric', month: '2-digit', day: '2-digit' })}`
+}
+
+export const formatReviewDate = (date) => {
+
+  const pivotDate = new Date(formatDate(date))
+
+  return <p className="flex items-center"><MdCalendarMonth />{(isToday(pivotDate) ? 'Hoy. ' : '') + pivotDate.toLocaleDateString('es-mx', { weekday: 'long', year: 'numeric', month: '2-digit', day: '2-digit' })}</p>
 }
 
 export const formatSimpleDate = (date) => {
@@ -55,4 +62,9 @@ export const getDayRange = (date, shiftDays = 0) => {
   }
 
   return { bottomDate: principalDate.toISOString(), topDate: datePlusOne.toISOString() }
+}
+
+export const getDateDay = (date) => {
+  const pivotDate = new Date(date);
+  return pivotDate.getDay();
 }

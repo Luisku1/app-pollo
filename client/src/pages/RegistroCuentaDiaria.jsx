@@ -1,60 +1,66 @@
 /* eslint-disable react/prop-types */
 import { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
-import { useParams, useNavigate } from 'react-router-dom';
-import FechaDePagina from '../components/FechaDePagina';
-import { formatDate, isToday } from '../helpers/DatePickerFunctions';
+import Select from 'react-select';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useEmployees } from '../hooks/Employees/useEmployees';
 import EmployeesSelect from '../components/Select/EmployeesSelect';
 import { useBranches } from '../hooks/Branches/useBranches';
 import { useBranchReport } from '../hooks/BranchReports.js/useBranchReport';
-import { useLoading } from '../hooks/loading';
 import Loading from '../helpers/Loading';
 import { useRoles } from '../context/RolesContext'
 import BranchSelect from '../components/RegistrarFormato/BranchSelect';
 import AddStock from '../components/Stock/AddStock';
 import AddOutgoing from '../components/Outgoings/AddOutgoing';
 import { useProducts } from '../hooks/Products/useProducts';
-import ProviderInputsList from '../components/Proveedores/ProviderInputsList';
 import BranchPrices from '../components/Prices/BranchPrices';
 import ShowListModal from '../components/Modals/ShowListModal';
 import IncomesList from '../components/Incomes/IncomesList';
 import { getArrayForSelects, getElementForSelect, currency, getEmployeeFullName } from '../helpers/Functions';
-import ListaEntradas from '../components/EntradasYSalidas/Entradas/ListaEntradas';
-import ListaSalidas from '../components/EntradasYSalidas/Salidas/ListaSalidas';
+import ListaEntradas from '../components/Movimientos/Entradas/ListaEntradas';
+import ListaSalidas from '../components/Movimientos/Salidas/ListaSalidas';
 import ShowBalance from '../components/ShowBalance';
 import StockList from '../components/Stock/StockList';
-import Switch from '../components/Switch';
 import OutgoingsList from '../components/Outgoings/OutgoingsList';
 import Modal from '../components/Modals/Modal';
 import ConfirmationButton from '../components/Buttons/ConfirmationButton';
 import EmployeeInfo from '../components/EmployeeInfo';
 import { CgProfile } from 'react-icons/cg';
-import { useDate } from '../context/DateContext';
+import { useDateNavigation } from '../hooks/useDateNavigation';
 import { ToastInfo } from '../helpers/toastify';
+import ProvidersInputsList from '../components/Providers/ProvidersInputsList';
+import { customSelectStyles } from '../helpers/Constants';
+import { SelectReportEmployees } from '../components/SelectReportEmployees';
+import { formatDateYYYYMMDD, today } from '../../../common/dateOps';
+import { areArraysEqual } from '../../../common/arraysOps';
 
-export default function RegistroCuentaDiaria({ edit = true, _branchReport = null, _branch = null }) {
+
+export default function RegistroCuentaDiaria({ edit = true }) {
 
   const { currentUser, company } = useSelector((state) => state.user)
-  const paramsDate = useParams().date
-  let datePickerValue = (paramsDate ? new Date(paramsDate) : new Date())
-  let stringDatePickerValue = formatDate(datePickerValue)
-  const [branchId, setBranchId] = useState((useParams()?.branchId ?? _branch?._id) ?? null)
-  const [error, setError] = useState(null)
-  const [loading, setLoading] = useState(false)
-  const { activeEmployees: employees, activeEmployees } = useEmployees({ companyId: company._id })
-  const { branches } = useBranches({ companyId: company._id })
-  const { roles, isManager, isJustSeller, isSupervisor } = useRoles()
-  const { products } = useProducts({ companyId: company._id })
-  const [selectedEmployee, setSelectedEmployee] = useState()
-  const [selectedAssistant, setSelectedAssistant] = useState(null)
-  const [selectedBranch, setSelectedBranch] = useState(_branch)
-  const [selectBranch, setSelectBranch] = useState(false)
   const navigate = useNavigate()
-  const { currentDate, setCurrentDate } = useDate()
-  const reportDate = (paramsDate ? new Date(paramsDate) : new Date()).toLocaleDateString('es-mx', { weekday: 'long', year: 'numeric', month: '2-digit', day: '2-digit' })
+  const params = useParams()
+  const [branchId, setBranchId] = useState(params.branchId || null)
+  const { currentDate, dateFromYYYYMMDD } = useDateNavigation();
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const { activeEmployees: employees } = useEmployees({ companyId: company._id })
+  const { branches } = useBranches({ companyId: company._id })
+  const { roles, isManager, isJustSeller, isSupervisor, isController } = useRoles()
+  const { products } = useProducts({ companyId: company._id })
+  const [selectedBranch, setSelectedBranch] = useState()
+  const [selectBranch, setSelectBranch] = useState(false)
+  const [showSelectReportEmployees, setShowSelectReportEmployees] = useState(false)
+  const [employeeInfo, setEmployeeInfo] = useState(null)
+  const [showEmployeeDrawer, setShowEmployeeDrawer] = useState(false)
+  const isAuthorized = roles && isManager(currentUser.role)
+  const [ableToEdit, setAbleToEdit] = useState(false)
+
+  const reportDate = dateFromYYYYMMDD.toLocaleDateString('es-mx', { weekday: 'long', year: 'numeric', month: '2-digit', day: '2-digit' })
   const {
     branchReport,
+    employee,
+    assistants,
     onUpdateBranchReport,
     modifyBalance,
     prices,
@@ -87,15 +93,9 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
     outgoings,
     outgoingsTotal,
     onAddOutgoing,
+    updateReportEmployees,
     onDeleteOutgoing
-  } = useBranchReport({ branchId, date: stringDatePickerValue, _branchReport })
-  const [showPrices, setShowPrices] = useState(false)
-
-  const isLoading = useLoading()
-  const [showSelectBranchEmployees, setShowSelectBranchEmployees] = useState(false)
-  const [employeeInfo, setEmployeeInfo] = useState(null)
-  const isAuthorized = roles && isManager(currentUser.role)
-  const [ableToEdit, setAbleToEdit] = useState(false)
+  } = useBranchReport({ branchId, date: currentDate })
 
   useEffect(() => {
     const currentTime = new Date();
@@ -104,21 +104,21 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
 
     setAbleToEdit(true)
 
-    if (isJustSeller(currentUser.role) && !isToday(stringDatePickerValue)) {
+    if (isJustSeller(currentUser.role) && !today(reportDate)) {
       ToastInfo('No puedes editar el formato de otro día')
       setAbleToEdit(false)
       return
     }
 
-    if (isJustSeller(currentUser.role) && isToday(stringDatePickerValue)) {
-      if ((isToday(stringDatePickerValue) && currentUTCHours > 2 && currentUTCHours < 6) || (isToday(stringDatePickerValue) && currentUTCHours > 2 && currentUTCMinutes > 30 && currentUTCHours < 6)) {
+    if (isJustSeller(currentUser.role) && today(reportDate)) {
+      if ((today(reportDate) && currentUTCHours > 2 && currentUTCHours < 6) || (today(reportDate) && currentUTCHours > 2 && currentUTCMinutes > 30 && currentUTCHours < 6)) {
         ToastInfo('No puedes editar el formato después de las 8 pm')
         setAbleToEdit(false)
         return
       }
     }
 
-  }, [currentUser, currentDate, stringDatePickerValue]);
+  }, [currentUser, currentDate, reportDate]);
 
   useEffect(() => {
     if ((!branchId && !selectedBranch)) {
@@ -127,105 +127,45 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
 
   }, [branchId, selectedBranch])
 
-  const handleEmployeeSelectChange = (employee) => {
-
-    setSelectedEmployee(employee)
-  }
-
-  const handleAssistantSelectChange = (assistant) => {
-
-    setSelectedAssistant(assistant)
-  }
-
   const handleBranchSelectChange = (branch) => {
 
     setSelectedBranch(branch)
-    setBranchId(branch.value)
-    navigate('/formato/' + stringDatePickerValue + '/' + branch._id)
-  }
+    setBranchId(branch._id)
+    if (!employee && branch) {
 
-  const changeDatePickerValue = (e) => {
-
-    const newDate = e.target.value + 'T06:00:00.000Z';
-    setCurrentDate(newDate);
-    navigate('/formato/' + newDate + '/' + branchId)
-  }
-
-  const changeDay = (date) => {
-    setCurrentDate(date)
-    navigate('/formato/' + date + '/' + branchId)
-
-  }
-
-  useEffect(() => {
-    if (stringDatePickerValue) {
-      setCurrentDate(stringDatePickerValue)
+      setShowSelectReportEmployees(true)
     }
-  }, [stringDatePickerValue])
+    navigate('/formato/' + branch._id + '/' + currentDate)
+  }
 
   const SectionHeader = (props) => {
-
     return (
-
       <h2 className='flex text-2xl text-center font-semibold mb-4 text-red-800' onClick={props.onClick}>{props.label}</h2>
     )
   }
 
-  const updateReport = async () => {
-
-    setLoading(true)
-    const assistant = selectedAssistant?._id ?? null
-
-    try {
-
-      const res = await fetch('/api/branch/report/update/', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          branchReport: branchReport,
-          employee: selectedEmployee,
-          assistant: assistant,
-          initialStock: initialStockAmount,
-          finalStock: stockAmount,
-          inputs: inputsWeight,
-          providerInputs: providerInputsTotal,
-          outputs: outputsWeight,
-          outgoings: outgoingsTotal,
-          incomes: incomesTotal,
-        })
-      })
-
-      const data = await res.json()
-
-      if (data.success === false) {
-
-        setError('Algún error ha ocurrido, intenta más tarde.')
-        setLoading(false)
-        return
+  const onRegisterEmployees = async (selectedEmployee, selectedAssistants) => {
+    let finalAssistants = [...selectedAssistants] || [];
+    let finalEmployee = selectedEmployee || null
+    if (((selectedEmployee && currentUser._id !== selectedEmployee._id) || !selectedEmployee) && !isController(currentUser.role)) {
+      if (!selectedAssistants.some(assistant => assistant._id === currentUser._id)) {
+        finalAssistants.push({
+          value: currentUser._id,
+          label: getEmployeeFullName(currentUser),
+          ...currentUser
+        });
       }
-
-      setLoading(false)
-      setError(null)
-
-      navigate('/perfil/' + selectedEmployee._id)
-
-    } catch (error) {
-
-      setLoading(false)
-      setError(error.message)
-
     }
+
+    setShowSelectReportEmployees(false);
+
+    if (((assistants.length === 0 && finalAssistants.length === 0) || (areArraysEqual(finalAssistants, assistants))) && selectedEmployee?._id === branchReport?.employee?._id) {
+      ToastInfo('No se han realizado cambios en los empleados del reporte');
+      return;
+    }
+
+    await updateReportEmployees({ employee: finalEmployee, assistants: finalAssistants });
   }
-
-  useEffect(() => {
-
-    if (!employees.length > 0 || !branchReport) return
-
-    setSelectedEmployee(branchReport.employee ? branchReport.employee : !edit ? null : currentUser)
-
-  }, [branchReport, employees, currentUser, edit])
 
   useEffect(() => {
 
@@ -234,7 +174,9 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
     branches.forEach(branch => {
 
       if (branchId == branch._id) {
-
+        if (!employee && branch) {
+          setShowSelectReportEmployees(true)
+        }
         setSelectedBranch(branch)
       }
     })
@@ -243,50 +185,12 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
 
   useEffect(() => {
 
-    if (selectedBranch != null && currentDate != null && edit) {
+    if (selectedBranch != null && dateFromYYYYMMDD != null && edit) {
 
-      document.title = (selectedBranch?.branch ?? 'Formato') + ' ' + '(' + (new Date(currentDate).toLocaleDateString()) + ')'
+      document.title = (selectedBranch?.branch ?? 'Formato') + ' ' + '(' + (dateFromYYYYMMDD.toLocaleDateString()) + ')'
     }
 
-  }, [selectedBranch, currentDate, edit])
-
-  const selectEmployees = () => {
-    return (
-      <div className='w-full mt-10'>
-        <div>
-          <h2 className='text-xl text-center font-semibold mb-4 text-black'>{`Selecciona a los responsables de `}<span className='text-red-800 font-bold'>{selectedBranch.branch}🍗</span></h2>
-        </div>
-        <div className="mt-1 ">
-          <div className='w-full'>
-            <p className='w-full'>Encargado</p>
-            <div className='p-3'>
-              <EmployeesSelect defaultLabel={'Sin Encargado'} isEditing={isSupervisor(currentUser.role)} employees={employees} selectedEmployee={selectedEmployee} handleEmployeeSelectChange={handleEmployeeSelectChange}></EmployeesSelect>
-            </div>
-          </div>
-        </div>
-        <div className="mt-1 p-3">
-          <div className='w-full border border-red-700 rounded-lg'>
-            <EmployeesSelect defaultLabel={'Sin Auxiliar'} employees={employees} selectedEmployee={selectedAssistant} handleAssistantSelectChange={handleAssistantSelectChange}></EmployeesSelect>
-          </div>
-        </div>
-        {selectedEmployee && selectedAssistant &&
-          <button onClick={updateReport} className='mt-2 rounded-lg text-white text-md p-3 w-full bg-button'>Enviar</button>
-        }
-        {selectedEmployee && !selectedAssistant &&
-          <ConfirmationButton
-            onConfirm={updateReport}
-            confirmationMessage={'No has seleccionado a ningún auxiliar'}
-            negativeOption={'Volver'}
-            positiveOption={'Continuar sin auxiliar'}
-            className="mt-2 rounded-lg text-white text-md p-3 w-full bg-button"
-            messageClassName={'text-center text-red-800 font-semibold'}
-          >
-            Enviar
-          </ConfirmationButton>
-        }
-      </div>
-    )
-  }
+  }, [selectedBranch, dateFromYYYYMMDD, edit])
 
   const handleShowEmployeeInfo = () => {
     if (!branchReport?.employee) {
@@ -326,40 +230,36 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
     return (
       <div className='flex flex-col gap-4 mt-4 sticky bottom-4'>
         <p className='bg-red-800 text-white border border-black p-3 rounded-lg w-full'>
-          {isToday(stringDatePickerValue) ? 'No puedes editar el formato después de las 8 pm' : 'No puedes editar el formato de otro día'}
+          {today(reportDate) ? 'No puedes editar el formato después de las 8 pm' : 'No puedes editar el formato de otro día'}
         </p>
       </div>
     )
   }
 
   return (
-    <main className="p-3 max-w-lg mx-auto">
-      {showSelectBranchEmployees && (
-        <Modal
-          content={selectEmployees()}
-          closeModal={() => setShowSelectBranchEmployees(false)}
-          ableToClose={true}
-        />
-      )}
+    <main id="registro-cuenta-diaria-main" className="p-3 max-w-6xl mx-auto">
       {roles && (
         <div>
-          {isLoading ?
+          {loading ?
             <Loading></Loading>
             : ''}
           <div className={'sticky  z-30 top-16'}>
-            {isManager(currentUser.role) ?
-              <div>
-                <FechaDePagina changeDay={changeDay} stringDatePickerValue={currentDate} changeDatePickerValue={changeDatePickerValue} ></FechaDePagina>
-              </div>
-              : ''}
             {branchReport && (
               <div className='sticky top-20'>
                 <ShowBalance balance={branchReport.balance}></ShowBalance>
               </div>
             )}
           </div>
+          {(selectedBranch && showSelectReportEmployees) && (
+            <Modal
+              content={<SelectReportEmployees currentReportEmployee={employee} currentAssistants={assistants} branch={selectedBranch} employees={employees} onRegisterEmployees={onRegisterEmployees} inReport={true} />}
+              closeModal={() => { setShowSelectReportEmployees(false) }}
+              ableToClose={false}
+              closeOnClickOutside={false}
+              isShown={showSelectReportEmployees}
+            />
+          )}
           <EmployeeInfo employee={employeeInfo} toggleInfo={() => { setEmployeeInfo(false) }} />
-          <SectionHeader label={'Reporte'} />
           <div className="grid grid-cols-12 items-center mt-1 mb-2">
             <h1 className='col-span-12 text-3xl text-center font-semibold mt-7'>
               <div className='col-span-12'>
@@ -375,219 +275,231 @@ export default function RegistroCuentaDiaria({ edit = true, _branchReport = null
                 )}
               </div>
             </h1>
-            {branchReport && branchId !== null && (
-              <h2 className='col-span-12 px-2 rounded-lg border-black mx-2 mt-2 bg-white'>
-                <div className='flex gap-2 py-2 items-center'>
-                  {branchReport?.employee &&
-                    <p className='flex-shrink-0'>Encargado:</p>
-                  }
-                  <button onClick={() => handleShowEmployeeInfo()} className='font-bold text-md flex gap-1 truncate items-center w-full justify-center'>
-                    <span>{branchReport.employee && <CgProfile />}</span> {!branchReport?.employee ? 'Termina el llenado para asignar un encargado' : getEmployeeFullName(branchReport?.employee)}
-                  </button>
-                </div>
-                {branchReport?.assistant && (
-                  <div className='flex gap-2 py-2 items-center'>
-                    <p className='flex-shrink-0'>Auxiliar:</p>
-                    <button onClick={() => setEmployeeInfo(branchReport.assistant)} className='font-bold text-md flex gap-1 truncate items-center w-full'>
-                      <span><CgProfile /></span> {getEmployeeFullName(branchReport.assistant)}
+          </div>
+          {(() => {
+            const showEmployeeSection = ((branchReport && branchId !== null && employee !== null && ((employee._id !== currentUser._id && isSupervisor(currentUser.role)) || employee._id === currentUser._id)) || isManager(currentUser.role));
+            return showEmployeeSection && (
+              <div className="grid grid-cols-1 md:grid-cols-[1fr_320px] gap-4">
+                {/* Columna principal */}
+                <div>
+                  {/* Botón para abrir drawer en móvil */}
+                  <div className="md:hidden flex justify-end mb-2">
+                    <button
+                      onClick={() => setShowEmployeeDrawer(true)}
+                      className="px-3 py-2 rounded-lg border border-gray-300 bg-white text-gray-800 shadow-sm text-sm font-semibold"
+                    >
+                      Empleados
                     </button>
                   </div>
-                )}
-              </h2>
-            )}
-          </div>
-          {branchReport && branchId !== null && (
-            <div>
-              {false ?
-                <div>
-                  <button className='font-bold border border-black p-3 rounded-lg text-black flex justify-self-end' onClick={() => setShowPrices(true)}>$ Precios</button>
-                  {showPrices &&
-                    <Modal
-                      closeModal={() => setShowPrices(false)}
-                      content={
-                        <BranchPrices
-                          onUpdateBranchReport={onUpdateBranchReport}
-                          prices={prices}
-                          pricesDate={branchReport.pricesDate}
-                          branch={branchId || selectedBranch?._id || null}
-                          onChange={onChangePrices}
-                          date={currentDate}
-                        />
-                      }
+
+                  <div className='my-2'>
+                    <BranchPrices
+                      onUpdateBranchReport={onUpdateBranchReport}
+                      prices={prices}
+                      pricesDate={branchReport.pricesDate}
+                      branch={branchId || selectedBranch?._id || null}
+                      onChange={onChangePrices}
                     />
-                  }
-                </div>
-                :
-                <div className='my-2'>
-                  <BranchPrices
-                    onUpdateBranchReport={onUpdateBranchReport}
-                    prices={prices}
-                    pricesDate={branchReport.pricesDate}
-                    branch={branchId || selectedBranch?._id || null}
-                    onChange={onChangePrices}
-                    date={currentDate}
-                  />
-                </div>
-              }
-              {branchReport ?
-                <div>
-                  <div className="flex items-center justify-around">
-                    <div className='w-full items-center gap-4 justify-self-end'>
+                  </div>
+                  {branchReport ?
+                    <div>
+                      <div className="flex items-center justify-around">
+                        <div className='w-full items-center gap-4 justify-self-end'>
+                          <ShowListModal
+                            title={'Sobrante Inicial'}
+                            ListComponent={StockList}
+                            ListComponentProps={{ stock: initialStock, amount: initialStockAmount, weight: initialStockWeight }}
+                            className={'w-full'}
+                            clickableComponent={
+                              <p className=' font-bold text-lg text-center p-1 bg-red-200 border rounded-lg border-header'>SOBRANTE INICIAL {currency({ amount: initialStockAmount })}</p>
+                            }
+                          />
+                        </div>
+                      </div>
                       <ShowListModal
-                        title={'Sobrante'}
-                        ListComponent={StockList}
-                        ListComponentProps={{ stock: initialStock, amount: initialStockAmount, weight: initialStockWeight }}
+                        title={'Entradas de Proveedores'}
+                        ListComponent={ProvidersInputsList}
+                        ListComponentProps={{ inputs: providerInputs, totalAmount: providerInputsTotal, totalWeight: providerInputsWeight }}
                         className={'w-full'}
                         clickableComponent={
-                          <p className=' font-bold text-lg text-center p-1 bg-red-200 border rounded-lg border-header'>SOBRANTE INICIAL {currency({ amount: initialStockAmount })}</p>
+                          <p className='font-bold text-lg text-center bg-red-200 border rounded-lg p-1 border-header mt-2'>PROVEEDORES {currency({ amount: providerInputsTotal ?? 0 })}</p>
                         }
                       />
+                      <ShowListModal
+                        title={'Entradas'}
+                        ListComponent={ListaEntradas}
+                        ListComponentProps={{ inputs, totalWeight: inputsWeight, totalAmount: inputsTotal }}
+                        className={'w-full'}
+                        clickableComponent={
+                          <p className='font-bold text-lg text-center bg-red-200 border rounded-lg p-1 border-header mt-2'>ENTRADAS {currency({ amount: inputsTotal ?? 0 })}</p>
+                        }
+                      />
+                      <AddOutgoing
+                        modifyBalance={modifyBalance}
+                        outgoings={outgoings}
+                        outgoingsTotal={outgoingsTotal}
+                        employee={employee}
+                        onAddOutgoing={onAddOutgoing}
+                        onDeleteOutgoing={onDeleteOutgoing}
+                        isReport={true}
+                        branch={selectedBranch}
+                        listButton={<p className='font-bold text-lg text-center bg-green-100 rounded-lg p-1 border border-header'>{currency({ amount: outgoingsTotal ?? 0 })}</p>}
+                      />
+                      <AddStock
+                        title={'Sobrante'}
+                        stock={stock}
+                        modifyBalance={modifyBalance}
+                        amount={stockAmount}
+                        weight={stockWeight}
+                        products={products}
+                        onAddStock={onAddStock}
+                        onDeleteStock={onDeleteStock}
+                        branchPrices={prices}
+                        branch={selectedBranch}
+                        employee={employee}
+                        isReport={true}
+                        date={currentDate}
+                        listButton={<p className='font-bold text-lg text-center bg-green-100 rounded-lg border p-1 border-header'>{currency({ amount: stockAmount ?? 0 })}</p>}
+                      />
+                    </div>
+                    : ''}
+                  <ShowListModal
+                    title={'Salidas'}
+                    ListComponent={ListaSalidas}
+                    ListComponentProps={{ outputs, totalWeight: outputsWeight, totalAmount: outputsTotal }}
+                    className={'w-full'}
+                    clickableComponent={
+                      <p className='font-bold text-lg text-center bg-green-100 border rounded-lg p-1 border-header mt-2'>SALIDAS {currency({ amount: outputsTotal ?? 0 })}</p>
+                    }
+                  />
+                  <ShowListModal
+                    title={'Pagos'}
+                    ListComponent={IncomesList}
+                    ListComponentProps={{ incomes: payments, incomesTotal: payments.reduce((acc, payment) => acc += payment.amount, 0) }}
+                    className={'w-full'}
+                    clickableComponent={
+                      <p className='font-bold text-lg text-center bg-green-100 border rounded-lg p-1 border-header mt-2'>PAGOS {currency({ amount: payments.reduce((acc, payment) => acc += payment.amount, 0) ?? 0 })}</p>
+                    }
+                  //Comparar con el monto para cubrir la nota de hoy.
+                  />
+                  <ShowListModal
+                    title={'Ingresos'}
+                    ListComponent={IncomesList}
+                    ListComponentProps={{ incomes: noPayments, incomesTotal: noPayments.reduce((acc, payment) => acc += payment.amount, 0) }}
+                    className={'w-full'}
+                    clickableComponent={
+                      <p className='font-bold text-lg text-center bg-green-100 border rounded-lg p-1 border-header mt-2'>EFECTIVOS {currency({ amount: noPayments.reduce((acc, payment) => acc += payment.amount, 0) ?? 0 })}</p>
+                    }
+                  //Comparar con el monto para cubrir la nota de hoy.
+                  />
+                  <AddStock
+                    title={'Sobrante de Medio Día'}
+                    stock={midDayStock}
+                    midDay={true}
+                    amount={midDayStockAmount}
+                    weight={midDayStockWeight}
+                    products={products}
+                    onAddStock={onAddMidStock}
+                    onDeleteStock={onDeleteMidStock}
+                    branchPrices={prices}
+                    branch={selectedBranch}
+                    employee={employee}
+                    date={currentDate}
+                    listButton={<p className='font-bold text-lg text-center bg-yellow-200 rounded-lg border p-1 border-header'>{currency({ amount: midDayStockAmount ?? 0 })}</p>}
+                  />
+                  {(isAuthorized || branchReport?.balance < 0) &&
+                    <p className={`${branchReport?.balance < 0 ? 'bg-red-200' : 'bg-green-100'} font-bold text-lg text-center border rounded-lg p-1 border-header mt-2`}>BALANCE: {currency({ amount: branchReport?.balance ?? 0 })}</p>
+                  }
+                  <p className='text-red-700 font-semibold'>{error}</p>
+                </div>
+
+                {/* Aside de empleados en escritorio */}
+                <aside className="hidden md:block sticky top-24 self-start">
+                  <div className='bg-white border border-gray-300 rounded-lg p-3 shadow-sm'>
+                    {branchReport?.employee && (
+                      <div className='mb-3'>
+                        <p className='text-sm text-gray-600 font-semibold mb-1'>Encargado</p>
+                        <button onClick={() => handleShowEmployeeInfo()} className='font-bold text-md flex gap-2 items-center w-full text-left'>
+                          <CgProfile /> {getEmployeeFullName(branchReport.employee)}
+                        </button>
+                      </div>
+                    )}
+                    {branchReport?.assistant && (
+                      <div>
+                        <p className='text-sm text-gray-600 font-semibold mb-1'>Auxiliares</p>
+                        <div className='flex flex-wrap gap-2'>
+                          {branchReport.assistant.map((assistant) => (
+                            <button
+                              key={assistant._id}
+                              onClick={() => setEmployeeInfo(assistant)}
+                              className='font-semibold text-sm flex gap-1 items-center bg-gray-200 px-2 py-1 rounded-lg hover:bg-gray-300 transition-colors'
+                            >
+                              <CgProfile /> {getEmployeeFullName(assistant)}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    <div className='mt-3'>
+                      <button
+                        onClick={() => setShowSelectReportEmployees(true)}
+                        className='w-full px-3 py-2 rounded-lg border border-gray-300 bg-white hover:bg-gray-100 text-sm font-semibold'
+                      >
+                        Editar empleados
+                      </button>
                     </div>
                   </div>
-                  {false ?
-                    <div className='w-full mt-2'>
-                      <ShowListModal
-                        title={'Gastos'}
-                        ListComponent={OutgoingsList}
-                        ListComponentProps={{ outgoings, amount: outgoingsTotal, onDelete: onDeleteOutgoing, modifyBalance }}
-                        className={'w-full'}
-                        clickableComponent={
-                          <p className='font-bold text-lg text-center bg-green-100 rounded-lg p-1 border border-header'>GASTOS {currency({ amount: outgoingsTotal ?? 0 })}</p>
-                        }
-                      />
+                </aside>
+
+                {/* Drawer móvil de empleados */}
+                {showEmployeeDrawer && (
+                  <div className="md:hidden fixed inset-0 z-[10000]">
+                    <div className="absolute inset-0 bg-black/40" onClick={() => setShowEmployeeDrawer(false)} />
+                    <div className="absolute right-0 top-0 h-full w-11/12 max-w-sm bg-white shadow-xl p-4 flex flex-col">
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className='text-lg font-bold'>Empleados</h3>
+                        <button className='px-3 py-1 rounded-md border border-gray-300' onClick={() => setShowEmployeeDrawer(false)}>Cerrar</button>
+                      </div>
+                      <div className='flex-1 overflow-y-auto'>
+                        {branchReport?.employee && (
+                          <div className='mb-3'>
+                            <p className='text-sm text-gray-600 font-semibold mb-1'>Encargado</p>
+                            <button onClick={() => handleShowEmployeeInfo()} className='font-bold text-md flex gap-2 items-center w-full text-left'>
+                              <CgProfile /> {getEmployeeFullName(branchReport.employee)}
+                            </button>
+                          </div>
+                        )}
+                        {branchReport?.assistant && (
+                          <div>
+                            <p className='text-sm text-gray-600 font-semibold mb-1'>Auxiliares</p>
+                            <div className='flex flex-wrap gap-2'>
+                              {branchReport.assistant.map((assistant) => (
+                                <button
+                                  key={assistant._id}
+                                  onClick={() => setEmployeeInfo(assistant)}
+                                  className='font-semibold text-sm flex gap-1 items-center bg-gray-200 px-2 py-1 rounded-lg hover:bg-gray-300 transition-colors'
+                                >
+                                  <CgProfile /> {getEmployeeFullName(assistant)}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      <div className='pt-3'>
+                        <button
+                          onClick={() => { setShowEmployeeDrawer(false); setShowSelectReportEmployees(true); }}
+                          className='w-full px-3 py-2 rounded-lg border border-gray-300 bg-white hover:bg-gray-100 text-sm font-semibold'
+                        >
+                          Editar empleados
+                        </button>
+                      </div>
                     </div>
-                    :
-                    <AddOutgoing
-                      modifyBalance={modifyBalance}
-                      outgoings={outgoings}
-                      outgoingsTotal={outgoingsTotal}
-                      employee={selectedEmployee}
-                      onAddOutgoing={onAddOutgoing}
-                      onDeleteOutgoing={onDeleteOutgoing}
-                      isReport={true}
-                      branch={selectedBranch}
-                      listButton={<p className='font-bold text-lg text-center bg-green-100 rounded-lg p-1 border border-header'>{currency({ amount: outgoingsTotal ?? 0 })}</p>}
-                    />
-                  }
-                  {true ?
-                    <AddStock
-                      title={'Sobrante'}
-                      stock={stock}
-                      modifyBalance={modifyBalance}
-                      amount={stockAmount}
-                      weight={stockWeight}
-                      products={products}
-                      onAddStock={onAddStock}
-                      onDeleteStock={onDeleteStock}
-                      branchPrices={prices}
-                      branch={selectedBranch}
-                      employee={selectedEmployee}
-                      isReport={true}
-                      date={currentDate}
-                      listButton={<p className='font-bold text-lg text-center bg-green-100 rounded-lg border p-1 border-header'>{currency({ amount: stockAmount ?? 0 })}</p>}
-                    />
-                    :
-                    <div className='w-full mt-2'>
-                      <ShowListModal
-                        title={'Sobrante'}
-                        ListComponent={StockList}
-                        ListComponentProps={{ stock, weight: stockWeight, amount: stockAmount, onDelete: onDeleteStock, modifyBalance }}
-                        className={'w-full'}
-                        clickableComponent={<p className='font-bold text-lg text-center bg-green-100 rounded-lg border p-1 border-header'>SOBRANTE {currency({ amount: stockAmount ?? 0 })}</p>
-                        }
-                      />
-                    </div>
-                  }
-                  {true ?
-                    <AddStock
-                      title={'Sobrante de Medio Día'}
-                      stock={midDayStock}
-                      midDay={true}
-                      amount={midDayStockAmount}
-                      weight={midDayStockWeight}
-                      products={products}
-                      onAddStock={onAddMidStock}
-                      onDeleteStock={onDeleteMidStock}
-                      branchPrices={prices}
-                      branch={selectedBranch}
-                      employee={selectedEmployee}
-                      date={currentDate}
-                      listButton={<p className='font-bold text-lg text-center bg-yellow-200 rounded-lg border p-1 border-header'>{currency({ amount: midDayStockAmount ?? 0 })}</p>}
-                    />
-                    :
-                    <div className='w-full mt-2'>
-                      <ShowListModal
-                        title={'Sobrante de Medio Día'}
-                        ListComponent={StockList}
-                        ListComponentProps={{ midDayStock, weight: midDayStockWeight, amount: midDayStockAmount, onDelete: onDeleteMidStock }}
-                        className={'w-full'}
-                        clickableComponent={<p className='font-bold text-lg text-center bg-yellow-200 rounded-lg border p-1 border-header'>SOBRANTE {currency({ amount: midDayStockAmount ?? 0 })}</p>
-                        }
-                      />
-                    </div>
-                  }
-                </div>
-                : ''}
-              <ShowListModal
-                title={'Entradas de Proveedores'}
-                ListComponent={ProviderInputsList}
-                ListComponentProps={{ inputs: providerInputs, totalAmount: providerInputsTotal, totalWeight: providerInputsWeight }}
-                className={'w-full'}
-                clickableComponent={
-                  <p className='font-bold text-lg text-center bg-red-200 border rounded-lg p-1 border-header mt-2'>PROVEEDORES {currency({ amount: providerInputsTotal ?? 0 })}</p>
-                }
-              />
-              <ShowListModal
-                title={'Entradas'}
-                ListComponent={ListaEntradas}
-                ListComponentProps={{ inputs, totalWeight: inputsWeight, totalAmount: inputsTotal }}
-                className={'w-full'}
-                clickableComponent={
-                  <p className='font-bold text-lg text-center bg-red-200 border rounded-lg p-1 border-header mt-2'>ENTRADAS {currency({ amount: inputsTotal ?? 0 })}</p>
-                }
-              />
-              <ShowListModal
-                title={'Salidas'}
-                ListComponent={ListaSalidas}
-                ListComponentProps={{ outputs, totalWeight: outputsWeight, totalAmount: outputsTotal }}
-                className={'w-full'}
-                clickableComponent={
-                  <p className='font-bold text-lg text-center bg-green-100 border rounded-lg p-1 border-header mt-2'>SALIDAS {currency({ amount: outputsTotal ?? 0 })}</p>
-                }
-              />
-              <ShowListModal
-                title={'Pagos'}
-                ListComponent={IncomesList}
-                ListComponentProps={{ incomes: payments, incomesTotal: payments.reduce((acc, payment) => acc += payment.amount, 0) }}
-                className={'w-full'}
-                clickableComponent={
-                  <p className='font-bold text-lg text-center bg-green-100 border rounded-lg p-1 border-header mt-2'>PAGOS {currency({ amount: payments.reduce((acc, payment) => acc += payment.amount, 0) ?? 0 })}</p>
-                }
-              //Comparar con el monto para cubrir la nota de hoy.
-              />
-              <ShowListModal
-                title={'Ingresos'}
-                ListComponent={IncomesList}
-                ListComponentProps={{ incomes: noPayments, incomesTotal: noPayments.reduce((acc, payment) => acc += payment.amount, 0) }}
-                className={'w-full'}
-                clickableComponent={
-                  <p className='font-bold text-lg text-center bg-green-100 border rounded-lg p-1 border-header mt-2'>EFECTIVOS {currency({ amount: noPayments.reduce((acc, payment) => acc += payment.amount, 0) ?? 0 })}</p>
-                }
-              //Comparar con el monto para cubrir la nota de hoy.
-              />
-              {(isAuthorized || branchReport?.balance < 0) &&
-                <p className={`${branchReport?.balance < 0 ? 'bg-red-200' : 'bg-green-100'} font-bold text-lg text-center border rounded-lg p-1 border-header mt-2`}>BALANCE: {currency({ amount: branchReport?.balance ?? 0 })}</p>
-              }
-              <p className='text-red-700 font-semibold'>{error}</p>
-            </div>
-          )}
-          {branchId &&
-            <div className='flex flex-col gap-4 mt-4 sticky bottom-4'>
-              {(!branchReport?.dateSent || isAuthorized) &&
-                <button disabled={loading} className='bg-red-800 text-white border border-black p-3 rounded-lg w-full' onClick={() => setShowSelectBranchEmployees(true)}>Terminar llenado</button>
-              }
-            </div>
-          }
+                  </div>
+                )}
+              </div>
+            );
+          })()}
         </div>
       )}
     </main>

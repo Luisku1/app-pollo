@@ -1,44 +1,64 @@
 /* eslint-disable react/prop-types */
-import { GrNext, GrPrevious } from "react-icons/gr";
-import { useDate } from "../context/DateContext";
-import { formatDate } from "../helpers/DatePickerFunctions";
+import { MdChevronLeft, MdChevronRight } from "react-icons/md";
+import { useDateNavigation } from "../hooks/useDateNavigation";
+import { dateFromYYYYMMDD, formatDateYYYYMMDD } from "../../../common/dateOps";
 import { useEffect } from "react";
 
-export default function FechaDePagina({ changeDatePickerValue, changeDay, higherZ = false }) {
+export default function FechaDePagina() {
+  const { currentDate, setDate, prevDay, nextDay, dateFromYYYYMMDD: dateYYYYMMDD } = useDateNavigation();
 
-  const { currentDate, setCurrentDate } = useDate();
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.ctrlKey && e.key === 'ArrowLeft') {
+        e.preventDefault();
+        prevDay();
+      }
+      if (e.ctrlKey && e.key === 'ArrowRight') {
+        e.preventDefault();
+        nextDay();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [prevDay, nextDay]);
 
-  const prevDay = () => {
-    const datePickerDate = new Date(currentDate);
-    datePickerDate.setDate(datePickerDate.getDate() - 1);
-    setCurrentDate(datePickerDate.toISOString());
-    changeDay(datePickerDate.toISOString());
-  };
-
-  const nextDay = () => {
-    const datePickerDate = new Date(currentDate);
-    datePickerDate.setDate(datePickerDate.getDate() + 1);
-    setCurrentDate(datePickerDate.toISOString());
-    changeDay(datePickerDate.toISOString());
-  };
+  if (!currentDate) return null;
 
   return (
-    <div className={`sticky top-[4rem] w-fit mx-auto bg-opacity-60 bg-menu ${higherZ ? 'z-30' : 'z-20'}`}>
-      <p className="font-bold text-center text-lg">
-        {(new Date(currentDate)).toLocaleDateString('es-mx', { month: 'long' }) + ', ' + (new Date(currentDate)).toLocaleDateString('es-mx', { weekday: 'long' })}
-      </p>
-      <div className="flex justify-center gap-1">
-        <button className="w-5" onClick={prevDay}><GrPrevious className="w-full" /></button>
-        <input
-          className="p-1"
-          type="date"
-          name="date"
-          id="date"
-          max={formatDate(new Date()).slice(0, 10)}
-          onChange={changeDatePickerValue}
-          value={formatDate(currentDate).slice(0, 10)}
-        />
-        <button className="w-5" onClick={nextDay}><GrNext className="w-full" /></button>
+    <div className={`w-fit mx-auto`}>
+      <div className="flex items-center gap-2 bg-white bg-opacity-80 rounded-xl shadow-sm px-2">
+        <button
+          className="w-7 h-7 flex items-center justify-center text-gray-600 hover:text-black transition"
+          onClick={prevDay}
+          title="Día anterior (Ctrl + ←)"
+        >
+          <MdChevronLeft className="w-6 h-6" />
+        </button>
+        <div className="flex flex-col items-center gap-0.5">
+          <div className="flex items-center gap-1">
+            <input
+              className="p-1 text-center text-lg font-bold bg-transparent outline-none border-none"
+              type="date"
+              name="date"
+              id="date"
+              onChange={(e) => setDate(formatDateYYYYMMDD(dateFromYYYYMMDD(e.target.value)))}
+              value={currentDate.split("T")[0]}
+              style={{ minWidth: 0 }}
+            />
+          </div>
+          <span className="text-xs text-gray-500 font-semibold leading-none mt-0.5">
+            {dateFromYYYYMMDD(currentDate).toLocaleDateString("es-mx", {
+              weekday: "long",
+            })}
+          </span>
+        </div>
+        <button
+          className="w-7 h-7 flex items-center justify-center text-gray-600 hover:text-black transition"
+          onClick={nextDay}
+          title="Día siguiente (Ctrl + →)"
+        >
+          <MdChevronRight className="w-6 h-6" />
+        </button>
       </div>
     </div>
   );

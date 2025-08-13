@@ -93,14 +93,41 @@ export default function Sobrante({ branchReports, isInitial: isInitialParams = f
   return (
     <main className="max-w-lg mx-auto">
       <div className="bg-white p-3 mt-4 w-full">
-        <div className="grid grid-cols-3 border w-full mb-1 border-black rounded-lg">
-          <button className={"h-full rounded-tl-lg rounded-bl-lg hover:shadow-xl text-md font-semibold " + (isInitial ? 'bg-options-bar text-white' : 'bg-gray-300')} onClick={() => { handleShowInitialStock() }}>Inicial</button>
-          <button className={"h-full hover:shadow-xl " + (isMidDay ? 'bg-options-bar text-white' : ' bg-gray-300 border-x border-black')} onClick={() => { handleShowMidDayStock() }}>De Medio Día</button>
-          <button className={"h-full rounded-tr-lg rounded-br-lg hover:shadow-xl text-md font-semibold " + (isFinal ? 'bg-options-bar text-white' : ' bg-gray-300')} onClick={() => { handleShowFinalStock() }}>Final</button>
+        {/* Botones de selección de stock (inicial, medio día, final) */}
+        <div className="flex w-full mb-2 gap-2">
+          <button
+            className={`flex-1 py-2 rounded-lg font-semibold transition-all border border-black ${isInitial ? 'bg-options-bar text-white shadow' : 'bg-gray-200 text-gray-800 hover:bg-options-bar hover:text-white'} ${isInitial ? '' : 'hover:shadow-lg'}`}
+            onClick={handleShowInitialStock}
+          >
+            Inicial
+          </button>
+          <button
+            className={`flex-1 py-2 rounded-lg font-semibold transition-all border border-black ${isMidDay ? 'bg-options-bar text-white shadow' : 'bg-gray-200 text-gray-800 hover:bg-options-bar hover:text-white'} ${isMidDay ? '' : 'hover:shadow-lg'}`}
+            onClick={handleShowMidDayStock}
+          >
+            De Medio Día
+          </button>
+          <button
+            className={`flex-1 py-2 rounded-lg font-semibold transition-all border border-black ${isFinal ? 'bg-options-bar text-white shadow' : 'bg-gray-200 text-gray-800 hover:bg-options-bar hover:text-white'} ${isFinal ? '' : 'hover:shadow-lg'}`}
+            onClick={handleShowFinalStock}
+          >
+            Final
+          </button>
         </div>
-        <div className="grid grid-cols-2 border w-full mb-4 border-black rounded-lg">
-          <button className={"h-full rounded-tl-lg rounded-bl-lg hover:shadow-xl text-md font-semibold " + (filterByBranch ? 'bg-options-bar text-white' : 'bg-gray-300')} onClick={() => { handleBranchFilterButton() }}>Sucursal</button>
-          <button className={"h-full rounded-tr-lg rounded-br-lg hover:shadow-xl text-md font-semibold " + (filterByProduct ? 'bg-options-bar text-white' : ' bg-gray-300')} onClick={() => { handleProductFilterButton() }}>Producto</button>
+        {/* Botones de filtro por sucursal/producto (azul para diferenciarlos) */}
+        <div className="flex w-full mb-4 gap-2">
+          <button
+            className={`flex-1 py-2 rounded-lg font-semibold transition-all border border-blue-400 ${filterByBranch ? 'bg-blue-600 text-white shadow' : 'bg-blue-100 text-blue-800 hover:bg-blue-200'} ${filterByBranch ? '' : 'hover:shadow-lg'}`}
+            onClick={handleBranchFilterButton}
+          >
+            Sucursal
+          </button>
+          <button
+            className={`flex-1 py-2 rounded-lg font-semibold transition-all border border-blue-400 ${filterByProduct ? 'bg-blue-600 text-white shadow' : 'bg-blue-100 text-blue-800 hover:bg-blue-200'} ${filterByProduct ? '' : 'hover:shadow-lg'}`}
+            onClick={handleProductFilterButton}
+          >
+            Producto
+          </button>
         </div>
         {filterByProduct &&
           <StockByProduct stock={isInitial ? initialStock : isMidDay ? midDayStock : finalStock} />

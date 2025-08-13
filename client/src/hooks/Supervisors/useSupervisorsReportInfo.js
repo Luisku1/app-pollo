@@ -1,9 +1,10 @@
 import { useMemo, useState, useEffect } from "react"
 import { useQuery } from '@tanstack/react-query';
 import { getSupervisorsInfoReportFetch } from "../../services/Supervisors/getSupervisorsReportInfo"
+import { formatDate } from "../../../../common/dateOps";
 
 export const useSupervisorsReportInfo = ({ companyId, date, onlyNegativeBalances = false }) => {
-  // React Query para supervisorsInfo
+
   const {
     data: supervisorsInfoData,
     isLoading: loading,
@@ -22,6 +23,13 @@ export const useSupervisorsReportInfo = ({ companyId, date, onlyNegativeBalances
   useEffect(() => {
     if (supervisorsInfoData) setSupervisorsInfo(supervisorsInfoData);
   }, [supervisorsInfoData]);
+
+  // Refetch cuando cambia la fecha o companyId
+  useEffect(() => {
+    if (companyId && date) {
+      refetchSupervisorsInfo();
+    }
+  }, [companyId, date]);
 
   const deposits = useMemo(() => supervisorsInfo.reduce((acc, report) => acc + report.deposits, 0), [supervisorsInfo]);
   const terminalIncomes = useMemo(() => supervisorsInfo.reduce((acc, report) => acc + report.terminalIncomes, 0), [supervisorsInfo]);
