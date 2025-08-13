@@ -20,8 +20,10 @@ export const getBranchReports = async (req, res, next) => {
 
   const date = dateFromYYYYMMDD(req.params.date)
   const companyId = req.params.companyId
+  console.log(date)
 
   const { bottomDate, topDate } = getDayRange(date)
+
 
   try {
 
