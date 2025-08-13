@@ -21,7 +21,7 @@ export default function EntradasYSalidas({ products, branchAndCustomerSelectOpti
   };
 
   // Determinar la fecha a usar
-  const fechaRegistro = useToday ? new Date() : dateFromYYYYMMDD;
+  const fechaRegistro = useToday ? new Date().toISOString() : dateFromYYYYMMDD.toISOString();
 
   return (
     <div className="p-1 rounded-2xl bg-white shadow-lg max-w-2xl mx-auto animate-fade-in">

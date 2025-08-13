@@ -8,6 +8,7 @@ import { Types } from "mongoose";
 import { productAggregate } from "./../product.controller.js";
 import { employeeAggregate } from "./../employee.controller.js";
 import { dateFromYYYYMMDD } from "../../../common/dateOps.js";
+import { pushOrPullProviderReportRecord } from "./provider.report.controller.js";
 
 export const providerAggregate = (localField, as) => {
   return [
@@ -165,109 +166,6 @@ export const updateReportsAndBalancesAccounts = async ({
   }
 };
 
-export const createDefaultProviderReport = async ({
-  providerId,
-  date,
-  companyId,
-}) => {
-  const { bottomDate } = getDayRange(date);
-
-  const lastProviderReport = await ProviderReport.findOne({
-    createdAt: { $lt: bottomDate },
-    provider: providerId,
-  });
-
-  const previousBalance = lastProviderReport.balance || 0;
-
-  return await ProviderReport.create({
-    provider: providerId,
-    previousBalance,
-    createdAt: bottomDate,
-    company: companyId,
-  });
-};
-
-export const fetchBasicProviderReport = async ({ providerId, date }) => {
-  const { bottomDate, topDate } = getDayRange(date);
-
-  try {
-    return await ProviderReport.findOne({
-      createdAt: { $gte: bottomDate, $lt: topDate },
-      provider: providerId,
-    });
-  } catch (error) {
-    throw error;
-  }
-};
-
-export const fetchOrCreateProviderReport = async ({
-  providerId,
-  companyId,
-  date,
-}) => {
-  let providerReport = null;
-
-  try {
-    providerReport = await fetchBasicProviderReport({ providerId, date });
-
-    if (!providerReport) {
-      providerReport = await createDefaultProviderReport({
-        providerId,
-        date,
-        companyId,
-      });
-    }
-
-    if (!providerReport)
-      throw new Error("No se encontró ni se pudo crear el reporte");
-
-    return providerReport;
-  } catch (error) {
-    throw error;
-  }
-};
-
-export const pushOrPullProviderReportRecord = async ({
-  providerId,
-  date,
-  record,
-  affectsBalancePositively,
-  operation,
-  arrayField,
-  amountField,
-}) => {
-  if (!["$addToSet", "$pull"].includes(operation))
-    throw new Error("Parámetros inválidos, se espera '$addToSet' o '$pull'");
-  if (!providerId || !date || !record || !arrayField || !amountField)
-    throw new Error(
-      "Parámetros requeridos faltantes en pushOrPullProviderReportRecord"
-    );
-
-  const providerReport = await fetchOrCreateProviderReport({
-    providerId,
-    companyId: record.company,
-    date,
-  });
-  const adjustedBalanceInc = affectsBalancePositively
-    ? record.amount
-    : -record.amount;
-  const balanceAdjustment =
-    operation === "$addToSet" ? adjustedBalanceInc : -adjustedBalanceInc;
-  const amountAdjustment =
-    operation === "$addToSet" ? record.amount : -record.amount;
-
-  const updateInstructions = {
-    [operation]: { [arrayField]: record._id },
-    $inc: { [amountField]: amountAdjustment, balance: balanceAdjustment },
-  };
-
-  return updateReportsAndBalancesAccounts({
-    providerReport,
-    updateInstructions,
-    updatedFields: [arrayField, amountField],
-  });
-};
-
 export const newMovement = async (req, res, next) => {
   const {
     isReturn,
@@ -283,8 +181,10 @@ export const newMovement = async (req, res, next) => {
     specialPrice,
   } = req.body;
 
+  let movement;
+
   try {
-    const movement = await ProviderMovements.create({
+    movement = await ProviderMovements.create({
       isReturn,
       employee,
       company,
@@ -298,13 +198,26 @@ export const newMovement = async (req, res, next) => {
       specialPrice,
     });
 
+    let report = await pushOrPullProviderReportRecord({
+      providerId: movement.provider,
+      date: movement.createdAt,
+      record: movement,
+      affectsBalancePositively: false,
+      operation: '$addToSet',
+      arrayField: 'movementsArray',
+      amountField: 'movements'
+    });
+
     res.status(201).json({
       data: movement,
       message: "transacción registrada correctamente",
       success: true,
     });
+
   } catch (error) {
-    console.log(error);
+    if (movement) {
+      await ProviderMovements.findByIdAndDelete(movement._id);
+    }
     next(error);
   }
 };
@@ -320,6 +233,16 @@ export const deleteMovement = async (req, res, next) => {
     if (!deletedMovement) {
       throw new Error("No se encontró el movimiento para eliminar");
     }
+
+    await pushOrPullProviderReportRecord({
+      providerId: deletedMovement.provider,
+      date: deletedMovement.createdAt,
+      record: deletedMovement,
+      affectsBalancePositively: false,
+      operation: '$pull',
+      arrayField: 'movementsArray',
+      amountField: 'movements'
+    });
 
     res.status(200).json({
       message: "Movimiento eliminado con éxito",
@@ -351,8 +274,6 @@ export const getMovements = async (req, res, next) => {
       ...productAggregate("product"),
       ...employeeAggregate("employee"),
     ]);
-
-    console.log(movements);
 
     res.status(200).json({ data: movements });
 

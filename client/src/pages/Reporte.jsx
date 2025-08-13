@@ -119,11 +119,11 @@ function TableTabsMenu({
         <FaChevronLeft className="w-4 h-4" />
       </button>
 
-      {/* Contenedor scroll */}
+      {/* Contenedor scroll (en móvil: solo scroll, sin flechas) */}
       <div
         ref={scrollRef}
-        className="flex gap-1 overflow-x-auto no-scrollbar max-w-[50evw] sm:max-w-[420px]"
-        style={{ scrollBehavior: 'smooth', position: 'relative' }}
+        className="flex gap-1 overflow-x-auto no-scrollbar w-full"
+        style={{ scrollBehavior: 'smooth' }}
       >
         {tabs.map((tab, idx) => (
           <div key={tab.key} className="relative inline-block">
@@ -220,12 +220,11 @@ export default function Reporte() {
     totalBalance: totalCustomerBalance,
   } = useCustomersReports({ companyId: company._id, date: currentDate, onlyNegativeBalances })
 
-  const { providerReports, loading: loadingProviders, refetchProvidersReports, paymentsArray, providersReports, replaceReport: replaceProviderReport, returnsArray, setReports, totalBalance: totalProvidersBalance, totalPayments: totalProviderPayments, totalPreviousBalance, totalMovements, totalReturns: totalProviderReturns, purchasesArray } = useProvidersReports({
+  const { loading: loadingProviders, refetchProvidersReports, paymentsArray, providersReports, replaceReport: replaceProviderReport, returnsArray, setReports, totalBalance: totalProvidersBalance, totalPayments: totalProviderPayments, totalPreviousBalance, totalMovements, totalReturns: totalProviderReturns, purchasesArray } = useProvidersReports({
     companyId: company._id,
     date: currentDate,
     onlyNegativeBalances
   })
-
 
   // Un solo estado de loading global
   const isAnyLoading = useLoading([
@@ -464,7 +463,7 @@ export default function Reporte() {
   }
 
   return (
-    <main className="p-3 mx-auto mb-40 relative">
+    <main className="p-3 mx-auto mb-40 relative overflow-x-hidden">
       {/* <div className="flex items-center mb-6">
         <button
           className="flex items-center gap-2 px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-800 font-semibold rounded-lg shadow transition"
@@ -612,17 +611,9 @@ export default function Reporte() {
       {(branchReports || supervisorsInfo) && roles && roles.manager ?
         <div className="mt-3">
           <div className="">
-            <div className="flex items-center gap-2 mb-2">
-              {/* Menú de tablas elegante con scroll y flechas */}
-              <TableTabsMenu
-                currentView={currentView}
-                setCurrentView={setCurrentView}
-                branchReports={branchReports}
-                supervisorsInfo={supervisorsInfo}
-                customerReports={customerReports}
-                providerReports={providerReports}
-              />
-              <div className="flex justify-center items-center gap-2 ml-2">
+            {/* En móvil: botones arriba; en escritorio: a la derecha */}
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
+              <div className="order-1 sm:order-2 flex justify-end items-center gap-2">
                 {/* Botón para filtrar solo balances negativos */}
                 <button
                   className={`transition px-4 py-2 rounded-lg border font-semibold shadow-sm ${onlyNegativeBalances ? 'bg-red-600 text-white border-red-700' : 'bg-white text-gray-800 border-gray-300 hover:bg-gray-100'}`}
@@ -640,6 +631,17 @@ export default function Reporte() {
                 >
                   <IoReload className="w-5 h-5" />
                 </button>
+              </div>
+              {/* Menú de tablas elegante con scroll y flechas */}
+              <div className="order-2 sm:order-1 sm:flex-1">
+                <TableTabsMenu
+                  currentView={currentView}
+                  setCurrentView={setCurrentView}
+                  branchReports={branchReports}
+                  supervisorsInfo={supervisorsInfo}
+                  customerReports={customerReports}
+                  providerReports={providersReports}
+                />
               </div>
             </div>
             {showTable &&
@@ -891,7 +893,7 @@ export default function Reporte() {
                       <ProfitCard branchReports={branchReports} customerReports={customerReports} />
                       <SalesVsReturnsCard customerReports={customerReports} />
                       <OutgoingsCard branchReports={branchReports} />
-                      <BranchBalanceCard branchReports={branchReports} />
+                      <BranchBalanceCard branchReports={branchReports} updateBranchReportSingle={replaceReport} />
                       <NetDifferenceCard />
                     </div>
                     {showPieChartModal && (

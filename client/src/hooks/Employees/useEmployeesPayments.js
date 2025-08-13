@@ -255,7 +255,7 @@ export const useEmployeesPayments = ({ companyId = null, date = null, employeeId
 
     if (employeeId) {
 
-      getEmployeePayments({ employeeId, date }).then((response) => {
+      getEmployeePayments({ companyId, employeeId, date }).then((response) => {
 
         setPayments(response.employeePayments)
         setTotal(response.total)

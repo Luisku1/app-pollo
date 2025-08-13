@@ -5,7 +5,8 @@ import { useProviders } from "../../hooks/Providers/useProviders";
 import { customSelectStyles } from "../../helpers/Constants";
 import { getArrayForSelects, getElementForSelect, currency } from "../../helpers/Functions";
 
-export default function CreateProviderPayment({ onAddPayment }) {
+// date: ISO string para createdAt si se desea registrar en fecha pasada
+export default function CreateProviderPayment({ onAddPayment, date }) {
   const { company } = useSelector((state) => state.user);
   const { providers } = useProviders(company._id);
   const [selectedProvider, setSelectedProvider] = useState(null);
@@ -33,7 +34,7 @@ export default function CreateProviderPayment({ onAddPayment }) {
       cash: Number(cash),
       transfer: Number(transfer),
       company: company._id,
-      createdAt: new Date().toISOString(),
+      createdAt: date || new Date().toISOString(),
     };
     if (onAddPayment) onAddPayment(payment);
     setSelectedProvider(null);

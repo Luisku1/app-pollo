@@ -30,7 +30,8 @@ const employeeSchema = new mongoose.Schema({
     salary: { type: Number },
     payDay: { type: Number },
     balance: { type: Number, default: 0.0 },
-    administrativeAccount: { type: Boolean, default: false }
+    administrativeAccount: { type: Boolean, default: false },
+    role: { type: Schema.Types.ObjectId, ref: 'Role', required: true }
   }],
 
   balance: {
@@ -67,11 +68,6 @@ const employeeSchema = new mongoose.Schema({
 
   company: {
     type: Schema.Types.ObjectId, ref: 'Company',
-  },
-
-  role: {
-    type: Schema.Types.ObjectId, ref: 'Role',
-    required: true
   }
 
 }, { timestamps: { createdAt: true, updatedAt: true } })

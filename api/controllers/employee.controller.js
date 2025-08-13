@@ -55,17 +55,6 @@ export const employeeAggregate = (localField, as = 'employee', companyIdField = 
 				foreignField: '_id',
 				as: as,
 				pipeline: [
-					{
-						$lookup: {
-							from: 'roles',
-							localField: 'role',
-							foreignField: '_id',
-							as: 'role'
-						}
-					},
-					{
-						$unwind: { path: '$role', preserveNullAndEmptyArrays }
-					},
 					// Selecciona el companyData correspondiente al companyId
 					{
 						$addFields: {
@@ -83,9 +72,22 @@ export const employeeAggregate = (localField, as = 'employee', companyIdField = 
 							salary: { $arrayElemAt: ['$companyData.salary', 0] },
 							payDay: { $arrayElemAt: ['$companyData.payDay', 0] },
 							balance: { $arrayElemAt: ['$companyData.balance', 0] },
+							role: { $arrayElemAt: ['$companyData.role', 0] },
 							administrativeAccount: { $arrayElemAt: ['$companyData.administrativeAccount', 0] }
 						}
 					},
+					{
+						$lookup: {
+							from: 'roles',
+							localField: 'role',
+							foreignField: '_id',
+							as: 'role'
+						}
+					},
+					{
+						$unwind: { path: '$role', preserveNullAndEmptyArrays }
+					},
+
 					{
 						$lookup: {
 							from: 'companies',
@@ -759,7 +761,54 @@ export const getAllEmployees = async (req, res, next) => {
 
 	try {
 
-		const employees = await Employee.find({ company: companyId }).sort({ name: 1 }).populate({ path: 'role', select: 'name' }).populate({ path: 'hiredBy', select: 'name lastName' })
+		// Usamos aggregate para replicar lógica de employeeAggregate y devolver solo datos de companyData para companyId
+		const companyObjectId = new Types.ObjectId(companyId)
+		const employees = await Employee.aggregate([
+			{ $match: { company: companyObjectId } },
+			{ $sort: { name: 1 } },
+			{
+				$addFields: {
+					companyData: {
+						$filter: {
+							input: '$companyData',
+							as: 'cd',
+							cond: { $eq: ['$$cd.company', companyObjectId] }
+						}
+					}
+				}
+			},
+			{
+				$addFields: {
+					salary: { $ifNull: [{ $arrayElemAt: ['$companyData.salary', 0] }, '$salary'] },
+					payDay: { $ifNull: [{ $arrayElemAt: ['$companyData.payDay', 0] }, '$payDay'] },
+					balance: { $ifNull: [{ $arrayElemAt: ['$companyData.balance', 0] }, '$balance'] },
+					role: { $ifNull: [{ $arrayElemAt: ['$companyData.role', 0] }, '$role'] },
+					administrativeAccount: { $ifNull: [{ $arrayElemAt: ['$companyData.administrativeAccount', 0] }, '$administrativeAccount'] }
+				}
+			},
+			{ // Populate role
+				$lookup: {
+					from: 'roles',
+					localField: 'role',
+					foreignField: '_id',
+					as: 'role'
+				}
+			},
+			{ $unwind: { path: '$role', preserveNullAndEmptyArrays: true } },
+			{ // Populate hiredBy basic fields
+				$lookup: {
+					from: 'employees',
+					localField: 'hiredBy',
+					foreignField: '_id',
+					as: 'hiredBy',
+					pipeline: [
+						{ $project: { name: 1, lastName: 1 } }
+					]
+				}
+			},
+			{ $unwind: { path: '$hiredBy', preserveNullAndEmptyArrays: true } },
+			{ $project: { password: 0 } }
+		])
 
 		res.status(200).json({ employees })
 
@@ -770,24 +819,70 @@ export const getAllEmployees = async (req, res, next) => {
 
 export const getEmployee = async (req, res, next) => {
 
-	const employeeId = req.params.employeeId
+	const { employeeId } = req.params
+	// companyId opcional (query o params) para filtrar companyData
+	const companyId = req.params.companyId || req.query.companyId
 
 	try {
+		const matchStage = { $match: { _id: new Types.ObjectId(employeeId) } }
+		// Si se pasa companyId filtramos companyData igual que en employeeAggregate
+		const filterCompanyDataStage = companyId ? {
+			$addFields: {
+				companyData: {
+					$filter: {
+						input: '$companyData',
+						as: 'cd',
+						cond: { $eq: ['$$cd.company', new Types.ObjectId(companyId)] }
+					}
+				}
+			}
+		} : { $addFields: { companyData: '$companyData' } }
 
-		const employee = await Employee.findById(employeeId).populate('role')
-		const { password: pass, ...rest } = employee._doc
-
-		if (employee) {
-
-			res.status(200).json({ employee: rest })
-
-		} else {
-
-			next(errorHandler(404, 'Not employee found'))
+		const addScalarFieldsStage = {
+			$addFields: {
+				salary: { $arrayElemAt: ['$companyData.salary', 0] },
+				payDay: { $arrayElemAt: ['$companyData.payDay', 0] },
+				balance: { $arrayElemAt: ['$companyData.balance', 0] },
+				role: { $arrayElemAt: ['$companyData.role', 0] },
+				administrativeAccount: { $arrayElemAt: ['$companyData.administrativeAccount', 0] },
+			}
 		}
 
-	} catch (error) {
+		const lookupRoleStage = {
+			$lookup: {
+				from: 'roles',
+				localField: 'role',
+				foreignField: '_id',
+				as: 'role'
+			}
+		}
+		const unwindRoleStage = { $unwind: { path: '$role', preserveNullAndEmptyArrays: true } }
+		const lookupCompaniesStage = {
+			$lookup: {
+				from: 'companies',
+				localField: 'companies',
+				foreignField: '_id',
+				as: 'companies'
+			}
+		}
+		const projectStage = { $project: { password: 0 } }
 
+		const result = await Employee.aggregate([
+			matchStage,
+			filterCompanyDataStage,
+			addScalarFieldsStage,
+			lookupRoleStage,
+			unwindRoleStage,
+			lookupCompaniesStage,
+			projectStage
+		])
+
+		const employee = result[0]
+		if (!employee) return next(errorHandler(404, 'Not employee found'))
+
+		res.status(200).json({ employee })
+
+	} catch (error) {
 		next(error)
 	}
 }
@@ -1948,11 +2043,99 @@ export const getEmployeesDailyBalances = async (req, res, next) => {
 	const companyId = req.params.companyId
 
 	const { bottomDate, topDate } = getDayRange(date)
+	// Traemos empleados completos para posible migración de companyData
 	const employees = await Employee.find({
 		company: companyId,
 		active: true
+	})
 
-	}).select({ path: '_id' })
+	// MIGRACION: asegurar que cada empleado tenga su role dentro de companyData para este companyId
+	// (Se ejecuta en cada petición pero solo actualiza los que aún faltan)
+	// try {
+	// 	const companyObjectId = new Types.ObjectId(companyId)
+	// 	// Rol fallback (primero disponible) para completar entradas sin role
+	// 	let fallbackRoleId = null
+	// 	try {
+	// 		const rolesList = await fetchRolesFromDB()
+	// 		fallbackRoleId = rolesList?.[0]?._id || null
+	// 	} catch (e) {
+	// 		console.warn('No se pudo obtener rol fallback:', e?.message)
+	// 	}
+	// 	const employeesToUpdate = employees.filter(emp => {
+	// 		// companyData entry para la compañía
+	// 		const companies = emp.companies || []
+	// 		// Si no hay entry o falta role dentro del entry
+	// 		return !companies.includes(companyId)
+	// 	})
+	// 	if (employeesToUpdate.length) {
+	// 		for (const emp of employeesToUpdate) {
+	// 			// Buscar o crear entry
+	// 			// let cdIdx = emp.companyData?.findIndex(cd => cd.company?.toString() === companyId)
+	// 			// if (cdIdx === -1 || cdIdx === undefined) {
+	// 			// 	// Solo crear entrada si podemos asignar un role válido (evita validación fallida)
+	// 			// 	const roleToAssign = emp.role || fallbackRoleId
+	// 			// 	if (roleToAssign) {
+	// 			// 		emp.companyData = emp.companyData || []
+	// 			// 		emp.companyData.push({
+	// 			// 			company: companyObjectId,
+	// 			// 			salary: emp.salary,
+	// 			// 			payDay: emp.payDay,
+	// 			// 			balance: emp.balance ?? 0,
+	// 			// 			administrativeAccount: emp.administrativeAccount ?? false,
+	// 			// 			role: roleToAssign
+	// 			// 		})
+	// 			// 	} else {
+	// 			// 		console.warn('Migración companyData omitida (sin role) para empleado', emp._id.toString())
+	// 			// 		continue
+	// 			// 	}
+	// 			// } else {
+	// 			// 	// Completar role si falta
+	// 			// 	if (!emp.companyData[cdIdx].role) {
+	// 			// 		const roleToAssign = emp.role || fallbackRoleId
+	// 			// 		if (roleToAssign) {
+	// 			// 			emp.companyData[cdIdx].role = roleToAssign
+	// 			// 		} else {
+	// 			// 			console.warn('No se pudo asignar role a companyData existente para empleado', emp._id.toString())
+	// 			// 			continue
+	// 			// 		}
+	// 			// 	}
+	// 			// }
+	// 			// // Además, asegurar que TODAS las entradas de companyData tengan role para evitar validación fallida
+	// 			// let allEntriesHaveRole = true
+	// 			// for (const entry of emp.companyData || []) {
+	// 			// 	if (!entry.role) {
+	// 			// 		const roleToAssign = emp.role || fallbackRoleId
+	// 			// 		if (roleToAssign) {
+	// 			// 			entry.role = roleToAssign
+	// 			// 		} else {
+	// 			// 			allEntriesHaveRole = false
+	// 			// 			break
+	// 			// 		}
+	// 			// 	}
+	// 			// }
+	// 			// if (!allEntriesHaveRole) {
+	// 			// 	console.warn('Skip save: aún hay entries sin role para empleado', emp._id.toString())
+	// 			// 	continue
+	// 			// }
+
+	// 			//agregar company a companies en caso de no existir ya
+
+	// 			if (!emp.companies) {
+	// 				emp.companies = []
+	// 			}
+	// 			if (!emp.companies.includes(companyId)) {
+	// 				emp.companies.push(companyId)
+	// 			}
+
+	// 			console.log(emp)
+
+	// 			await emp.save()
+	// 		}
+	// 	}
+	// } catch (migrationError) {
+	// 	// No debe bloquear la respuesta, solo registrar
+	// 	console.error('Error migrando companyData (role):', migrationError?.message)
+	// }
 
 	try {
 
@@ -1960,7 +2143,8 @@ export const getEmployeesDailyBalances = async (req, res, next) => {
 			createdAt: { $gte: bottomDate, $lt: topDate },
 			employee: { $in: employees.map(employee => employee._id) },
 			company: companyId
-		}).populate({ path: 'employee', select: 'name lastName' })
+		}).populate({ path: 'employee', select: 'name lastName' });
+
 
 		if (employeesDailyBalances.length > 0) {
 
@@ -2101,15 +2285,34 @@ export const newEmployeePaymentFunction = async ({ amount, detail, employee, sup
 export const getEmployeePayments = async (req, res, next) => {
 
 	const employeeId = req.params.employeeId
+	const companyId = req.params.companyId
 	const date = req.params.date ? dateFromYYYYMMDD(req.params.date) : new Date()
 	const { bottomDate, topDate } = getDayRange(date)
 	const bottomDateDay = (new Date(bottomDate)).getDay()
 
 	try {
 
-		const employeePayDay = (await Employee.findById(employeeId)).payDay
+		// Obtener payDay desde companyData filtrada
+		const employeeDoc = await Employee.aggregate([
+			{ $match: { _id: new Types.ObjectId(employeeId) } },
+			{
+				$addFields: {
+					companyData: {
+						$filter: {
+							input: '$companyData',
+							as: 'cd',
+							cond: { $eq: ['$$cd.company', new Types.ObjectId(companyId)] }
+						}
+					}
+				}
+			},
+			{ $addFields: { payDay: { $arrayElemAt: ['$companyData.payDay', 0] } } },
+			{ $project: { payDay: 1 } }
+		])
 
-		if (!employeePayDay) throw new Error("El empleado no tiene día de pago");
+		const employeePayDay = employeeDoc[0]?.payDay
+
+		if (isNaN(employeePayDay) || (employeePayDay < 0 || employeePayDay > 6)) throw new Error("El empleado no tiene día de pago");
 
 		let weekDaysWorked = 0
 
@@ -2168,27 +2371,15 @@ export const getEmployeePayments = async (req, res, next) => {
 			{
 				$unwind: { path: '$income', preserveNullAndEmptyArrays: true }
 			},
+			// Enlazar employee y supervisor con lógica companyData
+			...employeeAggregate('employee', 'employee', 'company'),
+			...employeeAggregate('supervisor', 'supervisor', 'company'),
 			{
-				$lookup: {
-					from: 'employees',
-					foreignField: '_id',
-					localField: 'employee',
-					as: 'employee'
+				$addFields: {
+					// Ajustar payDay/balance desde companyData si existen
+					'employee.payDay': { $ifNull: ['$employee.payDay', '$employee.payDay'] },
+					'supervisor.payDay': { $ifNull: ['$supervisor.payDay', '$supervisor.payDay'] }
 				}
-			},
-			{
-				$lookup: {
-					from: 'employees',
-					foreignField: '_id',
-					localField: 'supervisor',
-					as: 'supervisor'
-				}
-			},
-			{
-				$unwind: { path: '$supervisor', preserveNullAndEmptyArrays: true }
-			},
-			{
-				$unwind: { path: '$employee', preserveNullAndEmptyArrays: true }
 			},
 			{ $sort: { createdAt: -1 } },
 			{

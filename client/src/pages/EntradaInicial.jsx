@@ -16,13 +16,13 @@ import { useRoles } from "../context/RolesContext";
 import { useProducts } from "../hooks/Products/useProducts";
 import { useCustomers } from "../hooks/Customers/useCustomers";
 import { useBranches } from "../hooks/Branches/useBranches";
-import { useDate } from "../context/DateContext";
 import { useDateNavigation } from "../hooks/useDateNavigation";
+import RegisterDateSwitch from "../components/RegisterDateSwitch";
 
-export default function EntradaInicial() {
+export default function EntradaInicial({ date: registerDate = undefined }) {
 
   const { company, currentUser } = useSelector((state) => state.user)
-  const { currentDate: date } = useDateNavigation()
+  const { currentDate: date, dateFromYYYYMMDD, today } = useDateNavigation()
   const { isManager } = useRoles()
   const [selectedProduct, setSelectedProduct] = useState(null)
   const {
@@ -76,10 +76,22 @@ export default function EntradaInicial() {
 
   }, [products])
 
+  // State to decide if registering for today (only when no explicit registerDate prop)
+  const [useToday, setUseToday] = useState(false);
+  // Compute effective register date to pass down
+  let effectiveRegisterDate = registerDate;
+  if (registerDate === undefined) {
+    effectiveRegisterDate = useToday ? new Date().toISOString() : new Date(dateFromYYYYMMDD).toISOString();
+  }
+
   return (
     <main className="max-w-lg mx-auto">
       <div className='rounded-md p-3'>
         <SectionHeader label={'Entradas de Proveedor'} />
+        {/* Mostrar switch solo si no se pasó registerDate explícito, el usuario es manager y la fecha seleccionada no es hoy */}
+        {registerDate === undefined && isManager(currentUser.role) && !today && (
+          <RegisterDateSwitch useToday={useToday} setUseToday={setUseToday} />
+        )}
         <div className="grid grid-rows-2">
           <div className="flex gap-3 justify-self-end items-center">
             <div className="flex gap-3">
@@ -150,8 +162,9 @@ export default function EntradaInicial() {
         </div>
         <MenuSucursal
           onAddProviderInput={onAddProviderInput}
-          selectedProduct={selectedProduct}>
-        </MenuSucursal>
+          selectedProduct={selectedProduct}
+          registerDate={effectiveRegisterDate}
+        />
       </div>
     </main>
   )

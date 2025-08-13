@@ -21,8 +21,6 @@ export function CreateUpdateProduct({ onSubmit, product, loading = false }) {
     })
   }
 
-  console.log(product)
-
   const productButtonControl = () => {
 
     const nameInput = document.getElementById('name')

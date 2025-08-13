@@ -99,7 +99,6 @@ export default function Penalties() {
     }
   }
 
-  console.log(today)
   return (
     <div>
       {!today && (

@@ -15,28 +15,27 @@ export const SelectReportEmployees = ({ employees, currentReportEmployee, branch
   const [selectedAssistants, setSelectedAssistants] = useState(currentAssistants || []);
   const sameData = currentReportEmployee && selectedEmployee && currentReportEmployee._id === selectedEmployee._id && (currentReportEmployee.assistants || []).length === selectedAssistants.length && (currentReportEmployee.assistants || []).every(assistant => selectedAssistants.some(selAssistant => selAssistant._id === assistant._id));
 
-// Primer useEffect: selecciona encargado por defecto
-useEffect(() => {
-  if (!employees || employees.length === 0) return;
-  if (!selectedEmployee && currentReportEmployee) {
-    setSelectedEmployee({ ...currentReportEmployee, label: getEmployeeFullName(currentReportEmployee), value: currentReportEmployee._id });
-    return;
-  }
-  if (!selectedEmployee && !currentReportEmployee) {
-    setSelectedEmployee({ ...currentUser, label: getEmployeeFullName(currentUser), value: currentUser._id });
-    return;
-  }
-}, [selectedEmployee, currentReportEmployee, currentUser, employees]);
+  // Primer useEffect: selecciona encargado por defecto
+  useEffect(() => {
+    if (!employees || employees.length === 0) return;
+    if (!selectedEmployee && currentReportEmployee) {
+      setSelectedEmployee({ ...currentReportEmployee, label: getEmployeeFullName(currentReportEmployee), value: currentReportEmployee._id });
+      return;
+    }
+    if (!selectedEmployee && !currentReportEmployee) {
+      setSelectedEmployee({ ...currentUser, label: getEmployeeFullName(currentUser), value: currentUser._id });
+      return;
+    }
+  }, [selectedEmployee, currentReportEmployee, currentUser, employees]);
 
-// Segundo useEffect: sincroniza si cambia el encargado del reporte
-useEffect(() => {
-  if (!employees || employees.length === 0) return;
-  if (currentReportEmployee && selectedEmployee && currentReportEmployee._id !== selectedEmployee._id && !isSupervisor(currentUser.role)) {
-    setSelectedEmployee({ ...currentReportEmployee, label: getEmployeeFullName(currentReportEmployee), value: currentReportEmployee._id });
-  }
-}, [selectedEmployee, currentReportEmployee, employees]);
+  // Segundo useEffect: sincroniza si cambia el encargado del reporte
+  useEffect(() => {
+    if (!employees || employees.length === 0) return;
+    if (currentReportEmployee && selectedEmployee && currentReportEmployee._id !== selectedEmployee._id && !isSupervisor(currentUser.role)) {
+      setSelectedEmployee({ ...currentReportEmployee, label: getEmployeeFullName(currentReportEmployee), value: currentReportEmployee._id });
+    }
+  }, [selectedEmployee, currentReportEmployee, employees]);
 
-  console.log(currentAssistants)
 
   useEffect(() => {
     if (!employees || employees.length === 0) return;

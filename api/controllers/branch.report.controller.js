@@ -164,8 +164,6 @@ export const pushOrPullBranchReportRecord = async ({
   const balanceAdjustment = operation === '$addToSet' ? adjustedBalanceInc : -adjustedBalanceInc
   const amountAdjustment = operation === '$addToSet' ? record.amount : -record.amount
 
-  console.log('167', amountAdjustment, record)
-
   const updateInstructions = {
     [operation]: { [arrayField]: record._id },
     $inc: { [amountField]: amountAdjustment, balance: balanceAdjustment }

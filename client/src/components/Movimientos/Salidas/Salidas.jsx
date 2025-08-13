@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import SectionHeader from "../../SectionHeader"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import ListaSalidas from "./ListaSalidas"
 import { useOutput } from "../../../hooks/Outputs/useOutput"
 import { useSelector } from "react-redux"
@@ -17,7 +17,7 @@ import { useProducts } from "../../../hooks/Products/useProducts"
 import { useDateNavigation } from "../../../hooks/useDateNavigation"
 import { calculateAmount } from "../../../../../common/calculateAmount";
 
-export default function Salidas({ selectedProduct, setSelectedProduct }) {
+export default function Salidas({ selectedProduct, setSelectedProduct, date: registerDate = undefined }) {
 
   const { company, currentUser } = useSelector((state) => state.user)
   const { currentDate: date, dateFromYYYYMMDD, today } = useDateNavigation();
@@ -147,7 +147,7 @@ export default function Salidas({ selectedProduct, setSelectedProduct }) {
     const weightInput = document.getElementById('output-weight')
     const commentInput = document.getElementById('output-comment')
     const priceInput = document.getElementById('output-price')
-    const createdAt = today ? new Date().toISOString() : dateFromYYYYMMDD.toISOString()
+    const createdAt = registerDate ? registerDate : today ? new Date().toISOString() : dateFromYYYYMMDD.toISOString()
 
     e.preventDefault()
 
@@ -226,8 +226,32 @@ export default function Salidas({ selectedProduct, setSelectedProduct }) {
     setSelectedCustomerBranchOption(option)
   }
 
+  // Smooth scroll on focus (mainly for mobile usability)
+  const rootRef = useRef(null);
+  useEffect(() => {
+    const el = rootRef.current;
+    if (!el) return;
+    const handleFocusIn = (e) => {
+      // Limit to inputs/selects/textareas or react-select pseudo input (role=combobox)
+      const t = e.target;
+      const tag = t.tagName;
+      const isField = tag === 'INPUT' || tag === 'TEXTAREA' || t.getAttribute('role') === 'combobox';
+      if (!isField) return;
+      // Only auto-scroll on smaller screens to avoid disruptive jumps on desktop
+      if (window.innerWidth >= 1024) return; // lg breakpoint
+      // Use rAF to wait layout shifts (e.g., mobile keyboard)
+      requestAnimationFrame(() => {
+        try {
+          t.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+        } catch { /* ignore */ }
+      });
+    };
+    el.addEventListener('focusin', handleFocusIn, { passive: true });
+    return () => el.removeEventListener('focusin', handleFocusIn);
+  }, []);
+
   return (
-    <div>
+    <div ref={rootRef}>
       <div className='border rounded-md p-3 mt-4'>
         <div className='grid grid-cols-2'>
           <SectionHeader label={'Salidas'} />

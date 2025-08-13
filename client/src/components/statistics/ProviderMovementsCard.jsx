@@ -11,14 +11,14 @@ export default function ProviderMovementsCard({ purchasesArray = [], returnsArra
   const providerData = useMemo(() => {
     const map = {};
     purchasesArray.forEach(p => {
-      const provider = p.providerName || 'Sin proveedor';
+      const provider = p.provider?.name || 'Sin proveedor';
       const product = p.product?.name || 'Sin producto';
       if (!map[provider]) map[provider] = { purchases: {}, returns: {} };
       if (!map[provider].purchases[product]) map[provider].purchases[product] = 0;
       map[provider].purchases[product] += p.amount || 0;
     });
     returnsArray.forEach(r => {
-      const provider = r.providerName || 'Sin proveedor';
+      const provider = r.provider?.name || 'Sin proveedor';
       const product = r.product?.name || 'Sin producto';
       if (!map[provider]) map[provider] = { purchases: {}, returns: {} };
       if (!map[provider].returns[product]) map[provider].returns[product] = 0;

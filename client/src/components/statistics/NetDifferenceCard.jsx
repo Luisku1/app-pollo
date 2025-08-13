@@ -17,6 +17,7 @@ export default function NetDifferenceCard({ inHeader = false }) {
   const [expandedEmployees, setExpandedEmployees] = useState([]);
   const [expandedProducts, setExpandedProducts] = useState([]);
 
+
   // Filtrar datos según permisos
   let filteredByEmployee = data?.byEmployee || {};
   let filteredByProduct = data?.byProduct || {};
@@ -39,6 +40,7 @@ export default function NetDifferenceCard({ inHeader = false }) {
     );
   }
 
+
   // Suma total de diferencias (sólo lo filtrado)
   const totalDiff = Object.values(filteredByEmployee).reduce((acc, emp) => acc + emp.totalDifference, 0);
 
@@ -46,7 +48,10 @@ export default function NetDifferenceCard({ inHeader = false }) {
   function renderModalContent() {
     if (loading) return <div className="p-6 text-center">Cargando...</div>;
     if (error) return <div className="p-6 text-center text-red-600">Error al cargar datos</div>;
-    if (!filteredByEmployee?.length > 0 && !filteredByProduct?.length > 0) return <div className="p-6 text-center">No hay diferencia en movimientos</div>;
+
+    const hasEmployeeData = filteredByEmployee && Object.keys(filteredByEmployee).length > 0;
+    const hasProductData = filteredByProduct && Object.keys(filteredByProduct).length > 0;
+    if (!hasEmployeeData && !hasProductData) return <div className="p-6 text-center">No hay diferencia en movimientos</div>;
     return (
       <div className="flex flex-col gap-6 p-2 md:p-6 max-h-[70vh] overflow-y-auto">
         <h3 className="text-lg font-bold mb-2 text-gray-700 text-center">Por empleado</h3>
@@ -160,12 +165,13 @@ export default function NetDifferenceCard({ inHeader = false }) {
 
   // Helper: Button for header or default
   function renderButton() {
+    const isZero = !totalDiff || Math.abs(totalDiff) < 0.01;
+    // Header (desktop) variant: hide on small screens to avoid duplicate with floating mobile pill
     if (inHeader) {
-      const isZero = !totalDiff || Math.abs(totalDiff) < 0.01;
       const icon = isZero ? <MdCheckCircle className="text-green-500" size={22} /> : <MdOutlineDifference className={totalDiff < 0 ? "text-red-500" : "text-green-600"} size={22} />;
       return (
         <button
-          className={`flex items-center gap-2 px-3 py-1 rounded-lg border shadow-sm font-bold text-sm transition min-w-[90px] ${isZero ? 'bg-green-50 border-green-200 text-green-700' : totalDiff < 0 ? 'bg-red-50 border-red-200 text-red-700' : 'bg-green-50 border-green-200 text-green-700'} hover:brightness-95`}
+          className={`hidden lg:flex items-center gap-2 px-3 py-1 rounded-lg border shadow-sm font-bold text-sm transition min-w-[90px] ${isZero ? 'bg-green-50 border-green-200 text-green-700' : totalDiff < 0 ? 'bg-red-50 border-red-200 text-red-700' : 'bg-green-50 border-green-200 text-green-700'} hover:brightness-95`}
           onClick={() => setShowModal(true)}
           title="Ver diferencias netas de movimientos"
         >
@@ -174,24 +180,40 @@ export default function NetDifferenceCard({ inHeader = false }) {
         </button>
       );
     }
-    // Default button
+    // Standalone (non-header) desktop friendly card (kept for pages where it's placed in content). Hidden on very small screens to avoid clutter with floating pill.
     return (
       <button
-        className="flex flex-col items-center gap-1 px-4 py-3 rounded-xl bg-yellow-50 border border-yellow-200 shadow-sm min-w-[160px] hover:bg-yellow-100 transition font-bold text-yellow-800"
+        className="hidden sm:flex flex-col items-center gap-1 px-4 py-3 rounded-xl bg-yellow-50 border border-yellow-200 shadow-sm min-w-[160px] hover:bg-yellow-100 transition font-bold text-yellow-800"
         onClick={() => setShowModal(true)}
         title="Ver diferencias netas de movimientos"
       >
         <span className="text-2xl">🔄</span>
         <span className="text-xs text-gray-500 font-semibold">Diferencia en movimientos</span>
-        <span className={`text-lg font-bold ${totalDiff < 0 ? 'text-red-600' : 'text-green-600'}`}>{totalDiff.toLocaleString('es-MX', { style: 'decimal', maximumFractionDigits: 2 })} kg</span>
+        <span className={`text-lg font-bold ${totalDiff < 0 ? 'text-red-600' : 'text-green-600'}`}>{(isZero ? 0 : totalDiff).toLocaleString('es-MX', { style: 'decimal', maximumFractionDigits: 2 })} kg</span>
       </button>
     );
   }
+
 
   // Render
   return (
     <>
       {renderButton()}
+      {/* Floating mobile pill (always visible on smaller than lg) */}
+      <button
+        onClick={() => setShowModal(true)}
+        title={totalDiff < 0 ? 'Diferencia negativa en movimientos' : 'Diferencia en movimientos'}
+        aria-label={`Diferencia neta ${totalDiff?.toLocaleString('es-MX', { maximumFractionDigits: 2 })} kilogramos`}
+        className={`lg:hidden fixed bottom-4 left-1/2 -translate-x-1/2 z-50 px-3 py-2 rounded-full shadow-md border text-xs font-semibold flex items-center gap-2 backdrop-blur-sm
+          ${(!totalDiff || Math.abs(totalDiff) < 0.01) ? 'bg-green-600/90 border-green-500 text-white' : totalDiff < 0 ? 'bg-red-600/90 border-red-500 text-white' : 'bg-green-600/90 border-green-500 text-white'}`}
+      >
+        {(!totalDiff || Math.abs(totalDiff) < 0.01) ? (
+          <MdCheckCircle size={16} className="text-white" />
+        ) : (
+          <MdOutlineDifference size={16} className="text-white" />
+        )}
+        <span>{(!totalDiff || Math.abs(totalDiff) < 0.01) ? 'Sin diferencia' : `${totalDiff.toLocaleString('es-MX', { maximumFractionDigits: 2 })} kg`}</span>
+      </button>
       <Modal
         isShown={showModal}
         closeModal={() => setShowModal(false)}

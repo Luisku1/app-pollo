@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import SectionHeader from '../../SectionHeader'
 import { useInputs } from '../../../hooks/Inputs/useInputs'
 import Select from 'react-select'
@@ -17,7 +17,7 @@ import { useProducts } from '../../../hooks/Products/useProducts'
 import { useDateNavigation } from '../../../hooks/useDateNavigation'
 import { calculateAmount } from '../../../../../common/calculateAmount'
 
-export default function Entradas({ selectedProduct, setSelectedProduct }) {
+export default function Entradas({ selectedProduct, setSelectedProduct, date: registerDate = undefined }) {
 
   const { company, currentUser } = useSelector((state) => state.user)
   const { currentDate: date, today, dateFromYYYYMMDD } = useDateNavigation()
@@ -138,7 +138,7 @@ export default function Entradas({ selectedProduct, setSelectedProduct }) {
 
     const commentInput = document.getElementById('input-comment')
     const priceInput = document.getElementById('input-price')
-    const createdAt = today ? new Date().toISOString() : dateFromYYYYMMDD.toISOString()
+    const createdAt = registerDate ? registerDate : today ? new Date().toISOString() : dateFromYYYYMMDD.toISOString()
 
     if (priceInput.value != '' ? priceInput.value == 0 : lastPrice == 0) {
 
@@ -263,8 +263,27 @@ export default function Entradas({ selectedProduct, setSelectedProduct }) {
     }
   };
 
+  // Smooth scroll on focus (mobile/tablet usability)
+  const rootRef = useRef(null);
+  useEffect(() => {
+    const el = rootRef.current;
+    if (!el) return;
+    const handleFocusIn = (e) => {
+      const t = e.target;
+      const tag = t.tagName;
+      const isField = tag === 'INPUT' || tag === 'TEXTAREA' || t.getAttribute('role') === 'combobox';
+      if (!isField) return;
+      if (window.innerWidth >= 1024) return; // only below lg
+      requestAnimationFrame(() => {
+        try { t.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' }); } catch { }
+      });
+    };
+    el.addEventListener('focusin', handleFocusIn, { passive: true });
+    return () => el.removeEventListener('focusin', handleFocusIn);
+  }, []);
+
   return (
-    <div>
+    <div ref={rootRef}>
       <div className='border rounded-md p-3'>
         <div className='grid grid-cols-2'>
           <SectionHeader label={'Entradas'} />

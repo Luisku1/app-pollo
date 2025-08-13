@@ -246,7 +246,6 @@ export default function Precios() {
             ...item,
             prices: item.prices.map(price => {
               if (payload[`${price.productId}${branchId}`]) {
-                console.log(payload, price, payload[`${price.productId}${branchId}`].price)
                 return {
                   ...price,
                   latestPrice: parseFloat(payload[`${price.productId}${branchId}`].price),

@@ -21,13 +21,13 @@ import { formatDateYYYYMMDD, getDayRange } from "../../../common/dateOps";
 
 export default function Perfil() {
 
-  const { currentUser } = useSelector((state) => state.user)
+  const { currentUser, company } = useSelector((state) => state.user)
   const { employeeId } = useParams()
   const [employee, setEmployee] = useState(null)
   const [editEmployee, setEditEmployee] = useState(false)
   const { employeeDailyBalance, handleDailyBalanceInputs, loading } = useEmployeeDailyBalance(employeeId)
-  const { payments, total } = useEmployeesPayments({ employeeId, date: formatDateYYYYMMDD(new Date(getDayRange(new Date()).topDate)) })
-  const { roles, isManager } = useRoles()
+  const { payments, total } = useEmployeesPayments({ companyId: company._id, employeeId, date: formatDateYYYYMMDD(new Date(getDayRange(new Date()).topDate)) })
+  const { roles, isManager, getRoleName } = useRoles()
   const { isLoading } = useLoading(loading)
   const { signOut } = useSignOut()
   const dispatch = useDispatch()
@@ -66,7 +66,7 @@ export default function Perfil() {
 
       try {
 
-        const res = await fetch('/api/employee/get-employee/' + employeeId)
+        const res = await fetch('/api/employee/get-employee/' + employeeId + '/' + company._id)
         const data = await res.json()
 
         if (data.success === false) {
@@ -137,11 +137,7 @@ export default function Perfil() {
                 </div>
                 : ''}
               <div className="p-3">
-                <div className="flex gap-2">
-                  <p className="text-lg">Balance: </p>
-                  <p className={employee.balance < 0 ? 'text-red-700 font-bold' : '' + 'text-lg font-bold'}>{parseFloat(employee.balance).toLocaleString("es-MX", { style: 'currency', currency: 'MXN' })}</p>
-                </div>
-                <p className="text-lg">{'Rol: ' + employee.role.name}</p>
+                <p className="text-lg">{'Rol: ' + getRoleName(employee.role)}</p>
                 {employee.salary ?
                   <p className="text-lg">{'Sueldo: ' + parseFloat(employee.salary).toLocaleString("es-Mx", { style: 'currency', currency: 'MXN' })}</p>
                   : ''}

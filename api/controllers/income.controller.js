@@ -512,9 +512,10 @@ export const getIncomes = async (req, res, next) => {
 
       branchesIncomes.sort((prevIncome, nextIncome) => prevIncome.branch.position - nextIncome.branch.position);
 
-      res.status(200).json({ incomes: [...branchesIncomes, ...customersIncomes], total });
+      res.status(200).json({ incomes: [...branchesIncomes, ...customersIncomes] });
+
     } else {
-      next(errorHandler(404, 'No incomes found'));
+      res.status(404).json({ message: 'No incomes found', incomes: [] });
     }
   } catch (error) {
     next(error);

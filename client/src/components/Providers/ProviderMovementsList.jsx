@@ -12,6 +12,10 @@ import { CiSquareInfo } from "react-icons/ci";
 import DeleteButton from "../Buttons/DeleteButton";
 import ConfirmationButton from "../Buttons/ConfirmationButton";
 import EmployeeInfo from "../EmployeeInfo";
+import BranchName from "../Names/BranchName";
+import CustomerName from "../Names/CustomerName"; // in case branch missing but customer present
+import ProviderName from "../Names/ProviderName";
+import EmployeeName from "../Names/EmployeeName";
 
 export default function ProviderMovementsList({ movements = [], totalWeight = 0, totalAmount = 0, onDelete = null }) {
   const { currentUser } = useSelector((state) => state.user);
@@ -70,8 +74,12 @@ export default function ProviderMovementsList({ movements = [], totalWeight = 0,
                 <div className="col-span-12">
                   <div className={`w-full mb-1 ${isDev ? 'text-red-700' : 'text-red-800'}`}>
                     <RowItem>
-                      <p className="text-md font-bold flex gap-1 items-center"><MdStorefront />{branch?.branch}</p>
-                      <p className="text-md font-bold flex gap-1 items-center">{provider?.name}</p>
+                      <div className="flex gap-3 items-center">
+                        {branch && <div className="flex items-center gap-1"><MdStorefront /><BranchName branch={branch} /></div>}
+                        {!branch && movement.customer && <CustomerName customer={movement.customer} />}
+                        {provider && <ProviderName provider={provider} />}
+                      </div>
+                      <EmployeeName employee={employee} fullName />
                     </RowItem>
                   </div>
                   <div className="w-full text-sm font-semibold">

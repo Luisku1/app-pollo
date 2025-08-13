@@ -200,9 +200,6 @@ export default function BranchReportCard({
     }
   };
 
-  console.log('reportData', reportData)
-
-
   return (
     <div
       id={`report-container-${reportData._id}`}

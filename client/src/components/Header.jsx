@@ -29,8 +29,8 @@ export default function Header() {
     <header className='bg-header shadow-md sticky top-0 z-[9999] flex flex-col items-center justify-center p-2'>
       {currentUser ? (
         <>
-          {/* Medianas y pequeñas: sólo FechaDePagina y MobileHeaderMenu */}
-          <div className="w-full flex items-center justify-between gap-2 xl:hidden">
+          {/* Móviles y tablets: sólo FechaDePagina y MobileHeaderMenu */}
+          <div className="w-full flex items-center justify-between gap-2 lg:hidden">
             <div className="flex-1 flex justify-center items-center">
               <FechaDePagina />
             </div>
@@ -38,8 +38,8 @@ export default function Header() {
               <MobileHeaderMenu currentUser={currentUser} />
             </div>
           </div>
-          {/* xl+: layout completo */}
-          <div className="hidden xl:flex w-full items-center justify-between gap-2">
+          {/* lg+: layout completo */}
+          <div className="hidden lg:flex w-full items-center justify-between gap-2">
             <div className='flex-1 flex justify-center items-center'>
               <FechaDePagina />
             </div>
@@ -60,7 +60,7 @@ export default function Header() {
                   title="Agregar registro (Ctrl +)"
                 >
                   <IoIosAddCircle className="text-2xl" />
-                  <span className="hidden lg:inline">Agregar</span>
+                  <span className="hidden min-[958px]:inline">Agregar</span>
                 </button>
               } />
               {isSupervisor(currentUser?.role) && (
@@ -68,6 +68,11 @@ export default function Header() {
               )}
               <MobileHeaderMenu currentUser={currentUser} />
             </div>
+          </div>
+          {/* Flotantes en móviles y tablets */}
+          <div className="lg:hidden">
+            <SearchMenu modalMode={true} />
+            <RegistersMenu />
           </div>
         </>
       ) : (

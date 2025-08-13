@@ -2,6 +2,7 @@ import express from 'express'
 
 import { deleteProvider, newProvider, newMovement, deleteMovement, getMovements, getProviders, getProviderAverage, updateProvider, newPayment, deletePayment } from '../controllers/providers/provider.controller.js'
 import { getPayments, getProviderPayments, getProviderProductLastPrice } from '../controllers/providers/payment.controller.js'
+import { getProvidersReports } from '../controllers/providers/provider.report.controller.js'
 const router = express.Router()
 
 router.post('/create', newProvider)
@@ -10,6 +11,7 @@ router.post('/new-payment', newPayment)
 router.put('/update', updateProvider)
 router.get('/get-providers/:companyId', getProviders)
 router.get('/providers-movements/:companyId/:date', getMovements)
+router.get('/get-providers-reports/:companyId/', getProvidersReports)
 router.get('/get-payments/:companyId', getPayments)
 router.get('/get-provider-payments/:providerId', getProviderPayments)
 router.get('/get-provider-last-price/:providerId/:productId', getProviderProductLastPrice)

@@ -101,20 +101,20 @@ export default function AddOutgoing({ outgoings, modifyBalance, isReport = false
       <div className='grid grid-cols-1'>
         <SectionHeader label={'Gastos'} />
       </div>
-      <form id='outgoingForm' onSubmit={addOutgoingSubmit} className="grid grid-cols-3 gap-2">
+      <form id='outgoingForm' onSubmit={addOutgoingSubmit} className="grid grid-cols-1 sm:grid-cols-3 gap-2">
         <div className='relative'>
-          <input type="text" name="concept" id="concept" placeholder='Concepto' className='w-full p-3 rounded-lg border border-black' required onInput={outgoingsButtonControl} onChange={handleOutgoingInputsChange} />
+          <input type="text" name="concept" id="concept" placeholder='Concepto' className='w-full p-3 rounded-lg border border-black' required onInput={outgoingsButtonControl} onChange={handleOutgoingInputsChange} inputMode="text" />
           <label htmlFor="compact-input" className="-translate-y-full px-1 absolute top-1/4 left-2 transform rounded-sm bg-white text-black text-sm font-semibold">
             Concepto <span>*</span>
           </label>
         </div>
         <div className='relative'>
-          <input type="number" name="amount" id="amount" placeholder='$0.00' step={0.01} className='border border-black w-full p-3 rounded-lg' required onInput={outgoingsButtonControl} onChange={handleOutgoingInputsChange} />
+          <input type="number" name="amount" id="amount" placeholder='$0.00' step={0.01} className='border border-black w-full p-3 rounded-lg [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none' required onInput={outgoingsButtonControl} onChange={handleOutgoingInputsChange} inputMode="decimal" />
           <label htmlFor="compact-input" className="-translate-y-full px-1 absolute top-1/4 left-2 transform rounded-sm bg-white text-black text-sm font-semibold">
             Monto ($) <span>*</span>
           </label>
         </div>
-        <button type='submit' id='outgoing-button' disabled className='bg-button text-white p-3 rounded-lg'>Agregar</button>
+        <button type='submit' id='outgoing-button' disabled className='bg-button text-white p-3 rounded-lg min-h-[44px]'>Agregar</button>
       </form>
       <div className='w-full mt-2'>
         <ShowListModal

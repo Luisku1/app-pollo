@@ -5,9 +5,9 @@ export const getOutputs = async ({ companyId, date }) => {
 
   if (data.success === false) {
 
-    throw new Error(data.message);
+    return { outputs: [] }
 
   }
 
-  return { outputs: data.outputs, totalWeight: data.totalWeight }
+  return { outputs: data.outputs }
 }

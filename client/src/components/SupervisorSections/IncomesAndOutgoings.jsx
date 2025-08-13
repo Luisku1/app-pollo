@@ -7,7 +7,7 @@ import { useDateNavigation } from "../../hooks/useDateNavigation";
 
 export default function IncomesAndOutgoings() {
 
-  const { currentDate, today } = useDateNavigation();
+  const { today } = useDateNavigation();
   const [useToday, setUseToday] = useState(false);
 
   return (

@@ -15,6 +15,7 @@ import { dateFromYYYYMMDD } from '../../common/dateOps.js'
 const inputLookups = () => {
   return [
     ...employeeAggregate('employee'),
+    ...customerAggregate('customer'),
     {
       $lookup: {
         from: 'products',
@@ -31,18 +32,16 @@ const inputLookups = () => {
         as: 'branch'
       }
     },
-    {
-      $unwind: '$product'
-    },
-    {
-      $unwind: '$branch'
-    }
+    { $unwind: { path: '$product', preserveNullAndEmptyArrays: false } },
+    { $unwind: { path: '$branch', preserveNullAndEmptyArrays: true } }
+
   ]
 }
 
 const outputLookups = () => {
   return [
     ...employeeAggregate('employee'),
+    ...customerAggregate('customer'),
     {
       $lookup: {
         from: 'products',
@@ -160,6 +159,7 @@ export const newCustomerInput = async (req, res, next) => {
       date: createdAt,
       record: input,
       affectsBalancePositively: false,
+      operation: '$addToSet',
       amountField: 'sales',
       arrayField: 'branchSales'
     })
@@ -503,10 +503,15 @@ export const getInputs = async (req, res, next) => {
       },
       ...inputLookups()
     ])
+    console.log(inputs)
 
     if (inputs.length == 0) {
 
-      next(errorHandler(404, 'Not inputs found'))
+      res.status(404).json({
+        message: 'No inputs found',
+        data: [],
+        success: false
+      })
 
     } else {
 
@@ -533,7 +538,11 @@ export const getInputs = async (req, res, next) => {
         return input.branch.position - nextInput.branch.position
       })
 
-      res.status(200).json({ inputs: [...branchInputs, ...customerInputs], totalWeight: totalWeight })
+      res.status(200).json({
+        data: [...branchInputs, ...customerInputs],
+        message: 'Inputs found',
+        success: true
+      })
     }
 
   } catch (error) {
@@ -635,7 +644,7 @@ export const deleteInputById = async (inputId) => {
     } else {
 
       await pushOrPullCustomerReportRecord({
-        customerId: deleteInput.customer,
+        customerId: deletedInput.customer,
         date: deletedInput.createdAt,
         record: deletedInput,
         affectsBalancePositively: false,
@@ -647,9 +656,11 @@ export const deleteInputById = async (inputId) => {
 
   } catch (error) {
 
+    console.log(error)
+
     if (deletedInput) {
 
-      await Input.create({ deletedInput })
+      await Input.create(deletedInput)
     }
 
     throw error;

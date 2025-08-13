@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 
 import { FiMenu, FiLayers } from 'react-icons/fi';
@@ -6,13 +5,15 @@ import NetDifferenceCard from './statistics/NetDifferenceCard';
 import Modal from './Modals/Modal';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { addCompany, signOutStart, signOutSuccess, signOutFailiure } from '../redux/user/userSlice';
+import { signOutStart, signOutSuccess, signOutFailiure } from '../redux/user/userSlice';
 import { useSignOut } from '../hooks/Auth/useSignOut';
+import { useChangeCompany } from '../hooks/Auth/useChangeCompany';
 
 export default function MobileHeaderMenu() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { signOut } = useSignOut();
+  const { changeCompany } = useChangeCompany();
 
   const { currentUser, company } = useSelector((state) => state.user);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
@@ -37,7 +38,6 @@ export default function MobileHeaderMenu() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [commandMode, showMobileMenu]);
 
-  console.log(showMobileMenu)
   const menuRef = useRef(null);
   // Cerrar sesión
   const handleSignOut = async () => {
@@ -52,11 +52,19 @@ export default function MobileHeaderMenu() {
     }
   };
 
+
   // Nuevo: CompanySwitcher como toggle con Modal moderno
   function CompanySwitcher() {
+
     const [showCompanyModal, setShowCompanyModal] = useState(false);
     if (!currentUser.companies || currentUser.companies.length < 1) return null;
     const selectedCompany = currentUser.companies.find(c => c._id === company._id);
+
+    const handleCompanyChange = (comp) => () => {
+      changeCompany(comp._id, currentUser._id);
+      setShowCompanyModal(false);
+    };
+
     return (
       <>
         <button
@@ -81,7 +89,7 @@ export default function MobileHeaderMenu() {
                 <button
                   key={comp._id}
                   className={`flex items-center gap-3 w-full px-3 py-3 rounded-lg text-left transition font-semibold border ${comp._id === company._id ? 'bg-blue-600 text-white shadow border-blue-600' : 'bg-gray-50 text-gray-800 hover:bg-blue-100 border-gray-200'}`}
-                  onClick={() => { dispatch(addCompany(comp)); setShowCompanyModal(false); }}
+                  onClick={handleCompanyChange(comp)}
                 >
                   {/* Avatar con iniciales de la empresa */}
                   <span className={`flex items-center justify-center w-9 h-9 rounded-full font-bold text-base ${comp._id === company._id ? 'bg-white text-blue-700' : 'bg-blue-100 text-blue-700'}`}>

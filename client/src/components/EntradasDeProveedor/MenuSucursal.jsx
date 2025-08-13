@@ -22,9 +22,9 @@ import { getArrayForSelects } from '../../helpers/Functions'
 import { calculateAmount } from '../../../../common/calculateAmount'
 import { useProviders } from '../../hooks/Providers/useProviders';
 
-export default function MenuSucursal({ selectedProduct, onAddProviderInput }) {
+export default function MenuSucursal({ selectedProduct, onAddProviderInput, registerDate }) {
 
-  const { currentDate: date, dateFromYYYYMMDD, today, registerDate } = useDateNavigation();
+  const { currentDate: date, dateFromYYYYMMDD, today } = useDateNavigation();
   const { currentUser, company } = useSelector((state) => state.user)
   const [selectedBranchCustomerOption, setSelectedBranchCustomerOption] = useState(null)
   const [selectedGroup, setSelectedGroup] = useState('')
@@ -68,7 +68,6 @@ export default function MenuSucursal({ selectedProduct, onAddProviderInput }) {
       return;
     }
     const monto = calculateAmount(price, byPieces, weight, pieces);
-    console.log('Price:', price, 'Weight:', weight, 'Pieces:', pieces, 'ByPieces:', byPieces, 'Amount:', monto);
     setAmount(monto.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' }));
   }
 
@@ -136,7 +135,7 @@ export default function MenuSucursal({ selectedProduct, onAddProviderInput }) {
     try {
       const price = parseFloat(priceInput.value == '' ? priceInput.placeholder ?? 0 : priceInput.value ?? 0)
       inputButton.disabled = true
-      const createdAt = today ? new Date().toISOString() : dateFromYYYYMMDD.toISOString()
+      const createdAt = registerDate ? registerDate : (today ? new Date().toISOString() : dateFromYYYYMMDD.toISOString())
       const { weight, pieces, provider } = providerInputFormData
       const group = selectedGroup == 'Sucursales' ? 'branch' : 'customer'
 

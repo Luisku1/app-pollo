@@ -111,14 +111,18 @@ export const SearchMenu = ({ modalMode, desktopButton }) => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
 
-  // Keydown SOLO para Enter (más controlado)
+  // Keydown SOLO para Enter (más controlado y sin race condition)
+  const frozenOptionRef = useRef();
   useEffect(() => {
     if (!showModal || !currentUser) return;
 
     const handleEnter = (e) => {
       if (e.key === 'Enter') {
         e.preventDefault();
-        handleOptionSelect(filteredOptions[highlightedIndex], e.ctrlKey);
+        // Congela la opción seleccionada en el momento del evento
+        const option = filteredOptions[highlightedIndex];
+        frozenOptionRef.current = option;
+        handleOptionSelect(option, e.ctrlKey);
       }
     };
 

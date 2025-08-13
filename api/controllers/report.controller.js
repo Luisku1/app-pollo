@@ -400,8 +400,6 @@ export const getBranchReports = async (req, res, next) => {
       }
     ]);
 
-    console.log(branchReportsAggregate)
-
     if (branchReportsAggregate.length > 0) {
 
       const branchReports = branchReportsAggregate?.[0].branchReports ?? []

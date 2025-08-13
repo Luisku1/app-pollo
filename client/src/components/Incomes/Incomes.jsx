@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useIncomeTypes } from '../../hooks/Incomes/useIncomeTypes'
 import { isToday } from '../../helpers/DatePickerFunctions'
 import SectionHeader from '../SectionHeader'
@@ -40,6 +40,8 @@ export default function Incomes({ showDateSwitch = true, useToday: useTodayProp 
   const { branches } = useBranches({ companyId: company._id })
   const { employees } = useEmployees({ companyId: company._id })
   const { customers } = useCustomers({ companyId: company._id })
+  // Ref para el Select de tipo de ingreso
+  const incomeTypeSelectRef = useRef(null);
 
   useEffect(() => {
     setBranchAndCustomerSelectOptions([
@@ -58,12 +60,18 @@ export default function Incomes({ showDateSwitch = true, useToday: useTodayProp 
     ])
   }, [branches, customers, employees, isSupervisor, currentUser])
 
-
+  console.log(currentUser)
   const resetInputs = () => {
     setSelectedIncomeType(null)
     setSelectedCustomerBranchIncomesOption(null)
     setIncomeFormData({})
     setUseToday(false)
+    // Enfocar nuevamente el Select de tipo tras limpiar
+    requestAnimationFrame(() => {
+      if (incomeTypeSelectRef.current && typeof incomeTypeSelectRef.current.focus === 'function') {
+        incomeTypeSelectRef.current.focus();
+      }
+    });
   }
 
   const handleCustomerBranchIncomesSelectChange = (option) => {
@@ -113,6 +121,12 @@ export default function Incomes({ showDateSwitch = true, useToday: useTodayProp 
       ToastSuccess(`Se registró el efectivo de ${income.amount.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}`)
       resetInputs()
       await onAddIncome(income, prevOwnerIncome ? prevOwnerIncome : null, selectedIncomeGroup)
+      // Asegurar foco después de la actualización asíncrona
+      setTimeout(() => {
+        if (incomeTypeSelectRef.current && typeof incomeTypeSelectRef.current.focus === 'function') {
+          incomeTypeSelectRef.current.focus();
+        }
+      }, 50);
 
     } catch (error) {
 
@@ -178,6 +192,7 @@ export default function Incomes({ showDateSwitch = true, useToday: useTodayProp 
             <Select
               styles={customSelectStyles}
               menuPortalTarget={document.body}
+              ref={incomeTypeSelectRef}
               value={selectedIncomeType}
               onChange={handleTypesSelectChange}
               options={getArrayForSelects(incomeTypes, (type) => { return type.name })}

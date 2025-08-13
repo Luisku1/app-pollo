@@ -1,35 +1,34 @@
-import { useEffect, useState } from "react"
-import SectionHeader from "../SectionHeader"
-import { useSelector } from "react-redux"
-import { useProducts } from "../../hooks/Products/useProducts"
-import ShowListModal from "../Modals/ShowListModal"
-import Select from "react-select"
-import { customSelectStyles } from "../../helpers/Constants"
-import { currency, getArrayForSelects, getElementForSelect } from "../../helpers/Functions"
-import { useProviders } from "../../hooks/Providers/useProviders"
-import useProvidersMovements from "../../hooks/Providers/useProvidersMovements"
-import ProviderMovementsList from "./ProviderMovementsList"
-import { useDateNavigation } from "../../hooks/useDateNavigation"
+import { useEffect, useState } from "react";
+import SectionHeader from "../SectionHeader";
+import { useSelector } from "react-redux";
+import { useProducts } from "../../hooks/Products/useProducts";
+import ShowListModal from "../Modals/ShowListModal";
+import Select from "react-select";
+import { customSelectStyles } from "../../helpers/Constants";
+import { currency, getArrayForSelects, getElementForSelect } from "../../helpers/Functions";
+import { useProviders } from "../../hooks/Providers/useProviders";
+import useProvidersMovements from "../../hooks/Providers/useProvidersMovements";
+import ProviderMovementsList from "./ProviderMovementsList";
+import { useDateNavigation } from "../../hooks/useDateNavigation";
 
-export default function CreateProviderMovement() {
-  const { company, currentUser } = useSelector((state) => state.user)
-  const { currentDate: date, today, dateFromYYYYMMDD } = useDateNavigation()
+// date: ISO string de la fecha seleccionada (obligatoria al usarse desde ProviderMenu)
+export default function CreateProviderMovement({ date }) {
+  const { company, currentUser } = useSelector((state) => state.user);
   const { products } = useProducts({ companyId: company._id })
   const { providers } = useProviders(company._id)
+  const { currentDate } = useDateNavigation();
 
   const [movementFormData, setMovementFormData] = useState({})
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [selectedProvider, setSelectedProvider] = useState(null)
   const [amount, setAmount] = useState('$0.00')
   const [changePrice, setChangePrice] = useState(false);
-  const {
-    movements,
-    totalAmount,
-    onAddMovement,
-    onDeleteMovement,
-    price: lastPrice,
-    loading
-  } = useProvidersMovements({ companyId: company._id, date, productId: selectedProduct?._id, providerId: selectedProvider?._id })
+  const { movements, totalAmount, onAddMovement, onDeleteMovement, price: lastPrice, loading } = useProvidersMovements({
+    companyId: company._id,
+    date: currentDate,
+    productId: selectedProduct?._id,
+    providerId: selectedProvider?._id,
+  });
 
   // Generar monto automáticamente
   const generarMonto = () => {
@@ -70,7 +69,7 @@ export default function CreateProviderMovement() {
       return
     }
 
-    const createdAt = today ? new Date().toISOString() : dateFromYYYYMMDD.toISOString();
+    const createdAt = date || new Date().toISOString();
 
     const purchase = {
       product: selectedProduct.value,
@@ -84,7 +83,6 @@ export default function CreateProviderMovement() {
       employee: currentUser._id,
       createdAt: createdAt
     }
-    console.log(purchase)
     await onAddMovement(purchase)
     setMovementFormData({})
     setSelectedProduct(null)

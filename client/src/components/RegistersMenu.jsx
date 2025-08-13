@@ -6,13 +6,13 @@ import ExtraOutgoings from "./Outgoings/ExtraOutgoings";
 import RegistroCuentaDiaria from "../pages/RegistroCuentaDiaria";
 import CreateRest from "./CreateRest";
 import Penalties from "./Penalties";
-import EmployeePayments from "./EmployeePayments";
 import { useSelector } from "react-redux";
-import CreateProviderMovement from "./Providers/CreateProviderMovement";
-import CreateProviderPayment from "./Providers/CreateProviderPayment";
+
 import RegistroProveedor from "../pages/RegistroProveedor";
 import IncomesAndOutgoings from "./SupervisorSections/IncomesAndOutgoings";
 import EntradasYSalidas from "./Movimientos/EntradasYSalidas";
+import Payments from "./Outgoings/Payments";
+import ProviderRegisters from "./ProviderRegisters";
 
 
 export const RegistersMenu = ({ desktopButton }) => {
@@ -29,10 +29,9 @@ export const RegistersMenu = ({ desktopButton }) => {
     { title: "Dinero", onSelec: () => { return <IncomesAndOutgoings /> } },
     { title: "Movimientos Internos", onSelec: () => { return <EntradasYSalidas /> } },
     { title: "Entrada de Proveedor", onSelec: () => { return <EntradaInicial /> } },
-    { title: "Pago a Proveedor", onSelec: () => { return <CreateProviderPayment /> } },
-    { title: "Compra y devolución a proveedor", onSelec: () => { return <CreateProviderMovement /> } },
+    { title: "Movimientos de Proveedor", onSelec: () => { return <ProviderRegisters /> } },
     { title: "Gastos", onSelec: () => { return <ExtraOutgoings /> } },
-    { title: "Pago a empleados", onSelec: () => { <EmployeePayments /> } },
+    { title: "Pago a empleadoss", onSelec: () => { <Payments /> } },
     { title: "Formato", onSelec: () => { return <RegistroCuentaDiaria /> } },
     { title: "Descansos", onSelec: () => { return <CreateRest /> } },
     { title: "Retardos y faltas", onSelec: () => <Penalties /> },

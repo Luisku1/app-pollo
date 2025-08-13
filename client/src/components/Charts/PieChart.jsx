@@ -10,7 +10,7 @@ import ExtraOutgoingsList from '../Outgoings/ExtraOutgoingsList';
 
 ChartJS.register(ArcElement, Tooltip, Legend, ChartDataLabels);
 
-export default function PieChart({ verifiedIncomes = null, netIncomes = null, chartInfo, large = false, hideLegend = false }) {
+export default function PieChart({ label = null, verifiedIncomes = null, netIncomes = null, chartInfo, large = false, hideLegend = false, hideLabels = false }) {
 
   const [showIncomes, setShowIncomes] = useState(false)
   const [showExtraOutgoings, setShowExtraOutgoings] = useState(false)
@@ -21,7 +21,7 @@ export default function PieChart({ verifiedIncomes = null, netIncomes = null, ch
     labels: [],
     datasets: [
       {
-        label: 'Ingresos',
+        label: label ? label : 'Ingresos',
         data: [],
         backgroundColor: [],
         hoverBackgroundColor: [],
@@ -38,7 +38,7 @@ export default function PieChart({ verifiedIncomes = null, netIncomes = null, ch
 
     const action = info?.action || null;
     if (action) {
-      action()
+      action(info)
       return
     }
     setList(info.data)
@@ -91,7 +91,7 @@ export default function PieChart({ verifiedIncomes = null, netIncomes = null, ch
       labels: updatedLabels,
       datasets: [
         {
-          label: 'Ingresos',
+          label: label ? label : 'Ingresos',
           data: updatedData,
           backgroundColor: updatedBackgroundColors,
           hoverBackgroundColor: updatedHoverBackgroundColors,
@@ -140,7 +140,7 @@ export default function PieChart({ verifiedIncomes = null, netIncomes = null, ch
         },
       },
       datalabels: {
-        display: large,
+        display: hideLabels ? false : large,
         color: '#222',
         font: { weight: 'bold', size: large ? 18 : 12 },
         formatter: (value, ctx) => value > 0 ? currency(value) : '',
@@ -157,13 +157,13 @@ export default function PieChart({ verifiedIncomes = null, netIncomes = null, ch
   return (
     <div className={`flex flex-col items-center ${large ? 'w-[420px] h-[420px]' : isMobile ? 'w-3/4' : 'w-2/4'} mx-auto`}>
       <div className="w-full h-full flex items-center justify-center">
-        <Pie data={data} options={options} style={{ width: '100%', height: '100%' }} />
+        <Pie data={data} options={options} style={{ width: '100%', height: '100%', cursor: 'pointer' }} />
       </div>
       {/* Leyenda custom si hideLegend */}
       {hideLegend && (
         <div className="hidden" />
       )}
-      {list.length > 0 && (
+      {list?.length > 0 && (
         <ShowListModal
           title={listTitle}
           modalIsOpen={showIncomes}
@@ -173,7 +173,7 @@ export default function PieChart({ verifiedIncomes = null, netIncomes = null, ch
           toggleComponent={() => setShowIncomes((prev) => !prev)}
         />
       )}
-      {list.length > 0 && (
+      {list && list?.length > 0 && (
         <ShowListModal
           ListComponent={ExtraOutgoingsList}
           ListComponentProps={{ extraOutgoings: list, totalExtraOutgoings: list.reduce((acc, curr) => acc + curr.amount, 0) }}

@@ -1,5 +1,6 @@
 export const getProvidersMovements = async ({ companyId, date }) => {
 
+  console.log(date)
   const res = await fetch(`/api/provider/providers-movements/${companyId}/${date}`, {
     method: 'GET'
   });

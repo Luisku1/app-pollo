@@ -102,6 +102,7 @@ export default function Modal({
   if (!isShown) {
     return null;
   }
+
   const renderModal = () => {
     const zIndex = 1000 + count;
     return (

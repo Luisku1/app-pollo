@@ -19,7 +19,5 @@ export const usePricesSelector = (branchId, date, pricesDate = null, sortOrder =
     staleTime: 0
   });
 
-  console.log(showResiduals)
-
   return { prices, loading, error };
 }

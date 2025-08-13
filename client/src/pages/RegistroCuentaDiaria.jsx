@@ -52,6 +52,7 @@ export default function RegistroCuentaDiaria({ edit = true }) {
   const [selectBranch, setSelectBranch] = useState(false)
   const [showSelectReportEmployees, setShowSelectReportEmployees] = useState(false)
   const [employeeInfo, setEmployeeInfo] = useState(null)
+  const [showEmployeeDrawer, setShowEmployeeDrawer] = useState(false)
   const isAuthorized = roles && isManager(currentUser.role)
   const [ableToEdit, setAbleToEdit] = useState(false)
 
@@ -236,7 +237,7 @@ export default function RegistroCuentaDiaria({ edit = true }) {
   }
 
   return (
-    <main id="registro-cuenta-diaria-main" className="p-3 max-w-lg mx-auto">
+    <main id="registro-cuenta-diaria-main" className="p-3 max-w-6xl mx-auto">
       {roles && (
         <div>
           {loading ?
@@ -259,7 +260,6 @@ export default function RegistroCuentaDiaria({ edit = true }) {
             />
           )}
           <EmployeeInfo employee={employeeInfo} toggleInfo={() => { setEmployeeInfo(false) }} />
-          <SectionHeader label={'Reporte'} />
           <div className="grid grid-cols-12 items-center mt-1 mb-2">
             <h1 className='col-span-12 text-3xl text-center font-semibold mt-7'>
               <div className='col-span-12'>
@@ -276,155 +276,230 @@ export default function RegistroCuentaDiaria({ edit = true }) {
               </div>
             </h1>
           </div>
-          {((branchReport && branchId !== null && employee !== null && ((employee._id !== currentUser._id && isSupervisor(currentUser.role)) || employee._id === currentUser._id)) || isManager(currentUser.role)) && (
-            <div>
-              <h2 className='w-full px-2 rounded-lg border-black mx-2 mt-2 bg-white'>
-                <div className='flex gap-2 py-2 items-center'>
-                  {branchReport?.employee &&
-                    <p className='flex-shrink-0'>Encargado:</p>
-                  }
-                  <button onClick={() => handleShowEmployeeInfo()} className='font-bold text-md flex gap-1 truncate items-center w-full justify-center'>
-                    <span>{branchReport.employee && <CgProfile />}</span> {!branchReport?.employee ? 'Termina el llenado para asignar un encargado' : getEmployeeFullName(branchReport?.employee)}
-                  </button>
-                </div>
-                {branchReport?.assistant && (
-                  <div className='flex gap-2 py-2 items-center'>
-                    <p className='flex-shrink-0'>Auxiliares:</p>
-                    <div className='flex flex-wrap gap-2'>
-                      {branchReport.assistant.map((assistant) => (
-                        <button
-                          key={assistant._id}
-                          onClick={() => setEmployeeInfo(assistant)}
-                          className='font-bold text-md flex gap-1 truncate items-center bg-gray-200 px-2 py-1 rounded-lg hover:bg-gray-300 transition-colors'
-                        >
-                          <span><CgProfile /></span> {getEmployeeFullName(assistant)}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </h2>
-              <div className='my-2'>
-                <BranchPrices
-                  onUpdateBranchReport={onUpdateBranchReport}
-                  prices={prices}
-                  pricesDate={branchReport.pricesDate}
-                  branch={branchId || selectedBranch?._id || null}
-                  onChange={onChangePrices}
-                />
-              </div>
-              {branchReport ?
+          {(() => {
+            const showEmployeeSection = ((branchReport && branchId !== null && employee !== null && ((employee._id !== currentUser._id && isSupervisor(currentUser.role)) || employee._id === currentUser._id)) || isManager(currentUser.role));
+            return showEmployeeSection && (
+              <div className="grid grid-cols-1 md:grid-cols-[1fr_320px] gap-4">
+                {/* Columna principal */}
                 <div>
-                  <div className="flex items-center justify-around">
-                    <div className='w-full items-center gap-4 justify-self-end'>
+                  {/* Botón para abrir drawer en móvil */}
+                  <div className="md:hidden flex justify-end mb-2">
+                    <button
+                      onClick={() => setShowEmployeeDrawer(true)}
+                      className="px-3 py-2 rounded-lg border border-gray-300 bg-white text-gray-800 shadow-sm text-sm font-semibold"
+                    >
+                      Empleados
+                    </button>
+                  </div>
+
+                  <div className='my-2'>
+                    <BranchPrices
+                      onUpdateBranchReport={onUpdateBranchReport}
+                      prices={prices}
+                      pricesDate={branchReport.pricesDate}
+                      branch={branchId || selectedBranch?._id || null}
+                      onChange={onChangePrices}
+                    />
+                  </div>
+                  {branchReport ?
+                    <div>
+                      <div className="flex items-center justify-around">
+                        <div className='w-full items-center gap-4 justify-self-end'>
+                          <ShowListModal
+                            title={'Sobrante Inicial'}
+                            ListComponent={StockList}
+                            ListComponentProps={{ stock: initialStock, amount: initialStockAmount, weight: initialStockWeight }}
+                            className={'w-full'}
+                            clickableComponent={
+                              <p className=' font-bold text-lg text-center p-1 bg-red-200 border rounded-lg border-header'>SOBRANTE INICIAL {currency({ amount: initialStockAmount })}</p>
+                            }
+                          />
+                        </div>
+                      </div>
                       <ShowListModal
-                        title={'Sobrante Inicial'}
-                        ListComponent={StockList}
-                        ListComponentProps={{ stock: initialStock, amount: initialStockAmount, weight: initialStockWeight }}
+                        title={'Entradas de Proveedores'}
+                        ListComponent={ProvidersInputsList}
+                        ListComponentProps={{ inputs: providerInputs, totalAmount: providerInputsTotal, totalWeight: providerInputsWeight }}
                         className={'w-full'}
                         clickableComponent={
-                          <p className=' font-bold text-lg text-center p-1 bg-red-200 border rounded-lg border-header'>SOBRANTE INICIAL {currency({ amount: initialStockAmount })}</p>
+                          <p className='font-bold text-lg text-center bg-red-200 border rounded-lg p-1 border-header mt-2'>PROVEEDORES {currency({ amount: providerInputsTotal ?? 0 })}</p>
                         }
                       />
+                      <ShowListModal
+                        title={'Entradas'}
+                        ListComponent={ListaEntradas}
+                        ListComponentProps={{ inputs, totalWeight: inputsWeight, totalAmount: inputsTotal }}
+                        className={'w-full'}
+                        clickableComponent={
+                          <p className='font-bold text-lg text-center bg-red-200 border rounded-lg p-1 border-header mt-2'>ENTRADAS {currency({ amount: inputsTotal ?? 0 })}</p>
+                        }
+                      />
+                      <AddOutgoing
+                        modifyBalance={modifyBalance}
+                        outgoings={outgoings}
+                        outgoingsTotal={outgoingsTotal}
+                        employee={employee}
+                        onAddOutgoing={onAddOutgoing}
+                        onDeleteOutgoing={onDeleteOutgoing}
+                        isReport={true}
+                        branch={selectedBranch}
+                        listButton={<p className='font-bold text-lg text-center bg-green-100 rounded-lg p-1 border border-header'>{currency({ amount: outgoingsTotal ?? 0 })}</p>}
+                      />
+                      <AddStock
+                        title={'Sobrante'}
+                        stock={stock}
+                        modifyBalance={modifyBalance}
+                        amount={stockAmount}
+                        weight={stockWeight}
+                        products={products}
+                        onAddStock={onAddStock}
+                        onDeleteStock={onDeleteStock}
+                        branchPrices={prices}
+                        branch={selectedBranch}
+                        employee={employee}
+                        isReport={true}
+                        date={currentDate}
+                        listButton={<p className='font-bold text-lg text-center bg-green-100 rounded-lg border p-1 border-header'>{currency({ amount: stockAmount ?? 0 })}</p>}
+                      />
                     </div>
-                  </div>
+                    : ''}
                   <ShowListModal
-                    title={'Entradas de Proveedores'}
-                    ListComponent={ProvidersInputsList}
-                    ListComponentProps={{ inputs: providerInputs, totalAmount: providerInputsTotal, totalWeight: providerInputsWeight }}
+                    title={'Salidas'}
+                    ListComponent={ListaSalidas}
+                    ListComponentProps={{ outputs, totalWeight: outputsWeight, totalAmount: outputsTotal }}
                     className={'w-full'}
                     clickableComponent={
-                      <p className='font-bold text-lg text-center bg-red-200 border rounded-lg p-1 border-header mt-2'>PROVEEDORES {currency({ amount: providerInputsTotal ?? 0 })}</p>
+                      <p className='font-bold text-lg text-center bg-green-100 border rounded-lg p-1 border-header mt-2'>SALIDAS {currency({ amount: outputsTotal ?? 0 })}</p>
                     }
                   />
                   <ShowListModal
-                    title={'Entradas'}
-                    ListComponent={ListaEntradas}
-                    ListComponentProps={{ inputs, totalWeight: inputsWeight, totalAmount: inputsTotal }}
+                    title={'Pagos'}
+                    ListComponent={IncomesList}
+                    ListComponentProps={{ incomes: payments, incomesTotal: payments.reduce((acc, payment) => acc += payment.amount, 0) }}
                     className={'w-full'}
                     clickableComponent={
-                      <p className='font-bold text-lg text-center bg-red-200 border rounded-lg p-1 border-header mt-2'>ENTRADAS {currency({ amount: inputsTotal ?? 0 })}</p>
+                      <p className='font-bold text-lg text-center bg-green-100 border rounded-lg p-1 border-header mt-2'>PAGOS {currency({ amount: payments.reduce((acc, payment) => acc += payment.amount, 0) ?? 0 })}</p>
                     }
+                  //Comparar con el monto para cubrir la nota de hoy.
                   />
-                  <AddOutgoing
-                    modifyBalance={modifyBalance}
-                    outgoings={outgoings}
-                    outgoingsTotal={outgoingsTotal}
-                    employee={employee}
-                    onAddOutgoing={onAddOutgoing}
-                    onDeleteOutgoing={onDeleteOutgoing}
-                    isReport={true}
-                    branch={selectedBranch}
-                    listButton={<p className='font-bold text-lg text-center bg-green-100 rounded-lg p-1 border border-header'>{currency({ amount: outgoingsTotal ?? 0 })}</p>}
+                  <ShowListModal
+                    title={'Ingresos'}
+                    ListComponent={IncomesList}
+                    ListComponentProps={{ incomes: noPayments, incomesTotal: noPayments.reduce((acc, payment) => acc += payment.amount, 0) }}
+                    className={'w-full'}
+                    clickableComponent={
+                      <p className='font-bold text-lg text-center bg-green-100 border rounded-lg p-1 border-header mt-2'>EFECTIVOS {currency({ amount: noPayments.reduce((acc, payment) => acc += payment.amount, 0) ?? 0 })}</p>
+                    }
+                  //Comparar con el monto para cubrir la nota de hoy.
                   />
                   <AddStock
-                    title={'Sobrante'}
-                    stock={stock}
-                    modifyBalance={modifyBalance}
-                    amount={stockAmount}
-                    weight={stockWeight}
+                    title={'Sobrante de Medio Día'}
+                    stock={midDayStock}
+                    midDay={true}
+                    amount={midDayStockAmount}
+                    weight={midDayStockWeight}
                     products={products}
-                    onAddStock={onAddStock}
-                    onDeleteStock={onDeleteStock}
+                    onAddStock={onAddMidStock}
+                    onDeleteStock={onDeleteMidStock}
                     branchPrices={prices}
                     branch={selectedBranch}
                     employee={employee}
-                    isReport={true}
                     date={currentDate}
-                    listButton={<p className='font-bold text-lg text-center bg-green-100 rounded-lg border p-1 border-header'>{currency({ amount: stockAmount ?? 0 })}</p>}
+                    listButton={<p className='font-bold text-lg text-center bg-yellow-200 rounded-lg border p-1 border-header'>{currency({ amount: midDayStockAmount ?? 0 })}</p>}
                   />
+                  {(isAuthorized || branchReport?.balance < 0) &&
+                    <p className={`${branchReport?.balance < 0 ? 'bg-red-200' : 'bg-green-100'} font-bold text-lg text-center border rounded-lg p-1 border-header mt-2`}>BALANCE: {currency({ amount: branchReport?.balance ?? 0 })}</p>
+                  }
+                  <p className='text-red-700 font-semibold'>{error}</p>
                 </div>
-                : ''}
-              <ShowListModal
-                title={'Salidas'}
-                ListComponent={ListaSalidas}
-                ListComponentProps={{ outputs, totalWeight: outputsWeight, totalAmount: outputsTotal }}
-                className={'w-full'}
-                clickableComponent={
-                  <p className='font-bold text-lg text-center bg-green-100 border rounded-lg p-1 border-header mt-2'>SALIDAS {currency({ amount: outputsTotal ?? 0 })}</p>
-                }
-              />
-              <ShowListModal
-                title={'Pagos'}
-                ListComponent={IncomesList}
-                ListComponentProps={{ incomes: payments, incomesTotal: payments.reduce((acc, payment) => acc += payment.amount, 0) }}
-                className={'w-full'}
-                clickableComponent={
-                  <p className='font-bold text-lg text-center bg-green-100 border rounded-lg p-1 border-header mt-2'>PAGOS {currency({ amount: payments.reduce((acc, payment) => acc += payment.amount, 0) ?? 0 })}</p>
-                }
-              //Comparar con el monto para cubrir la nota de hoy.
-              />
-              <ShowListModal
-                title={'Ingresos'}
-                ListComponent={IncomesList}
-                ListComponentProps={{ incomes: noPayments, incomesTotal: noPayments.reduce((acc, payment) => acc += payment.amount, 0) }}
-                className={'w-full'}
-                clickableComponent={
-                  <p className='font-bold text-lg text-center bg-green-100 border rounded-lg p-1 border-header mt-2'>EFECTIVOS {currency({ amount: noPayments.reduce((acc, payment) => acc += payment.amount, 0) ?? 0 })}</p>
-                }
-              //Comparar con el monto para cubrir la nota de hoy.
-              />
-              <AddStock
-                title={'Sobrante de Medio Día'}
-                stock={midDayStock}
-                midDay={true}
-                amount={midDayStockAmount}
-                weight={midDayStockWeight}
-                products={products}
-                onAddStock={onAddMidStock}
-                onDeleteStock={onDeleteMidStock}
-                branchPrices={prices}
-                branch={selectedBranch}
-                employee={employee}
-                date={currentDate}
-                listButton={<p className='font-bold text-lg text-center bg-yellow-200 rounded-lg border p-1 border-header'>{currency({ amount: midDayStockAmount ?? 0 })}</p>}
-              />
-              {(isAuthorized || branchReport?.balance < 0) &&
-                <p className={`${branchReport?.balance < 0 ? 'bg-red-200' : 'bg-green-100'} font-bold text-lg text-center border rounded-lg p-1 border-header mt-2`}>BALANCE: {currency({ amount: branchReport?.balance ?? 0 })}</p>
-              }
-              <p className='text-red-700 font-semibold'>{error}</p>
-            </div>
-          )}
+
+                {/* Aside de empleados en escritorio */}
+                <aside className="hidden md:block sticky top-24 self-start">
+                  <div className='bg-white border border-gray-300 rounded-lg p-3 shadow-sm'>
+                    {branchReport?.employee && (
+                      <div className='mb-3'>
+                        <p className='text-sm text-gray-600 font-semibold mb-1'>Encargado</p>
+                        <button onClick={() => handleShowEmployeeInfo()} className='font-bold text-md flex gap-2 items-center w-full text-left'>
+                          <CgProfile /> {getEmployeeFullName(branchReport.employee)}
+                        </button>
+                      </div>
+                    )}
+                    {branchReport?.assistant && (
+                      <div>
+                        <p className='text-sm text-gray-600 font-semibold mb-1'>Auxiliares</p>
+                        <div className='flex flex-wrap gap-2'>
+                          {branchReport.assistant.map((assistant) => (
+                            <button
+                              key={assistant._id}
+                              onClick={() => setEmployeeInfo(assistant)}
+                              className='font-semibold text-sm flex gap-1 items-center bg-gray-200 px-2 py-1 rounded-lg hover:bg-gray-300 transition-colors'
+                            >
+                              <CgProfile /> {getEmployeeFullName(assistant)}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    <div className='mt-3'>
+                      <button
+                        onClick={() => setShowSelectReportEmployees(true)}
+                        className='w-full px-3 py-2 rounded-lg border border-gray-300 bg-white hover:bg-gray-100 text-sm font-semibold'
+                      >
+                        Editar empleados
+                      </button>
+                    </div>
+                  </div>
+                </aside>
+
+                {/* Drawer móvil de empleados */}
+                {showEmployeeDrawer && (
+                  <div className="md:hidden fixed inset-0 z-[10000]">
+                    <div className="absolute inset-0 bg-black/40" onClick={() => setShowEmployeeDrawer(false)} />
+                    <div className="absolute right-0 top-0 h-full w-11/12 max-w-sm bg-white shadow-xl p-4 flex flex-col">
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className='text-lg font-bold'>Empleados</h3>
+                        <button className='px-3 py-1 rounded-md border border-gray-300' onClick={() => setShowEmployeeDrawer(false)}>Cerrar</button>
+                      </div>
+                      <div className='flex-1 overflow-y-auto'>
+                        {branchReport?.employee && (
+                          <div className='mb-3'>
+                            <p className='text-sm text-gray-600 font-semibold mb-1'>Encargado</p>
+                            <button onClick={() => handleShowEmployeeInfo()} className='font-bold text-md flex gap-2 items-center w-full text-left'>
+                              <CgProfile /> {getEmployeeFullName(branchReport.employee)}
+                            </button>
+                          </div>
+                        )}
+                        {branchReport?.assistant && (
+                          <div>
+                            <p className='text-sm text-gray-600 font-semibold mb-1'>Auxiliares</p>
+                            <div className='flex flex-wrap gap-2'>
+                              {branchReport.assistant.map((assistant) => (
+                                <button
+                                  key={assistant._id}
+                                  onClick={() => setEmployeeInfo(assistant)}
+                                  className='font-semibold text-sm flex gap-1 items-center bg-gray-200 px-2 py-1 rounded-lg hover:bg-gray-300 transition-colors'
+                                >
+                                  <CgProfile /> {getEmployeeFullName(assistant)}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      <div className='pt-3'>
+                        <button
+                          onClick={() => { setShowEmployeeDrawer(false); setShowSelectReportEmployees(true); }}
+                          className='w-full px-3 py-2 rounded-lg border border-gray-300 bg-white hover:bg-gray-100 text-sm font-semibold'
+                        >
+                          Editar empleados
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
         </div>
       )}
     </main>

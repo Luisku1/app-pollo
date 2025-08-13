@@ -151,6 +151,7 @@ export const pushOrPullCustomerReportRecord = async ({
   arrayField,
   amountField
 }) => {
+
   if (!['$addToSet', '$pull'].includes(operation)) throw new Error("Parámetros inválidos, se espera '$addToSet' o '$pull'")
   if (!customerId || !date || !record || !arrayField || !amountField) throw new Error("Parámetros requeridos faltantes en pushOrPullCustomerReportRecord")
 

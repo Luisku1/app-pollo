@@ -1,5 +1,5 @@
 export const deleteProviderMovementFetch = async ({ purchaseId }) => {
-  const res = await fetch(`/api/provider/${purchaseId}/delete`, {
+  const res = await fetch(`/api/provider/delete-provider-movement/${purchaseId}`, {
     method: 'DELETE'
   })
 
