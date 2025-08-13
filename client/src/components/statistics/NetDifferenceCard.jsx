@@ -21,7 +21,7 @@ export default function NetDifferenceCard({ inHeader = false }) {
   // Filtrar datos según permisos
   let filteredByEmployee = data?.byEmployee || {};
   let filteredByProduct = data?.byProduct || {};
-  if (!isManager(currentUser.role) && currentUser?._id) {
+  if (!isManager(currentUser.companyData?.[0].role) && currentUser?._id) {
     // Buscar sólo el empleado actual
     filteredByEmployee = Object.fromEntries(
       Object.entries(data?.byEmployee || {}).filter(([employeeId, emp]) => emp.employee?._id === currentUser._id)

@@ -89,7 +89,7 @@ export default function EntradaInicial({ date: registerDate = undefined }) {
       <div className='rounded-md p-3'>
         <SectionHeader label={'Entradas de Proveedor'} />
         {/* Mostrar switch solo si no se pasó registerDate explícito, el usuario es manager y la fecha seleccionada no es hoy */}
-        {registerDate === undefined && isManager(currentUser.role) && !today && (
+        {registerDate === undefined && isManager(currentUser.companyData?.[0].role) && !today && (
           <RegisterDateSwitch useToday={useToday} setUseToday={setUseToday} />
         )}
         <div className="grid grid-rows-2">
@@ -137,7 +137,7 @@ export default function EntradaInicial({ date: registerDate = undefined }) {
               <sup className="text-red-700">u</sup>
 
               {/* Segunda Parte: Condicional */}
-              {isManager(currentUser.role) && (
+              {isManager(currentUser.companyData?.[0].role) && (
                 <>
                   <span>:</span>
                   <span className="text-green-700">{` ${currency({ amount: providerInputsAmount })}`}</span>

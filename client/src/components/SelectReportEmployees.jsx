@@ -10,7 +10,7 @@ export const SelectReportEmployees = ({ employees, currentReportEmployee, branch
 
   const { currentUser } = useSelector((state) => state.user);
   const { isSupervisor } = useRoles();
-  const isCurrentUserSupervisor = isSupervisor(currentUser.role);
+  const isCurrentUserSupervisor = isSupervisor(currentUser.companyData?.[0].role);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [selectedAssistants, setSelectedAssistants] = useState(currentAssistants || []);
   const sameData = currentReportEmployee && selectedEmployee && currentReportEmployee._id === selectedEmployee._id && (currentReportEmployee.assistants || []).length === selectedAssistants.length && (currentReportEmployee.assistants || []).every(assistant => selectedAssistants.some(selAssistant => selAssistant._id === assistant._id));
@@ -31,7 +31,7 @@ export const SelectReportEmployees = ({ employees, currentReportEmployee, branch
   // Segundo useEffect: sincroniza si cambia el encargado del reporte
   useEffect(() => {
     if (!employees || employees.length === 0) return;
-    if (currentReportEmployee && selectedEmployee && currentReportEmployee._id !== selectedEmployee._id && !isSupervisor(currentUser.role)) {
+    if (currentReportEmployee && selectedEmployee && currentReportEmployee._id !== selectedEmployee._id && !isSupervisor(currentUser.companyData?.[0].role)) {
       setSelectedEmployee({ ...currentReportEmployee, label: getEmployeeFullName(currentReportEmployee), value: currentReportEmployee._id });
     }
   }, [selectedEmployee, currentReportEmployee, employees]);
@@ -83,7 +83,7 @@ export const SelectReportEmployees = ({ employees, currentReportEmployee, branch
           />
         </div>
       </div>
-      {(!currentReportEmployee || (currentReportEmployee && (currentReportEmployee?._id !== currentUser._id && isSupervisor(currentUser.role))) || (currentReportEmployee && currentReportEmployee._id === currentUser._id)) &&
+      {(!currentReportEmployee || (currentReportEmployee && (currentReportEmployee?._id !== currentUser._id && isSupervisor(currentUser.companyData?.[0].role))) || (currentReportEmployee && currentReportEmployee._id === currentUser._id)) &&
         <button
           onClick={() => onRegisterEmployees(selectedEmployee, selectedAssistants)}
           className='mt-2 rounded-lg text-white text-md p-3 w-full bg-button'

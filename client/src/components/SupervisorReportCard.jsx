@@ -176,7 +176,7 @@ export default function SupervisorReportCard({
           <button onClick={() => { setEditingReport(true) }} className="border border-gray-300 rounded-lg p-1 bg-white hover:bg-gray-100" title="Editar">
             <MdEdit />
           </button>
-          <button className={`border border-gray-300 rounded-lg p-1 bg-white hover:bg-gray-100 ${!isController(currentUser.role) ? blockedButton : ''}`} disabled={!isController(currentUser.role)} onClick={() => handleSetReportOnZero(supervisorReport._id)} title="Poner en cero">
+          <button className={`border border-gray-300 rounded-lg p-1 bg-white hover:bg-gray-100 ${!isController(currentUser.companyData?.[0].role) ? blockedButton : ''}`} disabled={!isController(currentUser.companyData?.[0].role)} onClick={() => handleSetReportOnZero(supervisorReport._id)} title="Poner en cero">
             <PiNumberZeroBold />
           </button>
           <button className="border border-gray-300 rounded-lg p-1 bg-white hover:bg-gray-100" onClick={handleDownloadImage} title="Descargar imagen">
@@ -234,7 +234,7 @@ export default function SupervisorReportCard({
               </div>
             </div>
             {/* Faltante */}
-            {(!isToday(supervisorReport.createdAt) || isManager(currentUser.role) || supervisorReport.balance < 0) && (
+            {(!isToday(supervisorReport.createdAt) || isManager(currentUser.companyData?.[0].role) || supervisorReport.balance < 0) && (
               <div className="mt-3 border-t border-gray-300 pt-3">
                 <div className="flex justify-between items-center">
                   <p className="font-semibold text-gray-600 text-base">Faltante:</p>
@@ -244,7 +244,7 @@ export default function SupervisorReportCard({
                       : 'text-green-600'
                       }`}
                   >
-                    {isManager(currentUser.role) || supervisorReport.balance < 0
+                    {isManager(currentUser.companyData?.[0].role) || supervisorReport.balance < 0
                       ? parseFloat(supervisorReport.balance).toLocaleString('es-MX', {
                         style: 'currency',
                         currency: 'MXN',

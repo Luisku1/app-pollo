@@ -182,7 +182,7 @@ export default function Gastos() {
         <br />
       </h1>
 
-      {manager._id == currentUser.role ?
+      {manager._id == currentUser.companyData?.[0].role ?
 
         <FechaDePagina changeDay={changeDay} stringDatePickerValue={currentDate} changeDatePickerValue={changeDatePickerValue} ></FechaDePagina>
 

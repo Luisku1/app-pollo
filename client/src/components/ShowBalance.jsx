@@ -10,7 +10,7 @@ export default function ShowBalance({ balance }) {
   const { currentUser } = useSelector((state) => state.user)
   const { isManager } = useRoles()
 
-  if ((!isManager(currentUser.role) && balance > 0) || !balance) return null
+  if ((!isManager(currentUser.companyData?.[0].role) && balance > 0) || !balance) return null
 
   const balanceClass = balance < 0 ? 'negative' : 'positive';
 

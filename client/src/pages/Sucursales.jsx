@@ -169,7 +169,7 @@ export default function Sucursales() {
                 <span className="block w-3 h-3 rounded-full bg-blue-400"></span>
                 <p className="text-xl sm:text-2xl font-bold text-blue-800 truncate">{branch.branch}</p>
               </div>
-              {isController(currentUser.role) && (
+              {isController(currentUser.companyData?.[0].role) && (
                 <div className="flex flex-wrap gap-2 mb-2">
                   <BranchSaleAvg branchId={branch._id} />
                   <BranchProviderInputsAvg branchId={branch._id} />

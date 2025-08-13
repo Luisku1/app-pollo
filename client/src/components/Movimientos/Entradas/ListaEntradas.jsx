@@ -27,7 +27,7 @@ export default function ListaEntradas({ inputs, onDelete = null }) {
 
   const isAuthorized = (employee) =>
     currentUser._id === employee._id ||
-    isManager(currentUser.role) ||
+    isManager(currentUser.companyData?.[0].role) ||
     !onDelete;
   const deletable = onDelete != null;
 

@@ -46,8 +46,8 @@ export default function OutgoingsList({ outgoings, onDelete, modifyBalance }) {
     const { _id, concept, amount, createdAt } = outgoing
     const tempOutgoing = { ...outgoing, index }
     const employeeName = `${employee ? employee?.name ?? 'Ex empleado' : 'Ex empleado'}`
-    const isAuthorized = currentUser?._id == (employee?._id) || isManager(currentUser.role)
-    const shouldRender = isAuthorized || isManager(currentUser.role)
+    const isAuthorized = currentUser?._id == (employee?._id) || isManager(currentUser.companyData?.[0].role)
+    const shouldRender = isAuthorized || isManager(currentUser.companyData?.[0].role)
 
     return (
       shouldRender && (

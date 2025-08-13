@@ -20,7 +20,7 @@ export default function EmployeePaymentsList({ payments, onDelete = null, splice
   const { isManager } = useRoles()
   const [selectedPayment, setSelectedPayment] = useState(null)
   const isEmpty = !payments || payments.length === 0
-  const isAuthorized = (employee) => currentUser._id === employee._id || isManager(currentUser.role) || !onDelete
+  const isAuthorized = (employee) => currentUser._id === employee._id || isManager(currentUser.companyData?.[0].role) || !onDelete
   const deletable = onDelete != null
   const [selectedEmployee, setSelectedEmployee] = useState(null);
 

@@ -21,7 +21,7 @@ export default function ListaSalidas({ outputs = [], onDelete = null }) {
   const { isManager } = useRoles()
   const [selectedOutput, setSelectedOutput] = useState(null)
   const [selectedEmployee, setSelectedEmployee] = useState(null)
-  const isAuthorized = (employee) => currentUser._id === employee._id || isManager(currentUser.role) || !onDelete
+  const isAuthorized = (employee) => currentUser._id === employee._id || isManager(currentUser.companyData?.[0].role) || !onDelete
   const deletable = onDelete != null
 
   const totalWeight = useMemo(() => outputs.reduce((acc, output) => acc + output.weight, 0), [outputs])

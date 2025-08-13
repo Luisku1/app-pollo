@@ -21,17 +21,13 @@ import ListaEntradas from '../components/Movimientos/Entradas/ListaEntradas';
 import ListaSalidas from '../components/Movimientos/Salidas/ListaSalidas';
 import ShowBalance from '../components/ShowBalance';
 import StockList from '../components/Stock/StockList';
-import OutgoingsList from '../components/Outgoings/OutgoingsList';
 import Modal from '../components/Modals/Modal';
-import ConfirmationButton from '../components/Buttons/ConfirmationButton';
 import EmployeeInfo from '../components/EmployeeInfo';
 import { CgProfile } from 'react-icons/cg';
 import { useDateNavigation } from '../hooks/useDateNavigation';
 import { ToastInfo } from '../helpers/toastify';
 import ProvidersInputsList from '../components/Providers/ProvidersInputsList';
-import { customSelectStyles } from '../helpers/Constants';
 import { SelectReportEmployees } from '../components/SelectReportEmployees';
-import { formatDateYYYYMMDD, today } from '../../../common/dateOps';
 import { areArraysEqual } from '../../../common/arraysOps';
 
 
@@ -53,7 +49,7 @@ export default function RegistroCuentaDiaria({ edit = true }) {
   const [showSelectReportEmployees, setShowSelectReportEmployees] = useState(false)
   const [employeeInfo, setEmployeeInfo] = useState(null)
   const [showEmployeeDrawer, setShowEmployeeDrawer] = useState(false)
-  const isAuthorized = roles && isManager(currentUser.role)
+  const isAuthorized = roles && isManager(currentUser.companyData?.[0].role)
   const [ableToEdit, setAbleToEdit] = useState(false)
 
   const reportDate = dateFromYYYYMMDD.toLocaleDateString('es-mx', { weekday: 'long', year: 'numeric', month: '2-digit', day: '2-digit' })
@@ -104,13 +100,13 @@ export default function RegistroCuentaDiaria({ edit = true }) {
 
     setAbleToEdit(true)
 
-    if (isJustSeller(currentUser.role) && !today(reportDate)) {
+    if (isJustSeller(currentUser.companyData?.[0].role) && !today(reportDate)) {
       ToastInfo('No puedes editar el formato de otro día')
       setAbleToEdit(false)
       return
     }
 
-    if (isJustSeller(currentUser.role) && today(reportDate)) {
+    if (isJustSeller(currentUser.companyData?.[0].role) && today(reportDate)) {
       if ((today(reportDate) && currentUTCHours > 2 && currentUTCHours < 6) || (today(reportDate) && currentUTCHours > 2 && currentUTCMinutes > 30 && currentUTCHours < 6)) {
         ToastInfo('No puedes editar el formato después de las 8 pm')
         setAbleToEdit(false)
@@ -147,7 +143,7 @@ export default function RegistroCuentaDiaria({ edit = true }) {
   const onRegisterEmployees = async (selectedEmployee, selectedAssistants) => {
     let finalAssistants = [...selectedAssistants] || [];
     let finalEmployee = selectedEmployee || null
-    if (((selectedEmployee && currentUser._id !== selectedEmployee._id) || !selectedEmployee) && !isController(currentUser.role)) {
+    if (((selectedEmployee && currentUser._id !== selectedEmployee._id) || !selectedEmployee) && !isController(currentUser.companyData?.[0].role)) {
       if (!selectedAssistants.some(assistant => assistant._id === currentUser._id)) {
         finalAssistants.push({
           value: currentUser._id,
@@ -277,7 +273,7 @@ export default function RegistroCuentaDiaria({ edit = true }) {
             </h1>
           </div>
           {(() => {
-            const showEmployeeSection = ((branchReport && branchId !== null && employee !== null && ((employee._id !== currentUser._id && isSupervisor(currentUser.role)) || employee._id === currentUser._id)) || isManager(currentUser.role));
+            const showEmployeeSection = ((branchReport && branchId !== null && employee !== null && ((employee._id !== currentUser._id && isSupervisor(currentUser.companyData?.[0].role)) || employee._id === currentUser._id)) || isManager(currentUser.companyData?.[0].role));
             return showEmployeeSection && (
               <div className="grid grid-cols-1 md:grid-cols-[1fr_320px] gap-4">
                 {/* Columna principal */}

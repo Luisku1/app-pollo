@@ -38,11 +38,11 @@ export const ProductsListsMenu = ({ inputs, onDelete = null }) => {
             <p className="font-semibold">{name}</p>
             <RowItem>
               <p className="text-center">{pieces} pz</p>
-              {isManager(currentUser.role) && (
+              {isManager(currentUser.companyData?.[0].role) && (
                 Amount({ amount: avgPrice, className: 'text-red-800 font-semibold' })
               )}
               <p>{`${weight.toFixed(2)} Kg`}</p>
-              {isManager(currentUser.role) && (
+              {isManager(currentUser.companyData?.[0].role) && (
                 Amount({ amount, className: 'items-center text-red-800 font-semibold' })
               )}
             </RowItem>

@@ -81,7 +81,7 @@ export default function ControlSupervisor({ hideFechaDePagina = false }) {
                     <MdSupervisorAccount className='justify-self-center text-2xl' />
                   ),
                   component: <div className="my-1 border border-slate-500 border-spacing-4 p-2 bg-white z-5 rounded-lg mb-5">
-                    {supervisorsInfo.filter((report) => isManager(currentUser.role) || report.supervisor._id == currentUser._id).map((supervisorReport) => (
+                    {supervisorsInfo.filter((report) => isManager(currentUser.companyData?.[0].role) || report.supervisor._id == currentUser._id).map((supervisorReport) => (
                       <SupervisorReportCard
                         key={supervisorReport._id}
                         supervisorReport={supervisorReport}

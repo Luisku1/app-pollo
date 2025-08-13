@@ -57,12 +57,12 @@ export default function ListaEntradasProveedor({ inputs, totalWeight, onDeleteIn
     const branchInfo = branch?.branch || branch?.label
     const customerInfo = `${customer?.name || ''} ${customer?.lastName || ''}`.trim() || customer?.label
     const employeeName = `${employee?.name ?? 'Ex empleado'}${employee?.lastName ? ' ' + employee.lastName : ''}`
-    const isAuthorized = currentUser._id === (employee?._id) || isManager(currentUser.role)
+    const isAuthorized = currentUser._id === (employee?._id) || isManager(currentUser.companyData?.[0].role)
 
     return (
       isAuthorized && (
         <div key={_id || index}>
-          <div className={(currentUser._id === employee._id || isManager(currentUser.role) ? '' : 'py-3 ') + (input.specialPrice ? 'border border-red-500 ' : 'border border-black ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-70 shadow-sm mt-2'}>
+          <div className={(currentUser._id === employee._id || isManager(currentUser.companyData?.[0].role) ? '' : 'py-3 ') + (input.specialPrice ? 'border border-red-500 ' : 'border border-black ') + 'grid grid-cols-12 items-center rounded-lg border border-black border-opacity-70 shadow-sm mt-2'}>
             <div id="list-element" className="col-span-10 items-center">
               <p className='text-center text-xs w-3/12'>{branchInfo || customerInfo}</p>
               <p className='text-center text-xs w-3/12'>{employeeName}</p>

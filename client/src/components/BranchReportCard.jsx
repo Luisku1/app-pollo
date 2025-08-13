@@ -227,8 +227,8 @@ export default function BranchReportCard({
           <button onClick={() => { navToEditReport(reportData) }} className="border h-fit border-black rounded-lg">
             <MdEdit />
           </button>
-          {isController(currentUser.role) &&
-            <button className={`border h-fit border-black rounded-lg`} disabled={!isController(currentUser.role)} onClick={() => handleSetReportOnZero(reportData)}>
+          {isController(currentUser.companyData?.[0].role) &&
+            <button className={`border h-fit border-black rounded-lg`} disabled={!isController(currentUser.companyData?.[0].role)} onClick={() => handleSetReportOnZero(reportData)}>
               <PiNumberZeroBold />
             </button>
           }
@@ -246,7 +246,7 @@ export default function BranchReportCard({
               closeModal={() => setShowSelectReportEmployees(false)}
             />
           )}
-          {isManager(currentUser.role) && (
+          {isManager(currentUser.companyData?.[0].role) && (
             <ChangeBranchPrices
               branch={reportData.branch._id}
               date={reportData.createdAt}
@@ -375,7 +375,7 @@ export default function BranchReportCard({
               </div>
             </div>
             {/* Faltante compacto y menos invasivo */}
-            {(!isToday(reportData.createdAt) || isManager(currentUser.role) || reportData.balance < 0) && (
+            {(!isToday(reportData.createdAt) || isManager(currentUser.companyData?.[0].role) || reportData.balance < 0) && (
               <div className="flex justify-end items-center">
                 <span
                   className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold shadow-sm transition
@@ -386,7 +386,7 @@ export default function BranchReportCard({
                   title={reportData.balance < 0 ? 'Faltante detectado en el balance' : 'Balance del reporte'}
                 >
                   {reportData.balance < 0 ? 'Faltante' : 'Balance'}:&nbsp;
-                  {isManager(currentUser.role) || reportData.balance < 0
+                  {isManager(currentUser.companyData?.[0].role) || reportData.balance < 0
                     ? parseFloat(reportData.balance).toLocaleString('es-MX', {
                       style: 'currency',
                       currency: 'MXN',

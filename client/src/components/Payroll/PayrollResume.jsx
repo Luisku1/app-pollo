@@ -16,7 +16,7 @@ export default function PayrollResume({ employeePayroll, updateSupervisorReportG
 
   const { isManager } = useRoles();
   const { currentUser } = useSelector((state) => state.user)
-  const showPositives = isManager(currentUser.role)
+  const showPositives = isManager(currentUser.companyData?.[0].role)
 
   const { previousWeekBalance, employeeDailyBalances, employee, branchReports, employeePayments, lateDiscount, supervisorReports, missingWorkDiscount, employeePaymentsAmount, balanceAdjustments = [], adjustments = 0, weekEnd } = employeePayroll
   const [branchReportCard, setBranchReportCard] = useState(null)

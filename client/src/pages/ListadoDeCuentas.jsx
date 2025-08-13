@@ -35,7 +35,7 @@ export default function ListadoDeCuentas() {
       }
     }
 
-    if (isController(currentUser.role)) {
+    if (isController(currentUser.companyData?.[0].role)) {
 
       fetchDayReportsData()
 

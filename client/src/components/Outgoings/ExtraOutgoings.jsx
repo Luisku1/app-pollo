@@ -105,7 +105,7 @@ export default function ExtraOutgoings({ useToday: useTodayProp, showDateSwitch 
                   ListComponent={ExtraOutgoingsList}
                   ListComponentProps={{ extraOutgoings, totalExtraOutgoings, onDelete: onDeleteExtraOutgoing }}
                   clickableComponent={
-                    isManager(currentUser.role) ?
+                    isManager(currentUser.companyData?.[0].role) ?
                       <p className='font-bold text-lg text-center'>{currency({ amount: totalExtraOutgoings })}</p>
                       :
                       <FaListAlt className="h-10 w-10 text-red-600" />

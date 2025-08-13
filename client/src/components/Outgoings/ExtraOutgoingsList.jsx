@@ -16,7 +16,7 @@ export default function ExtraOutgoingsList({ extraOutgoings, onDelete = null }) 
   const { currentUser } = useSelector((state) => state.user)
   const { isManager } = useRoles()
   const [selectedOutgoing, setSelectedOutgoing] = useState(null)
-  const isAuthorized = (employee) => currentUser._id === employee._id || isManager(currentUser.role) || !onDelete
+  const isAuthorized = (employee) => currentUser._id === employee._id || isManager(currentUser.companyData?.[0].role) || !onDelete
   const deletable = onDelete != null
   const [selectedEmployee, setSelectedEmployee] = useState(null);
 

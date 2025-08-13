@@ -58,14 +58,14 @@ export default function EmployeeInfo({ employee, toggleInfo, isShown, handleEmpl
     return (
       <div className={"p-2"}>
         <h2 className="text-xl font-bold mb-4 flex justify-evenly gap-2 items-center">
-          {isSupervisor(currentUser.role) ? (
+          {isSupervisor(currentUser.companyData?.[0].role) ? (
             <NavLink to={`/perfil/${employee._id}`} className="text-[#2B6CB0] hover:underline">
               {`${employee.name} ${employee.lastName}`}
             </NavLink>
           ) : (
             <span className="text-gray-700">{`${employee.name} ${employee.lastName}`}</span>
           )}
-          {isManager(currentUser.role) && handleEmployeeUpdate && (
+          {isManager(currentUser.companyData?.[0].role) && handleEmployeeUpdate && (
             <button className="" onClick={toggleEditEmployee}>
               <FaEdit className="text-blue-500" />
             </button>
@@ -80,7 +80,7 @@ export default function EmployeeInfo({ employee, toggleInfo, isShown, handleEmpl
           <PhoneLinks phoneNumber={employee.phoneNumber} name={employee.name} />
         </div>
         <div className="flex flex-col gap-2">
-          {isManager(currentUser.role) && (
+          {isManager(currentUser.companyData?.[0].role) && (
             <button
               className="bg-[#805AD5] text-white py-3 px-4 rounded"
               onClick={togglePayroll}
@@ -100,7 +100,7 @@ export default function EmployeeInfo({ employee, toggleInfo, isShown, handleEmpl
           >
             Ver Cuentas en Pollería
           </button>
-          {isSupervisor(employeeRole) && isSupervisor(currentUser.role) && (
+          {isSupervisor(employeeRole) && isSupervisor(currentUser.companyData?.[0].role) && (
             <button
               className="bg-[#2F855A] text-white py-3 px-4 rounded"
               onClick={handleViewSupervisorAccounts}
@@ -135,7 +135,7 @@ export default function EmployeeInfo({ employee, toggleInfo, isShown, handleEmpl
       {showEmployeeBranchReports && (
         <EmployeeBranchReports employeeId={employee._id} employee={employee} toggleComponent={() => setShowEmployeeBranchReports(prev => !prev)} />
       )}
-      {showEmployeeSupervisorReports && isSupervisor(currentUser.role) && (
+      {showEmployeeSupervisorReports && isSupervisor(currentUser.companyData?.[0].role) && (
         <EmployeeSupervisorReports employeeId={employee._id} employee={employee} toggleComponent={() => setShowEmployeeSupervisorReports(prev => !prev)} />
       )}
       {showPayments && (

@@ -24,7 +24,7 @@ export default function ChangeBranchPrices({ children, onChange, branch, onUpdat
   const [isLoading, setIsLoading] = useState(false)
   const { currentUser } = useSelector(state => state.user)
   const [isChanging, setIsChanging] = useState(false)
-  const ableToModify = isManager(currentUser.role)
+  const ableToModify = isManager(currentUser.companyData?.[0].role)
   const isEmpty = !prices || prices.length === 0
   const newestPricesDate = !isEmpty && prices.reduce((latest, price) => {
     if (!latest) {
@@ -149,7 +149,7 @@ export default function ChangeBranchPrices({ children, onChange, branch, onUpdat
       {children && (
         <div className='mx-auto'>
           {ableToModify ? (
-            <button className={`border border-black rounded-lg items-center ${!isManager(currentUser.role) ? blockedButton : ''}`} disabled={!isManager(currentUser.role)} onClick={() => { togglePriceChanger() }}  >
+            <button className={`border border-black rounded-lg items-center ${!isManager(currentUser.companyData?.[0].role) ? blockedButton : ''}`} disabled={!isManager(currentUser.companyData?.[0].role)} onClick={() => { togglePriceChanger() }}  >
               {children}
             </button>
           ) : (

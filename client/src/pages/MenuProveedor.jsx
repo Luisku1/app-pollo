@@ -61,7 +61,7 @@ const MenuProveedor = () => {
 
       newProviders = newProviders.map((provider) => {
 
-        if(provider._id === paramsProvider._id) {
+        if (provider._id === paramsProvider._id) {
           return paramsProvider
         }
         return provider
@@ -192,7 +192,7 @@ const MenuProveedor = () => {
             >
               <div className="col-span-10">
                 <p className="text-2xl font-bold">{provider.name}</p>
-                {isController(currentUser.role) && (
+                {isController(currentUser.companyData?.[0].role) && (
                   <div>
                     <ProviderAvg providerId={provider._id}></ProviderAvg>
                   </div>
@@ -212,9 +212,9 @@ const MenuProveedor = () => {
                       Teléfono:{" "}
                       {provider.phoneNumber
                         ? provider.phoneNumber.replace(
-                            /(\d{2})(\d{4})(\d{4})/,
-                            "$1-$2-$3"
-                          )
+                          /(\d{2})(\d{4})(\d{4})/,
+                          "$1-$2-$3"
+                        )
                         : ""}
                     </p>
                   ) : (
@@ -236,7 +236,7 @@ const MenuProveedor = () => {
               <div className="col-span-2 my-auto">
                 <button
                   id={provider._id}
-                  onClick={() => { handleSetProviderToUpdate(provider)}}
+                  onClick={() => { handleSetProviderToUpdate(provider) }}
                   className="bg-slate-100 border shadow-lg rounded-lg text-center h-10 w-10 m-3 "
                 >
                   <span>
@@ -246,8 +246,8 @@ const MenuProveedor = () => {
                 {providerToUpdate && (
                   <Modal
                     title={"Modificación del Proveedor"}
-                    content={<CreateUpdateProvider provider={providerToUpdate} handleUpdateProvider={handleUpdateProvider} closeModal={() => {setProviderToUpdate(null)}} />}
-                    closeModal={() => {setProviderToUpdate(null)}}
+                    content={<CreateUpdateProvider provider={providerToUpdate} handleUpdateProvider={handleUpdateProvider} closeModal={() => { setProviderToUpdate(null) }} />}
+                    closeModal={() => { setProviderToUpdate(null) }}
                     closeOnClickOutside={true}
                     closeOnEsc={true}
                   ></Modal>

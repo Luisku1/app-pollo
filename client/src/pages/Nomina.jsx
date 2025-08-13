@@ -64,7 +64,7 @@ export default function Nomina() {
         />
       </div>
       <div className='border max-w-3xl mx-auto px-10 mt-4'>
-        {roles && isManager(currentUser.role) && employeesPayroll && employeesPayroll.length > 0 && employeesPayroll.map((employeePayroll, index) => {
+        {roles && isManager(currentUser.companyData?.[0].role) && employeesPayroll && employeesPayroll.length > 0 && employeesPayroll.map((employeePayroll, index) => {
           const { employee, branchReports, lateDiscount, supervisorReports, missingWorkDiscount, employeePaymentsAmount, adjustments = 0 } = employeePayroll
           const salary = employee?.salary ?? 0
           const accountBalance = branchReports.reduce((acc, report) => acc + (report.balance ?? 0), 0)

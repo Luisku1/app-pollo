@@ -73,13 +73,13 @@ export default function App() {
                           <Route
                             path="/"
                             element={
-                              (currentUser.role?._id ?? currentUser.role) == '65f4d024ac6002fac0321cd3' ?
+                              (currentUser.companyData?.[0].role?._id ?? currentUser.companyData?.[0].role) == '65f4d024ac6002fac0321cd3' ?
                                 <RegistroCuentaDiaria />
                                 :
-                                (currentUser.role?._id ?? currentUser.role) == '65f4d02bac6002fac0321cd7' ?
+                                (currentUser.companyData?.[0].role?._id ?? currentUser.companyData?.[0].role) == '65f4d02bac6002fac0321cd7' ?
                                   <ControlSupervisor />
                                   :
-                                  (currentUser.role?._id ?? currentUser.role) == '65f4d02fac6002fac0321cd9' ?
+                                  (currentUser.companyData?.[0].role?._id ?? currentUser.companyData?.[0].role) == '65f4d02fac6002fac0321cd9' ?
                                     <DailyResumePage />
                                     :
                                     <DailyResumePage />

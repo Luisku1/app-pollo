@@ -25,7 +25,7 @@ export default function ProvidersInputsList({ inputs, totalWeight = 0, totalAmou
   const { isManager } = useRoles();
   const [selectedInput, setSelectedInput] = useState(null)
   const [deletingInputId, setDeletingInputId] = useState(null);
-  const isAuthorized = (employee) => currentUser._id === employee._id || isManager(currentUser.role) || !onDelete
+  const isAuthorized = (employee) => currentUser._id === employee._id || isManager(currentUser.companyData?.[0].role) || !onDelete
   const deletable = onDelete
   const [selectedEmployee, setSelectedEmployee] = useState(null);
 
