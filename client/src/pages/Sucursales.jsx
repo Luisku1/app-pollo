@@ -10,6 +10,7 @@ import BranchSaleAvg from "../components/BranchSaleAvg";
 import BranchProviderInputsAvg from "../components/Sucursales/BranchProviderInputsAvg";
 import BranchOutputsAvg from "../components/Sucursales/BranchOutputsAvg";
 import BranchInputsAvg from "../components/Sucursales/BranchInputsAvg";
+import { MdEdit } from "react-icons/md";
 
 export default function Sucursales() {
 
@@ -25,6 +26,8 @@ export default function Sucursales() {
   const { isController } = useRoles()
   const [isOpen, setIsOpen] = useState(false)
   const [buttonId, setButtonId] = useState(null)
+  const [togglingId, setTogglingId] = useState(null)
+  const [toggleError, setToggleError] = useState(null)
 
   const navigate = useNavigate()
 
@@ -88,6 +91,29 @@ export default function Sucursales() {
 
       setError(error.message)
       setLoading(false)
+    }
+  }
+
+  const handleToggleActive = async (branchId) => {
+    if (togglingId) return
+    setToggleError(null)
+    const prevBranches = branches
+    // Optimistic update
+    setBranches(bs => bs.map(b => b._id === branchId ? { ...b, active: !b.active } : b))
+    setTogglingId(branchId)
+    try {
+      const res = await fetch(`/api/branch/toggle-active/${branchId}`, { method: 'PATCH' })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data?.message || 'Error al actualizar')
+      if (data?.branch) {
+        setBranches(bs => bs.map(b => b._id === branchId ? data.branch : b))
+      }
+    } catch (e) {
+      // Revert optimistic change
+      setBranches(prevBranches)
+      setToggleError(e.message)
+    } finally {
+      setTogglingId(null)
     }
   }
 
@@ -188,6 +214,17 @@ export default function Sucursales() {
                 {branch.phoneNumber && (
                   <span>Teléfono: <span className="font-semibold">{branch.phoneNumber.replace(/(\d{2})(\d{4})(\d{4})/, '$1-$2-$3')}</span></span>
                 )}
+                <span className="sm:col-span-2 flex items-center gap-2 mt-1">Activa:
+                  <button
+                    type="button"
+                    onClick={() => handleToggleActive(branch._id)}
+                    disabled={togglingId === branch._id}
+                    className={`ml-1 px-2 py-0.5 rounded text-xs font-bold border transition-colors ${branch.active ? 'text-green-600 border-green-300 hover:bg-green-50' : 'text-red-600 border-red-300 hover:bg-red-50'} disabled:opacity-50`}
+                    title="Click para alternar"
+                  >
+                    {togglingId === branch._id ? '...' : (branch.active ? 'Sí' : 'No')}
+                  </button>
+                </span>
               </div>
               <div className="flex flex-wrap gap-4 mt-3">
                 <a className="text-blue-700 font-bold underline hover:text-blue-900 transition" target="_blank" rel="noopener noreferrer" href={'https://pioapp.onrender.com/precios-sucursal/' + branch._id}>Ver precios</a>
@@ -217,6 +254,7 @@ export default function Sucursales() {
         )) : (
           <div className="w-full text-center text-gray-500 py-10 text-lg">No hay sucursales registradas.</div>
         )}
+        {toggleError && <p className="text-center text-xs text-red-500 -mt-4">{toggleError}</p>}
       </div>
     </main>
   );

@@ -65,7 +65,7 @@ export const getProviderPayments = async (req, res, next) => {
       {
         $match: { provider: providerId }
       },
-      ...employeeAggregate()
+      ...employeeAggregate('employee', undefined, companyId),
     ])
 
     res.status(200).json(payments);

@@ -553,7 +553,7 @@ export const supervisorsInfoQuery = async (companyId, topDate, bottomDate) => {
           'company': new Types.ObjectId(companyId)
         }
       },
-      ...employeeAggregate('supervisor', 'supervisor'),
+      ...employeeAggregate('supervisor', 'supervisor', companyId),
       {
         $lookup: {
           from: 'extraoutgoings',
@@ -569,12 +569,12 @@ export const supervisorsInfoQuery = async (companyId, topDate, bottomDate) => {
                 foreignField: 'extraOutgoing',
                 as: 'employeePayment',
                 pipeline: [
-                  ...employeeAggregate('employee'),
+                  ...employeeAggregate('employee', undefined, companyId),
                 ]
               }
             },
             { $unwind: { path: '$employeePayment', preserveNullAndEmptyArrays: true } },
-            ...employeeAggregate('employee')
+            ...employeeAggregate('employee', undefined, companyId)
           ]
         }
       },
@@ -809,7 +809,7 @@ export const fetchBasicDailyResume = async (companyId, page = 1) => {
                 }
               }
             },
-            ...incomesAggregate()
+            ...incomesAggregate(companyId)
           ],
           as: "incomesArray"
         }

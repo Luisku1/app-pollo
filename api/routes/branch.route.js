@@ -1,10 +1,11 @@
 import express from 'express'
-import { getBranches, newBranch, deleteBranch, getBranchesLastPosition, getMonthBranchesIncomesQuery, getBranch, getBranchSalesAverage, changeBranchrResidualPricesUse, updateBranch } from '../controllers/branch.controller.js'
+import { getBranches, newBranch, deleteBranch, getBranchesLastPosition, getMonthBranchesIncomesQuery, getBranch, getBranchSalesAverage, changeBranchrResidualPricesUse, updateBranch, toggleBranchActive } from '../controllers/branch.controller.js'
 
 const router = express()
 
 router.post('/new-branch/', newBranch)
 router.put('/update/:branchId', updateBranch)
+router.patch('/toggle-active/:branchId', toggleBranchActive)
 router.put('/change-prices-use/', changeBranchrResidualPricesUse)
 router.get('/get-branch/:branchId', getBranch)
 router.get('/get-branch-avg/:branchId', getBranchSalesAverage)

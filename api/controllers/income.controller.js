@@ -172,10 +172,10 @@ export const newTransferredIncomeFunction = async (actualIncome, prevIncome) => 
   }
 }
 
-export const incomesAggregate = () => {
+export const incomesAggregate = (companyId) => {
   return [
     ...typeAggregate(),
-    ...employeeAggregate('employee'),
+    ...employeeAggregate('employee', undefined, companyId),
     {
       $lookup: {
         from: 'branches',
@@ -462,9 +462,9 @@ export const getIncomes = async (req, res, next) => {
           ]
         }
       },
-      ...employeeAggregate('prevOwner', 'prevOwner'),
-      ...employeeAggregate('owner', 'owner'),
-      ...employeeAggregate('employee'),
+      ...employeeAggregate('prevOwner', 'prevOwner', companyId),
+      ...employeeAggregate('owner', 'owner', companyId),
+      ...employeeAggregate('employee', undefined, companyId),
       {
         $lookup: {
           from: 'branches',

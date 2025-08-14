@@ -31,6 +31,7 @@ import { updateReportEmployees } from "../services/BranchReports/updateReportsEm
 import { areArraysEqual } from "../../../common/arraysOps";
 import { formatDateYYYYMMDD } from "../../../common/dateOps";
 import EmployeeName from "./Names/EmployeeName";
+import BranchName from "./Names/BranchName";
 
 export default function BranchReportCard({
   reportData = {},
@@ -214,7 +215,7 @@ export default function BranchReportCard({
       <div id={`report-card-${reportData._id}`} className={`bg-white rounded-b-lg p-2`}>
 
         <div className="flex justify-between items-center px-2 mb-2">
-          <p className="text-lg font-semibold text-red-500">{reportData.branch.branch}</p>
+          <BranchName branch={reportData.branch} />
           <div className="flex items-center gap-1">
             <p className="text-lg font-semibold text-red-500">
               {formatInformationDate(new Date(reportData.createdAt))}

@@ -14,8 +14,8 @@ import { dateFromYYYYMMDD } from '../../common/dateOps.js'
 
 const inputLookups = () => {
   return [
-    ...employeeAggregate('employee'),
-    ...customerAggregate('customer'),
+    ...employeeAggregate('employee', undefined, companyId),
+    ...customerAggregate('customer', companyId),
     {
       $lookup: {
         from: 'products',
@@ -40,8 +40,8 @@ const inputLookups = () => {
 
 const outputLookups = () => {
   return [
-    ...employeeAggregate('employee'),
-    ...customerAggregate('customer'),
+    ...employeeAggregate('employee', undefined, companyId),
+    ...customerAggregate('customer', companyId),
     {
       $lookup: {
         from: 'products',
@@ -1009,9 +1009,9 @@ export const getProviderInputs = async (req, res, next) => {
         }
       },
       ...productAggregate('product'),
-      ...employeeAggregate('employee'),
+      ...employeeAggregate('employee', undefined, companyId),
       ...branchAggregate('branch'),
-      ...customerAggregate('customer'),
+      ...customerAggregate('customer', companyId),
       {
         $group: {
           _id: "$product._id",

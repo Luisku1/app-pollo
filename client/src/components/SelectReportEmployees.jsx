@@ -13,7 +13,13 @@ export const SelectReportEmployees = ({ employees, currentReportEmployee, branch
   const isCurrentUserSupervisor = isSupervisor(currentUser.companyData?.[0].role);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [selectedAssistants, setSelectedAssistants] = useState(currentAssistants || []);
+  const [changed, setChanged] = useState(false);
   const sameData = currentReportEmployee && selectedEmployee && currentReportEmployee._id === selectedEmployee._id && (currentReportEmployee.assistants || []).length === selectedAssistants.length && (currentReportEmployee.assistants || []).every(assistant => selectedAssistants.some(selAssistant => selAssistant._id === assistant._id));
+
+  const handleEmployeeSelectChange = (selected) => {
+    setSelectedEmployee(selected);
+    setChanged(true);
+  };
 
   // Primer useEffect: selecciona encargado por defecto
   useEffect(() => {
@@ -31,10 +37,10 @@ export const SelectReportEmployees = ({ employees, currentReportEmployee, branch
   // Segundo useEffect: sincroniza si cambia el encargado del reporte
   useEffect(() => {
     if (!employees || employees.length === 0) return;
-    if (currentReportEmployee && selectedEmployee && currentReportEmployee._id !== selectedEmployee._id && !isSupervisor(currentUser.companyData?.[0].role)) {
+    if (currentReportEmployee && selectedEmployee && currentReportEmployee._id !== selectedEmployee._id && !changed) {
       setSelectedEmployee({ ...currentReportEmployee, label: getEmployeeFullName(currentReportEmployee), value: currentReportEmployee._id });
     }
-  }, [selectedEmployee, currentReportEmployee, employees]);
+  }, [selectedEmployee, currentReportEmployee, employees, changed]);
 
 
   useEffect(() => {
@@ -63,7 +69,7 @@ export const SelectReportEmployees = ({ employees, currentReportEmployee, branch
               isEditing={isCurrentUserSupervisor}
               employees={employees}
               selectedEmployee={selectedEmployee}
-              handleEmployeeSelectChange={setSelectedEmployee}
+              handleEmployeeSelectChange={handleEmployeeSelectChange}
             />
           </div>
         </div>

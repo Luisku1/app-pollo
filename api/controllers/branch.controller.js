@@ -84,6 +84,20 @@ export const updateBranch = async (req, res, next) => {
 	}
 }
 
+// Toggle active flag for a branch
+export const toggleBranchActive = async (req, res, next) => {
+	const { branchId } = req.params
+	try {
+		const branch = await Branch.findById(branchId)
+		if (!branch) return next(errorHandler(404, 'Branch not found'))
+		branch.active = !branch.active
+		await branch.save()
+		res.status(200).json({ success: true, branch })
+	} catch (error) {
+		next(error)
+	}
+}
+
 export const getBranch = async (req, res, next) => {
 
 	const branchId = req.params.branchId

@@ -212,7 +212,7 @@ const fetchCustomerReports = async (companyId, date) => {
           pipeline: [
             ...branchAggregate(),
             ...productAggregate('product'),
-            ...employeeAggregate('employee'),
+            ...employeeAggregate('employee', undefined, companyId),
           ]
         },
       },
@@ -225,7 +225,7 @@ const fetchCustomerReports = async (companyId, date) => {
           pipeline: [
             ...branchAggregate(),
             ...productAggregate('product'),
-            ...employeeAggregate('employee'),
+            ...employeeAggregate('employee', undefined, companyId),
           ]
         },
       },
@@ -238,7 +238,7 @@ const fetchCustomerReports = async (companyId, date) => {
           pipeline: [
             ...branchAggregate(),
             ...productAggregate('product'),
-            ...employeeAggregate('employee'),
+            ...employeeAggregate('employee', undefined, companyId),
           ]
         },
       },
@@ -250,8 +250,8 @@ const fetchCustomerReports = async (companyId, date) => {
           as: 'paymentsArray',
           pipeline: [
             ...branchAggregate(),
-            ...employeeAggregate('employee', 'employee'),
-            ...employeePaymentIncomeAggregate('_id'),
+            ...employeeAggregate('employee', 'employee', companyId),
+            ...employeePaymentIncomeAggregate('_id', companyId),
             ...typeAggregate(),
           ]
         },

@@ -6,6 +6,7 @@ import { ToastDanger } from '../../helpers/toastify'
 import { getWeekRange } from '../../../../common/dateOps'
 import { useSupervisorReports } from '../Supervisors/useSupervisorReports'
 import { useBranchReports } from '../BranchReports.js/useBranchReports'
+import { useSelector } from 'react-redux'
 
 export const EMPLOYEE_PAYROLL_QUERY_KEY = (employeeId, week) => ['employeePayroll', employeeId, week]
 
@@ -20,6 +21,7 @@ export function useEmployeePayroll({ employee }) {
   const [date, setDate] = useState('')
   const [week, setWeek] = useState(0) // Week offset from the initial date
   const queryClient = useQueryClient()
+  const { company } = useSelector((state) => state.user)
   const employeeId = employee?._id
 
   useEffect(() => {
@@ -39,7 +41,7 @@ export function useEmployeePayroll({ employee }) {
   } = useQuery({
     queryKey,
     queryFn: async () => {
-      const res = await fetch(`/api/employee/get-employee-payroll/${employeeId}?page=${week}`, {
+      const res = await fetch(`/api/employee/get-employee-payroll/${employeeId}?page=${week}&companyId=${company?._id}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

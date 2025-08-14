@@ -272,7 +272,7 @@ export const getMovements = async (req, res, next) => {
       },
       ...providerAggregate("provider"),
       ...productAggregate("product"),
-      ...employeeAggregate("employee"),
+      ...employeeAggregate("employee", undefined, companyId),
     ]);
 
     res.status(200).json({ data: movements });

@@ -49,7 +49,7 @@ export const providersReportsAggregate = async ({ companyId, date }) => {
         pipeline: [
           ...productAggregate('product'),
           ...providerAggregate('provider'),
-          ...employeeAggregate('employee'),
+          ...employeeAggregate('employee', undefined, companyId),
         ]
       }
     },
@@ -62,7 +62,7 @@ export const providersReportsAggregate = async ({ companyId, date }) => {
         pipeline: [
           ...productAggregate('product'),
           ...providerAggregate('provider'),
-          ...employeeAggregate('employee'),
+          ...employeeAggregate('employee', undefined, companyId),
         ]
       }
     },
@@ -74,7 +74,7 @@ export const providersReportsAggregate = async ({ companyId, date }) => {
         as: 'paymentsArray',
         pipeline: [
           ...providerAggregate('provider'),
-          ...employeeAggregate('employee'),
+          ...employeeAggregate('employee', undefined, companyId),
         ]
       }
     },

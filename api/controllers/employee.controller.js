@@ -25,7 +25,7 @@ import ProviderMovements from '../models/providers/provider.movement.model.js';
 import IncomeCollected from '../models/accounts/incomes/income.collected.model.js';
 import ProviderPayment from '../models/providers/payment.model.js';
 
-export const employeePaymentIncomeAggregate = (localField, as = 'employeePayment') => {
+export const employeePaymentIncomeAggregate = (localField, as = 'employeePayment', companyId) => {
 	return [
 		{
 			$lookup: {
@@ -34,7 +34,7 @@ export const employeePaymentIncomeAggregate = (localField, as = 'employeePayment
 				foreignField: 'income',
 				as: as,
 				pipeline: [
-					...employeeAggregate('employee'),
+					...employeeAggregate('employee', undefined, companyId),
 				]
 			}
 		},
@@ -46,7 +46,7 @@ export const employeePaymentIncomeAggregate = (localField, as = 'employeePayment
 
 
 // Modificado para que el aggregate regrese los datos de companyData según el companyId
-export const employeeAggregate = (localField, as = 'employee', companyIdField = 'company', preserveNullAndEmptyArrays = true) => {
+export const employeeAggregate = (localField, as = 'employee', companyId, preserveNullAndEmptyArrays = true) => {
 	return [
 		{
 			$lookup: {
@@ -62,7 +62,7 @@ export const employeeAggregate = (localField, as = 'employee', companyIdField = 
 								$filter: {
 									input: '$companyData',
 									as: 'cd',
-									cond: { $eq: ['$$cd.company', `$${companyIdField}`] }
+									cond: { $eq: ['$$cd.company', new Types.ObjectId(companyId)] }
 								}
 							}
 						}
@@ -241,7 +241,7 @@ const employeeDailyBalancesLookup = (localField, bottomDate, topDate) => ({
 	}
 })
 
-const employeeBranchReportsLookup = (localField, bottomDate, topDate) => ({
+const employeeBranchReportsLookup = (localField, bottomDate, topDate, companyId) => ({
 	$lookup: {
 		from: 'branchreports',
 		localField: localField,
@@ -270,7 +270,7 @@ const employeeBranchReportsLookup = (localField, bottomDate, topDate) => ({
 							},
 						},
 						{ $unwind: { path: '$product', preserveNullAndEmptyArrays: true } },
-						...employeeAggregate('employee'),
+						...employeeAggregate('employee', undefined, companyId),
 						{
 							$lookup: {
 								from: 'branches',
@@ -607,7 +607,7 @@ const employeeBranchReportsLookup = (localField, bottomDate, topDate) => ({
 			{
 				$unwind: { path: '$branch' }
 			},
-			...employeeAggregate('employee'),
+			...employeeAggregate('employee', undefined, companyId),
 			{
 				$lookup: {
 					from: 'employees',
@@ -643,7 +643,7 @@ export const getEmployeeBranchReports = async (req, res, next) => {
 			{
 				$match: { _id: new Types.ObjectId(employeeId) }
 			},
-			employeeBranchReportsLookup('_id', weekStart, weekEnd),
+			employeeBranchReportsLookup('_id', weekStart, weekEnd, companyId),
 			{
 				$project: {
 					_id: 1,
@@ -1735,7 +1735,7 @@ export const fetchEmployeesPayroll = async ({ companyId, date }) => {
 					'weekStart': { $eq: new Date(weekStart) }
 				}
 			},
-			employeeBranchReportsLookup('employee', weekStart, weekEnd),
+			employeeBranchReportsLookup('employee', weekStart, weekEnd, companyId),
 			{
 				$lookup: {
 					from: 'employeedailybalances',
@@ -1778,14 +1778,14 @@ export const fetchEmployeesPayroll = async ({ companyId, date }) => {
 								localField: 'income',
 								as: 'income',
 								pipeline: [
-									...employeeAggregate('employee'),
+									...employeeAggregate('employee', 'employee', companyId),
 									...branchAggregate('branch'),
 								]
 							}
 						},
 						{ $unwind: { path: '$income', preserveNullAndEmptyArrays: true } },
-						...employeeAggregate('employee'),
-						...employeeAggregate('supervisor', 'supervisor')
+						...employeeAggregate('employee', 'employee', companyId),
+						...employeeAggregate('supervisor', 'supervisor', companyId)
 					]
 				}
 			},
@@ -1835,7 +1835,7 @@ export const fetchEmployeesPayroll = async ({ companyId, date }) => {
 
 export const getSingleEmployeePayroll = async (req, res, next) => {
 	const { employeeId } = req.params;
-	const { page } = req.query;
+	const { page, companyId } = req.query;
 	try {
 		// Get the employee's payDay
 		const payDay = await getEmployeePayDay(employeeId);
@@ -1852,7 +1852,7 @@ export const getSingleEmployeePayroll = async (req, res, next) => {
 					weekStart: new Date(weekStart),
 				},
 			},
-			employeeBranchReportsLookup('employee', weekStart, weekEnd),
+			employeeBranchReportsLookup('employee', weekStart, weekEnd, companyId),
 			employeeDailyBalancesLookup('employee', weekStart, weekEnd),
 			employeeSupervisorReportsLookup('employee', weekStart, weekEnd),
 			{
@@ -1872,32 +1872,13 @@ export const getSingleEmployeePayroll = async (req, res, next) => {
 					pipeline: [
 						{ $match: { createdAt: { $gte: new Date(firstTopDate), $lt: new Date(lastTopDate) } } },
 						{ $sort: { createdAt: -1 } },
-						...employeeAggregate('employee', 'employee'),
-						...employeeAggregate('supervisor', 'supervisor'),
+						...employeeAggregate('employee', 'employee', companyId),
+						...employeeAggregate('supervisor', 'supervisor', companyId),
 						...branchAggregate('branch')
 					],
 				},
 			},
-			{
-				$lookup: {
-					from: 'employees',
-					localField: 'employee',
-					foreignField: '_id',
-					as: 'employee',
-					pipeline: [
-						{
-							$lookup: {
-								from: 'roles',
-								localField: 'role',
-								foreignField: '_id',
-								as: 'role',
-							},
-						},
-						{ $unwind: { path: '$role' } },
-					],
-				},
-			},
-			{ $unwind: { path: '$employee' } },
+			...employeeAggregate('employee', undefined, companyId, false),
 			{
 				$addFields: {
 					accountBalance: { $sum: '$employeeDailyBalances.accountBalance' },
@@ -1995,8 +1976,8 @@ export const getPendingEmployeesRests = async (req, res, next) => {
 					"company": new Types.ObjectId(companyId),
 				}
 			},
-			...employeeAggregate('employee'),
-			...employeeAggregate('replacement', 'replacement'),
+			...employeeAggregate('employee', undefined, companyId),
+			...employeeAggregate('replacement', 'replacement', companyId),
 		])
 
 		if (pendingEmployeesRests.length < 1) {
