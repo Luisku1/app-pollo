@@ -1,5 +1,5 @@
 import { IoIosAddCircle } from "react-icons/io";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import Modal from "./Modals/Modal";
 import EntradaInicial from "../pages/EntradaInicial";
 import ExtraOutgoings from "./Outgoings/ExtraOutgoings";
@@ -13,6 +13,7 @@ import IncomesAndOutgoings from "./SupervisorSections/IncomesAndOutgoings";
 import EntradasYSalidas from "./Movimientos/EntradasYSalidas";
 import Payments from "./Outgoings/Payments";
 import ProviderRegisters from "./ProviderRegisters";
+import { useRoles } from "../context/RolesContext";
 
 
 export const RegistersMenu = ({ desktopButton }) => {
@@ -20,32 +21,48 @@ export const RegistersMenu = ({ desktopButton }) => {
   const [showing, setShowing] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(0);
+  const { isSeller, isSupervisor, isManager } = useRoles();
   const [searchTerm, setSearchTerm] = useState("");
   const optionRefs = useRef([]);
   const searchInputRef = useRef(null);
   const isDesktop = window.innerWidth >= 1280; // Ajusta el ancho según tus necesidades
 
-  const menu = [
-    { title: "Dinero", onSelec: () => { return <IncomesAndOutgoings /> } },
-    { title: "Movimientos Internos", onSelec: () => { return <EntradasYSalidas /> } },
-    { title: "Entrada de Proveedor", onSelec: () => { return <EntradaInicial /> } },
-    { title: "Movimientos de Proveedor", onSelec: () => { return <ProviderRegisters /> } },
-    { title: "Gastos", onSelec: () => { return <ExtraOutgoings /> } },
-    { title: "Pago a empleados", onSelec: () => { return <Payments /> } },
-    { title: "Formato", onSelec: () => { return <RegistroCuentaDiaria /> } }, //JustSeller ve este nada más
-    { title: "Descansos", onSelec: () => { return <CreateRest /> } },
-    { title: "Retardos y faltas", onSelec: () => { return <Penalties /> } },
-    { title: "Registrar proveedor", onSelec: () => { return <RegistroProveedor /> } },
-  ]
+  // Lista base de opciones con metadatos de rol (rol mínimo requerido)
+  const menu = useMemo(() => ([
+    { title: "Dinero", role: 'supervisor', onSelec: () => <IncomesAndOutgoings /> },
+    { title: "Movimientos Internos", role: 'supervisor', onSelec: () => <EntradasYSalidas /> },
+    { title: "Entrada de Proveedor", role: 'supervisor', onSelec: () => <EntradaInicial /> },
+    { title: "Movimientos de Proveedor", role: 'manager', onSelec: () => <ProviderRegisters /> },
+    { title: "Gastos", role: 'supervisor', onSelec: () => <ExtraOutgoings /> },
+    { title: "Pago a empleados", role: 'supervisor', onSelec: () => <Payments /> },
+    { title: "Formato", role: 'seller', onSelec: () => <RegistroCuentaDiaria /> },
+    { title: "Descansos", role: 'supervisor', onSelec: () => <CreateRest /> },
+    { title: "Retardos y faltas", role: 'supervisor', onSelec: () => <Penalties /> },
+    { title: "Registrar proveedor", role: 'supervisor', onSelec: () => <RegistroProveedor /> },
+  ]), []);
 
   const toggleMenu = () => {
     setIsOpen((prev) => !prev);
   };
 
-  // Filtrado seguro para evitar problemas de renders infinitos
-  const filteredMenu = menu.filter(item =>
-    typeof item.title === 'string' && item.title.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Filtrado por rol similar al de Search.jsx
+  const roleValue = currentUser?.companyData?.[0]?.role;
+  const normalize = (str) => str.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
+  const normalizedSearch = normalize(searchTerm);
+
+  const filteredMenu = useMemo(() => {
+    return menu.filter(item => {
+      // Rol
+      const matchesRole = !item.role ||
+        (item.role === 'supervisor' && isSupervisor(roleValue)) ||
+        (item.role === 'manager' && isManager(roleValue)) ||
+        (item.role === 'seller' && isSeller(roleValue));
+      if (!matchesRole) return false;
+      // Texto
+      if (!searchTerm) return true;
+      return normalize(item.title).includes(normalizedSearch);
+    });
+  }, [menu, roleValue, isSupervisor, isManager, isSeller, normalizedSearch, searchTerm]);
   // Shortcut para abrir/cerrar el menú con la tecla +
   useEffect(() => {
     const handleKeyDown = (e) => {
