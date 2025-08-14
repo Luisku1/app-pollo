@@ -37,7 +37,7 @@ export default function RegistroCuentaDiaria({ edit = true }) {
   const navigate = useNavigate()
   const params = useParams()
   const [branchId, setBranchId] = useState(params.branchId || null)
-  const { currentDate, dateFromYYYYMMDD } = useDateNavigation();
+  const { currentDate, dateFromYYYYMMDD, today } = useDateNavigation();
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const { activeEmployees: employees } = useEmployees({ companyId: company._id })
@@ -100,14 +100,14 @@ export default function RegistroCuentaDiaria({ edit = true }) {
 
     setAbleToEdit(true)
 
-    if (isJustSeller(currentUser.companyData?.[0].role) && !today(reportDate)) {
+    if (isJustSeller(currentUser.companyData?.[0].role) && !today) {
       ToastInfo('No puedes editar el formato de otro día')
       setAbleToEdit(false)
       return
     }
 
-    if (isJustSeller(currentUser.companyData?.[0].role) && today(reportDate)) {
-      if ((today(reportDate) && currentUTCHours > 2 && currentUTCHours < 6) || (today(reportDate) && currentUTCHours > 2 && currentUTCMinutes > 30 && currentUTCHours < 6)) {
+    if (isJustSeller(currentUser.companyData?.[0].role) && today) {
+      if ((today && currentUTCHours > 2 && currentUTCHours < 6) || (today && currentUTCHours > 2 && currentUTCMinutes > 30 && currentUTCHours < 6)) {
         ToastInfo('No puedes editar el formato después de las 8 pm')
         setAbleToEdit(false)
         return
@@ -226,7 +226,7 @@ export default function RegistroCuentaDiaria({ edit = true }) {
     return (
       <div className='flex flex-col gap-4 mt-4 sticky bottom-4'>
         <p className='bg-red-800 text-white border border-black p-3 rounded-lg w-full'>
-          {today(reportDate) ? 'No puedes editar el formato después de las 8 pm' : 'No puedes editar el formato de otro día'}
+          {today ? 'No puedes editar el formato después de las 8 pm' : 'No puedes editar el formato de otro día'}
         </p>
       </div>
     )
@@ -251,6 +251,7 @@ export default function RegistroCuentaDiaria({ edit = true }) {
               content={<SelectReportEmployees currentReportEmployee={employee} currentAssistants={assistants} branch={selectedBranch} employees={employees} onRegisterEmployees={onRegisterEmployees} inReport={true} />}
               closeModal={() => { setShowSelectReportEmployees(false) }}
               ableToClose={false}
+              className={'h-fit'}
               closeOnClickOutside={false}
               isShown={showSelectReportEmployees}
             />

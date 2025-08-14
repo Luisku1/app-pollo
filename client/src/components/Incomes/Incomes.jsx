@@ -60,7 +60,7 @@ export default function Incomes({ showDateSwitch = true, useToday: useTodayProp 
     ])
   }, [branches, customers, employees, isSupervisor, currentUser])
 
-  console.log(currentUser)
+  console.log(currentUser, isManager())
   const resetInputs = () => {
     setSelectedIncomeType(null)
     setSelectedCustomerBranchIncomesOption(null)
@@ -169,7 +169,7 @@ export default function Incomes({ showDateSwitch = true, useToday: useTodayProp 
               ListComponent={IncomesList}
               ListComponentProps={{ incomes, incomesTotal, onDeleteIncome }}
               clickableComponent={
-                isManager(currentUser?.role) ?
+                isManager(currentUser?.companyData?.[0]?.role) ?
                   <p className='font-bold text-lg text-center'>{currency({ amount: incomesTotal ?? 0 })}</p>
                   :
                   <FaListAlt className="h-10 w-10 text-red-600" />

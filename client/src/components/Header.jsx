@@ -63,7 +63,7 @@ export default function Header() {
                   <span className="hidden min-[958px]:inline">Agregar</span>
                 </button>
               } />
-              {isSupervisor(currentUser?.role) && (
+              {isSupervisor(currentUser?.companyData?.[0]?.role) && (
                 <NetDifferenceCard inHeader />
               )}
               <MobileHeaderMenu currentUser={currentUser} />

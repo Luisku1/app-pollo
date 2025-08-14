@@ -299,6 +299,7 @@ export const signIn = async (req, res, next) => {
     const employee = aggregated[0];
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
 
+    console.log('User signed in:', employee);
     res
       .cookie('access_token', token, { httpOnly: true })
       .status(200)

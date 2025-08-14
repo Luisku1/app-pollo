@@ -19,7 +19,6 @@ export default function InicioSesion() {
     })
   }
 
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     await login(formData);

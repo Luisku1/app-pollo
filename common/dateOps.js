@@ -74,8 +74,12 @@ export const localTimeZone = () => {
 }
 
 export function dateFromYYYYMMDD(dateStr) {
-  const [year, month, day] = dateStr.split('-');
-  return new Date(Number(year), Number(month) - 1, Number(day));
+  // const [year, month, day] = dateStr.split('-');
+  // return new Date(Date.UTC(Number(year), Number(month) - 1, Number(day)));
+  if (isYYYYMMDD(dateStr)) {
+    const date = dateStr + 'T06:00:00.000Z'
+    return new Date(date)
+  }
 }
 
 export function formatDateYYYYMMDD(date) {

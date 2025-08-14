@@ -52,7 +52,7 @@ export const SelectReportEmployees = ({ employees, currentReportEmployee, branch
   return (
     <div className='w-full mt-10'>
       <div>
-        <h2 className='text-xl text-center font-semibold mb-4 text-black'>{`Responsables de `}<span className='text-red-800 font-bold'>{branch.branch}🍗</span></h2>
+        <h2 className='text-xl text-center font-semibold mb-2 text-black'>{`Responsables de `}<span className='text-red-800 font-bold'>{branch.branch}🍗</span></h2>
       </div>
       <div className="mt-1 ">
         <div className='w-full'>

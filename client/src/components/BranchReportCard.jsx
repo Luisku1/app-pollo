@@ -200,6 +200,7 @@ export default function BranchReportCard({
     }
   };
 
+  console.log(currentUser.companyData?.[0].role)
   return (
     <div
       id={`report-container-${reportData._id}`}
@@ -246,7 +247,7 @@ export default function BranchReportCard({
               closeModal={() => setShowSelectReportEmployees(false)}
             />
           )}
-          {isManager(currentUser.companyData?.[0].role) && (
+          {(currentUser.companyData?.[0].role) && (
             <ChangeBranchPrices
               branch={reportData.branch._id}
               date={reportData.createdAt}

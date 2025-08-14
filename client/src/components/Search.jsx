@@ -43,13 +43,13 @@ export const SearchMenu = ({ modalMode, desktopButton }) => {
     return menuOptions.flatMap(option => {
       const matchesSearch = normalize(option.text).includes(normalize(searchTerm));
       const matchesRole = !option.role ||
-        (option.role === 'supervisor' && isSupervisor(currentUser?.role)) ||
-        (option.role === 'manager' && isManager(currentUser?.role)) ||
-        (option.role === 'controller' && isController(currentUser?.role));
+        (option.role === 'supervisor' && isSupervisor(currentUser?.companyData?.[0]?.role)) ||
+        (option.role === 'manager' && isManager(currentUser?.companyData?.[0]?.role)) ||
+        (option.role === 'controller' && isController(currentUser?.companyData?.[0]?.role));
       if (!matchesSearch || !matchesRole) return [];
 
       if (!isToday && option.date) {
-        if (option.dateRole && !isManager(currentUser?.role)) return option;
+        if (option.dateRole && !isManager(currentUser?.companyData?.[0]?.role)) return option;
         return [
           option,
           { ...option, text: `${option.text} (${formatInformationDate(dateYYYYMMDD)})`, link: `${option.link}/${currentDate}` }
@@ -58,7 +58,7 @@ export const SearchMenu = ({ modalMode, desktopButton }) => {
         let yesterday = new Date(dateYYYYMMDD);
         yesterday.setDate(yesterday.getDate() - 1);
         const yesterdayFormatted = formatDateYYYYMMDD(yesterday);
-        if (option.dateRole && !isManager(currentUser?.role)) return option;
+        if (option.dateRole && !isManager(currentUser?.companyData?.[0]?.role)) return option;
         return [
           option,
           { ...option, text: `${option.text} (${formatInformationDate(dateFromYYYYMMDD(yesterdayFormatted))})`, link: `${option.link}/${yesterdayFormatted}` }

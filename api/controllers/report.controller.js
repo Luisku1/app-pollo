@@ -1,14 +1,9 @@
-import Role from "../models/role.model.js"
-import Employee from "../models/employees/employee.model.js"
 import { Types } from "mongoose"
 import ExtraOutgoing from "../models/accounts/outgoings/extra.outgoing.model.js"
 import IncomeCollected from "../models/accounts/incomes/income.collected.model.js"
 import BranchReport from "../models/accounts/branch.report.model.js"
 import { errorHandler } from "../utils/error.js"
-import ReportData from "../models/accounts/report.data.model.js"
 import { getDayRange } from "../utils/formatDate.js"
-import Outgoing from "../models/accounts/outgoings/outgoing.model.js"
-import Stock from "../models/accounts/stock.model.js"
 import { branchLookup, employeeLookup, unwindBranch, unwindEmployee } from "./branch.report.controller.js"
 import { incomesAggregate, lookupSupervisorReportIncomes } from "./income.controller.js"
 import SupervisorReport from "../models/accounts/supervisor.report.model.js"
@@ -20,10 +15,11 @@ export const getBranchReports = async (req, res, next) => {
 
   const date = dateFromYYYYMMDD(req.params.date)
   const companyId = req.params.companyId
-  console.log(date)
+  console.log('getBranchReports', date)
 
   const { bottomDate, topDate } = getDayRange(date)
 
+  console.log(bottomDate, topDate)
 
   try {
 

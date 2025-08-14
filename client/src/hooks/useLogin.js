@@ -53,25 +53,28 @@ export function useLogin() {
         dispatch(signInFailiure(data.message));
         return;
       }
-      if (typeof data.company === 'undefined') {
-        await fetchCompanyByOwnerId(data._id);
+
+      const employee = data.employee
+
+      if (typeof employee.companyData?.[0]?.company === 'undefined') {
+        await fetchCompanyByOwnerId(employee._id);
       } else {
-        await fetchCompanyById(data.defaultCompany);
+        await fetchCompanyById(employee.defaultCompany);
       }
-      dispatch(signInSuccess(data));
-      if (!data.defaultCompany) {
+      dispatch(signInSuccess(employee));
+      if (!employee.defaultCompany) {
         navigate('/registro-empresa');
         return;
       }
-      if (isManager(data.role?._id ?? data.role)) {
+      if (isManager(employee.companyData?.[0].role?._id ?? employee.role)) {
         navigate('/reporte');
         return;
       }
-      if (isSupervisor(data.role?._id ?? data.role)) {
+      if (isSupervisor(employee.role?._id ?? employee.role)) {
         navigate('/supervision-diaria');
         return;
       }
-      if (isJustSeller(data.role?._id ?? data.role)) {
+      if (isJustSeller(employee.role?._id ?? employee.role)) {
         navigate('/formato');
         return;
       }

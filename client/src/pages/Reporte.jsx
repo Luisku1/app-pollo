@@ -166,6 +166,7 @@ export default function Reporte() {
   const { roles } = useRoles()
   const [showTable, setShowTable] = useState(true)
   const [onlyNegativeBalances, setOnlyNegativeBalances] = useState(false);
+  console.log(company)
   const {
     branchReports,
     refetchBranchReports,
