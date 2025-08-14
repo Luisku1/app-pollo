@@ -145,7 +145,6 @@ export const changeCompany = async (req, res, next) => {
         administrativeAccount: updatedUser.administrativeAccount ?? false,
         role: updatedUser.role || null // puede ser null; validación del schema exige role, se asume ya existe
       });
-      console.log(updatedUser)
       try {
         await updatedUser.save();
       } catch (e) {
@@ -273,6 +272,7 @@ export const signIn = async (req, res, next) => {
           payDay: { $arrayElemAt: ['$companyData.payDay', 0] },
           balance: { $arrayElemAt: ['$companyData.balance', 0] },
           role: { $arrayElemAt: ['$companyData.role', 0] },
+          defaultCompany: targetCompanyObjectId,
           administrativeAccount: { $arrayElemAt: ['$companyData.administrativeAccount', 0] }
         }
       },
@@ -299,7 +299,6 @@ export const signIn = async (req, res, next) => {
     const employee = aggregated[0];
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
 
-    console.log('User signed in:', employee);
     res
       .cookie('access_token', token, { httpOnly: true })
       .status(200)

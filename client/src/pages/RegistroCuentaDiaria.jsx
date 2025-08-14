@@ -107,14 +107,14 @@ export default function RegistroCuentaDiaria({ edit = true }) {
     }
 
     if (isJustSeller(currentUser.companyData?.[0].role) && !today) {
-      if ((today && currentUTCHours > 2 && currentUTCHours < 6) || (today && currentUTCHours > 2 && currentUTCMinutes > 30 && currentUTCHours < 6)) {
+      if ((today && currentUTCHours > 2 && currentUTCHours < 6) || (today && currentUTCHours > 2 && (currentUTCMinutes > 30 && currentUTCHours < 6 && currentUTCHours > 5))) {
         ToastInfo('No puedes editar el formato después de las 8 pm')
         setAbleToEdit(false)
         return
       }
     }
 
-  }, [currentUser, currentDate, reportDate]);
+  }, [currentUser, today, currentDate, reportDate]);
 
   useEffect(() => {
     if ((!branchId && !selectedBranch)) {

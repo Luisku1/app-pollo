@@ -24,6 +24,10 @@ export const RolesProvider = ({ children }) => {
     return role ? role.name : "Desconocido";
   };
 
+  const getRoleId = (_role) => {
+    return _role?._id || _role;
+  };
+
   useEffect(() => {
     setLoading(true);
     getRoles()
@@ -39,7 +43,7 @@ export const RolesProvider = ({ children }) => {
   }, []);
 
   return (
-    <RolesContext.Provider value={{ roles, isController, isSeller, isManager, getRoleName, isSupervisor, isJustSeller, loading, error }}>
+    <RolesContext.Provider value={{ roles, getRoleId, isController, isSeller, isManager, getRoleName, isSupervisor, isJustSeller, loading, error }}>
       {children}
     </RolesContext.Provider>
   );

@@ -58,7 +58,7 @@ export default function MobileHeaderMenu() {
 
     const [showCompanyModal, setShowCompanyModal] = useState(false);
     if (!currentUser.companies || currentUser.companies.length < 1) return null;
-    const selectedCompany = currentUser.companies.find(c => c._id === company._id);
+    const selectedCompany = currentUser.companies.find(c => c?._id === company?._id);
 
     const handleCompanyChange = (comp) => () => {
       changeCompany(comp._id, currentUser._id);
@@ -88,16 +88,16 @@ export default function MobileHeaderMenu() {
               {currentUser.companies.map((comp) => (
                 <button
                   key={comp._id}
-                  className={`flex items-center gap-3 w-full px-3 py-3 rounded-lg text-left transition font-semibold border ${comp._id === company._id ? 'bg-blue-600 text-white shadow border-blue-600' : 'bg-gray-50 text-gray-800 hover:bg-blue-100 border-gray-200'}`}
+                  className={`flex items-center gap-3 w-full px-3 py-3 rounded-lg text-left transition font-semibold border ${comp._id === company?._id ? 'bg-blue-600 text-white shadow border-blue-600' : 'bg-gray-50 text-gray-800 hover:bg-blue-100 border-gray-200'}`}
                   onClick={handleCompanyChange(comp)}
                 >
                   {/* Avatar con iniciales de la empresa */}
-                  <span className={`flex items-center justify-center w-9 h-9 rounded-full font-bold text-base ${comp._id === company._id ? 'bg-white text-blue-700' : 'bg-blue-100 text-blue-700'}`}>
+                  <span className={`flex items-center justify-center w-9 h-9 rounded-full font-bold text-base ${comp._id === company?._id ? 'bg-white text-blue-700' : 'bg-blue-100 text-blue-700'}`}>
                     {comp.name?.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()}
                   </span>
                   <span className="flex flex-col text-left flex-1">
-                    <span className={`font-semibold text-base ${comp._id === company._id ? 'text-white' : 'text-blue-900'}`}>{comp.name}</span>
-                    {comp._id === company._id && <span className="text-xs text-blue-100 font-bold">Empresa actual</span>}
+                    <span className={`font-semibold text-base ${comp._id === company?._id ? 'text-white' : 'text-blue-900'}`}>{comp.name}</span>
+                    {comp._id === company?._id && <span className="text-xs text-blue-100 font-bold">Empresa actual</span>}
                   </span>
                 </button>
               ))}

@@ -6,7 +6,7 @@ import { useRoles } from '../context/RolesContext';
 export function useLogin() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { isJustSeller, isSupervisor, isManager } = useRoles();
+  const { isJustSeller, isSupervisor, isManager, getRoleId } = useRoles();
 
   const fetchCompanyByOwnerId = async (ownerId) => {
     try {
@@ -66,15 +66,15 @@ export function useLogin() {
         navigate('/registro-empresa');
         return;
       }
-      if (isManager(employee.companyData?.[0].role?._id ?? employee.role)) {
+      if (isManager(getRoleId(employee.companyData?.[0]?.role))) {
         navigate('/reporte');
         return;
       }
-      if (isSupervisor(employee.role?._id ?? employee.role)) {
+      if (isSupervisor(getRoleId(employee.companyData?.[0]?.role))) {
         navigate('/supervision-diaria');
         return;
       }
-      if (isJustSeller(employee.role?._id ?? employee.role)) {
+      if (isJustSeller(getRoleId(employee.companyData?.[0]?.role))) {
         navigate('/formato');
         return;
       }

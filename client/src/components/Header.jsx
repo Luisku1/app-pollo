@@ -4,7 +4,6 @@ import { useRoles } from '../context/RolesContext';
 import NetDifferenceCard from './statistics/NetDifferenceCard';
 import { RegistersMenu } from './RegistersMenu';
 import { SearchMenu } from './Search';
-import { MdSearch } from 'react-icons/md';
 import { IoIosAddCircle } from 'react-icons/io';
 import { useBranches } from '../hooks/Branches/useBranches';
 import { useEmployees } from '../hooks/Employees/useEmployees';
