@@ -110,7 +110,7 @@ export default function PayrollResume({ employeePayroll, updateSupervisorReportG
           <ShowListModal
             title={`Reportes de ${getEmployeeFullName(employee, (employee) => employee.name + ' ' + employee.lastName)}`}
             ListComponent={SupervisorReportList}
-            ListComponentProps={{ supervisorReports: supervisorReports, updateSupervisorReportGroup, updateSupervisorReportGroup, payrollIndex: index }}
+            ListComponentProps={{ supervisorReports: supervisorReports, updateSupervisorReportGroup, payrollIndex: index }}
             clickableComponent={<p className={(supervisorBalance < 0 ? 'text-red-500' : '') + ' my-auto font-bold border border-black shadow-sm rounded-lg w-fit'}>{supervisorBalance.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>}
           />
         </div>
