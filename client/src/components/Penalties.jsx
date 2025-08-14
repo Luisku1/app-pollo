@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react"
+import { useEffect, useState, useRef, useCallback } from "react"
 import SectionHeader from "./SectionHeader"
 import SearchBar from "./SearchBar"
 import { useEmployeesDailyBalances } from "../hooks/Employees/useEmployeesDailyBalances"
@@ -6,16 +6,19 @@ import { useSelector } from "react-redux"
 import { Link } from "react-router-dom"
 import { useDateNavigation } from "../hooks/useDateNavigation"
 
+// Mejoras de usabilidad añadidas:
+// - Responsive: vista tipo tabla en desktop, cards apiladas en móvil
+// - Accesibilidad: labels asociadas a checkboxes, foco visible
+// - Feedback: estados loading / vacío / error, actualización optimista con indicador por fila
+// - Toggle entre fecha seleccionada y hoy más claro
+// - Área clickeable mayor en los toggles
 
 export default function Penalties() {
-  const { currentDate, today, dateFromYYYYMMDD } = useDateNavigation();
+  const { currentDate, today } = useDateNavigation();
   const { company } = useSelector((state) => state.user);
   const companyId = company?._id;
 
-  // Nuevo: estado para alternar entre penalties de currentDate y de hoy
   const [showToday, setShowToday] = useState(today);
-
-  // Query para currentDate
   const {
     employeesDailyBalances: balancesCurrent,
     loading: loadingCurrent,
@@ -24,7 +27,6 @@ export default function Penalties() {
     setFilterText
   } = useEmployeesDailyBalances({ companyId, date: currentDate });
 
-  // Query para hoy (solo si !today)
   const todayString = new Date().toISOString().slice(0, 10);
   const {
     employeesDailyBalances: balancesToday,
@@ -32,119 +34,187 @@ export default function Penalties() {
     error: errorToday
   } = useEmployeesDailyBalances({ companyId, date: todayString });
 
-  // Selecciona la lista a mostrar
   const employeesDailyBalances = showToday ? balancesToday : balancesCurrent;
   const loading = showToday ? loadingToday : loadingCurrent;
   const error = showToday ? errorToday : errorCurrent;
 
   const [checkboxStates, setCheckboxStates] = useState({});
+  const [updatingIds, setUpdatingIds] = useState(new Set());
+  const [inlineError, setInlineError] = useState(null)
   const searchBarRef = useRef(null);
 
-  useEffect(() => {
-    if (searchBarRef.current) {
-      searchBarRef.current.focus();
-    }
-  }, []);
+  // Auto-focus buscador al montar
+  useEffect(() => { searchBarRef.current?.focus(); }, []);
 
+  // Sincronizar estados de checkboxes al cambiar dataset
   useEffect(() => {
-    const initialCheckboxStates = {};
-    (employeesDailyBalances || []).forEach(dailyBalance => {
-      initialCheckboxStates[dailyBalance._id] = {
-        lateDiscount: dailyBalance.lateDiscount,
-        restDay: dailyBalance.restDay,
-        dayDiscount: dailyBalance.dayDiscount
-      };
-    });
-    setCheckboxStates(initialCheckboxStates);
+    const initial = {};
+    (employeesDailyBalances || []).forEach(db => {
+      initial[db._id] = {
+        lateDiscount: db.lateDiscount,
+        restDay: db.restDay,
+        dayDiscount: db.dayDiscount
+      }
+    })
+    setCheckboxStates(initial)
   }, [employeesDailyBalances]);
 
-  const handleDailyBalanceInputs = async (e, dailyBalanceId) => {
-    const { id, checked } = e.target
-    setCheckboxStates(prevState => ({
-      ...prevState,
-      [dailyBalanceId]: {
-        ...prevState[dailyBalanceId],
-        [id]: checked
-      }
+  const optimisticUpdate = (dailyBalanceId, field, value) => {
+    setCheckboxStates(prev => ({
+      ...prev,
+      [dailyBalanceId]: { ...prev[dailyBalanceId], [field]: value }
     }))
+  }
 
+  const handleDailyBalanceInputs = useCallback(async (e, dailyBalanceId) => {
+    const { id: field, checked: value } = e.target
+    setInlineError(null)
+    optimisticUpdate(dailyBalanceId, field, value)
+    setUpdatingIds(prev => new Set(prev).add(dailyBalanceId))
     try {
       const res = await fetch('/api/employee/update-daily-balance/' + dailyBalanceId, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ [id]: checked })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ [field]: value })
       })
-
       const data = await res.json()
-
-      if (data.success === false) {
-        setCheckboxStates(prevState => ({
-          ...prevState,
-          [dailyBalanceId]: {
-            ...prevState[dailyBalanceId],
-            [id]: !checked
-          }
-        }))
+      if (!res.ok || data.success === false) {
+        // revert
+        optimisticUpdate(dailyBalanceId, field, !value)
+        setInlineError(data?.message || 'Error al actualizar')
       }
-    } catch (error) {
-      setCheckboxStates(prevState => ({
-        ...prevState,
-        [dailyBalanceId]: {
-          ...prevState[dailyBalanceId],
-          [id]: !checked
-        }
-      }))
+    } catch (err) {
+      optimisticUpdate(dailyBalanceId, field, !value)
+      setInlineError(err.message)
+    } finally {
+      setUpdatingIds(prev => { const n = new Set(prev); n.delete(dailyBalanceId); return n })
     }
-  }
+  }, [])
+
+  const renderHeader = () => (
+    <div id='header' className='hidden md:grid grid-cols-12 gap-4 items-center font-semibold mt-4 text-xs lg:text-sm'>
+      <p className='p-2 rounded-lg col-span-4 text-center'>Empleado</p>
+      <p className='p-2 rounded-lg col-span-2 text-center'>Retardo</p>
+      <p className='p-2 rounded-lg col-span-2 text-center'>Descanso</p>
+      <p className='p-2 rounded-lg col-span-2 text-center'>Falta</p>
+      <p className='p-2 rounded-lg col-span-2 text-center'>Estado</p>
+    </div>
+  )
+
+  const skeleton = (
+    <div className='animate-pulse space-y-2 mt-4'>
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div key={i} className='h-10 bg-gray-200 rounded-md' />
+      ))}
+    </div>
+  )
+
+  const emptyState = (
+    <div className='mt-6 text-center text-sm text-gray-500'>
+      {filterText ? 'No hay coincidencias con el filtro.' : 'No hay registros para esta fecha.'}
+    </div>
+  )
 
   return (
-    <div>
+    <div className='mt-2'>
       {!today && (
-        <div className="flex gap-2 mb-2">
+        <div className='flex flex-wrap gap-2 mb-3'>
           <button
-            className={`px-3 py-1 rounded ${!showToday ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
             onClick={() => setShowToday(false)}
-          >
-            Ver del día seleccionado
-          </button>
+            className={`px-3 py-1.5 rounded-md text-sm font-medium transition ${!showToday ? 'bg-blue-600 text-white shadow' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+          >Día seleccionado</button>
           <button
-            className={`px-3 py-1 rounded ${showToday ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
             onClick={() => setShowToday(true)}
-          >
-            Ver de hoy
-          </button>
+            className={`px-3 py-1.5 rounded-md text-sm font-medium transition ${showToday ? 'bg-blue-600 text-white shadow' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+          >Hoy</button>
         </div>
       )}
-      {employeesDailyBalances && employeesDailyBalances.length > 0 ? (
-        <div className='border bg-white shadow-lg p-3 mt-4'>
-          <SectionHeader label={'Empleados'} />
-          <div id="filterBySupervisor" className="w-full sticky border border-black rounded-md border-opacity-50 top-16 bg-white z-30">
-            <SearchBar ref={searchBarRef} handleFilterTextChange={setFilterText} value={filterText} placeholder={'Búsqueda de empleados'} />
-          </div>
-          <div id='header' className='grid grid-cols-12 gap-4 items-center justify-around font-semibold mt-4'>
-            <p className='p-3 rounded-lg col-span-3 text-sm text-center'>Empleado</p>
-            <p className='p-3 rounded-lg col-span-3 text-sm text-center'>Retardo</p>
-            <p className='p-3 rounded-lg col-span-3 text-sm text-center'>Descanso</p>
-            <p className='p-3 rounded-lg col-span-3 text-sm text-center'>Falta</p>
-          </div>
-          {employeesDailyBalances.map((dailyBalance) => (
-            <div key={dailyBalance._id} className='grid grid-cols-12 items-center border border-black border-opacity-30 rounded-lg shadow-sm mt-2'>
-              <div id='list-element' className='flex col-span-12 items-center justify-around'>
-                <Link className='w-3/12' to={dailyBalance.employee != null ? '/perfil/' + dailyBalance.employee._id : ''}>
-                  <p className='text-center text-sm'>{dailyBalance.employee != null ? dailyBalance.employee.name + ' ' + dailyBalance.employee.lastName : 'Trabajador despedido'}</p>
-                </Link>
-                <div className='w-3/12'>
-                  <input className='w-full' type="checkbox" name="lateDiscount" id="lateDiscount" checked={checkboxStates[dailyBalance._id]?.lateDiscount || false} onChange={(e) => { handleDailyBalanceInputs(e, dailyBalance._id) }} />
-                </div>
-                <input className='w-3/12' type="checkbox" name="restDay" id="restDay" checked={checkboxStates[dailyBalance._id]?.restDay || false} onChange={(e) => handleDailyBalanceInputs(e, dailyBalance._id)} />
-                <input className='w-3/12' type="checkbox" name="dayDiscount" id="dayDiscount" checked={checkboxStates[dailyBalance._id]?.dayDiscount || false} onChange={(e) => handleDailyBalanceInputs(e, dailyBalance._id)} />
-              </div>
-            </div>
-          ))}
+      <div className='border bg-white shadow-lg p-4 rounded-xl'>
+        <SectionHeader label={'Empleados'} />
+        <div id='filterBySupervisor' className='w-full sticky top-16 bg-white z-30 mt-2'>
+          <SearchBar
+            ref={searchBarRef}
+            handleFilterTextChange={setFilterText}
+            value={filterText}
+            placeholder={'Búsqueda de empleados'}
+          />
         </div>
-      ) : ''}
+        {error && <p className='mt-3 text-sm text-red-600'>{error}</p>}
+        {loading && skeleton}
+        {!loading && employeesDailyBalances?.length === 0 && emptyState}
+        {!loading && employeesDailyBalances?.length > 0 && (
+          <div className='mt-2'>
+            {renderHeader()}
+            <ul className='mt-1 space-y-2'>
+              {employeesDailyBalances.map(db => {
+                const rowState = checkboxStates[db._id] || {}
+                const updating = updatingIds.has(db._id)
+                return (
+                  <li
+                    key={db._id}
+                    className='group border border-gray-200 rounded-lg px-3 py-2 flex flex-col md:grid md:grid-cols-12 md:items-center gap-2 md:gap-0 bg-white hover:border-blue-300 transition'
+                  >
+                    {/* Empleado */}
+                    <div className='md:col-span-4 flex items-center gap-2'>
+                      <span className='inline-block w-2 h-2 rounded-full bg-blue-500' />
+                      <Link
+                        to={db.employee ? '/perfil/' + db.employee._id : ''}
+                        className='text-sm font-medium text-blue-700 hover:underline truncate'
+                      >
+                        {db.employee ? `${db.employee.name} ${db.employee.lastName}` : 'Trabajador despedido'}
+                      </Link>
+                    </div>
+                    {/* Retardo */}
+                    <div className='md:col-span-2 flex items-center justify-between md:justify-center'>
+                      <label htmlFor={`late-${db._id}`} className='md:hidden text-xs font-medium text-gray-500'>Retardo</label>
+                      <input
+                        id={`late-${db._id}`}
+                        type='checkbox'
+                        className='h-5 w-5 accent-blue-600 cursor-pointer'
+                        checked={!!rowState.lateDiscount}
+                        disabled={updating}
+                        onChange={(e) => handleDailyBalanceInputs(e, db._id)}
+                        name='lateDiscount'
+                      />
+                    </div>
+                    {/* Descanso */}
+                    <div className='md:col-span-2 flex items-center justify-between md:justify-center'>
+                      <label htmlFor={`rest-${db._id}`} className='md:hidden text-xs font-medium text-gray-500'>Descanso</label>
+                      <input
+                        id={`rest-${db._id}`}
+                        type='checkbox'
+                        className='h-5 w-5 accent-blue-600 cursor-pointer'
+                        checked={!!rowState.restDay}
+                        disabled={updating}
+                        onChange={(e) => handleDailyBalanceInputs(e, db._id)}
+                        name='restDay'
+                      />
+                    </div>
+                    {/* Falta */}
+                    <div className='md:col-span-2 flex items-center justify-between md:justify-center'>
+                      <label htmlFor={`day-${db._id}`} className='md:hidden text-xs font-medium text-gray-500'>Falta</label>
+                      <input
+                        id={`day-${db._id}`}
+                        type='checkbox'
+                        className='h-5 w-5 accent-blue-600 cursor-pointer'
+                        checked={!!rowState.dayDiscount}
+                        disabled={updating}
+                        onChange={(e) => handleDailyBalanceInputs(e, db._id)}
+                        name='dayDiscount'
+                      />
+                    </div>
+                    {/* Estado */}
+                    <div className='md:col-span-2 flex items-center justify-start md:justify-center'>
+                      {updating && <span className='text-[10px] md:text-xs text-blue-600 font-medium animate-pulse'>Guardando...</span>}
+                    </div>
+                  </li>
+                )
+              })}
+            </ul>
+          </div>
+        )}
+        {inlineError && <p className='mt-3 text-xs text-red-500'>{inlineError}</p>}
+      </div>
     </div>
-  );
+  )
 }

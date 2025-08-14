@@ -8,7 +8,7 @@ const allColumns = [
 		header: 'Sucursal',
 		screen: 0,
 		column: (value, row) => (
-			<span className={row.employee ? '' : 'text-red-600'}>
+			<span className={row.employee ? '' : 'text-red-600' + `${row.balance < 0 ? ' bg-blue-200 rounded-lg px-1' : ''}`}>
 				{value.branch}
 			</span>
 		)
@@ -62,7 +62,7 @@ const allColumns = [
 	{
 		field: 'outgoings',
 		header: 'Gastos',
-		screen: 0,
+		screen: 768,
 		column: (value) => currency({ amount: value })
 	},
 	{
@@ -132,16 +132,16 @@ const BranchReportTable = ({ branchReports, onRowClick, totals }) => {
 					</tr>
 				</thead>
 				<tbody>
-					{branchReports.map((branchReport, index) => (
+					{branchReports.map((branchReport, rowIdx) => (
 						<tr
 							key={branchReport._id}
-							className={`transition hover:bg-blue-50 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'} cursor-pointer`}
+							className={`transition hover:bg-blue-50 ${rowIdx % 2 === 0 ? 'bg-white' : 'bg-gray-100'} cursor-pointer`}
 							onClick={() => {
 								onRowClick(branchReport);
 							}}
 						>
 							{columns.map((col) => (
-								<td key={col.field} className="px-3 py-2 text-center align-middle">
+								<td key={col.field} className={`px-3 py-2 text-center align-middle`}>
 									{col.column(branchReport[col.field], branchReport) ?? ''}
 								</td>
 							))}

@@ -222,7 +222,7 @@ export default function BranchReportCard({
             </p>
           </div>
         </div>
-        <div name='tools' className="w-full flex flex-row-reverse text-3xl gap-3 pr-2">
+        <div name='tools' className="w-full flex flex-row-reverse flex-wrap text-3xl gap-3 pr-2">
           <button className="border h-fit border-black rounded-lg" onClick={() => handleReloadReport(reportData)}>
             <TbReload />
           </button>

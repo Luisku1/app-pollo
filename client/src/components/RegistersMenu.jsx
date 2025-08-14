@@ -31,10 +31,10 @@ export const RegistersMenu = ({ desktopButton }) => {
     { title: "Entrada de Proveedor", onSelec: () => { return <EntradaInicial /> } },
     { title: "Movimientos de Proveedor", onSelec: () => { return <ProviderRegisters /> } },
     { title: "Gastos", onSelec: () => { return <ExtraOutgoings /> } },
-    { title: "Pago a empleadoss", onSelec: () => { <Payments /> } },
-    { title: "Formato", onSelec: () => { return <RegistroCuentaDiaria /> } },
+    { title: "Pago a empleados", onSelec: () => { return <Payments /> } },
+    { title: "Formato", onSelec: () => { return <RegistroCuentaDiaria /> } }, //JustSeller ve este nada más
     { title: "Descansos", onSelec: () => { return <CreateRest /> } },
-    { title: "Retardos y faltas", onSelec: () => <Penalties /> },
+    { title: "Retardos y faltas", onSelec: () => { return <Penalties /> } },
     { title: "Registrar proveedor", onSelec: () => { return <RegistroProveedor /> } },
   ]
 
