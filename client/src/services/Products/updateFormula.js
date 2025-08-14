@@ -7,6 +7,6 @@ export const updateFormula = async (formulaId, formula) => {
   if (!response.ok) {
     throw new Error('Failed to update formula');
   }
-  const data = response.json();
+  const data = await response.json();
   return data.formula;
 };

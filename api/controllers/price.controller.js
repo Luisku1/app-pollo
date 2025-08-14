@@ -72,6 +72,13 @@ export const newPrices = async (req, res, next) => {
         if (Object.keys(data[key]).length === 0 || !data[key].price || !data[key].product || !data[key].branch) {
           continue
         }
+        const prevPrice = await Price.findOne({ product: data[key].product, branch: data[key].branch }).sort({ createdAt: -1 });
+
+        //si prevPrice y tiene el mismo price no se crea uno nuevo
+        if (prevPrice && prevPrice.price === data[key].price) {
+          continue;
+        }
+
         let document = {
           price: data[key].price,
           product: data[key].product,

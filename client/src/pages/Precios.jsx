@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from "react"
+import Select from 'react-select'
 import FormulaEditor from "../components/FormulaEditor";
 import { useBranches } from "../hooks/Branches/useBranches";
 import { useSelector } from "react-redux"
@@ -10,6 +11,7 @@ import { useProducts } from "../hooks/Products/useProducts"
 import { newFormula } from "../services/Products/newFormula";
 import { updateFormula } from "../services/Products/updateFormula";
 import Modal from "../components/Modals/Modal";
+import { customSelectStyles } from "../helpers/Constants";
 
 export default function Precios() {
 
@@ -31,50 +33,89 @@ export default function Precios() {
   const [formulaValues, setFormulaValues] = useState({}); // Guarda fórmulas por branchId+productId
   const [showGlobalFormulaMenu, setShowGlobalFormulaMenu] = useState(false);
   const [selectedFormulaProduct, setSelectedFormulaProduct] = useState(null); // { productId, productName }
-  const [selectedBranchId, setSelectedBranchId] = useState("");
+  const [selectedBranchIds, setSelectedBranchIds] = useState([]); // array de { value, label }
   const { branches: allBranches = [] } = useBranches({ companyId });
+  const ALL_BRANCHES_VALUE = 'ALL_BRANCHES';
   // Handler para guardar fórmula (creación o actualización, optimista)
   const handleSaveFormula = async (formula) => {
-    if (!selectedBranchId || !selectedFormulaProduct) return;
-    const key = `${selectedBranchId}_${selectedFormulaProduct.productId}`;
-    setFormulaValues(prev => ({ ...prev, [key]: formula }));
+    if (!selectedFormulaProduct) return;
+    if (!selectedBranchIds || selectedBranchIds.length === 0) return;
+    const targetBranchIds = selectedBranchIds.some(b => b.value === ALL_BRANCHES_VALUE)
+      ? allBranches.map(b => b._id)
+      : selectedBranchIds.map(b => b.value);
+    if (targetBranchIds.length === 0) return;
+
+    // Optimistic: actualizar formulaValues para todas las sucursales seleccionadas
+    setFormulaValues(prev => {
+      const clone = { ...prev };
+      targetBranchIds.forEach(bid => {
+        const key = `${bid}_${selectedFormulaProduct.productId}`;
+        clone[key] = formula;
+      });
+      return clone;
+    });
+
+    // Optimistic: reflejar en precios inmediatamente (sin IDs nuevas aún)
+    setPrices(prev => prev.map(branch => {
+      if (!targetBranchIds.includes(branch._id.branchId)) return branch;
+      return {
+        ...branch,
+        prices: branch.prices.map(p => {
+          if (p.productId !== selectedFormulaProduct.productId) return p;
+          const existing = p.formula || {};
+          return { ...p, formula: { ...existing, formula } };
+        })
+      };
+    }));
+
     setShowFormulaMenu(false);
-    // Buscar el objeto de precios de la sucursal seleccionada
-    const branchData = prices.find(b => b._id.branchId === selectedBranchId);
-    if (!branchData) return;
-    // Buscar el producto dentro de la sucursal
-    const productData = branchData.prices.find(p => p.productId === selectedFormulaProduct.productId);
-    let updatedFormulaObj = null;
-    try {
-      if (productData && productData.formula && productData.formula._id) {
-        // Actualizar fórmula existente
-        await updateFormula(productData.formula._id, formula);
-        ToastSuccess('Fórmula actualizada');
-        updatedFormulaObj = { ...productData.formula, formula };
-      } else {
-        // Crear nueva fórmula
-        const res = await newFormula(selectedBranchId, selectedFormulaProduct.productId, formula);
-        ToastSuccess('Fórmula creada');
-        console.log(res)
-        // Suponemos que el backend regresa el objeto creado con _id
-        updatedFormulaObj = res && res._id ? { _id: res._id, formula } : { formula };
+
+    // Llamadas a backend (crear/actualizar) en paralelo
+    const ops = targetBranchIds.map(async (bid) => {
+      try {
+        const branchData = prices.find(b => b._id.branchId === bid);
+        if (!branchData) return { bid, ok: false, error: 'No branch data' };
+        const productData = branchData.prices.find(p => p.productId === selectedFormulaProduct.productId);
+        if (productData && productData.formula && productData.formula._id) {
+          // update
+          await updateFormula(productData.formula._id, formula);
+          return { bid, ok: true, updatedId: productData.formula._id };
+        } else {
+          // create
+          const res = await newFormula(bid, selectedFormulaProduct.productId, formula);
+          return { bid, ok: true, updatedId: res?._id };
+        }
+      } catch (e) {
+        return { bid, ok: false, error: e.message };
       }
-      // Actualización optimista de precios en UI
+    });
+
+    const results = await Promise.all(ops);
+    const failed = results.filter(r => !r.ok);
+
+    // Ajustar IDs recién creadas en precios
+    const createdWithIds = results.filter(r => r.ok && r.updatedId);
+    if (createdWithIds.length > 0) {
       setPrices(prev => prev.map(branch => {
-        if (branch._id.branchId !== selectedBranchId) return branch;
+        const match = createdWithIds.find(r => r.bid === branch._id.branchId);
+        if (!match) return branch;
         return {
           ...branch,
           prices: branch.prices.map(p => {
             if (p.productId !== selectedFormulaProduct.productId) return p;
-            return {
-              ...p,
-              formula: updatedFormulaObj
-            };
+            const existing = p.formula || {};
+            return { ...p, formula: { ...existing, _id: match.updatedId, formula } };
           })
         };
       }));
-    } catch (err) {
-      ToastDanger('Error al guardar fórmula');
+    }
+
+    if (failed.length === 0) {
+      ToastSuccess(targetBranchIds.length > 1 ? 'Fórmulas guardadas en sucursales seleccionadas' : 'Fórmula guardada');
+    } else if (failed.length === targetBranchIds.length) {
+      ToastDanger('Error al guardar fórmulas');
+    } else {
+      ToastInfo(`Algunas fórmulas no se guardaron (${failed.length}/${targetBranchIds.length}).`);
     }
   };
 
@@ -470,31 +511,74 @@ export default function Precios() {
             {showFormulaMenu && selectedFormulaProduct && (
 
               <Modal
-                closeModal={() => { setShowFormulaMenu(false); setSelectedFormulaProduct(null); setSelectedBranchId(""); }}
+                closeModal={() => { setShowFormulaMenu(false); setSelectedFormulaProduct(null); setSelectedBranchIds([]); }}
                 content={
                   <div className="bg-white rounded-xl shadow-lg p-4 relative max-w-xl w-full">
                     <h3 className="font-bold text-lg mb-2 text-blue-800">{selectedFormulaProduct.productName}</h3>
-                    <label className="block font-semibold mb-1">Selecciona sucursal:</label>
-                    <select
-                      className="border border-blue-300 rounded-lg px-2 py-1 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                      value={selectedBranchId}
-                      onChange={e => setSelectedBranchId(e.target.value)}
-                    >
-                      <option value="">Selecciona sucursal…</option>
-                      {allBranches && allBranches.length > 0 && allBranches.map(branch => (
-                        <option key={branch._id} value={branch._id}>{branch.branch}</option>
-                      ))}
-                    </select>
-                    {selectedBranchId && (
+                    <label className="block font-semibold mb-1">Sucursales destino:</label>
+                    <Select
+                      isMulti
+                      placeholder="Selecciona sucursales..."
+                      className="mb-4"
+                      classNamePrefix="rs"
+                      menuPortalTarget={document.body}
+                      styles={customSelectStyles}
+                      value={selectedBranchIds}
+                      onChange={(vals) => {
+                        if (vals?.some(v => v.value === ALL_BRANCHES_VALUE)) {
+                          setSelectedBranchIds([{ value: ALL_BRANCHES_VALUE, label: 'Todas' }]);
+                        } else {
+                          setSelectedBranchIds(vals || []);
+                        }
+                      }}
+                      options={[
+                        { value: ALL_BRANCHES_VALUE, label: 'Todas' },
+                        ...(allBranches || []).map(b => ({ value: b._id, label: b.branch }))
+                      ]}
+                    />
+                    {selectedBranchIds.length > 0 && (
                       <FormulaEditor
-                        branchName={(allBranches.find(b => b._id === selectedBranchId)?.branch) || ''}
+                        branchName={selectedBranchIds.some(b => b.value === ALL_BRANCHES_VALUE)
+                          ? 'Todas las sucursales'
+                          : (selectedBranchIds.length === 1 ? selectedBranchIds[0].label : `${selectedBranchIds.length} sucursales`)}
                         productName={selectedFormulaProduct.productName}
-                        prices={Object.fromEntries(
-                          (filteredPrices.find(b => b._id.branchId === selectedBranchId)?.prices || []).map(p => [p.product, showResidual[selectedBranchId] ? p.latestResidualPrice : p.latestPrice])
-                        )}
-                        initialFormula={formulaValues[`${selectedBranchId}_${selectedFormulaProduct.productId}`] || ''}
+                        prices={(() => {
+                          // Primera sucursal real para preview de variables
+                          let previewBranchId = null;
+                          if (selectedBranchIds.some(b => b.value === ALL_BRANCHES_VALUE)) {
+                            previewBranchId = filteredPrices[0]?._id.branchId;
+                          } else if (selectedBranchIds.length === 1) {
+                            previewBranchId = selectedBranchIds[0].value;
+                          } else {
+                            previewBranchId = selectedBranchIds.find(b => b.value !== ALL_BRANCHES_VALUE)?.value;
+                          }
+                          if (!previewBranchId) return {};
+                          const branchData = filteredPrices.find(b => b._id.branchId === previewBranchId);
+                          if (!branchData) return {};
+                          return Object.fromEntries((branchData.prices || []).map(p => [p.product, showResidual[previewBranchId] ? p.latestResidualPrice : p.latestPrice]));
+                        })()}
+                        initialFormula={(() => {
+                          // Si solo una sucursal (no ALL) y existe fórmula previa
+                          if (selectedBranchIds.length === 1 && !selectedBranchIds.some(b => b.value === ALL_BRANCHES_VALUE)) {
+                            const bid = selectedBranchIds[0].value;
+                            return formulaValues[`${bid}_${selectedFormulaProduct.productId}`] || '';
+                          }
+                          return '';
+                        })()}
                         onSave={handleSaveFormula}
-                        variables={(filteredPrices.find(b => b._id.branchId === selectedBranchId)?.prices || []).map(p => p.product)}
+                        variables={(() => {
+                          let previewBranchId = null;
+                          if (selectedBranchIds.some(b => b.value === ALL_BRANCHES_VALUE)) {
+                            previewBranchId = filteredPrices[0]?._id.branchId;
+                          } else if (selectedBranchIds.length === 1) {
+                            previewBranchId = selectedBranchIds[0].value;
+                          } else {
+                            previewBranchId = selectedBranchIds.find(b => b.value !== ALL_BRANCHES_VALUE)?.value;
+                          }
+                          if (!previewBranchId) return [];
+                          const branchData = filteredPrices.find(b => b._id.branchId === previewBranchId);
+                          return (branchData?.prices || []).map(p => p.product);
+                        })()}
                       />
                     )}
                   </div>
@@ -608,11 +692,21 @@ export default function Precios() {
                                       (() => {
                                         try {
                                           let expr = formulaValues[`${data._id.branchId}_${left.productId}`];
+                                          const branchId = data._id.branchId;
+                                          // Reemplazo con precedencia: input manual -> formData -> latest -> base
                                           (data.prices || []).forEach((p) => {
-                                            const val = isResidual ? p.latestResidualPrice : p.latestPrice;
-                                            expr = expr.replaceAll(`{${p.product}}`, val ?? 0);
+                                            const key = `${p.productId}${branchId}`;
+                                            let manual = isResidual
+                                              ? residualFormData[branchId]?.[key]?.price
+                                              : pricesFormData[branchId]?.[key]?.price;
+                                            let fallback = isResidual
+                                              ? (p.latestResidualPrice ?? p.residualPrice ?? 0)
+                                              : (p.latestPrice ?? p.price ?? 0);
+                                            const numeric = parseFloat(manual);
+                                            const value = !isNaN(numeric) ? numeric : fallback;
+                                            expr = expr.replaceAll(`{${p.product}}`, value ?? 0);
                                           });
-                                          const val = eval(expr); // mathjs sería mejor, pero eval para demo
+                                          const val = eval(expr); // mathjs sería mejor en producción
                                           return <span className="font-bold">{currency(val)}</span>;
                                         } catch {
                                           return <span className="text-red-500">Fórmula inválida</span>;
@@ -661,11 +755,20 @@ export default function Precios() {
                                       (() => {
                                         try {
                                           let expr = formulaValues[`${data._id.branchId}_${right.productId}`];
+                                          const branchId = data._id.branchId;
                                           (data.prices || []).forEach((p) => {
-                                            const val = isResidual ? p.latestResidualPrice : p.latestPrice;
-                                            expr = expr.replaceAll(`{${p.product}}`, val ?? 0);
+                                            const key = `${p.productId}${branchId}`;
+                                            let manual = isResidual
+                                              ? residualFormData[branchId]?.[key]?.price
+                                              : pricesFormData[branchId]?.[key]?.price;
+                                            let fallback = isResidual
+                                              ? (p.latestResidualPrice ?? p.residualPrice ?? 0)
+                                              : (p.latestPrice ?? p.price ?? 0);
+                                            const numeric = parseFloat(manual);
+                                            const value = !isNaN(numeric) ? numeric : fallback;
+                                            expr = expr.replaceAll(`{${p.product}}`, value ?? 0);
                                           });
-                                          const val = eval(expr); // mathjs sería mejor, pero eval para demo
+                                          const val = eval(expr);
                                           return <span className="font-bold">{currency(val)}</span>;
                                         } catch {
                                           return <span className="text-red-500">Fórmula inválida</span>;
