@@ -162,7 +162,7 @@ export default function Reporte() {
 
   const { company } = useSelector((state) => state.user)
   const { currentDate, dateFromYYYYMMDD: date } = useDateNavigation();
-  const { roles } = useRoles()
+  const { roles, isJustSeller } = useRoles()
   const [showTable, setShowTable] = useState(true)
   const [onlyNegativeBalances, setOnlyNegativeBalances] = useState(false);
 
@@ -426,6 +426,14 @@ export default function Reporte() {
       <div><b>Ctrl+Shift+4</b>: Proveedores</div>
     </div>
   );
+
+  if (isJustSeller(currentUser?.companyData?.[0]?.role)) {
+    return (
+      <div>
+        <h2>No puedes ver este contenido</h2>
+      </div>
+    )
+  }
 
   if (isAnyLoading) {
     return (
