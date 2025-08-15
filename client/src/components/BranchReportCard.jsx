@@ -251,7 +251,7 @@ export default function BranchReportCard({
           {(currentUser.companyData?.[0].role) && (
             <ChangeBranchPrices
               branch={reportData.branch._id}
-              date={reportData.createdAt}
+              date={reportData.createdAt.split('T')[0]}
               pricesDate={reportData.pricesDate}
               onUpdateBranchReport={onPricesChange}
             >
