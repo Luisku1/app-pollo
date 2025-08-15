@@ -143,8 +143,6 @@ export default function Salidas({ selectedProduct, setSelectedProduct, date: reg
 
   const addOutputSubmitButton = async (e) => {
 
-    const piecesInput = document.getElementById('output-pieces')
-    const weightInput = document.getElementById('output-weight')
     const commentInput = document.getElementById('output-comment')
     const priceInput = document.getElementById('output-price')
     const createdAt = registerDate ? registerDate : today ? new Date().toISOString() : dateFromYYYYMMDD.toISOString()

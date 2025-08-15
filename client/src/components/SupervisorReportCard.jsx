@@ -131,7 +131,7 @@ export default function SupervisorReportCard({
     <div
       id={`supervisor-report-container-${supervisorReport._id}`}
       className={
-        `relative w-full max-w-xl mx-auto rounded-2xl shadow-lg border border-gray-200 bg-white transition-all duration-200`
+        `relative w-full mx-auto rounded-2xl shadow-lg border border-gray-200 bg-white transition-all duration-200`
       }
       key={supervisorReport._id}
     >

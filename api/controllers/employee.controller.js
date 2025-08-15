@@ -764,7 +764,7 @@ export const getAllEmployees = async (req, res, next) => {
 		// Usamos aggregate para replicar lógica de employeeAggregate y devolver solo datos de companyData para companyId
 		const companyObjectId = new Types.ObjectId(companyId)
 		const employees = await Employee.aggregate([
-			{ $match: { company: companyObjectId } },
+			{ $match: { defaultCompany: companyObjectId } },
 			{ $sort: { name: 1 } },
 			{
 				$addFields: {

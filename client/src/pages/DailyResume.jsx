@@ -14,6 +14,7 @@ import { formatInformationDate } from "../helpers/DatePickerFunctions";
 const DailyResumePage = () => {
   const [page, setPage] = useState(1);
   const { company } = useSelector((state) => state.user);
+  console.log(company)
   const companyId = company?._id;
   const [incomesToShow, setIncomesToShow] = useState(null);
   const [outgoingsToShow, setOutgoingsToShow] = useState(null);

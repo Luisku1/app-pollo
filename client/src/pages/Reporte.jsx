@@ -1,9 +1,8 @@
 /* eslint-disable react/prop-types */
-import { IoArrowBack, IoReload } from "react-icons/io5";
+import { IoReload } from "react-icons/io5";
 import React, { useRef, useEffect, useState } from "react";
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { useSelector } from "react-redux"
-import { useLocation, useNavigate, } from "react-router-dom"
 import { FaMinus } from "react-icons/fa";
 import Sobrante from "../pages/Sobrante"
 import { useBranchReports } from "../hooks/BranchReports.js/useBranchReports";
@@ -166,7 +165,7 @@ export default function Reporte() {
   const { roles } = useRoles()
   const [showTable, setShowTable] = useState(true)
   const [onlyNegativeBalances, setOnlyNegativeBalances] = useState(false);
-  console.log(company)
+
   const {
     branchReports,
     refetchBranchReports,
@@ -234,7 +233,7 @@ export default function Reporte() {
     loadingCustomers,
     loadingProviders
   ])
-  const navigate = useNavigate()
+
   const [pieChartInfo, setPieChartInfo] = useState([])
   const [selectedBranchReport, setSelectedBranchReport] = useState(null);
   const [currentView, setCurrentView] = useState({ view: "branches", props: {} });
@@ -347,33 +346,8 @@ export default function Reporte() {
   }, [supervisorsInfo, deposits, extraOutgoings, missingIncomes, netIncomes, verifiedCash, terminalIncomes, totalIncomes, verifiedDeposits, verifiedIncomes, cashArray, terminalIncomesArray, depositsArray, extraOutgoingsArray, setCurrentView, setShowTable, setOnlyNegativeBalances])
 
   const [selectedSupervisorReport, setSelectedSupervisorReport] = useState(null);
-  const [tablesOnTop, setTablesOnTop] = useState(false);
-
-  const location = useLocation();
-  const from = location.state?.from;
-
-  const getBackText = () => {
-    if (!from) return "Volver";
-    if (from.includes("diario")) return "Volver al resumen diario";
-    if (from.includes("inicio")) return "Volver al inicio";
-    if (from.includes("formato")) return "Volver al formato";
-    if (from.includes("reporte")) return "Volver a reportes";
-    return "Volver";
-  };
 
   useEffect(() => {
-    const handleResize = () => {
-      const size = window.innerWidth
-      if (size > 1024) {
-        setTablesOnTop(true)
-      } else {
-        setTablesOnTop(false)
-      }
-    }
-
-    handleResize()
-    window.addEventListener('resize', handleResize)
-
     // Atajo de teclado para alternar tablas con ctrl+shift+1,2,3,4
     const handleKeyDown = (e) => {
       // e.code es más confiable para teclas numéricas

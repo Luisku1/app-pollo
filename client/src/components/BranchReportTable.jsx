@@ -8,7 +8,7 @@ const allColumns = [
 		header: 'Sucursal',
 		screen: 0,
 		column: (value, row) => (
-			<span className={row.employee ? '' : 'text-red-600' + `${row.balance < 0 ? ' bg-blue-200 rounded-lg px-1' : ''}`}>
+			<span className={`${row.employee ? ' ' : 'text-red-600 '}${row.balance < 0 ? ' bg-blue-200 rounded-lg px-1' : ''}`}>
 				{value.branch}
 			</span>
 		)

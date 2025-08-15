@@ -3,7 +3,8 @@ import { useSelector } from "react-redux";
 import Select from "react-select";
 import { useProviders } from "../../hooks/Providers/useProviders";
 import { customSelectStyles } from "../../helpers/Constants";
-import { getArrayForSelects, getElementForSelect, currency } from "../../helpers/Functions";
+import { getArrayForSelects, getElementForSelect } from "../../helpers/Functions";
+import { ToastDanger } from "../../helpers/toastify";
 
 // date: ISO string para createdAt si se desea registrar en fecha pasada
 export default function CreateProviderPayment({ onAddPayment, date }) {
@@ -12,7 +13,6 @@ export default function CreateProviderPayment({ onAddPayment, date }) {
   const [selectedProvider, setSelectedProvider] = useState(null);
   const [cash, setCash] = useState(0);
   const [transfer, setTransfer] = useState(0);
-  const [error, setError] = useState("");
 
   const handleProviderChange = (provider) => {
     setSelectedProvider(provider);
@@ -21,14 +21,14 @@ export default function CreateProviderPayment({ onAddPayment, date }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!selectedProvider) {
-      setError("Selecciona un proveedor");
+      ToastDanger("Selecciona un proveedor");
       return;
     }
     if (Number(cash) <= 0 && Number(transfer) <= 0) {
-      setError("Ingresa al menos un monto mayor a 0");
+      ToastDanger("Ingresa al menos un monto mayor a 0");
       return;
     }
-    setError("");
+    console.log('through first validations')
     const payment = {
       provider: selectedProvider.value,
       cash: Number(cash),
@@ -37,6 +37,7 @@ export default function CreateProviderPayment({ onAddPayment, date }) {
       createdAt: date || new Date().toISOString(),
     };
     if (onAddPayment) onAddPayment(payment);
+
     setSelectedProvider(null);
     setCash(0);
     setTransfer(0);
@@ -80,7 +81,6 @@ export default function CreateProviderPayment({ onAddPayment, date }) {
             />
           </div>
         </div>
-        {error && <p className="text-red-600 text-sm font-semibold">{error}</p>}
         <button type="submit" className="bg-button text-white p-3 rounded-lg mt-2">Agregar</button>
       </form>
     </div>

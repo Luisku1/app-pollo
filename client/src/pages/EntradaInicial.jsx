@@ -81,7 +81,7 @@ export default function EntradaInicial({ date: registerDate = undefined }) {
   // Compute effective register date to pass down
   let effectiveRegisterDate = registerDate;
   if (registerDate === undefined) {
-    effectiveRegisterDate = useToday ? new Date().toISOString() : new Date(dateFromYYYYMMDD).toISOString();
+    effectiveRegisterDate = useToday ? new Date().toISOString() : dateFromYYYYMMDD.toISOString();
   }
 
   return (

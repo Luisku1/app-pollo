@@ -14,6 +14,7 @@ import EntradasYSalidas from "./Movimientos/EntradasYSalidas";
 import Payments from "./Outgoings/Payments";
 import ProviderRegisters from "./ProviderRegisters";
 import { useRoles } from "../context/RolesContext";
+import StockAndOutgoings from "./StockAndOutgoings";
 
 
 export const RegistersMenu = ({ desktopButton }) => {
@@ -35,7 +36,7 @@ export const RegistersMenu = ({ desktopButton }) => {
     { title: "Movimientos de Proveedor", role: 'manager', onSelec: () => <ProviderRegisters /> },
     { title: "Gastos", role: 'supervisor', onSelec: () => <ExtraOutgoings /> },
     { title: "Pago a empleados", role: 'supervisor', onSelec: () => <Payments /> },
-    { title: "Formato", role: 'seller', onSelec: () => <RegistroCuentaDiaria /> },
+    { title: "Formato exprés", role: 'seller', onSelec: () => <StockAndOutgoings /> },
     { title: "Descansos", role: 'supervisor', onSelec: () => <CreateRest /> },
     { title: "Retardos y faltas", role: 'supervisor', onSelec: () => <Penalties /> },
     { title: "Registrar proveedor", role: 'supervisor', onSelec: () => <RegistroProveedor /> },

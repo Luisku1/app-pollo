@@ -98,6 +98,8 @@ export default function RegistroCuentaDiaria({ edit = true }) {
     const currentUTCHours = currentTime.getUTCHours();
     const currentUTCMinutes = currentTime.getUTCMinutes();
 
+    if (!currentDate) return
+
     setAbleToEdit(true)
 
     if (isJustSeller(currentUser.companyData?.[0].role) && !today) {

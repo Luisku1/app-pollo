@@ -30,6 +30,17 @@ export default function Modal({
   const { modals, addModal, removeLastModal, count, setCount } = useContext(ModalContext);
 
   const modalRef = useRef(null);
+  const [isDesktopWide, setIsDesktopWide] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.innerWidth >= 1034; // breakpoint solicitado
+  });
+
+  // Listener para ajustar breakpoint personalizado (1034px)
+  useEffect(() => {
+    const handleResize = () => setIsDesktopWide(window.innerWidth >= 1034);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   const handleCopyModalImage = async () => {
     try {
       const node = modalRef?.current;
@@ -120,9 +131,12 @@ export default function Modal({
       >
         <div
           ref={modalRef}
-          className={`bg-white shadow-lg h-auto max-h-[90vh] max-w-lg w-${width} overflow-y-auto relative overscroll-contain ${shape} rounded-lg border-2 border-gray-300'
-          `}
-          style={adjustForKeyboard ? { position: "absolute", top: "5/6" } : {}}
+          className={`bg-white shadow-lg h-auto max-h-[90vh] max-w-lg w-${width} overflow-y-auto relative overscroll-contain ${shape} rounded-lg border-2 border-gray-300`}
+          style={{
+            ...(adjustForKeyboard ? { position: "absolute", top: "5/6" } : {}),
+            // Override: en pantallas >=1034px permitir crecimiento hasta 42rem (Tailwind max-w-2xl)
+            maxWidth: isDesktopWide ? '42rem' : undefined,
+          }}
           onClick={(e) => {
             if (closeOnClickInside && ableToClose) {
               closeModal();

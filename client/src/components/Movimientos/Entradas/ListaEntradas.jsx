@@ -1,15 +1,13 @@
 /* eslint-disable react/prop-types */
 import { useState, useMemo } from "react";
 import { useSelector } from "react-redux";
-import { formatDateAndTime } from "../../../helpers/DatePickerFunctions";
+import { formatInformationDate } from "../../../helpers/DatePickerFunctions";
 import { useRoles } from "../../../context/RolesContext";
 import { currency } from "../../../helpers/Functions";
 import ShowDetails from "../../ShowDetails";
 import RowItem from "../../RowItem";
-import { CgProfile } from "react-icons/cg";
 import { GiChickenOven } from "react-icons/gi";
 import { FaInfoCircle } from "react-icons/fa";
-import { MdStorefront } from "react-icons/md";
 import ConfirmationButton from "../../Buttons/ConfirmationButton";
 import DeleteButton from "../../Buttons/DeleteButton";
 import { CiSquareInfo } from "react-icons/ci";
@@ -66,7 +64,7 @@ export default function ListaEntradas({ inputs, onDelete = null }) {
     {
       key: "createdAt",
       label: "Hora",
-      format: (data) => formatDateAndTime(data.createdAt),
+      format: (data) => formatInformationDate(data.createdAt),
     },
   ];
 
@@ -150,7 +148,7 @@ export default function ListaEntradas({ inputs, onDelete = null }) {
                           {comment || "Sin observaciones."}
                         </p>
                         <div className="text-sm text-black flex justify-self-end">
-                          {formatDateAndTime(createdAt)}
+                          {formatInformationDate(createdAt)}
                         </div>
                       </RowItem>
                     </div>

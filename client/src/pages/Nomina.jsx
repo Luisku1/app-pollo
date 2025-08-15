@@ -59,7 +59,6 @@ export default function Nomina() {
             />
           }
           fit={true}
-          width="11/12"
           isShown={!!selectedEmployeePayroll}
         />
       </div>

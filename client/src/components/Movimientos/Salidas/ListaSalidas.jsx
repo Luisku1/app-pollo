@@ -1,12 +1,11 @@
 /* eslint-disable react/prop-types */
 import { useState, useMemo } from 'react'
 import { useSelector } from 'react-redux'
-import { formatTime } from '../../../helpers/DatePickerFunctions'
+import { formatInformationDate } from '../../../helpers/DatePickerFunctions'
 import { useRoles } from '../../../context/RolesContext'
 import { getEmployeeFullName, currency } from '../../../helpers/Functions'
 import ShowDetails from '../../ShowDetails'
 import RowItem from '../../RowItem'
-import { CgProfile } from 'react-icons/cg'
 import { GiChickenOven } from 'react-icons/gi'
 import { FaInfoCircle } from 'react-icons/fa'
 import { MdStorefront } from 'react-icons/md'
@@ -35,7 +34,7 @@ export default function ListaSalidas({ outputs = [], onDelete = null }) {
     { key: 'branch.branch', label: 'Origen', format: (data) => data.branch.branch },
     { key: 'employee.name', label: 'Encargado', format: (data) => getEmployeeFullName(data.employee) },
     { key: 'comment', label: 'Comentario' },
-    { key: 'createdAt', label: 'Hora', format: (data) => formatTime(data.createdAt) },
+    { key: 'createdAt', label: 'Hora', format: (data) => formatInformationDate(data.createdAt) },
   ]
 
   const renderTotal = () => {
@@ -82,7 +81,7 @@ export default function ListaSalidas({ outputs = [], onDelete = null }) {
                       <RowItem>
                         <p className="text-xs flex gap-1 items-center"><FaInfoCircle className="text-blue-800" />{comment || 'Sin observaciones.'}</p>
                         <div className="text-sm text-black flex justify-self-end">
-                          {formatTime(createdAt)}
+                          {formatInformationDate(createdAt)}
                         </div>
                       </RowItem>
                     </div>

@@ -15,7 +15,7 @@ export default function EmployeePayroll({
 
 
   return (
-    <div key={employeePayroll._id} className=' w-fit items-center border border-black rounded-lg shadow-sm'>
+    <div key={employeePayroll._id} className=' w-fit justify-self-center items-center border border-black rounded-lg shadow-sm'>
       <EmployeeInfo
         employee={selectedEmployee}
         toggleInfo={() => setSelectedEmployee(null)}

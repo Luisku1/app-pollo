@@ -73,7 +73,7 @@ export default function PayrollResume({ employeePayroll, updateSupervisorReportG
         closeModal={() => setSupervisorReportCard(null)}
         content={
           <SupervisorReportCard
-            supervisorReport={supervisorReportCard}
+            supervisorReport={supervisorReportCard?.supervisorReport}
             updateSupervisorReportGroup={updateSupervisorReportGroup}
             updateSupervisorReportSingle={updateSupervisorReportSingle}
             employeeId={employeeId}
@@ -88,10 +88,10 @@ export default function PayrollResume({ employeePayroll, updateSupervisorReportG
           <p className="font-semibold">Salario: </p>
           <p className={' my-auto'}>{Amount({ amount: (salary ?? 0) })}</p>
         </div>
-        <div className="grid grid-cols-2 text-left justify-self-end">
+        {/* <div className="grid grid-cols-2 text-left justify-self-end">
           <p className="font-semibold">Deuda total: </p>
           <p className={' my-auto'}>{Amount({ amount: (employee.balance ?? 0) })}</p>
-        </div>
+        </div> */}
         <div className="grid grid-cols-2 text-left">
           <p className="font-semibold">Saldo previo: </p>
           <p className={(previousWeekBalance < 0 ? 'text-red-500 ' : ' ') + ' my-auto font-bold w-fit'}>{previousWeekBalance.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p>
@@ -162,7 +162,7 @@ export default function PayrollResume({ employeePayroll, updateSupervisorReportG
         date.setDate(date.getDate() - (i + 1));
         const dailyBalance = employeeDailyBalances.find((balance) => formatDate(balance.createdAt) === formatDate(date)) || null;
         let branchReport = branchReports.filter((report) => formatDate(report.createdAt) === formatDate(date)) || null;
-        const supervisorReport = supervisorReports.filter((report) => formatDate(report.createdAt) === formatDate(date)) || null;
+        const supervisorReport = supervisorReports.filter((report) => formatDate(report.createdAt) === formatDate(date))?.[0] || null;
         const { lateDiscount = false, restDay = false, dayDiscount = true } = dailyBalance || {};
         let branchBalance = 0;
         let supervisorBalance = supervisorReport?.balance || 0;
@@ -192,7 +192,7 @@ export default function PayrollResume({ employeePayroll, updateSupervisorReportG
             <button onClick={() => { setBranchReportCard(branchReport) }} disabled={branchReport == null} className={`border border-black text-center col-span-2 ${branchBalance < 0 ? 'bg-pastel-pink' : ''}`}>
               {currency({ amount: branchBalance })}
             </button>
-            <button onClick={() => { setSupervisorReportCard({ ...supervisorReport, externalIndex: index }) }} disabled={supervisorReport == null} className={`border border-black text-center col-span-2 ${supervisorBalance < 0 ? 'bg-pastel-pink' : ''}`}>
+            <button onClick={() => { setSupervisorReportCard({ supervisorReport, externalIndex: index }) }} disabled={supervisorReport == null} className={`border border-black text-center col-span-2 ${supervisorBalance < 0 ? 'bg-pastel-pink' : ''}`}>
               {currency({ amount: supervisorBalance })}
             </button>
             <input className='col-span-1' type="checkbox" name="lateDiscount" id="lateDiscount" defaultChecked={lateDiscount} />

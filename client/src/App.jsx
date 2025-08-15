@@ -14,7 +14,6 @@ import React, { Suspense, useEffect } from 'react';
 import DailyResumePage from './pages/DailyResume';
 
 // Importa los componentes de página de forma lazy
-const ListadoDeCuentas = React.lazy(() => import('./pages/ListadoDeCuentas'));
 const InicioSesion = React.lazy(() => import('./pages/InicioSesion'));
 const Perfil = React.lazy(() => import('./pages/Perfil'));
 const RegistroCuentaDiaria = React.lazy(() => import('./pages/RegistroCuentaDiaria'));
@@ -90,7 +89,6 @@ export default function App() {
                           <Route path="/formato" element={<RegistroCuentaDiaria />} />
                           <Route path="/formato/:branchId/:date" element={<RegistroCuentaDiaria />} />
                           <Route path="/formato/:date" element={<RegistroCuentaDiaria />} />
-                          <Route path="/listado-de-cuentas" element={<ListadoDeCuentas />} />
                           <Route path="/empleados" element={<Empleados />} />
                           <Route path="/empresas" element={<Empresas />} />
                           <Route path="/productos" element={<Productos />} />
