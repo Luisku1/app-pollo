@@ -4,10 +4,8 @@ import { useDeleteInput } from "./useDeleteInput"
 import { useAddInput } from "./useAddInput"
 import { Types } from "mongoose"
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { recalculateBranchReport } from '../../../../common/recalculateReports';
 import { optimisticUpdateReport, rollbackReport } from "../../helpers/optimisticReportUpdate"
 import { addToArrayAndSum, removeFromArrayAndSum } from '../../helpers/reportActions';
-import { formatDate } from "../../helpers/DatePickerFunctions"
 import { useSelector } from "react-redux"
 import { useRoles } from "../../context/RolesContext"
 
@@ -137,10 +135,27 @@ export const useInputs = ({ companyId = null, date = null, initialInputs = null 
     }
   }, [initialInputs])
 
+  const { effectiveInputs, effectiveTotalWeight, effectiveTotalAmount } = useMemo(() => {
+    let list = inputs
+    if (!isManager(currentUser?.companyData?.[0]?.role)) {
+      const uid = currentUser?._id
+      list = inputs.filter(i => {
+        const employeeId = i.employee?._id || i.employee
+        const createdById = i.createdBy?._id || i.createdBy
+        return employeeId === uid || createdById === uid
+      })
+    }
+    return {
+      effectiveInputs: list,
+      effectiveTotalWeight: list.reduce((a, i) => a + (i.weight || 0), 0),
+      effectiveTotalAmount: list.reduce((a, i) => a + (i.amount || 0), 0)
+    }
+  }, [inputs, currentUser, isManager])
+
   return {
-    inputs,
-    totalWeight,
-    totalAmount,
+    inputs: effectiveInputs,
+    totalWeight: effectiveTotalWeight,
+    totalAmount: effectiveTotalAmount,
     onAddInput,
     onDeleteInput,
     loading: loading || queryLoading,

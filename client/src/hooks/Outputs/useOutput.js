@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { getOutputs } from "../../services/Outputs/getOutputs"
 import { useAddOutput } from "./useAddOutput"
 import { useDeleteOutput } from "./useDeleteOutput"
