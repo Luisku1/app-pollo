@@ -169,10 +169,7 @@ export default function Incomes({ showDateSwitch = true, useToday: useTodayProp 
               ListComponent={IncomesList}
               ListComponentProps={{ incomes, incomesTotal, onDeleteIncome }}
               clickableComponent={
-                isManager(currentUser?.companyData?.[0]?.role) ?
-                  <p className='font-bold text-lg text-center'>{currency({ amount: incomesTotal ?? 0 })}</p>
-                  :
-                  <FaListAlt className="h-10 w-10 text-red-600" />
+                <p className='font-bold text-lg text-center'>{currency({ amount: incomesTotal ?? 0 })}</p>
               }
             //Comparar con el monto para cubrir la nota de hoy.
             />
