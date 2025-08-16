@@ -625,10 +625,10 @@ const employeeBranchReportsLookup = (localField, bottomDate, topDate, companyId)
 
 export const getEmployeeBranchReports = async (req, res, next) => {
 
-	const { employeeId } = req.params
+	const { employeeId, companyId } = req.params
 	const { date } = req.query
 
-	const employeePayDay = await getEmployeePayDay(employeeId)
+	const employeePayDay = await getEmployeePayDay(employeeId, companyId)
 
 	let shiftedWeeks = 0
 
@@ -699,9 +699,9 @@ export const recalculateLastThreeMonthEmployee = async (req, res, next) => {
 export const getEmployeeSupervisorReports = async (req, res, next) => {
 
 	const { employeeId } = req.params
-	const { date } = req.query
+	const { date, companyId } = req.query
 
-	const employeePayDay = await getEmployeePayDay(employeeId)
+	const employeePayDay = await getEmployeePayDay(employeeId, companyId)
 
 	let shiftedWeeks = 0
 
@@ -1496,12 +1496,26 @@ export const refactorEmployeesWeeklyBalances = async ({ companyId }) => {
 	}
 }
 
-export const getEmployeePayDay = async (employeeId) => {
+export const getEmployeePayDay = async (employeeId, companyId) => {
+	try {
+		if (!employeeId || !companyId) return 0;
 
-	const employee = await Employee.findById(employeeId, 'payDay')
+		const doc = await Employee.findById(
+			employeeId,
+			{
+				companyData: { $elemMatch: { company: new Types.ObjectId(companyId) } },
+				_id: 0
+			}
+		).lean();
 
-	return employee?.payDay ?? 0
-}
+		const payDay = doc?.companyData?.[0]?.payDay;
+		if (typeof payDay === 'number' && payDay >= 0 && payDay <= 6) return payDay;
+
+		return 0; // No legacy fallback: solo companyData
+	} catch {
+		return 0;
+	}
+};
 
 export const isCurrentOrInmediateWeek = (date, payDay) => {
 
@@ -1532,7 +1546,7 @@ export const addDailyBalanceInWeeklyBalance = async ({ dailyBalance }) => {
 
 		if (!dailyBalance) return
 
-		const payDay = await getEmployeePayDay(dailyBalance.employee)
+		const payDay = await getEmployeePayDay(dailyBalance.employee, dailyBalance.company)
 
 		let employeeWeeklyBalance = await fetchEmployeeWeeklyBalance({ employeeId: dailyBalance.employee, date: dailyBalance.createdAt, payDay })
 
@@ -1662,7 +1676,6 @@ export const fetchEmployeePayroll = async ({ employeeId, weekRange }) => {
 	try {
 
 		const { weekStart, weekEnd } = weekRange
-		const payDay = await getEmployeePayDay(employeeId)
 
 		const weeklyBalance = await EmployeeWeeklyBalance.aggregate([
 			{
@@ -1838,7 +1851,7 @@ export const getSingleEmployeePayroll = async (req, res, next) => {
 	const { page, companyId } = req.query;
 	try {
 		// Get the employee's payDay
-		const payDay = await getEmployeePayDay(employeeId);
+		const payDay = await getEmployeePayDay(employeeId, companyId);
 		// Calculate week range for the given date and payDay
 		const { weekStart, weekEnd } = getWeekRange(new Date(), payDay, page);
 		const firstTopDate = getDayRange(weekStart).topDate;
@@ -2827,12 +2840,13 @@ export const updateSupervisorBalance = async (supervisorReport) => {
 	let updatedDailyBalance = null
 	let dailyBalance = null
 	let employee = null
+	if (!supervisorReport) throw new Error("No hay reporte de supervisor");
 	const employeeId = supervisorReport.supervisor?._id ?? supervisorReport.supervisor
 	if (!employeeId) throw new Error("No hay empleado en el reporte");
 
 	try {
 
-		const employeePayday = await getEmployeePayDay(employeeId)
+		const employeePayday = await getEmployeePayDay(employeeId, supervisorReport.company)
 		const { currentWeekRange, isCurrentWeek, isInmediatePrevWeek } = isCurrentOrInmediateWeek(branchReport.createdAt, employeePayday)
 		let dailyBalance = await fetchOrCreateDailyBalance({ companyId: supervisorReport.company, employeeId: supervisorReport.supervisor, date: supervisorReport.createdAt })
 
@@ -2906,11 +2920,15 @@ export const updateAccountBalance = async (branchReport, changedEmployee) => {
 	let dailyBalance = null
 	let changedEmployeeDailyBalance = null
 	let employee = null
+
+	if (!branchReport) throw new Error("No hay reporte de sucursal");
+
+	const companyId = branchReport.company
 	const employeeId = branchReport.employee?._id ?? branchReport.employee
 	if (!employeeId) throw new Error("No hay empleado en el reporte");
 
 	try {
-		const employeePayday = await getEmployeePayDay(employeeId)
+		const employeePayday = await getEmployeePayDay(employeeId, companyId)
 		const { currentWeekRange, isCurrentWeek, isInmediatePrevWeek } = isCurrentOrInmediateWeek(branchReport.createdAt, employeePayday)
 		dailyBalance = await fetchOrCreateDailyBalance({ companyId: branchReport.company, employeeId: employeeId, date: branchReport.createdAt })
 

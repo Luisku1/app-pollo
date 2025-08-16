@@ -1,9 +1,9 @@
 import axios from "axios";
 
-export default async function getEmployeeSupervisorReports(employeeId, date) {
+export default async function getEmployeeSupervisorReports(employeeId, date, companyId) {
   try {
     const response = await axios.get(`/api/employee/get-employee-supervisor-reports/${employeeId}`, {
-      params: { date },
+      params: { date, companyId },
     });
     return response.data?.data ?? response.data;
   } catch (error) {

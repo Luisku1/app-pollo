@@ -377,7 +377,6 @@ export default function Reporte() {
     window.addEventListener('keydown', handleKeyDown);
 
     return () => {
-      window.removeEventListener('resize', handleResize)
       window.removeEventListener('keydown', handleKeyDown)
     }
   }, [])

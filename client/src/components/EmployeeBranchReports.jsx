@@ -4,8 +4,11 @@ import { getEmployeesBranchReports } from '../services/employees/getEmployeesBra
 import { useBranchReports } from '../hooks/BranchReports.js/useBranchReports';
 import ShowListModal from './Modals/ShowListModal';
 import TarjetaCuenta from './TarjetaCuenta';
+import { useSelector } from 'react-redux';
 
 const EmployeeBranchReports = ({ employeeId, employee, toggleComponent }) => {
+
+  const { company } = useSelector(state => state.user)
   const { branchReports, setReports, replaceReport } = useBranchReports({ companyId: null });
   const [showModal, setShowModal] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -15,7 +18,7 @@ const EmployeeBranchReports = ({ employeeId, employee, toggleComponent }) => {
     const fetchBranchReports = async () => {
       try {
         setLoading(true);
-        const data = await getEmployeesBranchReports(employeeId, new Date().toISOString());
+        const data = await getEmployeesBranchReports(employeeId, new Date().toISOString(), company._id);
         setLoading(false);
         setReports(data);
       } catch (err) {

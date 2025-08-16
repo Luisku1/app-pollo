@@ -1,9 +1,9 @@
 import axios from 'axios';
 
-export const getEmployeesBranchReports = async (employeeId, date) => {
+export const getEmployeesBranchReports = async (employeeId, date, companyId) => {
   try {
     const response = await axios.get(`/api/employee/get-employee-branch-reports/${employeeId}`, {
-      params: { date },
+      params: { date, companyId },
     });
     return response.data?.data ?? response.data;
   } catch (error) {

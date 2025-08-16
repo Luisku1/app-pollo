@@ -7,6 +7,7 @@ import SupervisorReportList from "./SupervisorReportList";
 
 export default function EmployeeSupervisorReports({ employeeId, employee, toggleComponent }) {
 
+  const { company } = useSelector(state => state.user)
   const { supervisorReports, setSupervisorReports, replaceReport } = useSupervisorReports({ supervisorId: null })
   const [showModal, setShowModal] = useState(true);
   const [loading, setLoading] = useState(true);
@@ -15,7 +16,7 @@ export default function EmployeeSupervisorReports({ employeeId, employee, toggle
     async function fetchReports() {
       try {
         setLoading(true);
-        const data = await getEmployeeSupervisorReports(employeeId, new Date().toISOString());
+        const data = await getEmployeeSupervisorReports(employeeId, new Date().toISOString(), company._id);
         setLoading(false);
         setSupervisorReports(data);
       } catch (error) {
