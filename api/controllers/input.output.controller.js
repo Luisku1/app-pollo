@@ -12,7 +12,7 @@ import { branchAggregate } from './branch.controller.js'
 import { productAggregate } from './product.controller.js'
 import { dateFromYYYYMMDD } from '../../common/dateOps.js'
 
-const inputLookups = () => {
+const inputLookups = (companyId) => {
   return [
     ...employeeAggregate('employee', undefined, companyId),
     ...customerAggregate('customer', companyId),
@@ -38,7 +38,7 @@ const inputLookups = () => {
   ]
 }
 
-const outputLookups = () => {
+const outputLookups = (companyId) => {
   return [
     ...employeeAggregate('employee', undefined, companyId),
     ...customerAggregate('customer', companyId),
@@ -501,9 +501,8 @@ export const getInputs = async (req, res, next) => {
           "company": new Types.ObjectId(companyId)
         }
       },
-      ...inputLookups()
+      ...inputLookups(companyId)
     ])
-    console.log(inputs)
 
     if (inputs.length == 0) {
 
@@ -842,7 +841,7 @@ export const getOutputs = async (req, res, next) => {
           "company": new Types.ObjectId(companyId)
         }
       },
-      ...outputLookups()
+      ...outputLookups(companyId)
     ])
 
     if (outputs.length == 0) {

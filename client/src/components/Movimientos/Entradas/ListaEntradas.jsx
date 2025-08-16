@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import { useState, useMemo } from "react";
 import { useSelector } from "react-redux";
-import { formatInformationDate } from "../../../helpers/DatePickerFunctions";
+import { formatDateAndTime, formatInformationDate } from "../../../helpers/DatePickerFunctions";
 import { useRoles } from "../../../context/RolesContext";
 import { currency } from "../../../helpers/Functions";
 import ShowDetails from "../../ShowDetails";
@@ -148,7 +148,7 @@ export default function ListaEntradas({ inputs, onDelete = null }) {
                           {comment || "Sin observaciones."}
                         </p>
                         <div className="text-sm text-black flex justify-self-end">
-                          {formatInformationDate(createdAt)}
+                          {formatDateAndTime(createdAt)}
                         </div>
                       </RowItem>
                     </div>

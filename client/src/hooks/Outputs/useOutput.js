@@ -21,7 +21,6 @@ export const useOutput = ({ companyId = null, date = null, initialOutputs = null
 
   const pushOutput = (output) => {
     setOutputs((prevOutputs) => {
-      calculateTotal([output, ...prevOutputs])
       return [output, ...prevOutputs]
     })
   }
@@ -29,7 +28,6 @@ export const useOutput = ({ companyId = null, date = null, initialOutputs = null
   const spliceOutput = (index) => {
     setOutputs((prevOutputs) => {
       const newOutputs = prevOutputs.filter((_, i) => i !== index);
-      calculateTotal(newOutputs)
       return newOutputs;
     });
   };

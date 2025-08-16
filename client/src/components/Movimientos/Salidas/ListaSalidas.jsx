@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import { useState, useMemo } from 'react'
 import { useSelector } from 'react-redux'
-import { formatInformationDate } from '../../../helpers/DatePickerFunctions'
+import { formatDateAndTime, formatInformationDate } from '../../../helpers/DatePickerFunctions'
 import { useRoles } from '../../../context/RolesContext'
 import { getEmployeeFullName, currency } from '../../../helpers/Functions'
 import ShowDetails from '../../ShowDetails'
@@ -81,7 +81,7 @@ export default function ListaSalidas({ outputs = [], onDelete = null }) {
                       <RowItem>
                         <p className="text-xs flex gap-1 items-center"><FaInfoCircle className="text-blue-800" />{comment || 'Sin observaciones.'}</p>
                         <div className="text-sm text-black flex justify-self-end">
-                          {formatInformationDate(createdAt)}
+                          {formatDateAndTime(createdAt)}
                         </div>
                       </RowItem>
                     </div>

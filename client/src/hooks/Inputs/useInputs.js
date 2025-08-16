@@ -11,8 +11,6 @@ import { useRoles } from "../../context/RolesContext"
 
 export const useInputs = ({ companyId = null, date = null, initialInputs = null }) => {
   const [inputs, setInputs] = useState([])
-  const [totalWeight, setTotalWeight] = useState(0.0)
-  const [totalAmount, setTotalAmount] = useState(0.0)
   const { deleteInput } = useDeleteInput()
   const { addInput } = useAddInput()
   const queryClient = useQueryClient();
@@ -21,23 +19,15 @@ export const useInputs = ({ companyId = null, date = null, initialInputs = null 
   const { currentUser } = useSelector(state => state.user)
   const { isManager } = useRoles()
 
-  const calculateTotal = (inputsList) => {
-    setTotalWeight(inputsList.reduce((acc, input) => acc + input.weight, 0))
-    setTotalAmount(inputsList.reduce((acc, input) => acc + input.amount, 0))
-  }
-
   const pushInput = (input) => {
     setInputs((prevInputs) => {
-      calculateTotal([input, ...prevInputs])
       return [input, ...prevInputs]
     })
-    setTotalWeight((prevTotal) => prevTotal + input.weight)
   }
 
   const spliceInput = (index) => {
     setInputs((prevInputs) => {
       const newInputs = prevInputs.filter((_, i) => i !== index);
-      calculateTotal(newInputs)
       return newInputs;
     });
   };
@@ -124,14 +114,12 @@ export const useInputs = ({ companyId = null, date = null, initialInputs = null 
   useEffect(() => {
     if (queryInputs) {
       setInputs(queryInputs);
-      calculateTotal(queryInputs);
     }
   }, [queryInputs]);
 
   useEffect(() => {
     if (initialInputs) {
       initialize(initialInputs);
-      calculateTotal(initialInputs);
     }
   }, [initialInputs])
 
