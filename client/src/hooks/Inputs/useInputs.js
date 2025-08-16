@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { getInputs } from "../../services/Inputs/getInputs"
 import { useDeleteInput } from "./useDeleteInput"
 import { useAddInput } from "./useAddInput"
