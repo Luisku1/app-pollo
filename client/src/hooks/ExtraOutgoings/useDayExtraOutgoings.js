@@ -4,11 +4,13 @@ import { useAddExtraOutgoing } from "./useAddExtraOutgoing"
 import { useDeleteExtraOutgoing } from "./useDeleteExtraOutgoing";
 import { Types } from "mongoose";
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useRoles } from "../../context/RolesContext";
 
 export const useDayExtraOutgoings = ({ companyId = null, date = null, initialExtraOutgoings = [] }) => {
   const { addExtraOutgoing } = useAddExtraOutgoing()
   const { deleteExtraOutgoing } = useDeleteExtraOutgoing()
   const [error, setError] = useState(null)
+  const { isManager } = useRoles();
 
   const sanitizeExtraOutgoings = (outgoings) => {
     return outgoings.map((outgoing) => {
@@ -93,14 +95,16 @@ export const useDayExtraOutgoings = ({ companyId = null, date = null, initialExt
     }
   }
 
-  const sortedExtraOutgoings = useMemo(() => {
-    // Orden descendente por monto
-    return [...extraOutgoings].sort((a, b) => b.amount - a.amount)
+  const { filteredOutgoings, totalExtraOutgoings } = useMemo(() => {
+    const effectiveOutgoings = isManager(currentUser.companyData?.[0].role) ? extraOutgoings : extraOutgoings.filter(outgoing => outgoing.employee._id === currentUser._id);
+    const total = effectiveOutgoings.reduce((sum, outgoing) => sum + (outgoing.amount || 0), 0);
+    return { filteredOutgoings: effectiveOutgoings, totalOutgoings: total };
   }, [extraOutgoings])
 
-  const totalExtraOutgoings = useMemo(() => {
-    return extraOutgoings.reduce((total, extraOutgoing) => total + extraOutgoing.amount, 0)
-  }, [extraOutgoings])
+  const sortedExtraOutgoings = useMemo(() => {
+    // Orden descendente por monto
+    return [...filteredOutgoings].sort((a, b) => b.amount - a.amount)
+  }, [filteredOutgoings])
 
   return {
     extraOutgoings: sortedExtraOutgoings,

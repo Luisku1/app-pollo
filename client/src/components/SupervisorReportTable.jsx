@@ -40,7 +40,7 @@ const allColumns = [
 	{
 		field: 'verifiedIncomes',
 		header: 'Ingresos Verificados',
-		screen: 0,
+		screen: 667,
 		column: (_, row) => {
 			return (
 				<span className={`${(row.verifiedDeposits + row.verifiedCash) < row?.cash + row.deposits + row.terminalIncomes - row.extraOutgoings ? 'text-red-600' : ''}`}>

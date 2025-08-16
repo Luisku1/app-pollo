@@ -8,6 +8,8 @@ import { recalculateBranchReport } from '../../../../common/recalculateReports';
 import { optimisticUpdateReport, rollbackReport } from "../../helpers/optimisticReportUpdate"
 import { addToArrayAndSum, removeFromArrayAndSum } from '../../helpers/reportActions';
 import { formatDate } from "../../helpers/DatePickerFunctions"
+import { useSelector } from "react-redux"
+import { useRoles } from "../../context/RolesContext"
 
 export const useInputs = ({ companyId = null, date = null, initialInputs = null }) => {
   const [inputs, setInputs] = useState([])
@@ -18,6 +20,8 @@ export const useInputs = ({ companyId = null, date = null, initialInputs = null 
   const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const { currentUser } = useSelector(state => state.user)
+  const { isManager } = useRoles()
 
   const calculateTotal = (inputsList) => {
     setTotalWeight(inputsList.reduce((acc, input) => acc + input.weight, 0))

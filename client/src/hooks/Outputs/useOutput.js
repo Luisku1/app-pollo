@@ -4,32 +4,26 @@ import { useAddOutput } from "./useAddOutput"
 import { useDeleteOutput } from "./useDeleteOutput"
 import { Types } from "mongoose"
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { recalculateBranchReport } from '../../../../common/recalculateReports';
 import { optimisticUpdateReport, rollbackReport } from "../../helpers/optimisticReportUpdate";
 import { addToArrayAndSum, removeFromArrayAndSum } from '../../helpers/reportActions';
-import { formatDate } from "../../../../common/dateOps"
+import { useSelector } from "react-redux"
+import { useRoles } from "../../context/RolesContext"
 
 export const useOutput = ({ companyId = null, date = null, initialOutputs = null }) => {
   const [outputs, setOutputs] = useState([])
-  const [totalWeight, setTotalWeight] = useState(0.0)
-  const [totalAmount, setTotalAmount] = useState(0.0)
   const { deleteOutput } = useDeleteOutput()
   const { addOutput } = useAddOutput()
   const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
-
-  const calculateTotal = (outputsList) => {
-    setTotalWeight(outputsList.reduce((acc, output) => acc + (output.weight || 0), 0))
-    setTotalAmount(outputsList.reduce((acc, output) => acc + (output.amount || 0), 0))
-  }
+  const { currentUser } = useSelector(state => state.user)
+  const { isManager } = useRoles()
 
   const pushOutput = (output) => {
     setOutputs((prevOutputs) => {
       calculateTotal([output, ...prevOutputs])
       return [output, ...prevOutputs]
     })
-    setTotalWeight((prevTotal) => prevTotal + (output.weight || 0))
   }
 
   const spliceOutput = (index) => {
@@ -123,19 +117,34 @@ export const useOutput = ({ companyId = null, date = null, initialOutputs = null
   useEffect(() => {
     if (queryOutputs) {
       setOutputs(queryOutputs);
-      calculateTotal(queryOutputs);
     }
   }, [queryOutputs]);
 
   useEffect(() => {
     if (initialOutputs) {
       initialize(initialOutputs);
-      calculateTotal(initialOutputs);
     }
   }, [initialOutputs])
 
+  const { effectiveOutputs, totalWeight, totalAmount } = useMemo(() => {
+    let list = outputs
+    if (!isManager(currentUser?.companyData?.[0]?.role)) {
+      const uid = currentUser?._id
+      list = outputs.filter(o => {
+        const employeeId = o.employee?._id || o.employee
+        const createdById = o.createdBy?._id || o.createdBy
+        return employeeId === uid || createdById === uid
+      })
+    }
+    return {
+      effectiveOutputs: list,
+      totalWeight: list.reduce((a, o) => a + (o.weight || 0), 0),
+      totalAmount: list.reduce((a, o) => a + (o.amount || 0), 0)
+    }
+  }, [outputs, currentUser, isManager])
+
   return {
-    outputs,
+    outputs: effectiveOutputs,
     totalWeight,
     totalAmount,
     onAddOutput,

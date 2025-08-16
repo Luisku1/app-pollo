@@ -44,13 +44,26 @@ export const getMyPermissions = (req, res) => {
 }
 
 export const getRoles = async (req, res, next) => {
+
 	try {
-		const roles = await Role.find({}, 'name displayName rank active permissions').lean()
+
+		const roles = await fetchRolesFromDB()
 		res.status(200).json({ roles })
+
 	} catch (error) {
+
 		next(errorHandler(500, error.message || "Error al obtener roles"))
 	}
 }
+
+// export const getRoles = async (req, res, next) => {
+// 	try {
+// 		const roles = await Role.find({}, 'name displayName rank active permissions').lean()
+// 		res.status(200).json({ roles })
+// 	} catch (error) {
+// 		next(errorHandler(500, error.message || "Error al obtener roles"))
+// 	}
+// }
 
 export const fetchRolesFromDB = async () => {
 

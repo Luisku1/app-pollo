@@ -7,7 +7,9 @@ import { Types } from "mongoose";
 import { optimisticUpdateReport, rollbackReport } from "../../helpers/optimisticReportUpdate";
 import { addToArrayAndSum, removeFromArrayAndSum } from '../../helpers/reportActions';
 import { getId } from "../../helpers/Functions";
-import { formatDate, formatDateYYYYMMDD } from "../../../../common/dateOps";
+import { formatDateYYYYMMDD } from "../../../../common/dateOps";
+import { useRoles } from "../../context/RolesContext";
+import { useSelector } from "react-redux";
 
 
 export const useIncomes = ({ companyId = null, date = null, useToday, initialIncomes = null }) => {
@@ -15,6 +17,8 @@ export const useIncomes = ({ companyId = null, date = null, useToday, initialInc
   const { deleteIncome, loading: deleteLoading } = useDeleteIncome();
   const [error, setError] = useState(null);
   const queryClient = useQueryClient();
+  const { currentUser } = useSelector(state => state.user)
+  const { isManager } = useRoles();
 
   // React Query para obtener incomes
   const {
@@ -270,15 +274,23 @@ export const useIncomes = ({ companyId = null, date = null, useToday, initialInc
     }
   };
 
-  const sortedIncomes = useMemo(() => {
-    const branchesIncomes = incomes.filter((income) => income.branch).sort((a, b) => a.branch.position - b.branch.position);
-    const clientsIncomes = incomes.filter((income) => !income.branch);
-    return [...branchesIncomes, ...clientsIncomes];
-  }, [incomes]);
+  const { effectiveIncomes, incomesTotal } = useMemo(() => {
 
-  const payments = useMemo(() => incomes.filter((income) => income.partOfAPayment), [incomes]);
-  const noPayments = useMemo(() => incomes.filter((income) => !income.partOfAPayment), [incomes]);
-  const incomesTotal = useMemo(() => incomes.reduce((acc, income) => acc + income.amount, 0), [incomes])
+    const effectiveIncomes = isManager(currentUser?.companyData?.[0].role) ? incomes : incomes.filter(income => income.employee._id === currentUser._id);
+    const incomesTotal = effectiveIncomes.reduce((sum, income) => sum + (income.amount || 0), 0);
+
+    return { effectiveIncomes, incomesTotal };
+
+  }, [incomes])
+
+  const sortedIncomes = useMemo(() => {
+    const branchesIncomes = effectiveIncomes.filter((income) => income.branch).sort((a, b) => a.branch.position - b.branch.position);
+    const clientsIncomes = effectiveIncomes.filter((income) => !income.branch);
+    return [...branchesIncomes, ...clientsIncomes];
+  }, [effectiveIncomes]);
+
+  const payments = useMemo(() => sortedIncomes.filter((income) => income.partOfAPayment), [sortedIncomes]);
+  const noPayments = useMemo(() => sortedIncomes.filter((income) => !income.partOfAPayment), [sortedIncomes]);
 
   return {
     incomes: sortedIncomes,

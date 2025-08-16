@@ -159,7 +159,7 @@ export default function RegistroEmpleadoNuevo({ employee, setEmployee }) {
             type="tel"
             name="phoneNumber"
             id="phoneNumber"
-            placeholder="Ej: 55-1243-4567"
+            placeholder="Ej: 5512434567"
             className="border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-300 focus:outline-none text-base transition"
             onChange={handleChange}
             value={formData.phoneNumber || ""}
@@ -169,7 +169,7 @@ export default function RegistroEmpleadoNuevo({ employee, setEmployee }) {
           <div className="flex-1 flex flex-col gap-1">
             <label htmlFor="role" className="font-semibold text-gray-700">Rol del empleado</label>
             <Select
-              options={getArrayForSelects(Object.values(roles), (role) => role.name)}
+              options={getArrayForSelects(Object.values(roles ?? {}), (role) => role.name)}
               value={getElementForSelect(formData.role || employee?.role, (role) => role.name)}
               onChange={(selectedOption) => setFormData({ ...formData, role: selectedOption })}
               id='role'

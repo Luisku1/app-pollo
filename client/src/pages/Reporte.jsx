@@ -160,7 +160,7 @@ function TableTabsMenu({
 
 export default function Reporte() {
 
-  const { company } = useSelector((state) => state.user)
+  const { company, currentUser } = useSelector((state) => state.user)
   const { currentDate, dateFromYYYYMMDD: date } = useDateNavigation();
   const { roles, isJustSeller } = useRoles()
   const [showTable, setShowTable] = useState(true)
@@ -258,7 +258,6 @@ export default function Reporte() {
     refetchSupervisorsInfo();
   }
 
-  console.log(currentDate, date)
   const showSupervisorsMissingIncomes = (e) => {
     e?.preventDefault?.();
     if (missingIncomes === 0) return
