@@ -5,9 +5,11 @@ import { useDeleteExtraOutgoing } from "./useDeleteExtraOutgoing";
 import { Types } from "mongoose";
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRoles } from "../../context/RolesContext";
+import { useSelector } from "react-redux";
 
 export const useDayExtraOutgoings = ({ companyId = null, date = null, initialExtraOutgoings = [] }) => {
   const { addExtraOutgoing } = useAddExtraOutgoing()
+  const { currentUser } = useSelector(state => state.user)
   const { deleteExtraOutgoing } = useDeleteExtraOutgoing()
   const [error, setError] = useState(null)
   const { isManager } = useRoles();
