@@ -7,6 +7,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRoles } from "../../context/RolesContext";
 import { useSelector } from "react-redux";
 
+
 export const useDayExtraOutgoings = ({ companyId = null, date = null, initialExtraOutgoings = [] }) => {
   const { addExtraOutgoing } = useAddExtraOutgoing()
   const { currentUser } = useSelector(state => state.user)
