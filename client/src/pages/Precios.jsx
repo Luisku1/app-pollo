@@ -12,6 +12,8 @@ import { newFormula } from "../services/Products/newFormula";
 import { updateFormula } from "../services/Products/updateFormula";
 import Modal from "../components/Modals/Modal";
 import { customSelectStyles } from "../helpers/Constants";
+import { create } from "mathjs";
+import { all } from "axios";
 
 export default function Precios() {
 
@@ -377,6 +379,45 @@ export default function Precios() {
     }
   }
 
+  const math = useMemo(() => create(all, { number: 'number', matrix: 'Array' }), [])
+
+  // Evalúa fórmula segura para un producto/sucursal
+  const evaluateSuggested = (branchData, productId, isResidualMode) => {
+    const formula = formulaValues[`${branchData._id.branchId}_${productId}`]
+    if (!formula || typeof formula !== 'string') return { value: null }
+    let expr = formula
+
+    try {
+      const branchId = branchData._id.branchId
+
+        // Reemplazos: input manual > formData > latest > base
+        ; (branchData.prices || []).forEach(p => {
+          const key = `${p.productId}${branchId}`
+          const manual = isResidualMode
+            ? residualFormData[branchId]?.[key]?.price
+            : pricesFormData[branchId]?.[key]?.price
+          const fallback = isResidualMode
+            ? (p.latestResidualPrice ?? p.residualPrice ?? 0)
+            : (p.latestPrice ?? p.price ?? 0)
+          const manualNum = parseFloat(manual)
+          const value = !isNaN(manualNum) ? manualNum : (typeof fallback === 'number' ? fallback : 0)
+          expr = expr.replaceAll(`{${p.product}}`, String(value))
+        })
+
+      // Placeholders no resueltos => 0
+      expr = expr.replace(/\{[^}]+\}/g, '0')
+
+      // Bloqueo de identificadores (si quieres permitir funciones, comenta esta línea)
+      if (/[A-Za-z_]/.test(expr)) return { error: 'Sintaxis no permitida' }
+
+      const val = math.evaluate(expr)
+      if (typeof val !== 'number' || !isFinite(val)) return { error: 'Inválido' }
+      return { value: val }
+    } catch {
+      return { error: 'Fórmula inválida' }
+    }
+  }
+
   useEffect(() => {
 
     document.title = 'Precios'
@@ -671,7 +712,6 @@ export default function Precios() {
                                         ? residualFormData[data._id.branchId]?.[leftKey]?.price !== undefined
                                         : pricesFormData[data._id.branchId]?.[leftKey]?.price !== undefined;
                                       if (manual) return 'border-2 border-yellow-400';
-                                      // Sugerido
                                       if (formulaValues[`${data._id.branchId}_${left.productId}`]) return 'border-2 border-blue-500';
                                       return isResidual ? 'border border-blue-600' : 'border border-gray-300';
                                     })()}`}
@@ -685,34 +725,14 @@ export default function Precios() {
                                       : (pricesFormData[data._id.branchId]?.[leftKey]?.price ?? '')
                                   }
                                 />
-                                {/* Sugerido por fórmula */}
                                 {formulaValues[`${data._id.branchId}_${left.productId}`] && (
                                   <div className="text-xs text-blue-700 mt-1">
-                                    Sugerido: {
-                                      (() => {
-                                        try {
-                                          let expr = formulaValues[`${data._id.branchId}_${left.productId}`];
-                                          const branchId = data._id.branchId;
-                                          // Reemplazo con precedencia: input manual -> formData -> latest -> base
-                                          (data.prices || []).forEach((p) => {
-                                            const key = `${p.productId}${branchId}`;
-                                            let manual = isResidual
-                                              ? residualFormData[branchId]?.[key]?.price
-                                              : pricesFormData[branchId]?.[key]?.price;
-                                            let fallback = isResidual
-                                              ? (p.latestResidualPrice ?? p.residualPrice ?? 0)
-                                              : (p.latestPrice ?? p.price ?? 0);
-                                            const numeric = parseFloat(manual);
-                                            const value = !isNaN(numeric) ? numeric : fallback;
-                                            expr = expr.replaceAll(`{${p.product}}`, value ?? 0);
-                                          });
-                                          const val = eval(expr); // mathjs sería mejor en producción
-                                          return <span className="font-bold">{currency(val)}</span>;
-                                        } catch {
-                                          return <span className="text-red-500">Fórmula inválida</span>;
-                                        }
-                                      })()
-                                    }
+                                    Sugerido: {(() => {
+                                      const r = evaluateSuggested(data, left.productId, isResidual)
+                                      return r.error
+                                        ? <span className="text-red-500">{r.error}</span>
+                                        : (r.value == null ? '—' : <span className="font-bold">{currency(r.value)}</span>)
+                                    })()}
                                   </div>
                                 )}
                               </div>
@@ -751,30 +771,12 @@ export default function Precios() {
                                 />
                                 {formulaValues[`${data._id.branchId}_${right.productId}`] && (
                                   <div className="text-xs text-blue-700 mt-1">
-                                    Sugerido: {
-                                      (() => {
-                                        try {
-                                          let expr = formulaValues[`${data._id.branchId}_${right.productId}`];
-                                          const branchId = data._id.branchId;
-                                          (data.prices || []).forEach((p) => {
-                                            const key = `${p.productId}${branchId}`;
-                                            let manual = isResidual
-                                              ? residualFormData[branchId]?.[key]?.price
-                                              : pricesFormData[branchId]?.[key]?.price;
-                                            let fallback = isResidual
-                                              ? (p.latestResidualPrice ?? p.residualPrice ?? 0)
-                                              : (p.latestPrice ?? p.price ?? 0);
-                                            const numeric = parseFloat(manual);
-                                            const value = !isNaN(numeric) ? numeric : fallback;
-                                            expr = expr.replaceAll(`{${p.product}}`, value ?? 0);
-                                          });
-                                          const val = eval(expr);
-                                          return <span className="font-bold">{currency(val)}</span>;
-                                        } catch {
-                                          return <span className="text-red-500">Fórmula inválida</span>;
-                                        }
-                                      })()
-                                    }
+                                    Sugerido: {(() => {
+                                      const r = evaluateSuggested(data, right.productId, isResidual)
+                                      return r.error
+                                        ? <span className="text-red-500">{r.error}</span>
+                                        : (r.value == null ? '—' : <span className="font-bold">{currency(r.value)}</span>)
+                                    })()}
                                   </div>
                                 )}
                               </div>

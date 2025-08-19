@@ -30,12 +30,8 @@ export default function IncomesList({ incomes = [], onDeleteIncome, statistics =
   const deletable = onDeleteIncome
 
   const incomesTotal = useMemo(() => {
-
     return incomes.reduce((acc, income) => {
-      const isAuthorized = currentUser._id === income.employee?._id || isManager(currentUser.companyData?.[0].role);
-
-      return acc + (isAuthorized ? income.amount : 0);
-
+      return acc + income.amount;
     }, 0);
   }, [incomes, currentUser, isManager]);
 

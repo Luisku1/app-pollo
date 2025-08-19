@@ -21,7 +21,7 @@
     "html-to-image": "^1.11.13",
     "keen-slider": "^6.8.6",
     "lightweight-charts": "^4.2.0",
-    "mathjs": "^14.5.3",
+    "mathjs": "^14.6.0",
     "react": "^18.2.0",
     "react-bootstrap": "^2.10.4",
     "react-chartjs-2": "^5.2.0",

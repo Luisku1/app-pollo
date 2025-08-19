@@ -24,7 +24,7 @@ export const useBranchReport = ({ branchId = null, date = null }) => {
     noPayments,
     incomesTotal,
     loading: incomesLoading
-  } = useIncomes({ initialIncomes: branchReport?.incomesArray || null })
+  } = useIncomes({ initialIncomes: branchReport?.incomesArray || null, isReport: true })
 
   const {
     stock,
@@ -62,7 +62,7 @@ export const useBranchReport = ({ branchId = null, date = null }) => {
     onDeleteOutput,
     loading: loadingDeleteOutput,
     error: errorDeleteOutput
-  } = useOutput({ branchId, date })
+  } = useOutput({ branchId, date, isReport: true })
 
   // Inputs
   const {
@@ -70,7 +70,7 @@ export const useBranchReport = ({ branchId = null, date = null }) => {
     totalWeight: inputsWeight,
     totalAmount: inputsAmount,
     loading: inputsLoading
-  } = useInputs({ initialInputs: branchReport?.inputsArray || null })
+  } = useInputs({ initialInputs: branchReport?.inputsArray || null, isReport: true })
 
   // Provider Inputs
   const {

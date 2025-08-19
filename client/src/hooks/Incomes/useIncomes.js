@@ -12,7 +12,7 @@ import { useRoles } from "../../context/RolesContext";
 import { useSelector } from "react-redux";
 
 
-export const useIncomes = ({ companyId = null, date = null, useToday, initialIncomes = null }) => {
+export const useIncomes = ({ companyId = null, date = null, useToday, initialIncomes = null, isReport = false }) => {
   const { addIncome, loading: addLoading } = useAddIncome();
   const { deleteIncome, loading: deleteLoading } = useDeleteIncome();
   const [error, setError] = useState(null);
@@ -276,7 +276,7 @@ export const useIncomes = ({ companyId = null, date = null, useToday, initialInc
 
   const { effectiveIncomes, incomesTotal } = useMemo(() => {
 
-    const effectiveIncomes = isManager(currentUser?.companyData?.[0].role) ? incomes : incomes.filter(income => income.employee._id === currentUser._id);
+    const effectiveIncomes = (isManager(currentUser?.companyData?.[0].role) || isReport) ? incomes : incomes.filter(income => income.employee._id === currentUser._id);
     const incomesTotal = effectiveIncomes.reduce((sum, income) => sum + (income.amount || 0), 0);
 
     return { effectiveIncomes, incomesTotal };

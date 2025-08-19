@@ -25,7 +25,7 @@ export default function Incomes({ showDateSwitch = true, useToday: useTodayProp 
 
   const { currentUser, company } = useSelector((state) => state.user)
   const [incomeFormData, setIncomeFormData] = useState({})
-  const { isManager, isSupervisor } = useRoles()
+  const { isSupervisor, getRoleId } = useRoles()
   const { incomeTypes } = useIncomeTypes()
   const companyId = company?._id ?? company
   const [selectedCustomerBranchIncomesOption, setSelectedCustomerBranchIncomesOption] = useState(null)
@@ -38,7 +38,7 @@ export default function Incomes({ showDateSwitch = true, useToday: useTodayProp 
   const [useToday, setUseToday] = useState(false);
   const effectiveUseToday = useTodayProp !== undefined ? useTodayProp : useToday;
   const { branches } = useBranches({ companyId: company._id })
-  const { employees } = useEmployees({ companyId: company._id })
+  const { activeEmployees: employees } = useEmployees({ companyId: company._id })
   const { customers } = useCustomers({ companyId: company._id })
   // Ref para el Select de tipo de ingreso
   const incomeTypeSelectRef = useRef(null);
@@ -51,7 +51,7 @@ export default function Incomes({ showDateSwitch = true, useToday: useTodayProp 
       },
       {
         label: 'Empleados',
-        options: getArrayForSelects(employees.filter(employee => isSupervisor(employee.role) && employee._id !== currentUser._id), (employee) => employee.name + ' ' + employee.lastName)
+        options: getArrayForSelects(employees.filter(employee => isSupervisor(getRoleId(employee.role)) && employee._id !== currentUser._id), (employee) => employee.name + ' ' + employee.lastName)
       },
       {
         label: 'Clientes',
@@ -60,7 +60,6 @@ export default function Incomes({ showDateSwitch = true, useToday: useTodayProp 
     ])
   }, [branches, customers, employees, isSupervisor, currentUser])
 
-  console.log(currentUser, isManager())
   const resetInputs = () => {
     setSelectedIncomeType(null)
     setSelectedCustomerBranchIncomesOption(null)
@@ -134,7 +133,6 @@ export default function Incomes({ showDateSwitch = true, useToday: useTodayProp 
         ToastInfo(error.message.replace(new RegExp('Error: ', 'g'), ''))
       ToastDanger(`No se registró el efectivo de ${income.amount.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}`)
       resetInputs()
-      console.log(error)
     }
   }
 

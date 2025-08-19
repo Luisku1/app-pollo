@@ -30,6 +30,8 @@ export const useEmployees = ({ companyId }) => {
     retry: false,
   });
 
+  console.log(data)
+
   useEffect(() => {
     if (data) setEmployees(data);
   }, [data]);

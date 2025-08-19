@@ -9,7 +9,7 @@ import { addToArrayAndSum, removeFromArrayAndSum } from '../../helpers/reportAct
 import { useSelector } from "react-redux"
 import { useRoles } from "../../context/RolesContext"
 
-export const useInputs = ({ companyId = null, date = null, initialInputs = null }) => {
+export const useInputs = ({ companyId = null, date = null, initialInputs = null, isReport }) => {
   const [inputs, setInputs] = useState([])
   const { deleteInput } = useDeleteInput()
   const { addInput } = useAddInput()
@@ -125,7 +125,7 @@ export const useInputs = ({ companyId = null, date = null, initialInputs = null 
 
   const { effectiveInputs, effectiveTotalWeight, effectiveTotalAmount } = useMemo(() => {
     let list = inputs
-    if (!isManager(currentUser?.companyData?.[0]?.role)) {
+    if (!isManager(currentUser?.companyData?.[0]?.role) && !isReport) {
       const uid = currentUser?._id
       list = inputs.filter(i => {
         const employeeId = i.employee?._id || i.employee
