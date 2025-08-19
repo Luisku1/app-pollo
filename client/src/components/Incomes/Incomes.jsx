@@ -128,7 +128,7 @@ export default function Incomes({ showDateSwitch = true, useToday: useTodayProp 
       }, 50);
 
     } catch (error) {
-
+      console.error('Error al agregar ingreso:', error);
       if (error.message.includes('sólo') || error.message.includes('empleado') || error.message.includes('monto'))
         ToastInfo(error.message.replace(new RegExp('Error: ', 'g'), ''))
       ToastDanger(`No se registró el efectivo de ${income.amount.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}`)

@@ -100,8 +100,8 @@ export const useDayExtraOutgoings = ({ companyId = null, date = null, initialExt
 
   const { filteredOutgoings, totalExtraOutgoings } = useMemo(() => {
     const effectiveOutgoings = isManager(currentUser.companyData?.[0].role) ? extraOutgoings : extraOutgoings.filter(outgoing => outgoing.employee._id === currentUser._id);
-    const total = effectiveOutgoings.reduce((sum, outgoing) => sum + (outgoing.amount || 0), 0);
-    return { filteredOutgoings: effectiveOutgoings, totalOutgoings: total };
+    const total = effectiveOutgoings.reduce((sum, outgoing) => sum + outgoing.amount, 0);
+    return { filteredOutgoings: effectiveOutgoings, totalExtraOutgoings: total };
   }, [extraOutgoings])
 
   const sortedExtraOutgoings = useMemo(() => {

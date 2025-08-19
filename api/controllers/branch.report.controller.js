@@ -415,8 +415,6 @@ export const getBranchReport = async (req, res, next) => {
   const branchId = req.params.branchId
   const date = dateFromYYYYMMDD(req.params.date)
 
-  console.log(date)
-
   try {
 
     const branchReport = await fetchBranchReportInfo({ branchId, date })

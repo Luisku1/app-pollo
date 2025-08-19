@@ -11,7 +11,7 @@ import { useDateNavigation } from "../../hooks/useDateNavigation"
 
 export default function AddStock({ title, midDay, modifyBalance, stock, isReport = false, listButton, weight, amount, products, onAddStock, onDeleteStock, branch, employee, branchPrices }) {
 
-  const { company } = useSelector((state) => state.user)
+  const { company, currentUser } = useSelector((state) => state.user)
   const { today, dateFromYYYYMMDD } = useDateNavigation();
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [stockFormData, setStockFormData] = useState({ pieces: '', weight: '' })
@@ -69,6 +69,7 @@ export default function AddStock({ title, midDay, modifyBalance, stock, isReport
         amount: amount,
         price,
         employee: employee,
+        registeredBy: currentUser._id,
         product: selectedProduct,
         branch: branch,
         midDay,

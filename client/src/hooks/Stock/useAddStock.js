@@ -19,6 +19,7 @@ export const useAddStock = () => {
         price: stock.price,
         midDay: stock.midDay,
         employee: stock.employee._id,
+        registeredBy: stock?.registeredBy ?? null,
         product: stock.product._id,
         branch: stock.branch._id,
         createdAt: stock.createdAt,

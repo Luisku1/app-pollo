@@ -41,6 +41,10 @@ const stockSchema = mongoose.Schema({
 		required: true
 	},
 
+	registeredBy: {
+		type: Schema.Types.ObjectId, ref: 'Employee',
+	},
+
 	branch: {
 		type: Schema.Types.ObjectId, ref: 'Branch',
 		required: true

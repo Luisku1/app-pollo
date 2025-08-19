@@ -54,7 +54,7 @@ export const useIncomes = ({ companyId = null, date = null, useToday, initialInc
   // Actualiza el caché de React Query directamente para evitar problemas de concurrencia
   const pushIncome = (income) => {
 
-    const cacheDate = formatDateYYYYMMDD(new Date(income.createdAt));
+    const cacheDate = formatDateYYYYMMDD(new Date(income?.length > 0 ? income[0].createdAt : income.createdAt));
 
     queryClient.setQueryData(["incomes", companyId, cacheDate], (prev = []) => {
       if (income?.length > 0) {
@@ -75,6 +75,8 @@ export const useIncomes = ({ companyId = null, date = null, useToday, initialInc
   };
 
   const spliceIncome = (index) => {
+
+    if (index < 0) return;
 
     const cacheDate = formatDateYYYYMMDD(new Date(incomes[index].createdAt));
     // Actualiza el caché de React Query para eliminar el income eliminado
@@ -139,6 +141,7 @@ export const useIncomes = ({ companyId = null, date = null, useToday, initialInc
       else
         pushIncome(tempIncome);
 
+
       // --- ACTUALIZACIÓN OPTIMISTA DEL BRANCHREPORT ---
       if (income.branch) {
         prevBranchReports = optimisticUpdateReport({
@@ -175,11 +178,11 @@ export const useIncomes = ({ companyId = null, date = null, useToday, initialInc
         });
       }
 
-
       await addIncome(tempIncome, tempPrevOwnerIncome, group);
 
     } catch (error) {
 
+      console.log(error);
       spliceIncome(incomes.findIndex((income) => income._id === tempId));
       if (prevOwnerIncome)
         spliceIncomeById([tempPrevOwnerIncome._id, tempIncome._id]);

@@ -9,9 +9,9 @@ import Branch from "../models/branch.model.js";
 
 export const createStock = async (req, res, next) => {
 
-  const { _id, pieces, weight, price, amount, branch, product, company, employee, createdAt, midDay } = req.body
+  const { _id, pieces, weight, price, amount, branch, product, company, employee, registeredBy, createdAt, midDay } = req.body
 
-  const stockData = { pieces, weight, price, amount, branch, product, company, employee, createdAt, midDay }
+  const stockData = { pieces, weight, price, amount, branch, product, company, employee, registeredBy, createdAt, midDay }
 
   if (_id) stockData._id = _id
 
@@ -42,10 +42,11 @@ export const createStockAndUpdateBranchReport = async (params, movement = null) 
     product,
     midDay = null,
     company,
+    registeredBy = undefined,
     createdAt
   } = params;
 
-  const stockData = { pieces, price, employee, weight, amount, branch, product, company, createdAt, midDay };
+  const stockData = { pieces, price, employee, weight, amount, branch, product, company, createdAt, midDay, registeredBy };
   if (_id) stockData._id = _id;
 
   let stock = null
