@@ -51,12 +51,13 @@ export default function ListaSalidas({ outputs = [], onDelete = null }) {
     const employee = output.employee || output.deletedEmployee;
     const { product, pieces, weight, amount, branch, comment, createdAt } = output
     const tempOutput = { ...output, index }
+    const isMine = employee?._id === currentUser._id
 
     return (
       isAuthorized(employee) && (
         <div className="" key={output._id}>
           {output.weight !== 0 ? (
-            <div className="grid grid-cols-12 border border-black border-opacity-30 rounded-2xl shadow-sm mb-2 py-1">
+            <div className={`grid grid-cols-12 rounded-2xl shadow-sm mb-2 py-1 border ${isMine ? 'border-sky-300' : 'border-black border-opacity-30'}`}>
               <div
                 id="list-element"
                 className="col-span-10 items-center"
@@ -73,7 +74,7 @@ export default function ListaSalidas({ outputs = [], onDelete = null }) {
                       <RowItem>
                         <p className="flex gap-1 items-center font-semibold"><GiChickenOven />{product.name}</p>
                         <p className="">{`${pieces} pzs`}</p>
-                        <p className="">{`${weight} kg`}</p>
+                        <p className="">{`${weight ? `${weight} kg` : ''}`}</p>
                         <p className="flex gap-1 items-center"><MoneyBag />{amount.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
                       </RowItem>
                     </div>

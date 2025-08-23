@@ -119,6 +119,7 @@ export const updateReportsAndBalancesAccounts = async ({ branchReport, updateIns
 
   try {
 
+
     updatedBranchReport = await BranchReport.findByIdAndUpdate(branchReport._id, { ...updateInstructions }, { new: true })
 
     if (!updatedBranchReport) throw new Error("No se pudo modificar el reporte");
@@ -164,9 +165,36 @@ export const pushOrPullBranchReportRecord = async ({
   const balanceAdjustment = operation === '$addToSet' ? adjustedBalanceInc : -adjustedBalanceInc
   const amountAdjustment = operation === '$addToSet' ? record.amount : -record.amount
 
+  // Build a raw log line: dd-mm-yyyy HH:MM:SS | employee | AGREGÓ/ELIMINÓ | amount
+  const pad2 = (n) => String(n).padStart(2, '0')
+  const now = new Date()
+  const ts = `${pad2(now.getDate())}-${pad2(now.getMonth() + 1)}-${now.getFullYear()} ${pad2(now.getHours())}:${pad2(now.getMinutes())}:${pad2(now.getSeconds())}`
+  const employeeIdForRaw = (() => {
+    const e = record?.employee
+    if (!e) return ''
+    // If it's an object, prefer its _id; otherwise assume it's already an id
+    if (typeof e === 'object') return (e?._id || '').toString()
+    return e.toString()
+  })()
+  const verb = operation === '$addToSet' ? 'AGREGÓ' : 'ELIMINÓ'
+  const rawLogLine = `${ts} | {${employeeIdForRaw}} | ${verb} | ${record?.amount ?? 0}`
+
   const updateInstructions = {
     [operation]: { [arrayField]: record._id },
-    $inc: { [amountField]: amountAdjustment, balance: balanceAdjustment }
+    $inc: { [amountField]: amountAdjustment, balance: balanceAdjustment },
+    $push: {
+      logs: {
+        op: operation === '$addToSet' ? 'add' : 'remove',
+        array: arrayField,
+        amountField: amountField,
+        record: record._id || null,
+        amount: record?.amount ?? 0,
+        balanceDelta: balanceAdjustment,
+        employee: employeeIdForRaw || null,
+        createdAt: new Date()
+      },
+      logsRaw: rawLogLine
+    }
   }
 
   return await updateReportsAndBalancesAccounts({
@@ -336,7 +364,7 @@ export const setBalanceOnZero = async (req, res, next) => {
 
   try {
 
-    const branchReport = await fetchBranchReportInfo({ reportId })
+    const branchReport = await fetchBranchReportById({ branchReportId: reportId })
     await updateReportsAndBalancesAccounts({ branchReport, updateInstructions: { $set: { balance: 0, onZero: true } }, updatedFields: ['balance'] })
 
     res.status(200).json({
@@ -372,9 +400,11 @@ export const updateBranchReportEmployees = async (req, res, next) => {
       branchReport = await fetchBranchReportById({ branchReportId: reportId, populate: true })
     }
 
+    console.log(branchReport)
+    if (!branchReport) throw new Error("Un error ha ocurrido al consultar o crear el reporte");
+
     reportToUpdate = branchReport.toObject();
 
-    if (!branchReport) throw new Error("Un error ha ocurrido al consultar o crear el reporte");
     previousEmployeeId = branchReport.employee?._id || branchReport.employee || null
     previousAssistants = branchReport.assistant || []
 
@@ -504,8 +534,8 @@ const updateBranchReportPrices = async (branchReport, pricesDate, residuals = fa
       branchReport.outputsArray.map(async (output) => {
         if (output.specialPrice) return output
         const price = (prices.find((price) => price.productId.toString() === output.product._id.toString())).latestPrice;
-        if (price == output.price && (price * output.weigth) === output.amount) return output
-        const amount = output.weight * price;
+        if (price == output.price && (price * (output?.weight ?? output.pieces)) === output.amount) return output
+        const amount = (output?.weight ?? output.pieces) * price;
         await Output.findByIdAndUpdate(output._id, { price: price, amount });
         return { ...output, price: price, amount };
       })
@@ -517,8 +547,8 @@ const updateBranchReportPrices = async (branchReport, pricesDate, residuals = fa
       branchReport.inputsArray.map(async (input) => {
         if (input.specialPrice) return input
         const price = (prices.find((price) => price.productId.toString() === input.product._id.toString())).latestPrice;
-        if (price == input.price && (price * input.weigth) === input.amount) return input
-        const amount = input.weight * price;
+        if (price == input.price && (price * (input?.weight ?? input.pieces)) === input.amount) return input
+        const amount = (input?.weight ?? input.pieces) * price;
         await Input.findByIdAndUpdate(input._id, { price: price, amount });
         return { ...input, price: price, amount };
       })
@@ -530,8 +560,8 @@ const updateBranchReportPrices = async (branchReport, pricesDate, residuals = fa
       branchReport.providerInputsArray.map(async (providerInput) => {
         if (providerInput.specialPrice) return providerInput
         const price = (prices.find((price) => price.productId.toString() === providerInput.product._id.toString())).latestPrice;
-        if (price == providerInput.price && (price * providerInput.weigth) === providerInput.amount) return providerInput
-        const amount = providerInput.weight * price;
+        if (price == providerInput.price && (price * (providerInput?.weight ?? providerInput.pieces)) === providerInput.amount) return providerInput
+        const amount = (providerInput?.weight ?? providerInput.pieces) * price;
         await ProviderInput.findByIdAndUpdate(providerInput._id, { price: price, amount });
         return { ...providerInput, price: price, amount };
       })
@@ -542,8 +572,8 @@ const updateBranchReportPrices = async (branchReport, pricesDate, residuals = fa
     const finalStockArray = await Promise.all(
       branchReport.finalStockArray.map(async (finalStock) => {
         const price = (prices.find((price) => price.productId.toString() === finalStock.product._id.toString())).latestPrice;
-        if (price == finalStock.price && (price * finalStock.weigth) === finalStock.amount) return finalStock
-        const amount = finalStock.weight * price;
+        if (price == finalStock.price && (price * (finalStock?.weight ?? finalStock.pieces)) === finalStock.amount) return finalStock
+        const amount = (finalStock?.weight ?? finalStock.pieces) * price;
         await Stock.findByIdAndUpdate(finalStock._id, { price: price, amount });
         return { ...finalStock, price: price, amount };
       })
@@ -559,8 +589,8 @@ const updateBranchReportPrices = async (branchReport, pricesDate, residuals = fa
         } else {
           price = (prices.find((price) => price.productId.toString() === initialStock.product._id.toString())).latestPrice;
         }
-        if (price == initialStock.price && (price * initialStock.weigth) === initialStock.amount) return initialStock
-        const amount = initialStock.weight * price;
+        if (price == initialStock.price && (price * (initialStock?.weight ?? initialStock.pieces)) === initialStock.amount) return initialStock
+        const amount = (initialStock?.weight ?? initialStock.pieces) * price;
         await Stock.findByIdAndUpdate(initialStock._id, { price: price, amount });
         return { ...initialStock, price: price, amount };
       })

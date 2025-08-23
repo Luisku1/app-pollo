@@ -23,6 +23,8 @@ export default function OutgoingsList({ outgoings, onDelete, modifyBalance }) {
 
   const amount = useMemo(() => outgoings.reduce((acc, outgoing) => acc + outgoing.amount, 0), [outgoings])
 
+
+
   const fields = [
     { key: 'amount', label: 'Monto', format: (data) => currency({ amount: data.amount }) },
     { key: 'employee.name', label: 'Vendedor', format: (data) => `${data.employee.name} ${data.employee.lastName}` },
@@ -50,7 +52,7 @@ export default function OutgoingsList({ outgoings, onDelete, modifyBalance }) {
 
     return (
       shouldRender && (
-        <div key={_id} className='grid grid-cols-12 border border-black border-opacity-30 rounded-2xl shadow-sm mb-2 py-1'>
+        <div key={_id} className={`grid grid-cols-12 rounded-2xl shadow-sm mb-2 py-1 border ${employee?._id === currentUser._id ? 'border-sky-300' : 'border-black border-opacity-30'}`}>
           <div
             id="list-element"
             className="col-span-10 items-center"

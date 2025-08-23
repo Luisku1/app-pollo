@@ -93,7 +93,7 @@ export default function IncomesList({ incomes = [], onDeleteIncome, statistics =
         <div key={_id || index} className=''>
           <div
             className={
-              `grid grid-cols-12 border border-black border-opacity-30 rounded-2xl shadow-sm mb-2 py-1`
+              `grid grid-cols-12 rounded-2xl shadow-sm mb-2 py-1 border ${employee?._id === currentUser._id ? 'border-sky-300' : 'border-black border-opacity-30'}`
             }
           >
             <div id="list-element" className="col-span-10 items-center">
@@ -164,7 +164,7 @@ export default function IncomesList({ incomes = [], onDeleteIncome, statistics =
         <div key={_id || index} className=''>
           <div
             className={
-              `grid grid-cols-12 border border-black border-opacity-30 rounded-2xl shadow-sm mb-2 py-1 bg-gray-200`
+              `grid grid-cols-12 rounded-2xl shadow-sm mb-2 py-1 bg-gray-200 border ${employee?._id === currentUser._id ? 'border-sky-300' : 'border-black border-opacity-30'}`
             }
           >
             <div

@@ -34,11 +34,22 @@ export default function Modal({
     if (typeof window === 'undefined') return false;
     return window.innerWidth >= 1034; // breakpoint solicitado
   });
+  const [headerHeight, setHeaderHeight] = useState(() => {
+    if (typeof window === 'undefined') return 0;
+    const headerEl = document.querySelector('header');
+    return headerEl ? headerEl.offsetHeight : 0;
+  });
 
   // Listener para ajustar breakpoint personalizado (1034px)
   useEffect(() => {
-    const handleResize = () => setIsDesktopWide(window.innerWidth >= 1034);
+    const handleResize = () => {
+      setIsDesktopWide(window.innerWidth >= 1034);
+      const headerEl = document.querySelector('header');
+      setHeaderHeight(headerEl ? headerEl.offsetHeight : 0);
+    };
     window.addEventListener('resize', handleResize);
+    // Initialize on mount as well in case header renders after first paint
+    handleResize();
     return () => window.removeEventListener('resize', handleResize);
   }, []);
   const handleCopyModalImage = async () => {
@@ -82,7 +93,7 @@ export default function Modal({
     const handleResize = () => {
       if (adjustForKeyboard) {
         const viewportHeight = window.innerHeight;
-        const modalElement = ref?.current;
+        const modalElement = modalRef?.current;
         if (modalElement) {
           modalElement.style.top = `${(5 / 6) * viewportHeight}px`;
         }
@@ -118,8 +129,12 @@ export default function Modal({
     const zIndex = 1000 + count;
     return (
       <div
-        className={`fixed transition-all 'backdrop-blur-xs' duration-200 inset-0 z-[10000] bg-opacity-10 bg-black overflow-y-auto  flex items-center justify-center pt-16`}
-        style={adjustForKeyboard ? { alignItems: "flex-start" } : {}}
+        className={`fixed transition-all 'backdrop-blur-xs' duration-200 left-0 right-0 bottom-0 z-[10000] bg-opacity-10 bg-black overflow-y-auto  flex items-center justify-center`}
+        style={{
+          ...(adjustForKeyboard ? { alignItems: "flex-start" } : {}),
+          top: headerHeight,
+          height: `calc(100vh - ${headerHeight}px)`,
+        }}
         onClick={(e) => {
           if (
             (closeOnClickOutside && e.target === e.currentTarget)

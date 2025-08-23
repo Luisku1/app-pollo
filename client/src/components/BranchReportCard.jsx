@@ -19,8 +19,6 @@ import ListaSalidas from "./Movimientos/Salidas/ListaSalidas"
 import ListaEntradas from "./Movimientos/Entradas/ListaEntradas"
 import { MdPriceChange } from "react-icons/md";
 import ChangeBranchPrices from "./Prices/ChangeBranchPrices"
-import EmployeeInfo from "./EmployeeInfo"
-import { CgProfile } from "react-icons/cg"
 import { toPng } from "html-to-image";
 import { AiOutlineDownload, AiOutlineCopy, AiOutlineLink } from "react-icons/ai";
 import { recalculateBranchReport } from "../services/BranchReports/updateBranchReport"

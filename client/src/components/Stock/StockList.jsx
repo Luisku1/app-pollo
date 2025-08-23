@@ -54,10 +54,11 @@ export default function StockList({ stock = [], showBranch = false, onDelete = n
     const isAuthorized = currentUser._id === (employee?._id) || isManager(currentUser.companyData?.[0].role)
     const shouldRender = isAuthorized || isManager(currentUser.companyData?.[0].role)
     const shouldShowDeleteButton = isAuthorized && onDelete
+    const isMine = employee?._id === currentUser._id
 
     return (
       shouldRender && (
-        <div key={stock._id} className='grid grid-cols-12 border border-black border-opacity-30 rounded-2xl shadow-sm mb-2 py-1'>
+        <div key={stock._id} className={`grid grid-cols-12 rounded-2xl shadow-sm mb-2 py-1 border ${isMine ? 'border-sky-300' : 'border-black border-opacity-30'}`}>
           <div id="list-element" className="col-span-10 items-center">
             <div id='list-element' className='w-full'>
               <div className='text-red-800 mb-1'>

@@ -58,13 +58,11 @@ export default function MenuSucursal({ selectedProduct, onAddProviderInput, regi
     const piecesInput = document.getElementById('provider-input-pieces');
     const weightInput = document.getElementById('provider-input-weight');
     const byPieces = selectedProduct?.byPieces === true;
-    const price = providerInputFormData.price !== undefined && providerInputFormData.price !== '' ? parseFloat(providerInputFormData.price) : parseFloat(priceInput?.placeholder) || 0;
+    const price = providerInputFormData.price !== undefined && providerInputFormData.price !== '' ? parseFloat(providerInputFormData.price) : lastPrice || 0;
     const weight = weightInput?.value !== '' ? parseFloat(weightInput.value) : 0;
     const pieces = piecesInput?.value !== '' ? parseFloat(piecesInput.value) : 0;
     if (price === 0) {
       ToastInfo('Recuerda verificar tu precio antes del registro');
-      priceInput.value = '';
-      setAmount(0);
       return;
     }
     const monto = calculateAmount(price, byPieces, weight, pieces);
@@ -213,7 +211,7 @@ export default function MenuSucursal({ selectedProduct, onAddProviderInput, regi
         </div>
         <div className="relative">
           <span className="absolute text-red-700 font-semibold left-3 top-3">$</span>
-          <input className='pl-6 w-full rounded-lg p-3 text-red-700 font-semibold border border-red-600' name='price' placeholder={lastPrice.toFixed(2)} onChange={() => { generarMonto() }} id='provider-input-price' step={0.01} type="number" onKeyDown={handleKeyDown} />
+          <input className='pl-6 w-full rounded-lg p-3 text-red-700 font-semibold border border-red-600' name='price' placeholder={lastPrice.toFixed(2)} onChange={(e) => { handleProviderInputInputsChange(e); generarMonto() }} id='provider-input-price' step={0.01} type="number" onKeyDown={handleKeyDown} />
           <label htmlFor="compact-input" className="-translate-y-full px-1 absolute top-1/4 left-2 transform rounded-sm bg-white text-black text-sm font-semibold">
             Precio
           </label>

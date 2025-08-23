@@ -23,8 +23,6 @@ const incomeCollectedSchema = mongoose.Schema({
     default: null
   },
 
-
-
   owner: {
     type: Schema.Types.ObjectId, ref: 'Employee',
     default: null

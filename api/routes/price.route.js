@@ -1,5 +1,5 @@
 import express from 'express'
-import { changeBranchPrices, getAllBranchPrices, getBranchCurrentPrices, getBranchProductPrice, getCustomerProductPrice, initializeBranchPrices, newPrice, newPrices } from '../controllers/price.controller.js'
+import { changeBranchPrices, getAllBranchPrices, getAvgPrices, getBranchCurrentPrices, getBranchProductPrice, getCustomerProductPrice, initializeBranchPrices, newPrice, newPrices } from '../controllers/price.controller.js'
 
 const router = express.Router()
 
@@ -11,5 +11,6 @@ router.get('/get-branch-prices/:branchId/:date/:pricesDate/:sortOrder', getBranc
 router.get('/get-products-price/:companyId', getAllBranchPrices)
 router.get('/get-branch-product-price/:branchId/:productId/:date', getBranchProductPrice)
 router.get('/get-customer-product-price/:customerId/:productId/:date', getCustomerProductPrice)
+router.get('/prices-avg', getAvgPrices)
 
 export default router

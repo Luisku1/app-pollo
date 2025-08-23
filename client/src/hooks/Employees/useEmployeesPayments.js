@@ -40,7 +40,7 @@ export const useEmployeesPayments = ({ companyId = null, date = null, employeeId
   const onAddEmployeePayment = async (employeePayment) => {
     const tempId = new Types.ObjectId().toHexString()
     const incomeId = new Types.ObjectId().toHexString()
-    const date = new Date()
+    const createdAt = employeePayment.createdAt || date
 
     const income = {
       _id: incomeId,
@@ -48,7 +48,9 @@ export const useEmployeesPayments = ({ companyId = null, date = null, employeeId
       branch: employeePayment.branch,
       employee: employeePayment.employee,
       partOfAPayment: true,
-      createdAt: date,
+      linkedModel: 'EmployeePayment',
+      linked: tempId,
+      createdAt,
     }
     const extraOutgoingId = new Types.ObjectId().toHexString()
     const extraOutgoing = {
@@ -57,7 +59,10 @@ export const useEmployeesPayments = ({ companyId = null, date = null, employeeId
       concept: employeePayment.detail,
       employee: employeePayment.employee,
       partOfAPayment: true,
-      createdAt: date,
+      linkedModel: 'EmployeePayment',
+      linked: tempId,
+      employeePayment: { _id: tempId, employee: employeePayment.employee },
+      createdAt,
     }
     const tempEmployeePayment = { ...employeePayment, _id: tempId, income: employeePayment.branch ? incomeId : null, extraOutgoing: extraOutgoingId }
 
@@ -67,6 +72,7 @@ export const useEmployeesPayments = ({ companyId = null, date = null, employeeId
     let prevSupervisorsReportsCash = null;
     let prevExtraOutgoings = null;
     let prevSupervisorsReportsExtra = null;
+
     try {
       // --- ACTUALIZACIÓN OPTIMISTA DE incomes y branchReports SI HAY branch ---
       if (employeePayment.branch) {
@@ -80,7 +86,7 @@ export const useEmployeesPayments = ({ companyId = null, date = null, employeeId
         prevBranchReports = queryClient.getQueryData(['branchReports', employeePayment.company, date]);
         optimisticUpdateReport({
           queryClient,
-          queryKey: ['branchReports', employeePayment.company, formatDate(date)],
+          queryKey: ['branchReports', employeePayment.company, date],
           matchFn: (report, item) => getId(report.branch) === getId(item.branch),
           updateFn: (report, item) => addToArrayAndSum(report, 'incomesArray', 'incomes', item),
           item: income
@@ -89,7 +95,7 @@ export const useEmployeesPayments = ({ companyId = null, date = null, employeeId
         prevSupervisorsReportsCash = queryClient.getQueryData(['supervisorsReportInfo', employeePayment.company, date]);
         optimisticUpdateReport({
           queryClient,
-          queryKey: ['supervisorsReportInfo', employeePayment.company, formatDate(date)],
+          queryKey: ['supervisorsReportInfo', employeePayment.company, date],
           matchFn: (report, item) => getId(report.supervisor) && getId(report.supervisor) === getId(item.employee),
           updateFn: (report, item) => addToArrayAndSum(report, 'cashArray', 'cash', item),
           item: income
@@ -97,7 +103,7 @@ export const useEmployeesPayments = ({ companyId = null, date = null, employeeId
       }
       // --- ACTUALIZACIÓN OPTIMISTA DE extraOutgoings ---
       prevExtraOutgoings = queryClient.getQueryData(['extraOutgoings', employeePayment.company, date]);
-      queryClient.setQueryData(['extraOutgoings', employeePayment.company, formatDate(date)], (old = []) => {
+      queryClient.setQueryData(['extraOutgoings', employeePayment.company, date], (old = []) => {
         if (old.find(e => getId(e) === getId(extraOutgoing))) return old;
         return [extraOutgoing, ...old];
       });
@@ -105,7 +111,7 @@ export const useEmployeesPayments = ({ companyId = null, date = null, employeeId
       prevSupervisorsReportsExtra = queryClient.getQueryData(['supervisorsReportInfo', employeePayment.company, date]);
       optimisticUpdateReport({
         queryClient,
-        queryKey: ['supervisorsReportInfo', employeePayment.company, formatDate(date)],
+        queryKey: ['supervisorsReportInfo', employeePayment.company, date],
         matchFn: (report, item) => getId(report.supervisor) && getId(report.supervisor) === getId(item.employee),
         updateFn: (report, item) => addToArrayAndSum(report, 'extraOutgoingsArray', 'extraOutgoings', item),
         item: extraOutgoing
@@ -149,15 +155,15 @@ export const useEmployeesPayments = ({ companyId = null, date = null, employeeId
       // --- ACTUALIZACIÓN OPTIMISTA DE incomes y branchReports SI HAY branch ---
       if (employeePayment.branch) {
         // Incomes
-        prevIncomes = queryClient.getQueryData(['incomes', employeePayment.company, formatDate(employeePayment.createdAt || date)]);
-        queryClient.setQueryData(['incomes', employeePayment.company, formatDate(employeePayment.createdAt || date)], (old = []) => {
+        prevIncomes = queryClient.getQueryData(['incomes', employeePayment.company, date]);
+        queryClient.setQueryData(['incomes', employeePayment.company, date], (old = []) => {
           return old.filter(i => getId(i) !== getId(employeePayment.income));
         });
         // branchReports
-        prevBranchReports = queryClient.getQueryData(['branchReports', employeePayment.company, formatDate(employeePayment.createdAt || date)]);
+        prevBranchReports = queryClient.getQueryData(['branchReports', employeePayment.company, date]);
         optimisticUpdateReport({
           queryClient,
-          queryKey: ['branchReports', employeePayment.company, formatDate(employeePayment.createdAt || date)],
+          queryKey: ['branchReports', employeePayment.company, date],
           matchFn: (report, item) => getId(report.branch) === getId(item.branch),
           updateFn: (report, item) => {
             // Elimina income de incomesArray y resta incomes
@@ -173,7 +179,7 @@ export const useEmployeesPayments = ({ companyId = null, date = null, employeeId
         prevSupervisorsReportsCash = queryClient.getQueryData(['supervisorsReportInfo', employeePayment.company, formatDate(employeePayment.createdAt || date)]);
         optimisticUpdateReport({
           queryClient,
-          queryKey: ['supervisorsReportInfo', employeePayment.company, formatDate(employeePayment.createdAt || date)],
+          queryKey: ['supervisorsReportInfo', employeePayment.company, date],
           matchFn: (report, item) => getId(report.supervisor) && getId(report.supervisor) === getId(item.employee),
           updateFn: (report, item) => {
             return {
@@ -186,15 +192,15 @@ export const useEmployeesPayments = ({ companyId = null, date = null, employeeId
         });
       }
       // --- ACTUALIZACIÓN OPTIMISTA DE extraOutgoings ---
-      prevExtraOutgoings = queryClient.getQueryData(['extraOutgoings', employeePayment.company, formatDate(employeePayment.createdAt || date)]);
-      queryClient.setQueryData(['extraOutgoings', employeePayment.company, formatDate(employeePayment.createdAt || date)], (old = []) => {
-        return old.filter(e => getId(e) !== getId(employeePayment.extraOutgoing));
+      prevExtraOutgoings = queryClient.getQueryData(['extraOutgoings', employeePayment.company, date]);
+      queryClient.setQueryData(['extraOutgoings', employeePayment.company, employeePayment.createdAt || date], (old = []) => {
+        return old.filter(e => getId(e) !== getId(employeePayment.extraOutgoing) && getId(e.linked) !== getId(employeePayment._id));
       });
       // --- supervisorsReportInfo: extraOutgoing de extraOutgoingsArray y extraOutgoings ---
-      prevSupervisorsReportsExtra = queryClient.getQueryData(['supervisorsReportInfo', employeePayment.company, formatDate(employeePayment.createdAt || date)]);
+      prevSupervisorsReportsExtra = queryClient.getQueryData(['supervisorsReportInfo', employeePayment.company, date]);
       optimisticUpdateReport({
         queryClient,
-        queryKey: ['supervisorsReportInfo', employeePayment.company, formatDate(employeePayment.createdAt || date)],
+        queryKey: ['supervisorsReportInfo', employeePayment.company, date],
         matchFn: (report, item) => getId(report.supervisor) && getId(report.supervisor) === getId(item.employee),
         updateFn: (report, item) => {
           return {
@@ -215,22 +221,22 @@ export const useEmployeesPayments = ({ companyId = null, date = null, employeeId
     } catch (error) {
       // Rollback de todos los caches
       if (employeePayment.branch) {
-        if (prevIncomes) queryClient.setQueryData(['incomes', employeePayment.company, formatDate(employeePayment.createdAt || date)], prevIncomes);
+        if (prevIncomes) queryClient.setQueryData(['incomes', employeePayment.company, date], prevIncomes);
         if (prevBranchReports) rollbackReport({
           queryClient,
-          queryKey: ['branchReports', employeePayment.company, formatDate(employeePayment.createdAt || date)],
+          queryKey: ['branchReports', employeePayment.company, date],
           prevReports: prevBranchReports
         });
         if (prevSupervisorsReportsCash) rollbackReport({
           queryClient,
-          queryKey: ['supervisorsReportInfo', employeePayment.company, formatDate(employeePayment.createdAt || date)],
+          queryKey: ['supervisorsReportInfo', employeePayment.company, date],
           prevReports: prevSupervisorsReportsCash
         });
       }
-      if (prevExtraOutgoings) queryClient.setQueryData(['extraOutgoings', employeePayment.company, formatDate(employeePayment.createdAt || date)], prevExtraOutgoings);
+      if (prevExtraOutgoings) queryClient.setQueryData(['extraOutgoings', employeePayment.company, date], prevExtraOutgoings);
       if (prevSupervisorsReportsExtra) rollbackReport({
         queryClient,
-        queryKey: ['supervisorsReportInfo', employeePayment.company, formatDate(employeePayment.createdAt || date)],
+        queryKey: ['supervisorsReportInfo', employeePayment.company, date],
         prevReports: prevSupervisorsReportsExtra
       });
       pushEmployeePayment(employeePayment)

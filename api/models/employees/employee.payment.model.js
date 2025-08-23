@@ -38,9 +38,23 @@ const employeePaymentSchema = new mongoose.Schema({
     type: Schema.Types.ObjectId, ref: 'IncomeCollected',
   },
 
+  // Optional polymorphic link to related document (ExtraOutgoing or IncomeCollected)
+  linkedModel: {
+    type: String,
+    enum: ['ExtraOutgoing', 'IncomeCollected'],
+    default: null
+  },
+
+  linked: {
+    type: Schema.Types.ObjectId,
+    refPath: 'linkedModel',
+    default: null
+  },
+
 }, { timestamps: true })
 
 employeePaymentSchema.index({ createdAt: -1, employee: 1 }, { unique: true })
+employeePaymentSchema.index({ linkedModel: 1, linked: 1 })
 
 const EmployeePayment = mongoose.model('EmployeePayment', employeePaymentSchema)
 

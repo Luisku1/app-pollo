@@ -57,6 +57,9 @@ const providerInputSchema = mongoose.Schema({
 
 }, { timestamps: true })
 
+providerInputSchema.index({ product: 1, company: 1, branch: 1, createdAt: -1 })
+providerInputSchema.index({ product: 1, company: 1, customer: 1, createdAt: -1 })
+
 const ProviderInput = mongoose.model('ProviderInput', providerInputSchema)
 
 export default ProviderInput

@@ -1,7 +1,6 @@
 import { useMemo, useState, useEffect } from "react"
 import { useQuery } from '@tanstack/react-query';
 import { getSupervisorsInfoReportFetch } from "../../services/Supervisors/getSupervisorsReportInfo"
-import { formatDate } from "../../../../common/dateOps";
 
 export const useSupervisorsReportInfo = ({ companyId, date, onlyNegativeBalances = false }) => {
 

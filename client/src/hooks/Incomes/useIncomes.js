@@ -292,8 +292,8 @@ export const useIncomes = ({ companyId = null, date = null, useToday, initialInc
     return [...branchesIncomes, ...clientsIncomes];
   }, [effectiveIncomes]);
 
-  const payments = useMemo(() => sortedIncomes.filter((income) => income.partOfAPayment), [sortedIncomes]);
-  const noPayments = useMemo(() => sortedIncomes.filter((income) => !income.partOfAPayment), [sortedIncomes]);
+  const payments = useMemo(() => sortedIncomes.filter((income) => income.partOfAPayment || income.linkedModel === 'EmployeePayment'), [sortedIncomes]);
+  const noPayments = useMemo(() => sortedIncomes.filter((income) => !(income.partOfAPayment || income.linkedModel === 'EmployeePayment')), [sortedIncomes]);
 
   return {
     incomes: sortedIncomes,

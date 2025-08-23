@@ -15,6 +15,7 @@ import Modal from "../components/Modals/Modal";
 import { useLoading } from "../hooks/loading.js";
 import BranchReportCard from "../components/BranchReportCard.jsx";
 import SupervisorReportCard from "../components/SupervisorReportCard.jsx";
+import CustomerReportCard from "../components/CustomerReportCard.jsx";
 import BranchReportTable from '../components/BranchReportTable';
 import { useCustomersReports } from "../hooks/CustomerReports/useCustomerReports.js";
 import SupervisorReportTable from '../components/SupervisorReportTable';
@@ -37,6 +38,7 @@ import ProviderMovementsCard from "../components/statistics/ProviderMovementsCar
 import { dateFromYYYYMMDD } from "../../../common/dateOps.js";
 import ShowListModal from "../components/Modals/ShowListModal.jsx";
 import OutgoingsList from "../components/Outgoings/OutgoingsList.jsx";
+import PricesCard from "../components/statistics/PricesCard.jsx";
 
 
 
@@ -235,7 +237,8 @@ export default function Reporte() {
   ])
 
   const [pieChartInfo, setPieChartInfo] = useState([])
-  const [selectedBranchReport, setSelectedBranchReport] = useState(null);
+  // Store stable entity ids instead of full report objects
+  const [selectedBranch, setSelectedBranch] = useState(null); // branch._id
   const [currentView, setCurrentView] = useState({ view: "branches", props: {} });
   const [showOutputs, setShowOutputs] = useState(false)
   const [showProviderInputs, setShowProviderInputs] = useState(false);
@@ -344,7 +347,8 @@ export default function Reporte() {
     ])
   }, [supervisorsInfo, deposits, extraOutgoings, missingIncomes, netIncomes, verifiedCash, terminalIncomes, totalIncomes, verifiedDeposits, verifiedIncomes, cashArray, terminalIncomesArray, depositsArray, extraOutgoingsArray, setCurrentView, setShowTable, setOnlyNegativeBalances])
 
-  const [selectedSupervisorReport, setSelectedSupervisorReport] = useState(null);
+  const [selectedSupervisor, setSelectedSupervisor] = useState(null); // supervisor._id
+  const [selectedCustomer, setSelectedCustomer] = useState(null); // customer._id
 
   useEffect(() => {
     // Atajo de teclado para alternar tablas con ctrl+shift+1,2,3,4
@@ -383,6 +387,25 @@ export default function Reporte() {
   useEffect(() => {
     document.title = 'Reporte (' + dateFromYYYYMMDD(currentDate).toLocaleDateString() + ')'
   }, [currentDate])
+
+  // Auto-close modals if current date's data doesn't contain the selected entity
+  useEffect(() => {
+    if (!selectedBranch) return;
+    const exists = branchReports?.some(r => (r?.branch?._id || r?.branch) === selectedBranch);
+    if (!exists) setSelectedBranch(null);
+  }, [selectedBranch, branchReports]);
+
+  useEffect(() => {
+    if (!selectedSupervisor) return;
+    const exists = supervisorsInfo?.some(r => (r?.supervisor?._id || r?.supervisor) === selectedSupervisor);
+    if (!exists) setSelectedSupervisor(null);
+  }, [selectedSupervisor, supervisorsInfo]);
+
+  useEffect(() => {
+    if (!selectedCustomer) return;
+    const exists = customerReports?.some(r => (r?.customer?._id || r?.customer) === selectedCustomer);
+    if (!exists) setSelectedCustomer(null);
+  }, [selectedCustomer, customerReports]);
 
   // Mostrar ayuda de atajos solo en pantallas grandes (desktop)
   const [showShortcutsHelp, setShowShortcutsHelp] = useState(false);
@@ -458,35 +481,66 @@ export default function Reporte() {
 
       {/* Shortcuts help always above overlay */}
       {showShortcutsHelp && shortcutsHelp}
-      {selectedBranchReport && (
+      {selectedBranch && (
         <Modal
           content={
-            <BranchReportCard
-              reportData={selectedBranchReport}
-              updateBranchReportSingle={replaceReport}
-              defaultDetailsShowed={null}
-              selfChange={setSelectedBranchReport}
-            />
+            (() => {
+              const current = branchReports?.find(r => (r?.branch?._id || r?.branch) === selectedBranch);
+              if (!current) return null;
+              return (
+                <BranchReportCard
+                  reportData={current}
+                  updateBranchReportSingle={replaceReport}
+                  defaultDetailsShowed={null}
+                  selfChange={() => { /* no-op: resolved by id */ }}
+                />
+              );
+            })()
           }
           fit={true}
           closeModal={() => {
-            setSelectedBranchReport(null);
+            setSelectedBranch(null);
           }}
         />
       )}
-      {selectedSupervisorReport && (
+      {selectedSupervisor && (
         <Modal
           content={
-            <SupervisorReportCard
-              supervisorReport={selectedSupervisorReport}
-              updateSupervisorReportSingle={replaceSupervisorReport}
-              selfChange={setSelectedSupervisorReport}
-              defaultDetailsShowed={null}
-            />
+            (() => {
+              const current = supervisorsInfo?.find(r => (r?.supervisor?._id || r?.supervisor) === selectedSupervisor);
+              if (!current) return null;
+              return (
+                <SupervisorReportCard
+                  supervisorReport={current}
+                  updateSupervisorReportSingle={replaceSupervisorReport}
+                  selfChange={() => { /* no-op: resolved by id */ }}
+                  defaultDetailsShowed={null}
+                />
+              );
+            })()
           }
           fit={true}
           closeModal={() => {
-            setSelectedSupervisorReport(null);
+            setSelectedSupervisor(null);
+          }}
+        />
+      )}
+      {selectedCustomer && (
+        <Modal
+          content={
+            (() => {
+              const current = customerReports?.find(r => (r?.customer?._id || r?.customer) === selectedCustomer);
+              if (!current) return null;
+              return (
+                <CustomerReportCard
+                  reportData={current}
+                />
+              );
+            })()
+          }
+          fit={true}
+          closeModal={() => {
+            setSelectedCustomer(null);
           }}
         />
       )}
@@ -632,7 +686,7 @@ export default function Reporte() {
                   {currentView.view === 'branches' && (
                     <BranchReportTable
                       branchReports={branchReports}
-                      onRowClick={setSelectedBranchReport}
+                      onRowClick={(branchReport) => setSelectedBranch(branchReport?.branch?._id || branchReport?.branch)}
                       totals={{
                         initialStock: {
                           value: (
@@ -706,7 +760,7 @@ export default function Reporte() {
                     <div ref={supervisorTableRef}>
                       <SupervisorReportTable
                         supervisorReports={supervisorsInfo}
-                        onRowClick={setSelectedSupervisorReport}
+                        onRowClick={(supReport) => setSelectedSupervisor(supReport?.supervisor?._id || supReport?.supervisor)}
                         totals={{
                           grossIncomes: currency(grossIncomes),
                           verifiedIncomes: currency(verifiedIncomes),
@@ -726,7 +780,7 @@ export default function Reporte() {
                   {currentView.view === 'customers' && (
                     <CustomerReportTable
                       customerReports={customerReports}
-                      onRowClick={() => { }}
+                      onRowClick={(customerReport) => setSelectedCustomer(customerReport?.customer?._id || customerReport?.customer)}
                       totals={{
                         salesAmount: currency(totalSales),
                         returns: currency(totalReturns),
@@ -877,6 +931,7 @@ export default function Reporte() {
                       <OutgoingsCard branchReports={branchReports} />
                       <BranchBalanceCard branchReports={branchReports} updateBranchReportSingle={replaceReport} />
                       <NetDifferenceCard />
+                      <PricesCard />
                     </div>
                     {showPieChartModal && (
                       <Modal

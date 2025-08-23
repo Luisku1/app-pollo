@@ -55,11 +55,12 @@ export default function EmployeePaymentsList({ payments, onDelete = null, splice
     const employee = payment.employee || payment.deletedEmployee;
     const { amount, supervisor, income, createdAt } = payment
     const tempPayment = { ...payment, index }
+    const isMine = (employee?._id === currentUser._id) || (supervisor?._id === currentUser._id)
 
     return (
       isAuthorized(supervisor) && (
         <div className="" key={payment._id}>
-          <div className="grid grid-cols-12 border border-black border-opacity-30 rounded-2xl shadow-sm mb-2 py-1">
+          <div className={`grid grid-cols-12 rounded-2xl shadow-sm mb-2 py-1 border ${isMine ? 'border-sky-300' : 'border-black border-opacity-30'}`}>
             <div id="list-element" className="col-span-10 items-center">
               <div className="text-red-800 mb-1">
                 <RowItem>

@@ -17,6 +17,11 @@ const productSchema = mongoose.Schema({
 		default: false
 	},
 
+	isSupply: {
+		type: Boolean,
+		default: false
+	},
+
 	priceFormula: {
 		type: String,
 		default: ''
@@ -27,6 +32,8 @@ const productSchema = mongoose.Schema({
 		required: true
 	}
 })
+
+productSchema.index({ name: 1, company: 1 }, { unique: true })
 
 const Product = mongoose.model('Product', productSchema)
 

@@ -25,9 +25,9 @@ export default function ExtraOutgoingsList({ extraOutgoings, onDelete = null }) 
     { key: 'concept', label: 'Concepto' },
     { key: 'amountt', label: 'Monto', format: (data) => currency({ amount: data.amount }) },
     { key: 'createdAt', label: 'Hora', format: (data) => formatDateAndTime(data.createdAt) },
-    ...(selectedOutgoing?.partOfAPayment && selectedOutgoing ? [
-      { key: 'partOfAPayment', label: 'Parte de un pago', format: (data) => data.partOfAPayment ? 'Sí' : 'No' },
-      { key: 'payment.employee', label: 'Deudor', format: (data) => data.employeePayment ? getEmployeeFullName(data.employeePayment.employee) : '' }
+    ...(selectedOutgoing?.linkedModel ? [
+      { key: 'linkedModel', label: 'Vinculado a', format: (data) => data.linkedModel === 'EmployeePayment' ? 'Pago a empleado' : (data.linkedModel === 'IncomeCollected' ? 'Ingreso' : '') },
+      { key: 'linked', label: 'Referencia', format: (data) => data.linked?._id || data.linked || '' }
     ] : [])
   ]
 
@@ -47,13 +47,13 @@ export default function ExtraOutgoingsList({ extraOutgoings, onDelete = null }) 
 
   const renderOutgoingItem = (outgoing, index) => {
     const employee = outgoing.employee || outgoing.deletedEmployee;
-    const { concept, amount, partOfAPayment, employeePayment } = outgoing
+    const { concept, amount, linkedModel, linked, employeePayment } = outgoing
     const tempOutgoing = { ...outgoing, index }
 
     return (
       isAuthorized(employee) && (
         <div className="" key={outgoing._id}>
-          <div className="grid grid-cols-12 border border-black border-opacity-30 rounded-2xl shadow-sm mb-2 py-1">
+          <div className={`grid grid-cols-12 rounded-2xl shadow-sm mb-2 py-1 border ${employee?._id === currentUser._id ? 'border-sky-300' : 'border-black border-opacity-30'}`}>
             <div id="list-element" className="col-span-10 items-center">
               <div id="list-element" className="grid grid-cols-12">
                 <div className='col-span-12'>
@@ -71,12 +71,12 @@ export default function ExtraOutgoingsList({ extraOutgoings, onDelete = null }) 
                       <p className={`text-md text-orange-500 font-bold`}>{currency({ amount })}</p>
                     </RowItem>
                   </div>
-                  {partOfAPayment && employeePayment && (
+                  {linkedModel === 'EmployeePayment' && (
                     <div className="w-full">
                       <RowItem>
                         <div className="flex gap-1 items-center">
                           <p className="mr-2 text-md font-semibold">Pago a: </p>
-                          <p className="text-red-800 font-semibold">{getEmployeeFullName(employeePayment?.employee) ?? ''}</p>
+                          <p className="text-red-800 font-semibold">{getEmployeeFullName((employeePayment?.employee) || (linked?.employee)) ?? ''}</p>
                         </div>
                       </RowItem>
                     </div>
@@ -93,7 +93,7 @@ export default function ExtraOutgoingsList({ extraOutgoings, onDelete = null }) 
                   className="border rounded-lg shadow-md w-10 h-10 flex justify-center items-center" >
                   <CiSquareInfo className="w-full h-full text-blue-600" />
                 </button>
-                {deletable && !partOfAPayment && (
+                {deletable && !linkedModel && (
                   <div className="flex justify-center h-10 w-10">
                     <DeleteButton
                       deleteFunction={() => onDelete(tempOutgoing)} />
@@ -120,7 +120,7 @@ export default function ExtraOutgoingsList({ extraOutgoings, onDelete = null }) 
     return (
       <div>
         <div className="w-full flex justify-center">
-          {deletable && selectedOutgoing && !selectedOutgoing.partOfAPayment && (
+          {deletable && selectedOutgoing && !selectedOutgoing.linkedModel && (
             <div className="w-full flex flex-col gap-2">
               <ConfirmationButton onConfirm={() => onDelete(selectedOutgoing)} className="bg-delete-button text-white w-10/12 rounded-xl">
                 Eliminar

@@ -23,33 +23,33 @@ export const productAggregate = (localField, as = null) => {
 
 export const newProduct = async (req, res, next) => {
 
-	const { name, company, price } = req.body
+	const { name, company, price, byPieces = false, isSupply = false } = req.body
 	const createdAt = new Date().toISOString()
 	let bulkOps = []
 
-	const newProduct = new Product({ name, company, createdAt })
+	const newProduct = new Product({ name, company, createdAt, byPieces, isSupply })
 
 	try {
 
 		await newProduct.save()
 
-		const branches = await Branch.find({ company }, ['_id'])
-
-		const { bottomDate } = getDayRange(new Date())
-
-		branches.forEach(branch => {
-
-			let document = {
-				price: price || 0,
-				product: newProduct._id,
-				branch: branch._id,
-				company: company,
-				createdAt: bottomDate
+		if (!isSupply) { // sólo crear precios por sucursal si no es insumo
+			const branches = await Branch.find({ company }, ['_id'])
+			const { bottomDate } = getDayRange(new Date())
+			branches.forEach(branch => {
+				let document = {
+					price: price || 0,
+					product: newProduct._id,
+					branch: branch._id,
+					company: company,
+					createdAt: bottomDate
+				}
+				bulkOps.push({ "insertOne": { "document": document } })
+			});
+			if (bulkOps.length) {
+				Price.bulkWrite(bulkOps)
 			}
-			bulkOps.push({ "insertOne": { "document": document } })
-		});
-
-		Price.bulkWrite(bulkOps)
+		}
 
 		res.status(201).json({ product: newProduct })
 
@@ -61,13 +61,14 @@ export const newProduct = async (req, res, next) => {
 
 export const updateProduct = async (req, res, next) => {
 	const productId = req.params.productId
-	const { name, byPieces } = req.body
+	const { name, byPieces, isSupply } = req.body
 
 	try {
 
 		const updatedProduct = await Product.findByIdAndUpdate(productId, {
-			name,
-			byPieces
+			...(name !== undefined ? { name } : {}),
+			...(byPieces !== undefined ? { byPieces } : {}),
+			...(isSupply !== undefined ? { isSupply } : {}),
 		}, { new: true })
 
 		if (updatedProduct) {

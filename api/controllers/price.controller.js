@@ -414,6 +414,62 @@ export const getCustomerProductPrice = async (req, res, next) => {
   }
 };
 
+// Promedios de precios actuales por producto (promedio entre sucursales)
+export const getAvgPrices = async (req, res, next) => {
+  try {
+    const { companyId, residuals } = req.query;
+    if (!companyId) return next(errorHandler(400, 'companyId es requerido'));
+
+    const residualMatch = (residuals === 'true')
+      ? { residual: true }
+      : {
+        $or: [
+          { residual: false },
+          { residual: { $exists: false } }
+        ]
+      };
+
+    const data = await Branch.aggregate([
+      { $match: { company: new Types.ObjectId(companyId) } },
+      {
+        $lookup: {
+          from: 'prices',
+          let: { branchId: '$_id' },
+          pipeline: [
+            { $match: { $expr: { $eq: ['$branch', '$$branchId'] }, ...residualMatch } },
+            { $sort: { createdAt: -1 } },
+            { $group: { _id: '$product', latestPrice: { $first: '$price' } } }
+          ],
+          as: 'branchPrices'
+        }
+      },
+      { $unwind: { path: '$branchPrices', preserveNullAndEmptyArrays: false } },
+      {
+        $group: {
+          _id: '$branchPrices._id',
+          avgPrice: { $avg: '$branchPrices.latestPrice' },
+          branchesCount: { $sum: 1 }
+        }
+      },
+      {
+        $lookup: {
+          from: 'products',
+          localField: '_id',
+          foreignField: '_id',
+          as: 'product'
+        }
+      },
+      { $unwind: '$product' },
+      { $project: { _id: 0, productId: '$_id', productName: '$product.name', avgPrice: 1, branchesCount: 1 } },
+      { $sort: { productName: 1 } }
+    ]);
+
+    return res.status(200).json({ data });
+  } catch (error) {
+    next(error);
+  }
+}
+
 export const getProductPrice = async (productId, branchId, topDate = new Date(), residualPrice = false) => {
 
   try {

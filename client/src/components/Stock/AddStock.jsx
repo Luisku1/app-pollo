@@ -7,6 +7,7 @@ import ShowListModal from "../Modals/ShowListModal"
 import StockList from "./StockList"
 import { getArrayForSelects, getElementForSelect } from "../../helpers/Functions"
 import { ToastInfo, ToastSuccess } from "../../helpers/toastify"
+import { calculateAmount } from "../../../../common/calculateAmount"
 import { useDateNavigation } from "../../hooks/useDateNavigation"
 
 export default function AddStock({ title, midDay, modifyBalance, stock, isReport = false, listButton, weight, amount, products, onAddStock, onDeleteStock, branch, employee, branchPrices }) {
@@ -16,6 +17,7 @@ export default function AddStock({ title, midDay, modifyBalance, stock, isReport
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [stockFormData, setStockFormData] = useState({ pieces: '', weight: '' })
   const [isButtonDisabled, setIsButtonDisabled] = useState(true)
+  const [amountFormatted, setAmountFormatted] = useState('$0.00')
 
   const handleProductSelectChange = (option) => {
     setSelectedProduct(option)
@@ -45,6 +47,27 @@ export default function AddStock({ title, midDay, modifyBalance, stock, isReport
 
     stockButtonControl()
   }, [branch, employee, selectedProduct, stockFormData])
+
+  // Calculate and show amount like Entradas.jsx
+  const generarMonto = () => {
+    try {
+      if (!selectedProduct) {
+        setAmountFormatted('$0.00')
+        return
+      }
+      const weight = stockFormData.weight !== '' ? parseFloat(stockFormData.weight) : 0
+      const price = getProductPrice(selectedProduct.value)
+      const monto = calculateAmount(price || 0, false, weight, 0)
+      setAmountFormatted(monto.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' }))
+    } catch {
+      setAmountFormatted('$0.00')
+    }
+  }
+
+  useEffect(() => {
+    generarMonto()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedProduct, stockFormData.weight, branchPrices])
 
   const addStockItem = async (e) => {
     e.preventDefault()
@@ -135,7 +158,7 @@ export default function AddStock({ title, midDay, modifyBalance, stock, isReport
       <div className='grid grid-cols-1'>
         <SectionHeader label={title} />
       </div>
-      <form onSubmit={addStockItem} className="grid grid-cols-1 sm:grid-cols-4 gap-2">
+      <form onSubmit={addStockItem} className="grid grid-cols-1 sm:grid-cols-5 gap-2">
         <Select
           styles={customStockSelectStyles}
           options={getArrayForSelects(products, (product) => { return product.name })}
@@ -148,7 +171,14 @@ export default function AddStock({ title, midDay, modifyBalance, stock, isReport
           <input type="number" name="pieces" id="pieces" placeholder='Piezas' step={0.1} className='w-full border border-black p-3 rounded-lg [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none' required value={stockFormData.pieces} onChange={handleStockInputsChange} inputMode="decimal" />
         </div>
         <div className=''>
-          <input type="number" name="weight" id="weight" placeholder='0.00 kg' step={0.001} className='w-full border border-black p-3 rounded-lg [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none' required value={stockFormData.weight} onChange={handleStockInputsChange} inputMode="decimal" />
+          <input type="number" name="weight" id="weight" placeholder='0.00 kg' step={0.001} className='w-full border border-black p-3 rounded-lg [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none' required value={stockFormData.weight} onChange={(e) => { handleStockInputsChange(e); generarMonto(); }} inputMode="decimal" />
+        </div>
+        {/* Monto total (sólo informativo) */}
+        <div className='relative items-center'>
+          <p id="stock-amount" className='text-green-700 bg-gray-100 w-full border border-black rounded-md p-3'>{amountFormatted}</p>
+          <label htmlFor="stock-amount" className="-translate-y-full px-1 absolute top-1/4 left-2 rounded-sm bg-white text-green-700 text-sm font-bold">
+            Total
+          </label>
         </div>
         <button type='submit' id='stock-button' disabled={isButtonDisabled} className='bg-button text-white p-3 rounded-lg min-h-[44px]'>Agregar</button>
       </form>

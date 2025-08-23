@@ -83,32 +83,28 @@ export default function Entradas({ selectedProduct, setSelectedProduct, date: re
 
 
   const inputButtonControl = () => {
-
     const weightInput = document.getElementById('input-weight')
     const piecesInput = document.getElementById('input-pieces')
     const button = document.getElementById('input-button')
 
-    if (!weightInput || !piecesInput || !button) return
+    if (!piecesInput || !button) return
 
+    const byPieces = internalSelectedProduct?.byPieces === true
     let filledInputs = true
 
-    if (piecesInput.value == '') {
-
+    if (piecesInput.value === '') {
       filledInputs = false
-
     }
 
-    if (weightInput.value == '') {
-
-      filledInputs = false
+    if (!byPieces) {
+      if (!weightInput || weightInput.value === '') {
+        filledInputs = false
+      }
     }
 
     if (filledInputs && selectedCustomerBranchOption != null && !priceIsLoading && selectedProduct != null && !loading) {
-
       button.disabled = false
-
     } else {
-
       button.disabled = true
     }
   }
@@ -160,8 +156,10 @@ export default function Entradas({ selectedProduct, setSelectedProduct, date: re
     let input = {}
 
     try {
-
+      const byPieces = internalSelectedProduct?.byPieces === true
       const { weight, pieces } = inputFormData
+      const safeWeight = byPieces ? '0' : (weight ?? '')
+      const safePieces = pieces ?? ''
 
       const group = selectedGroup == 'Sucursales' ? 'branch' : 'customer'
 
@@ -171,8 +169,8 @@ export default function Entradas({ selectedProduct, setSelectedProduct, date: re
           price: finalPrice,
           amount: parseFloat(amount.replace(/[$,]/g, '')),
           comment: commentInput.value == '' ? 'Todo bien' : commentInput.value,
-          weight: parseFloat(weight),
-          pieces: parseFloat(pieces),
+          weight: parseFloat(safeWeight),
+          pieces: parseFloat(safePieces),
           specialPrice: priceInput.value == '' ? false : true,
           company: company._id,
           product: selectedProduct,
@@ -188,8 +186,8 @@ export default function Entradas({ selectedProduct, setSelectedProduct, date: re
           price: finalPrice,
           amount: parseFloat(amount.replace(/[$,]/g, '')),
           comment: commentInput.value == '' ? 'Todo bien' : commentInput.value,
-          weight: parseFloat(weight),
-          pieces: parseFloat(pieces),
+          weight: parseFloat(safeWeight),
+          pieces: parseFloat(safePieces),
           specialPrice: priceInput.value == '' ? false : true,
           company: company._id,
           product: selectedProduct,
@@ -346,7 +344,7 @@ export default function Entradas({ selectedProduct, setSelectedProduct, date: re
             </div>
           </div>
           {/* Fin bloque precio */}
-          <div className="grid grid-cols-3 gap-2">
+          <div className={`grid ${internalSelectedProduct?.byPieces ? 'grid-cols-2' : 'grid-cols-3'} gap-2`}>
             <div className='relative'>
               <input
                 type="number"
@@ -365,24 +363,26 @@ export default function Entradas({ selectedProduct, setSelectedProduct, date: re
                 Piezas <span>*</span>
               </label>
             </div>
-            <div className='relative'>
-              <input
-                type="number"
-                name="weight"
-                id="input-weight"
-                placeholder='0.000 kg'
-                step={0.001}
-                className='w-full border border-black p-3 rounded-lg'
-                required
-                onInput={inputButtonControl}
-                onChange={handleInputInputsChange}
-                value={inputFormData.weight}
-                onKeyDown={handleKeyDown}
-              />
-              <label htmlFor="input-weight" className="-translate-y-full px-1 absolute top-1/4 left-2 transform rounded-sm bg-white text-black text-sm font-semibold">
-                Kilos <span>*</span>
-              </label>
-            </div>
+            {!internalSelectedProduct?.byPieces && (
+              <div className='relative'>
+                <input
+                  type="number"
+                  name="weight"
+                  id="input-weight"
+                  placeholder='0.000 kg'
+                  step={0.001}
+                  className='w-full border border-black p-3 rounded-lg'
+                  required
+                  onInput={inputButtonControl}
+                  onChange={handleInputInputsChange}
+                  value={inputFormData.weight}
+                  onKeyDown={handleKeyDown}
+                />
+                <label htmlFor="input-weight" className="-translate-y-full px-1 absolute top-1/4 left-2 transform rounded-sm bg-white text-black text-sm font-semibold">
+                  Kilos <span>*</span>
+                </label>
+              </div>
+            )}
             {/* Campo de amount ahora aquí */}
             <div className='relative items-center'>
               <p type="text" name="amount" id="input-amount" className='text-green-700 bg-gray-100 w-full border border-black rounded-md p-3' >{amount}</p>

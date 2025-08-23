@@ -18,7 +18,7 @@ const inputSchema = mongoose.Schema({
 
   weight: {
     type: Number,
-    required: true
+    required: false
   },
 
   pieces: {

@@ -102,12 +102,13 @@ export default function ListaEntradas({ inputs, onDelete = null }) {
       createdAt,
     } = input;
     const tempInput = { ...input, index };
+    const isMine = employee?._id === currentUser._id
 
     return (
       isAuthorized(employee) && (
         <div className="" key={input._id}>
           {input.weight !== 0 ? (
-            <div className="grid grid-cols-12 border border-black border-opacity-30 rounded-2xl shadow-sm mb-2 py-1">
+            <div className={`grid grid-cols-12 rounded-2xl shadow-sm mb-2 py-1 border ${isMine ? 'border-sky-300' : 'border-black border-opacity-30'}`}>
               <div id="list-element" className="col-span-10 items-center">
                 <div id="list-element" className="grid grid-cols-12">
                   <div className="col-span-12">
@@ -131,7 +132,7 @@ export default function ListaEntradas({ inputs, onDelete = null }) {
                           {product.name}
                         </p>
                         <p className="">{`${pieces} pzs`}</p>
-                        <p className="">{`${weight} kg`}</p>
+                        <p className="">{`${weight ? `${weight} kg` : ''}`}</p>
                         <p className="flex gap-1 items-center">
                           <MoneyBag />
                           {amount.toLocaleString("es-Mx", {

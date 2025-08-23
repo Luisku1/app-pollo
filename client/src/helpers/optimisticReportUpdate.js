@@ -10,7 +10,7 @@ export function optimisticUpdateReport({
   const prevReports = queryClient.getQueryData(queryKey);
   let found = false;
   queryClient.setQueryData(queryKey, (oldReports) => {
-    if (!oldReports) return oldReports;
+    if (!oldReports) return oldReports; // condicional que verifica si oldReports existe, si no existe retorna oldReports
     const updated = oldReports.map(report => {
       if (matchFn(report, item)) {
 

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 export function CreateUpdateProduct({ onSubmit, product, loading = false }) {
 
-  const [productFormData, setProductFormData] = useState({ byPieces: true })
+  const [productFormData, setProductFormData] = useState({ byPieces: true, isSupply: false })
 
   useEffect(() => {
     if (product) {
@@ -10,6 +10,7 @@ export function CreateUpdateProduct({ onSubmit, product, loading = false }) {
         name: product.name,
         price: product.price,
         byPieces: product.byPieces || false,
+        isSupply: product.isSupply || false,
       });
     }
   }, [product]);
@@ -55,7 +56,7 @@ export function CreateUpdateProduct({ onSubmit, product, loading = false }) {
             onInput={productButtonControl}
             onChange={handleProductInputsChange}
           />
-          {!product && (
+          {!product && !productFormData.isSupply && (
             <input
               type="number"
               autoComplete="off"
@@ -71,18 +72,35 @@ export function CreateUpdateProduct({ onSubmit, product, loading = false }) {
             />
           )}
         </div>
-        <div className="flex items-center gap-2 mt-1">
-          <input
-            type="checkbox"
-            id="byPieces"
-            name="byPieces"
-            checked={!!productFormData.byPieces}
-            onChange={e => setProductFormData(prev => ({ ...prev, byPieces: e.target.checked }))}
-            className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-400"
-          />
-          <label htmlFor="byPieces" className="text-sm text-gray-700 select-none cursor-pointer">
-            {`${productFormData.byPieces === false ? 'Marca la casilla si el producto se vende por pieza' : 'Desmarca la casilla si el producto se vende por lote'}`}
-          </label>
+        <div className="flex flex-col gap-2 mt-1">
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="byPieces"
+              name="byPieces"
+              checked={!!productFormData.byPieces}
+              onChange={e => setProductFormData(prev => ({ ...prev, byPieces: e.target.checked }))}
+              className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-400"
+            />
+            <label htmlFor="byPieces" className="text-sm text-gray-700 select-none cursor-pointer">
+              {`${productFormData.byPieces === false ? 'Marca la casilla si el producto se vende por pieza' : 'Desmarca la casilla si el producto se vende por lote'}`}
+            </label>
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="isSupply"
+              name="isSupply"
+              checked={!!productFormData.isSupply}
+              onChange={e => setProductFormData(prev => ({ ...prev, isSupply: e.target.checked }))}
+              className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-400"
+            />
+            <label htmlFor="isSupply" className="text-sm text-gray-700 select-none cursor-pointer">
+              {productFormData.isSupply
+                ? 'Es insumo: no requiere precio por sucursal (clientes sí pueden tener precio)'
+                : 'Marca si es insumo (sin precio por sucursal)'}
+            </label>
+          </div>
         </div>
         <button
           type="submit"

@@ -86,7 +86,7 @@ export default function ProviderMovementsList({ movements = [], totalWeight = 0,
                     <RowItem>
                       <p className="flex gap-1 items-center font-semibold"><GiChickenOven />{product?.name}</p>
                       <p className="">{`${pieces ?? ''} pzs`}</p>
-                      <p className="">{`${weight} kg`}</p>
+                      <p className="">{`${weight ? `${weight} kg` : ''}`}</p>
                       <p className={`flex gap-1 items-center ${isDev ? 'text-red-700' : ''}`}><TbMoneybag className="text-orange-800" />{amount.toLocaleString('es-Mx', { style: 'currency', currency: 'MXN' })}</p>
                     </RowItem>
                   </div>

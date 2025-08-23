@@ -13,6 +13,7 @@ import { useDateNavigation } from "../../hooks/useDateNavigation";
 import { customSelectStyles } from "../../helpers/Constants";
 import { useBranches } from "../../hooks/Branches/useBranches";
 import RegisterDateSwitch from "../RegisterDateSwitch";
+import { useRef } from "react"
 
 export default function Payments({ spliceExtraOutgoingById, showDateSwitch = true, useToday: useTodayProp }) {
 
@@ -50,6 +51,24 @@ export default function Payments({ spliceExtraOutgoingById, showDateSwitch = tru
     }
   }
 
+  // Encapsulated reset for optimistic UI and reuse on error
+  const resetPaymentForm = () => {
+    try {
+      setIsDirectFromBranch(false)
+      setSelectedEmployee(null)
+      setSelectedBranch(null)
+      const amountEl = document.getElementById('paymentAmount')
+      const detailEl = document.getElementById('paymentDetail')
+      if (amountEl) amountEl.value = ''
+      if (detailEl) detailEl.value = ''
+      const btn = document.getElementById('paymentButton')
+      if (btn) btn.disabled = true
+    } finally {
+      // Re-run control to ensure UI state is coherent
+      paymentsButtonControl()
+    }
+  }
+
   const addEmployeePaymentSubmit = async (e) => {
 
     const amount = document.getElementById('paymentAmount')
@@ -59,7 +78,6 @@ export default function Payments({ spliceExtraOutgoingById, showDateSwitch = tru
     e.preventDefault()
 
     try {
-
       const employeePayment = {
         amount: parseFloat(amount.value),
         detail: detail.value,
@@ -70,18 +88,15 @@ export default function Payments({ spliceExtraOutgoingById, showDateSwitch = tru
         createdAt
       }
 
-      onAddEmployeePayment(employeePayment)
+      // Optimistic UI: clear form immediately
+      resetPaymentForm()
 
-      setIsDirectFromBranch(false)
-      setSelectedEmployee(null)
-      setSelectedBranch(null)
-      amount.value = ''
-      detail.value = ''
+      await onAddEmployeePayment(employeePayment)
 
     } catch (error) {
-
       console.log(error)
-
+      // Ensure form is reset even on error (idempotent)
+      resetPaymentForm()
     }
   }
 
@@ -90,15 +105,32 @@ export default function Payments({ spliceExtraOutgoingById, showDateSwitch = tru
     setSelectedEmployee(employee)
   }
 
-  const handleBranchSelectChange = (branch) => {
-
-    setSelectedBranch(branch)
-  }
+  // 🔹 Referencia al Select
+  const branchSelectRef = useRef(null)
 
   const handleCheckboxChange = (e) => {
     setIsDirectFromBranch(e.target.checked);
     if (!e.target.checked) {
       setSelectedBranch(null);
+    }
+  };
+
+  // 🔹 Manejar Enter cuando el checkbox está enfocado
+  const handleCheckboxKeyDown = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault(); // evitar que se dispare el click por defecto del checkbox
+      setIsDirectFromBranch((prev) => {
+        const newValue = !prev;
+        if (!prev) {
+          // Si se está activando, enfocar Select después de un pequeño delay
+          setTimeout(() => {
+            if (branchSelectRef.current) {
+              branchSelectRef.current.focus();
+            }
+          }, 0);
+        }
+        return newValue;
+      });
     }
   };
 
@@ -131,6 +163,7 @@ export default function Payments({ spliceExtraOutgoingById, showDateSwitch = tru
               type="checkbox"
               checked={isDirectFromBranch}
               onChange={handleCheckboxChange}
+              onKeyDown={handleCheckboxKeyDown}  // 🔹 aquí el handler
               className="h-5 w-5 accent-blue-600"
             />
             <span className="text-gray-700">¿El dinero viene directo de una sucursal?</span>
@@ -140,10 +173,11 @@ export default function Payments({ spliceExtraOutgoingById, showDateSwitch = tru
           <div>
             <p className="text-xs text-blue-700 mb-1">Si ya tenías el dinero deja vacío el campo de sucursal</p>
             <Select
+              ref={branchSelectRef}  // 🔹 aquí asignamos la ref
               id='branchSelect'
               styles={customSelectStyles}
               value={getElementForSelect(selectedBranch, (branch) => branch.branch)}
-              onChange={handleBranchSelectChange}
+              onChange={setSelectedBranch}
               options={getArrayForSelects(branches, (branch) => branch.branch)}
               isClearable={true}
               placeholder='¿De qué sucursal salió el dinero?'

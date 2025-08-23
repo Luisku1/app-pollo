@@ -2919,12 +2919,12 @@ export const updateAccountBalance = async (branchReport, changedEmployee) => {
 	let updatedDailyBalance = null
 	let dailyBalance = null
 	let changedEmployeeDailyBalance = null
-	let employee = null
 
 	if (!branchReport) throw new Error("No hay reporte de sucursal");
 
 	const companyId = branchReport.company
 	const employeeId = branchReport.employee?._id ?? branchReport.employee
+
 	if (!employeeId) throw new Error("No hay empleado en el reporte");
 
 	try {
@@ -2938,7 +2938,7 @@ export const updateAccountBalance = async (branchReport, changedEmployee) => {
 		}
 
 		if (!dailyBalance) throw new Error("No se encontró el balance del empleado");
-
+		console.log({ branchReport })
 		const currentBalance = dailyBalance.accountBalance
 		const reportBalance = branchReport.balance
 		const adjustmentBalance = reportBalance - currentBalance
@@ -2952,15 +2952,11 @@ export const updateAccountBalance = async (branchReport, changedEmployee) => {
 
 		if (!updatedDailyBalance) throw new Error("No se actualizó el balance del empleado")
 
-		if (adjustmentBalance === 0)
-			return dailyBalance
+		// Si no hay ajuste monetario, no modificar balances globales
+		if (adjustmentBalance === 0) return dailyBalance
 
-		employee = await Employee.findByIdAndUpdate(employeeId, {
-			$inc: { balance: adjustmentBalance }
-		}, { new: true })
-
+		// Ajustes sobre semanas anteriores
 		if (!(isCurrentWeek || isInmediatePrevWeek)) {
-
 			await adjustBalanceBranchReport(branchReport, adjustmentBalance, currentWeekRange.startDate)
 		}
 
@@ -2968,14 +2964,7 @@ export const updateAccountBalance = async (branchReport, changedEmployee) => {
 
 	} catch (error) {
 
-		if (employee) {
-			await Employee.findByIdAndUpdate(employeeId, {
-				$inc: { balance: -employee.balance }
-			}, { new: false })
-		}
-
 		if (updatedDailyBalance) {
-
 			await EmployeeDailyBalance.findByIdAndUpdate(dailyBalance._id, { accountBalance: dailyBalance.accountBalance })
 		}
 

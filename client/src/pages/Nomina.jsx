@@ -44,6 +44,8 @@ export default function Nomina() {
     )
   }
 
+  console.log({ updateBranchReport, updateSupervisorReport })
+
   return (
     <main className="p-3 mx-auto">
       <div className="max-w-lg">

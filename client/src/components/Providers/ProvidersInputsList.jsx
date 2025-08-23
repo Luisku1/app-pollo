@@ -34,7 +34,7 @@ export default function ProvidersInputsList({ inputs, totalWeight = 0, totalAmou
     { key: 'pieces', label: 'Piezas', format: (data) => data.pieces.toFixed(2) },
     { key: 'price', label: 'Precio', format: (data) => currency({ amount: data.price }) },
     { key: 'amount', label: 'Monto', format: (data) => currency({ amount: data.amount }) },
-    { key: 'branch.branch', label: 'Entró a', format: (data) => data.branch.branch },
+    { key: 'branch.branch', label: 'Entró a', format: (data) => data?.branch?.branch ?? data?.customer?.name },
     { key: 'employee.name', label: 'Encargado', format: (data) => getEmployeeFullName(data.employee) },
     { key: 'comment', label: 'Comentario' },
     { key: 'createdAt', label: 'Hora', format: (data) => formatDateAndTime(data.createdAt) },
@@ -64,6 +64,7 @@ export default function ProvidersInputsList({ inputs, totalWeight = 0, totalAmou
   const renderInputItem = (input, index) => {
     const { employee, product, pieces, weight, amount, customer, branch, comment, createdAt } = input;
     const tempInput = { ...input, index };
+    const isMine = employee?._id === currentUser._id
 
     return (
       isAuthorized(employee) && (
@@ -72,7 +73,7 @@ export default function ProvidersInputsList({ inputs, totalWeight = 0, totalAmou
           key={input._id}
         >
           {input.weight !== 0 ? (
-            <div className="grid grid-cols-12 border border-black border-opacity-30 rounded-2xl shadow-sm mb-2 py-1">
+            <div className={`grid grid-cols-12 rounded-2xl shadow-sm mb-2 py-1 border ${isMine ? 'border-sky-300' : 'border-black border-opacity-30'}`}>
               <div
                 id="list-element"
                 className="col-span-10 items-center"

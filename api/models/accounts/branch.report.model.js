@@ -134,6 +134,27 @@ const branchReportSchema = mongoose.Schema({
     type: Date
   }
 
+  // Lightweight audit log for atomic updates in pushOrPullBranchReportRecord
+  , logs: {
+    type: [{
+      op: { type: String, enum: ['add', 'remove'], required: true },
+      array: { type: String, required: true },
+      amountField: { type: String, required: true },
+      record: { type: Schema.Types.ObjectId, default: null },
+      amount: { type: Number, default: 0 },
+      balanceDelta: { type: Number, default: 0 },
+      employee: { type: Schema.Types.ObjectId, ref: 'Employee', default: null },
+      createdAt: { type: Date, default: Date.now }
+    }],
+    default: []
+  }
+
+  // Raw string logs for easy client list rendering
+  , logsRaw: {
+    type: [String],
+    default: []
+  }
+
 }, { timestamps: { createdAt: true, updatedAt: false } })
 
 branchReportSchema.index({ createdAt: -1, branch: 1, employee: 1 }, { unique: true });

@@ -17,9 +17,17 @@ const extraOutgoingsSchema = mongoose.Schema({
     default: true
   },
 
-  partOfAPayment: {
-    type: Boolean,
-    required: true
+  // Polymorphic link to the originating document (EmployeePayment or IncomeCollected)
+  linkedModel: {
+    type: String,
+    enum: ['EmployeePayment', 'IncomeCollected'],
+    default: null
+  },
+
+  linked: {
+    type: Schema.Types.ObjectId,
+    refPath: 'linkedModel',
+    default: null
   },
 
   company: {
@@ -37,6 +45,10 @@ const extraOutgoingsSchema = mongoose.Schema({
     required: true
   }
 })
+
+// Helpful indexes for common queries
+extraOutgoingsSchema.index({ company: 1, createdAt: -1 })
+extraOutgoingsSchema.index({ linkedModel: 1, linked: 1 })
 
 const ExtraOutgoing = mongoose.model('ExtraOutgoing', extraOutgoingsSchema)
 

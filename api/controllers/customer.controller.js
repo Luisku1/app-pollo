@@ -5,7 +5,7 @@ import { errorHandler } from '../utils/error.js'
 import { getDayRange } from '../utils/formatDate.js'
 import { branchAggregate } from './branch.controller.js'
 import { employeeAggregate, employeePaymentIncomeAggregate } from './employee.controller.js'
-import { incomeAggregate, typeAggregate } from './income.controller.js'
+import { typeAggregate } from './income.controller.js'
 import { productAggregate } from './product.controller.js'
 import { dateFromYYYYMMDD } from '../../common/dateOps.js'
 
@@ -27,11 +27,11 @@ export const customerAggregate = (localField = 'customer') => {
 
 export const newCustomer = async (req, res, next) => {
 
-  const { name, lastName, phoneNumber, location, company } = req.body
+  const { name, lastName, phoneNumber, location, address, company } = req.body
 
   try {
 
-    const newCustomer = new Customer({ name, lastName, phoneNumber, location, company })
+    const newCustomer = new Customer({ name, lastName, phoneNumber, location, address, company })
     await newCustomer.save()
 
     res.status(200).json('New Customer created successfully')
@@ -99,7 +99,7 @@ export const createDefaultCustomerReport = async ({ customerId, date, companyId 
 
   const previousBalance = lastCustomerReport?.balance || 0
 
-  return await CustomerReport.create({ customer: customerId, previousBalance, createdAt: bottomDate, company: companyId })
+  return await CustomerReport.create({ customer: customerId, previousBalance, balance: previousBalance, createdAt: bottomDate, company: companyId })
 }
 
 export const fetchBasicCustomerReport = async ({ customerId, date }) => {
